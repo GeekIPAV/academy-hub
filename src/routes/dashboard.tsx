@@ -88,7 +88,7 @@ function DashboardPage() {
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
           <SortableContext items={widgets} strategy={rectSortingStrategy}>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex flex-col gap-4">
               {widgets.map((id) => (
                 <SortableWidget key={id} id={id} />
               ))}
