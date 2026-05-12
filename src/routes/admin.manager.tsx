@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   DndContext,
@@ -42,18 +42,6 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
-  beforeLoad: () => {
-    if (typeof window === "undefined") return;
-    try {
-      const raw = window.localStorage.getItem("ubuntu.activeRoles");
-      const roles: string[] = raw ? JSON.parse(raw) : ["Formando"];
-      if (!roles.includes("Admin")) throw redirect({ to: "/dashboard" });
-    } catch (e) {
-      // re-throw redirect
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      if ((e as any)?.isRedirect) throw e;
-    }
-  },
   component: AdminManagerPage,
 });
 
