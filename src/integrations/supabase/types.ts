@@ -14,7 +14,169 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      enrollments: {
+        Row: {
+          action_id: string | null
+          enrolled_at: string | null
+          id: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_id?: string | null
+          enrolled_at?: string | null
+          id?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_id?: string | null
+          enrolled_at?: string | null
+          id?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "training_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notion_entities: {
+        Row: {
+          id: string
+          name: string
+          status: string | null
+        }
+        Insert: {
+          id: string
+          name: string
+          status?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          address_cp3: string | null
+          address_cp4: string | null
+          birth_concelho: string | null
+          birth_date: string | null
+          created_at: string | null
+          data_consent: boolean | null
+          education_level: string | null
+          first_names: string | null
+          full_name: string | null
+          gender: string | null
+          id: string
+          id_doc_expiry: string | null
+          id_doc_number: string | null
+          id_doc_type: string | null
+          job_title: string | null
+          last_names: string | null
+          nationality_country: string | null
+          nif: string | null
+          origin_country: string | null
+          residence_concelho: string | null
+          role: string | null
+          work_institution: string | null
+        }
+        Insert: {
+          address?: string | null
+          address_cp3?: string | null
+          address_cp4?: string | null
+          birth_concelho?: string | null
+          birth_date?: string | null
+          created_at?: string | null
+          data_consent?: boolean | null
+          education_level?: string | null
+          first_names?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id: string
+          id_doc_expiry?: string | null
+          id_doc_number?: string | null
+          id_doc_type?: string | null
+          job_title?: string | null
+          last_names?: string | null
+          nationality_country?: string | null
+          nif?: string | null
+          origin_country?: string | null
+          residence_concelho?: string | null
+          role?: string | null
+          work_institution?: string | null
+        }
+        Update: {
+          address?: string | null
+          address_cp3?: string | null
+          address_cp4?: string | null
+          birth_concelho?: string | null
+          birth_date?: string | null
+          created_at?: string | null
+          data_consent?: boolean | null
+          education_level?: string | null
+          first_names?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          id_doc_expiry?: string | null
+          id_doc_number?: string | null
+          id_doc_type?: string | null
+          job_title?: string | null
+          last_names?: string | null
+          nationality_country?: string | null
+          nif?: string | null
+          origin_country?: string | null
+          residence_concelho?: string | null
+          role?: string | null
+          work_institution?: string | null
+        }
+        Relationships: []
+      }
+      training_actions: {
+        Row: {
+          action_date: string | null
+          category: string | null
+          created_at: string | null
+          entity_id: string | null
+          id: string
+          registration_status: string | null
+        }
+        Insert: {
+          action_date?: string | null
+          category?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          id: string
+          registration_status?: string | null
+        }
+        Update: {
+          action_date?: string | null
+          category?: string | null
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          registration_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_actions_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "notion_entities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
