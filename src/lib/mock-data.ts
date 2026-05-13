@@ -1,6 +1,5 @@
 import type {
   AppRoute,
-  DashboardTemplate,
   Enrollment,
   Profile,
   RoleName,
@@ -50,10 +49,6 @@ export const MOCK_ROUTE_PERMISSIONS: RoutePermission[] = [
   { role_name: "Formando", route_path: "/actions", is_granted: true },
   { role_name: "Formando", route_path: "/admin/manager", is_granted: false },
 ];
-
-export const ALL_WIDGETS: { id: string; label: string; description: string }[] = [];
-
-export const MOCK_DASHBOARD_TEMPLATES: DashboardTemplate[] = [];
 
 
 export const MOCK_TRAINING_ACTIONS: TrainingAction[] = [
