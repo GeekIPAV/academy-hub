@@ -1,0 +1,172 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
+import { getAction } from "@/lib/actions.functions";
+import { enrollInAction } from "@/lib/enrollment.functions";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+
+interface RequiredField {
+  name: string;
+  label?: string;
+  type?: "text" | "number" | "email" | "tel" | "textarea";
+  required?: boolean;
+}
+
+export const Route = createFileRoute("/actions/$id")({
+  head: () => ({ meta: [{ title: "Inscrição — Academia Ubuntu" }] }),
+  component: ActionDetailPage,
+});
+
+function ActionDetailPage() {
+  const { id } = Route.useParams();
+  const fetchFn = useServerFn(getAction);
+  const enrollFn = useServerFn(enrollInAction);
+  const qc = useQueryClient();
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["action", id],
+    queryFn: () => fetchFn({ data: { id } }),
+  });
+
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [obs, setObs] = useState("");
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      enrollFn({
+        data: {
+          action_id: id,
+          additional_data: values,
+          user_observations: obs || undefined,
+        },
+      }),
+    onSuccess: (res) => {
+      toast.success(
+        res.status === "aceite"
+          ? "Inscrição confirmada!"
+          : "Estás em lista de espera (suplente).",
+      );
+      qc.invalidateQueries({ queryKey: ["action", id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading) return <p className="text-sm text-muted-foreground">A carregar…</p>;
+  if (error)
+    return (
+      <p className="text-sm text-destructive">Erro: {(error as Error).message}</p>
+    );
+  if (!data) return <p>Ação não encontrada.</p>;
+
+  const fields: RequiredField[] = Array.isArray(data.required_fields)
+    ? (data.required_fields as unknown as RequiredField[])
+    : [];
+
+  const isFull =
+    data.max_capacity != null && data.aceite_count >= data.max_capacity;
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div>
+        <Link to="/actions" className="text-sm text-muted-foreground hover:underline">
+          ← Voltar
+        </Link>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+          {data.title ?? "(sem título)"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {data.programs?.title ?? "Sem programa"}
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Detalhes</CardTitle>
+            <Badge variant={isFull ? "secondary" : "default"}>
+              {data.aceite_count}
+              {data.max_capacity != null ? ` / ${data.max_capacity}` : ""} inscritos
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          {data.description && <p>{data.description}</p>}
+          {data.action_date && <p>Data: {data.action_date}</p>}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Inscrição</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              mutation.mutate();
+            }}
+          >
+            {fields.map((f) => {
+              const key = f.name;
+              const label = f.label ?? f.name;
+              const type = f.type ?? "text";
+              return (
+                <div key={key} className="space-y-1.5">
+                  <Label htmlFor={key}>
+                    {label}
+                    {f.required && <span className="text-destructive"> *</span>}
+                  </Label>
+                  {type === "textarea" ? (
+                    <Textarea
+                      id={key}
+                      required={f.required}
+                      value={values[key] ?? ""}
+                      onChange={(e) =>
+                        setValues((v) => ({ ...v, [key]: e.target.value }))
+                      }
+                    />
+                  ) : (
+                    <Input
+                      id={key}
+                      type={type}
+                      required={f.required}
+                      value={values[key] ?? ""}
+                      onChange={(e) =>
+                        setValues((v) => ({ ...v, [key]: e.target.value }))
+                      }
+                    />
+                  )}
+                </div>
+              );
+            })}
+
+            <div className="space-y-1.5">
+              <Label htmlFor="obs">Observações (opcional)</Label>
+              <Textarea
+                id="obs"
+                value={obs}
+                onChange={(e) => setObs(e.target.value)}
+              />
+            </div>
+
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending
+                ? "A submeter…"
+                : isFull
+                  ? "Inscrever (lista de espera)"
+                  : "Inscrever"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
