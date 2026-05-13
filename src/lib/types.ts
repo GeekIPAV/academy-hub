@@ -18,12 +18,6 @@ export interface RoutePermission {
   is_granted: boolean;
 }
 
-export interface DashboardTemplate {
-  role_name: RoleName;
-  widget_id: string;
-  position: number;
-}
-
 export type TrainingCategory = "FTC" | "FTP" | "SU" | "SF";
 export type TrainingStatus = "open" | "scheduled" | "closed";
 
