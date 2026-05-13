@@ -12,8 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrainingRouteImport } from './routes/training'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
+import { Route as ActionsIdRouteImport } from './routes/actions.$id'
 
 const TrainingRoute = TrainingRouteImport.update({
   id: '/training',
@@ -30,6 +32,11 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ActionsRoute = ActionsRouteImport.update({
+  id: '/actions',
+  path: '/actions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -40,45 +47,73 @@ const AdminManagerRoute = AdminManagerRouteImport.update({
   path: '/admin/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ActionsIdRoute = ActionsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ActionsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/actions': typeof ActionsRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
+  '/actions/$id': typeof ActionsIdRoute
   '/admin/manager': typeof AdminManagerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/actions': typeof ActionsRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
+  '/actions/$id': typeof ActionsIdRoute
   '/admin/manager': typeof AdminManagerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/actions': typeof ActionsRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
+  '/actions/$id': typeof ActionsIdRoute
   '/admin/manager': typeof AdminManagerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/profile' | '/training' | '/admin/manager'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/profile' | '/training' | '/admin/manager'
-  id:
-    | '__root__'
+  fullPaths:
     | '/'
+    | '/actions'
     | '/dashboard'
     | '/profile'
     | '/training'
+    | '/actions/$id'
+    | '/admin/manager'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/actions'
+    | '/dashboard'
+    | '/profile'
+    | '/training'
+    | '/actions/$id'
+    | '/admin/manager'
+  id:
+    | '__root__'
+    | '/'
+    | '/actions'
+    | '/dashboard'
+    | '/profile'
+    | '/training'
+    | '/actions/$id'
     | '/admin/manager'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ActionsRoute: typeof ActionsRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   ProfileRoute: typeof ProfileRoute
   TrainingRoute: typeof TrainingRoute
@@ -108,6 +143,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/actions': {
+      id: '/actions'
+      path: '/actions'
+      fullPath: '/actions'
+      preLoaderRoute: typeof ActionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -122,11 +164,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/actions/$id': {
+      id: '/actions/$id'
+      path: '/$id'
+      fullPath: '/actions/$id'
+      preLoaderRoute: typeof ActionsIdRouteImport
+      parentRoute: typeof ActionsRoute
+    }
   }
 }
 
+interface ActionsRouteChildren {
+  ActionsIdRoute: typeof ActionsIdRoute
+}
+
+const ActionsRouteChildren: ActionsRouteChildren = {
+  ActionsIdRoute: ActionsIdRoute,
+}
+
+const ActionsRouteWithChildren =
+  ActionsRoute._addFileChildren(ActionsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ActionsRoute: ActionsRouteWithChildren,
   DashboardRoute: DashboardRoute,
   ProfileRoute: ProfileRoute,
   TrainingRoute: TrainingRoute,

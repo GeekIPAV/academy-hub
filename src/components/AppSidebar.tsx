@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, User, GraduationCap, Settings, Shield } from "lucide-react";
+import { LayoutDashboard, User, GraduationCap, Shield, ListChecks } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { ALL_ROLES } from "@/lib/mock-data";
 import {
@@ -22,6 +22,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
   "/profile": User,
   "/training": GraduationCap,
+  "/actions": ListChecks,
   "/admin/manager": Shield,
 };
 
