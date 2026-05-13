@@ -41,7 +41,7 @@ export const enrollInAction = createServerFn({ method: "POST" })
         user_id: userId,
         action_id: data.action_id,
         status,
-        additional_data: data.additional_data,
+        additional_data: data.additional_data as Record<string, never>,
         user_observations: data.user_observations ?? null,
       })
       .select("id, status")
