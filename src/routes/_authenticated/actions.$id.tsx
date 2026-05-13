@@ -19,7 +19,7 @@ interface RequiredField {
   required?: boolean;
 }
 
-export const Route = createFileRoute("/actions/$id")({
+export const Route = createFileRoute("/_authenticated/actions/$id")({
   head: () => ({ meta: [{ title: "Inscrição — Academia Ubuntu" }] }),
   component: ActionDetailPage,
 });
