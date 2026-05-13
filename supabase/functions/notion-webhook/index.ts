@@ -1,17 +1,22 @@
 // Notion webhook receiver — sincroniza Programs e Training Actions.
 // Validação de Token via header `x-notion-token`.
+// Tipo (Programa vs. Ação) resolvido por (1) header x-notion-tipo,
+// (2) parent.database_id vs secrets NOTION_DB_PROGRAMS / NOTION_DB_ACTIONS,
+// (3) propriedade "Tipo" (select) na página.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-notion-token",
+    "authorization, x-client-info, apikey, content-type, x-notion-token, x-notion-tipo",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const EXPECTED_TOKEN = Deno.env.get("NOTION_WEBHOOK_TOKEN")!;
+const DB_PROGRAMS = Deno.env.get("NOTION_DB_PROGRAMS") ?? "";
+const DB_ACTIONS = Deno.env.get("NOTION_DB_ACTIONS") ?? "";
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
   auth: { persistSession: false },
@@ -53,6 +58,10 @@ function getRelationIds(prop: any): string[] {
   return (prop.relation as Array<{ id: string }>).map((r) => r.id);
 }
 
+function getSelectName(prop: any): string | null {
+  return prop?.type === "select" ? (prop.select?.name ?? null) : null;
+}
+
 // Normaliza required_fields: aceita multi_select de nomes ou rich_text JSON.
 function parseRequiredFields(prop: any): unknown[] {
   if (!prop) return [];
@@ -70,6 +79,24 @@ function parseRequiredFields(prop: any): unknown[] {
     }
   }
   return [];
+}
+
+// Normaliza id de database/page (remove hífenes, lowercase)
+function normId(s: string | null | undefined): string {
+  return (s ?? "").replace(/-/g, "").toLowerCase();
+}
+
+// Normaliza string de tipo: "Programa"/"Ação"/"Acao" → "programa"/"acao"
+function normTipo(s: string | null | undefined): "programa" | "acao" | null {
+  if (!s) return null;
+  const v = s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+  if (v.startsWith("prog")) return "programa";
+  if (v.startsWith("ac")) return "acao";
+  return null;
 }
 
 // ---------- Logging ----------
@@ -110,6 +137,8 @@ Deno.serve(async (req) => {
     });
   }
 
+  const headerTipo = normTipo(req.headers.get("x-notion-tipo"));
+
   let payload: any;
   try {
     payload = await req.json();
@@ -128,8 +157,12 @@ Deno.serve(async (req) => {
   await log("received", payload, notionPageId, eventType);
 
   try {
+    if (!notionPageId) throw new Error("Payload sem id da página Notion.");
+
     const props = page?.properties ?? {};
     const title = getTitle(props);
+    if (!title) throw new Error("Payload sem título.");
+
     const description =
       getRichText(props["Description"]) ??
       getRichText(props["Descrição"]) ??
@@ -142,24 +175,28 @@ Deno.serve(async (req) => {
       props["Required Fields"] ?? props["Campos Obrigatórios"],
     );
 
-    // Hint: tipo da entidade — "program" | "action".
-    // Usa propriedade explícita "Entity" (select) ou heurística por presença
-    // de relação a um programa pai.
-    const entityProp = props["Entity"] ?? props["Tipo"];
-    const entityHint: string | null =
-      entityProp?.type === "select" ? (entityProp.select?.name ?? null) : null;
+    // ---- Resolver TIPO (programa | acao) deterministicamente ----
+    let tipo: "programa" | "acao" | null = headerTipo;
 
-    const parentProp =
-      props["Program"] ?? props["Programa"] ?? props["Parent Program"];
-    const parentNotionIds = getRelationIds(parentProp);
-    const isAction =
-      entityHint?.toLowerCase().startsWith("ac") ?? parentNotionIds.length > 0;
+    if (!tipo) {
+      const parentDbId = normId(page?.parent?.database_id);
+      if (parentDbId) {
+        if (DB_PROGRAMS && parentDbId === normId(DB_PROGRAMS)) tipo = "programa";
+        else if (DB_ACTIONS && parentDbId === normId(DB_ACTIONS)) tipo = "acao";
+      }
+    }
 
-    if (!notionPageId) throw new Error("Payload sem id da página Notion.");
-    if (!title) throw new Error("Payload sem título.");
+    if (!tipo) {
+      tipo = normTipo(getSelectName(props["Tipo"]));
+    }
 
-    if (!isAction) {
-      // Upsert program
+    if (!tipo) {
+      throw new Error(
+        "Não foi possível determinar o tipo (Programa/Ação). Define a propriedade 'Tipo' (select) ou configura os secrets NOTION_DB_PROGRAMS / NOTION_DB_ACTIONS, ou envia o header x-notion-tipo.",
+      );
+    }
+
+    if (tipo === "programa") {
       const { error } = await admin
         .from("programs")
         .upsert(
@@ -177,8 +214,12 @@ Deno.serve(async (req) => {
         );
       if (error) throw error;
     } else {
-      // Resolver program_id a partir do parent Notion id
+      // Ação — relação a programa é OPCIONAL
+      const parentProp =
+        props["Programa"] ?? props["Program"] ?? props["Parent Program"];
+      const parentNotionIds = getRelationIds(parentProp);
       const parentId = parentNotionIds[0] ?? null;
+
       let programId: string | null = null;
       if (parentId) {
         const { data: prog, error: pErr } = await admin
@@ -188,7 +229,7 @@ Deno.serve(async (req) => {
           .maybeSingle();
         if (pErr) throw pErr;
         if (!prog) {
-          const msg = `Programa pai não encontrado para parent notion_id=${parentId}`;
+          const msg = `Programa pai não encontrado para parent notion_id=${parentId}. Sincroniza primeiro a database de Programas.`;
           await log("error", payload, notionPageId, eventType, msg);
           return new Response(JSON.stringify({ error: msg }), {
             status: 400,
@@ -216,10 +257,13 @@ Deno.serve(async (req) => {
 
     await log("ok", payload, notionPageId, eventType);
 
-    return new Response(JSON.stringify({ ok: true, notion_id: notionPageId }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ ok: true, notion_id: notionPageId, tipo }),
+      {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     await log("error", payload, notionPageId, eventType, msg);
