@@ -1,0 +1,1 @@
+ALTER TABLE public.training_actions ADD CONSTRAINT training_actions_notion_id_key UNIQUE (notion_id);
