@@ -31,6 +31,8 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
 export function AppSidebar() {
   const { visibleRoutes, profile, activeRoles, setActiveRoles } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const toggleRole = (r: RoleName) => {
     const next = activeRoles.includes(r)
