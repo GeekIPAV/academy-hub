@@ -51,23 +51,10 @@ export const MOCK_ROUTE_PERMISSIONS: RoutePermission[] = [
   { role_name: "Formando", route_path: "/admin/manager", is_granted: false },
 ];
 
-export const ALL_WIDGETS: { id: string; label: string; description: string }[] = [
-  { id: "welcome", label: "Boas-vindas", description: "Cabeçalho com nome e perfil" },
-  { id: "elearning", label: "E-Learning", description: "Acesso ao Moodle e Toolkit" },
-  { id: "program-status", label: "Ponto de Situação", description: "Fases FTC, FTP, SU, SF" },
-  { id: "trainer-cohorts", label: "As Minhas Turmas", description: "Visão de Formador" },
-  { id: "admin-stats", label: "Indicadores Globais", description: "KPIs para Admin" },
-];
+export const ALL_WIDGETS: { id: string; label: string; description: string }[] = [];
 
-export const MOCK_DASHBOARD_TEMPLATES: DashboardTemplate[] = [
-  { role_name: "Formando", widget_id: "welcome", position: 0 },
-  { role_name: "Formando", widget_id: "elearning", position: 1 },
-  { role_name: "Formando", widget_id: "program-status", position: 2 },
-  { role_name: "Formador", widget_id: "welcome", position: 0 },
-  { role_name: "Formador", widget_id: "trainer-cohorts", position: 1 },
-  { role_name: "Admin", widget_id: "welcome", position: 0 },
-  { role_name: "Admin", widget_id: "admin-stats", position: 1 },
-];
+export const MOCK_DASHBOARD_TEMPLATES: DashboardTemplate[] = [];
+
 
 export const MOCK_TRAINING_ACTIONS: TrainingAction[] = [
   { id: "ftc-1", category: "FTC", title: "Formação Teórica Comum", status: "open" },
