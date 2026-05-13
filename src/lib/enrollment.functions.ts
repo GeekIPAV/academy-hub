@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { attachSupabaseAuth } from "@/integrations/supabase/attach-auth-client";
 
 const enrollSchema = z.object({
   action_id: z.string().uuid(),
@@ -9,7 +10,7 @@ const enrollSchema = z.object({
 });
 
 export const enrollInAction = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([attachSupabaseAuth, requireSupabaseAuth])
   .inputValidator((input) => enrollSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
