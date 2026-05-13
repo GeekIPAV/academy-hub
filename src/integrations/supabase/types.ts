@@ -14,27 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      automation_logs: {
+        Row: {
+          action_performed: string | null
+          created_at: string | null
+          details: Json | null
+          enrollment_id: string | null
+          id: string
+        }
+        Insert: {
+          action_performed?: string | null
+          created_at?: string | null
+          details?: Json | null
+          enrollment_id?: string | null
+          id?: string
+        }
+        Update: {
+          action_performed?: string | null
+          created_at?: string | null
+          details?: Json | null
+          enrollment_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_enrollment_id_fkey"
+            columns: ["enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "enrollments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           action_id: string | null
-          enrolled_at: string | null
+          additional_data: Json | null
           id: string
+          internal_notes: string | null
+          invited_at: string | null
           status: string | null
+          submitted_at: string | null
           user_id: string | null
+          user_observations: string | null
         }
         Insert: {
           action_id?: string | null
-          enrolled_at?: string | null
+          additional_data?: Json | null
           id?: string
+          internal_notes?: string | null
+          invited_at?: string | null
           status?: string | null
+          submitted_at?: string | null
           user_id?: string | null
+          user_observations?: string | null
         }
         Update: {
           action_id?: string | null
-          enrolled_at?: string | null
+          additional_data?: Json | null
           id?: string
+          internal_notes?: string | null
+          invited_at?: string | null
           status?: string | null
+          submitted_at?: string | null
           user_id?: string | null
+          user_observations?: string | null
         }
         Relationships: [
           {
@@ -42,6 +86,44 @@ export type Database = {
             columns: ["action_id"]
             isOneToOne: false
             referencedRelation: "training_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          link: string | null
+          message: string
+          read_at: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          read_at?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          read_at?: string | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -142,30 +224,120 @@ export type Database = {
         }
         Relationships: []
       }
+      programs: {
+        Row: {
+          description: string | null
+          id: string
+          is_active: boolean | null
+          last_synced_at: string | null
+          max_capacity: number | null
+          metadata: Json | null
+          notion_id: string | null
+          required_fields: Json | null
+          sync_status: string | null
+          title: string | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          max_capacity?: number | null
+          metadata?: Json | null
+          notion_id?: string | null
+          required_fields?: Json | null
+          sync_status?: string | null
+          title?: string | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          max_capacity?: number | null
+          metadata?: Json | null
+          notion_id?: string | null
+          required_fields?: Json | null
+          sync_status?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
+      sync_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string | null
+          id: string
+          notion_id: string | null
+          payload: Json | null
+          source: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          notion_id?: string | null
+          payload?: Json | null
+          source?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          notion_id?: string | null
+          payload?: Json | null
+          source?: string
+          status?: string
+        }
+        Relationships: []
+      }
       training_actions: {
         Row: {
           action_date: string | null
           category: string | null
           created_at: string | null
+          description: string | null
           entity_id: string | null
           id: string
+          max_capacity: number | null
+          notion_id: string | null
+          program_id: string | null
           registration_status: string | null
+          required_fields: Json | null
+          title: string | null
         }
         Insert: {
           action_date?: string | null
           category?: string | null
           created_at?: string | null
+          description?: string | null
           entity_id?: string | null
-          id: string
+          id?: string
+          max_capacity?: number | null
+          notion_id?: string | null
+          program_id?: string | null
           registration_status?: string | null
+          required_fields?: Json | null
+          title?: string | null
         }
         Update: {
           action_date?: string | null
           category?: string | null
           created_at?: string | null
+          description?: string | null
           entity_id?: string | null
           id?: string
+          max_capacity?: number | null
+          notion_id?: string | null
+          program_id?: string | null
           registration_status?: string | null
+          required_fields?: Json | null
+          title?: string | null
         }
         Relationships: [
           {
@@ -175,14 +347,37 @@ export type Database = {
             referencedRelation: "notion_entities"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "training_actions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      action_stats: {
+        Row: {
+          action_id: string | null
+          confirmed_count: number | null
+          waiting_list_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enrollments_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "training_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
-      [_ in never]: never
+      get_next_in_line: { Args: { target_action_id: string }; Returns: string }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
