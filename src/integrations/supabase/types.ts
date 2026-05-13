@@ -230,8 +230,10 @@ export type Database = {
           id: string
           is_active: boolean | null
           last_synced_at: string | null
+          max_capacity: number | null
           metadata: Json | null
           notion_id: string | null
+          required_fields: Json | null
           sync_status: string | null
           title: string | null
         }
@@ -240,8 +242,10 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
+          max_capacity?: number | null
           metadata?: Json | null
           notion_id?: string | null
+          required_fields?: Json | null
           sync_status?: string | null
           title?: string | null
         }
@@ -250,10 +254,45 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
+          max_capacity?: number | null
           metadata?: Json | null
           notion_id?: string | null
+          required_fields?: Json | null
           sync_status?: string | null
           title?: string | null
+        }
+        Relationships: []
+      }
+      sync_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string | null
+          id: string
+          notion_id: string | null
+          payload: Json | null
+          source: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          notion_id?: string | null
+          payload?: Json | null
+          source?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          notion_id?: string | null
+          payload?: Json | null
+          source?: string
+          status?: string
         }
         Relationships: []
       }
@@ -262,31 +301,43 @@ export type Database = {
           action_date: string | null
           category: string | null
           created_at: string | null
+          description: string | null
           entity_id: string | null
           id: string
           max_capacity: number | null
+          notion_id: string | null
+          program_id: string | null
           registration_status: string | null
           required_fields: Json | null
+          title: string | null
         }
         Insert: {
           action_date?: string | null
           category?: string | null
           created_at?: string | null
+          description?: string | null
           entity_id?: string | null
-          id: string
+          id?: string
           max_capacity?: number | null
+          notion_id?: string | null
+          program_id?: string | null
           registration_status?: string | null
           required_fields?: Json | null
+          title?: string | null
         }
         Update: {
           action_date?: string | null
           category?: string | null
           created_at?: string | null
+          description?: string | null
           entity_id?: string | null
           id?: string
           max_capacity?: number | null
+          notion_id?: string | null
+          program_id?: string | null
           registration_status?: string | null
           required_fields?: Json | null
+          title?: string | null
         }
         Relationships: [
           {
@@ -294,6 +345,13 @@ export type Database = {
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "notion_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_actions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
             referencedColumns: ["id"]
           },
         ]
@@ -319,6 +377,7 @@ export type Database = {
     }
     Functions: {
       get_next_in_line: { Args: { target_action_id: string }; Returns: string }
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
