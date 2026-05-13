@@ -265,7 +265,17 @@ Deno.serve(async (req) => {
       },
     );
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
+    let msg: string;
+    if (err instanceof Error) {
+      msg = err.message;
+    } else if (err && typeof err === "object") {
+      const e = err as Record<string, unknown>;
+      msg = [e.message, e.details, e.hint, e.code]
+        .filter(Boolean)
+        .join(" | ") || JSON.stringify(err);
+    } else {
+      msg = String(err);
+    }
     await log("error", payload, notionPageId, eventType, msg);
     return new Response(JSON.stringify({ error: msg }), {
       status: 400,
