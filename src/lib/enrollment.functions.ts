@@ -24,6 +24,18 @@ export const enrollInAction = createServerFn({ method: "POST" })
     if (aErr) throw new Error(aErr.message);
     if (!action) throw new Error("Ação não encontrada.");
 
+    // Verifica se já existe inscrição deste utilizador para esta ação
+    const { data: existing, error: eErr } = await supabase
+      .from("enrollments")
+      .select("id, status")
+      .eq("action_id", data.action_id)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (eErr) throw new Error(eErr.message);
+    if (existing) {
+      return { id: existing.id, status: existing.status, alreadyEnrolled: true };
+    }
+
     // Conta inscrições já aceites
     const { count, error: cErr } = await supabase
       .from("enrollments")
