@@ -1,6 +1,8 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, User, GraduationCap, Shield, ListChecks } from "lucide-react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { LayoutDashboard, User, GraduationCap, Shield, ListChecks, LogIn, LogOut } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
 import { ALL_ROLES } from "@/lib/mock-data";
 import {
   Sidebar,
