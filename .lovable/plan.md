@@ -1,47 +1,60 @@
-# Distinção determinística Programa vs. Ação no `notion-webhook`
+# Autenticação + Inscrição completa
 
 ## Objetivo
-Substituir a heurística atual ("tem relação a programa = ação") por uma decisão determinística que suporte **ações sem programa** e que não confunda com a propriedade `Entity` (escola/entidade promotora).
+Permitir que uma pessoa se registe, faça login, e se inscreva numa Ação — com o formulário pré-preenchido a partir do perfil.
 
-## Ordem de resolução do tipo
-A função decide o tipo da página recebida nesta ordem (primeira que resolve, ganha):
+## 1. Base de dados (migração)
 
-1. **Header `x-notion-tipo`** — `programa` ou `acao`. Override manual para testes/curl.
-2. **`parent.database_id` do payload** — comparado contra dois secrets:
-   - `NOTION_DB_PROGRAMS` → Programa
-   - `NOTION_DB_ACTIONS` → Ação
-3. **Propriedade `Tipo`** (select) na página — valores aceites: `Programa` / `Ação` (case-insensitive, sem acento também aceite).
-4. Se nada resolver → erro **400** com mensagem clara e log em `sync_logs`.
+- **Trigger `on_auth_user_created`**: ao criar um utilizador em `auth.users`, insere automaticamente uma linha em `public.profiles` com `id = NEW.id` (e `full_name` a partir de `raw_user_meta_data` se existir). Função `SECURITY DEFINER` com `search_path = public`.
+- **Política INSERT em `profiles`**: permitir o próprio utilizador criar o seu perfil (defesa em profundidade caso o trigger falhe).
+- **Backfill**: criar perfis em falta para utilizadores `auth.users` já existentes.
 
-A propriedade `Entity` deixa de ser usada para esta decisão (fica reservada ao seu significado real: escola/entidade promotora).
+## 2. Autenticação (frontend)
 
-## Mudanças no código
+- **`src/routes/auth.tsx`** (rota pública): tabs "Entrar" / "Criar conta"
+  - Email + password (signup com `emailRedirectTo: window.location.origin`)
+  - Botão "Continuar com Google" via `lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin })`
+  - Redirect para `?redirect=` após login
+- **`src/routes/_authenticated.tsx`** (pathless layout): `beforeLoad` verifica sessão Supabase; se não autenticado, `redirect` para `/auth?redirect=...`. Renderiza `<Outlet />`.
+- **Hook de sessão** (`src/hooks/use-auth.ts`): `onAuthStateChange` + `getSession` (listener antes do get). Expõe `user`, `loading`, `signOut`.
+- **Botão Login/Sair na sidebar** (`AppSidebar.tsx`): mostra email + "Sair" se autenticado, ou link "Entrar" se não.
 
-**`supabase/functions/notion-webhook/index.ts`**
-- Remover a heurística baseada em relação `Program/Programa/Parent Program`.
-- Ler `Deno.env.get("NOTION_DB_PROGRAMS")` e `Deno.env.get("NOTION_DB_ACTIONS")`.
-- Extrair `page.parent?.database_id` (normalizar removendo hífenes para comparação robusta).
-- Adicionar leitura da propriedade `Tipo` (select) com normalização (`programa`/`acao`).
-- Adicionar leitura do header `x-notion-tipo`.
-- Manter a relação `Programa` apenas para resolver `program_id` quando a página é Ação — agora opcional: se não houver relação, `program_id = NULL` (ação standalone, sem erro).
-- Atualizar `Access-Control-Allow-Headers` para incluir `x-notion-tipo`.
+## 3. Proteger inscrição
 
-## Secrets a criar
-- `NOTION_DB_PROGRAMS` — ID da database Notion de Programas
-- `NOTION_DB_ACTIONS` — ID da database Notion de Ações
+- Mover `src/routes/actions.$id.tsx` → `src/routes/_authenticated/actions.$id.tsx` (utilizador tem de estar autenticado para se inscrever).
+- Lista pública `/actions` mantém-se acessível sem login (apenas visualização).
+- Atualizar `<Link to="/actions/$id">` se necessário.
 
-## Comportamento resultante
-| Cenário | Resultado |
-|---|---|
-| Página da DB de Programas | Upsert em `programs` |
-| Página da DB de Ações com relação a programa existente | Upsert em `training_actions` com `program_id` resolvido |
-| Página da DB de Ações **sem** programa | Upsert em `training_actions` com `program_id = NULL` |
-| Página da DB de Ações com relação a programa **inexistente** no Supabase | 400 com mensagem clara (sincronizar Programas primeiro) |
-| Tipo indeterminável | 400 + log em `sync_logs` |
+## 4. Pré-preenchimento do formulário
 
-## Validação
-1. Curl com `x-notion-tipo: programa` → cria/atualiza programa.
-2. Curl com `x-notion-tipo: acao` sem relação → cria ação standalone.
-3. Webhook real do Notion da DB de Programas → resolve por `database_id`.
-4. Webhook real do Notion da DB de Ações → resolve por `database_id`, liga ao programa pai se a relação existir.
+- Criar `src/lib/profile.functions.ts` com `getMyProfile` (`createServerFn` + `requireSupabaseAuth`) que devolve o perfil do utilizador atual.
+- Em `actions.$id.tsx`:
+  - Carregar perfil em paralelo com a ação.
+  - **Mapeamento nome do campo → coluna do perfil** (case-insensitive, com aliases PT/EN):
+    - `nome`, `nome completo`, `full name` → `full_name`
+    - `email` → `auth.user.email`
+    - `nif` → `nif`
+    - `telefone` (se existir no perfil futuramente)
+    - `data nascimento`, `birth date` → `birth_date`
+    - `morada`, `address` → `address`
+    - `concelho` → `residence_concelho`
+    - …etc para os campos existentes em `profiles`
+  - Inicializar `values` com estes defaults; o utilizador pode editar.
 
+## 5. Configuração de auth no Lovable Cloud
+
+- `auto_confirm` continua **desativado** (utilizador verifica email antes de entrar) — exceto se pedires o contrário.
+- Google sign-in usa as credenciais geridas pelo Lovable Cloud (sem setup adicional).
+
+## Resumo do fluxo final
+1. Utilizador navega para `/actions` → vê lista pública.
+2. Clica numa ação → `/actions/{id}` → se não autenticado, é redirecionado para `/auth?redirect=/actions/{id}`.
+3. Cria conta (email/password ou Google) → confirma email → faz login → volta para a ação.
+4. Formulário aparece pré-preenchido com dados do perfil; ajusta o que precisar e submete.
+5. `enrollInAction` cria a inscrição com `status = aceite` (ou `suplente` se cheia) e gera notificação.
+
+## Notas técnicas
+- Não tocar em `src/integrations/supabase/client.ts` nem em `types.ts`.
+- Usar `lovable.auth.signInWithOAuth` (NÃO `supabase.auth.signInWithOAuth`).
+- `_authenticated` layout usa `beforeLoad` (evita flash de conteúdo protegido).
+- Trigger não usa foreign key para `auth.users` na criação de profiles (já tens `id uuid` como PK e o trigger preenche).

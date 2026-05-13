@@ -12,10 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrainingRouteImport } from './routes/training'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ActionsRouteImport } from './routes/actions'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
-import { Route as ActionsIdRouteImport } from './routes/actions.$id'
+import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 
 const TrainingRoute = TrainingRouteImport.update({
   id: '/training',
@@ -32,9 +34,18 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ActionsRoute = ActionsRouteImport.update({
   id: '/actions',
   path: '/actions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -47,73 +58,83 @@ const AdminManagerRoute = AdminManagerRouteImport.update({
   path: '/admin/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ActionsIdRoute = ActionsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ActionsRoute,
+const AuthenticatedActionsIdRoute = AuthenticatedActionsIdRouteImport.update({
+  id: '/actions/$id',
+  path: '/actions/$id',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/actions': typeof ActionsRouteWithChildren
+  '/actions': typeof ActionsRoute
+  '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
-  '/actions/$id': typeof ActionsIdRoute
   '/admin/manager': typeof AdminManagerRoute
+  '/actions/$id': typeof AuthenticatedActionsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/actions': typeof ActionsRouteWithChildren
+  '/actions': typeof ActionsRoute
+  '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
-  '/actions/$id': typeof ActionsIdRoute
   '/admin/manager': typeof AdminManagerRoute
+  '/actions/$id': typeof AuthenticatedActionsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/actions': typeof ActionsRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/actions': typeof ActionsRoute
+  '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
-  '/actions/$id': typeof ActionsIdRoute
   '/admin/manager': typeof AdminManagerRoute
+  '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/actions'
+    | '/auth'
     | '/dashboard'
     | '/profile'
     | '/training'
-    | '/actions/$id'
     | '/admin/manager'
+    | '/actions/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/actions'
+    | '/auth'
     | '/dashboard'
     | '/profile'
     | '/training'
-    | '/actions/$id'
     | '/admin/manager'
+    | '/actions/$id'
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/actions'
+    | '/auth'
     | '/dashboard'
     | '/profile'
     | '/training'
-    | '/actions/$id'
     | '/admin/manager'
+    | '/_authenticated/actions/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  ActionsRoute: typeof ActionsRouteWithChildren
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ActionsRoute: typeof ActionsRoute
+  AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
   ProfileRoute: typeof ProfileRoute
   TrainingRoute: typeof TrainingRoute
@@ -143,11 +164,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/actions': {
       id: '/actions'
       path: '/actions'
       fullPath: '/actions'
       preLoaderRoute: typeof ActionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -164,30 +199,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/actions/$id': {
-      id: '/actions/$id'
-      path: '/$id'
+    '/_authenticated/actions/$id': {
+      id: '/_authenticated/actions/$id'
+      path: '/actions/$id'
       fullPath: '/actions/$id'
-      preLoaderRoute: typeof ActionsIdRouteImport
-      parentRoute: typeof ActionsRoute
+      preLoaderRoute: typeof AuthenticatedActionsIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
-interface ActionsRouteChildren {
-  ActionsIdRoute: typeof ActionsIdRoute
+interface AuthenticatedRouteChildren {
+  AuthenticatedActionsIdRoute: typeof AuthenticatedActionsIdRoute
 }
 
-const ActionsRouteChildren: ActionsRouteChildren = {
-  ActionsIdRoute: ActionsIdRoute,
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedActionsIdRoute: AuthenticatedActionsIdRoute,
 }
 
-const ActionsRouteWithChildren =
-  ActionsRoute._addFileChildren(ActionsRouteChildren)
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  ActionsRoute: ActionsRouteWithChildren,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ActionsRoute: ActionsRoute,
+  AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
   ProfileRoute: ProfileRoute,
   TrainingRoute: TrainingRoute,

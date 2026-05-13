@@ -1,6 +1,8 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, User, GraduationCap, Shield, ListChecks } from "lucide-react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { LayoutDashboard, User, GraduationCap, Shield, ListChecks, LogIn, LogOut } from "lucide-react";
 import { useApp } from "@/lib/app-context";
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
 import { ALL_ROLES } from "@/lib/mock-data";
 import {
   Sidebar,
@@ -29,6 +31,8 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
 export function AppSidebar() {
   const { visibleRoutes, profile, activeRoles, setActiveRoles } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const toggleRole = (r: RoleName) => {
     const next = activeRoles.includes(r)
@@ -91,14 +95,18 @@ export function AppSidebar() {
       <SidebarFooter className="border-t group-data-[collapsible=icon]:hidden">
         <div className="flex items-center gap-2 p-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-medium">
-            {profile.full_name
-              .split(" ")
+            {(user?.email ?? profile.full_name)
+              .split(/[\s@.]/)
+              .filter(Boolean)
               .map((n) => n[0])
               .slice(0, 2)
-              .join("")}
+              .join("")
+              .toUpperCase()}
           </div>
-          <div className="flex-1 leading-tight">
-            <p className="text-sm font-medium">{profile.full_name}</p>
+          <div className="flex-1 leading-tight overflow-hidden">
+            <p className="truncate text-sm font-medium">
+              {user?.email ?? profile.full_name}
+            </p>
             <div className="flex flex-wrap gap-1">
               {activeRoles.map((r) => (
                 <Badge key={r} variant="secondary" className="text-[10px]">
@@ -107,6 +115,28 @@ export function AppSidebar() {
               ))}
             </div>
           </div>
+          {user ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Sair"
+              onClick={async () => {
+                await signOut();
+                navigate({ to: "/" });
+              }}
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Entrar"
+              onClick={() => navigate({ to: "/auth" })}
+            >
+              <LogIn className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </SidebarFooter>
     </Sidebar>

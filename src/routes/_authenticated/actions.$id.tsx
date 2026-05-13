@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getAction } from "@/lib/actions.functions";
 import { enrollInAction } from "@/lib/enrollment.functions";
+import { getMyProfile } from "@/lib/profile.functions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,18 +16,58 @@ import { toast } from "sonner";
 interface RequiredField {
   name: string;
   label?: string;
-  type?: "text" | "number" | "email" | "tel" | "textarea";
+  type?: "text" | "number" | "email" | "tel" | "textarea" | "date";
   required?: boolean;
 }
 
-export const Route = createFileRoute("/actions/$id")({
+export const Route = createFileRoute("/_authenticated/actions/$id")({
   head: () => ({ meta: [{ title: "Inscrição — Academia Ubuntu" }] }),
   component: ActionDetailPage,
 });
 
+// Mapeia (case-insensitive, sem acento) o nome do campo → valor do perfil
+function normKey(s: string) {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function profileValueFor(
+  fieldName: string,
+  profile: Record<string, unknown> | null,
+  email: string | null,
+): string {
+  if (!profile && !email) return "";
+  const k = normKey(fieldName);
+  const map: Record<string, string | null | undefined> = {
+    nome: (profile?.full_name as string) ?? null,
+    nomecompleto: (profile?.full_name as string) ?? null,
+    fullname: (profile?.full_name as string) ?? null,
+    primeironome: (profile?.first_names as string) ?? null,
+    apelido: (profile?.last_names as string) ?? null,
+    email: email ?? null,
+    nif: (profile?.nif as string) ?? null,
+    datanascimento: (profile?.birth_date as string) ?? null,
+    birthdate: (profile?.birth_date as string) ?? null,
+    genero: (profile?.gender as string) ?? null,
+    nacionalidade: (profile?.nationality_country as string) ?? null,
+    morada: (profile?.address as string) ?? null,
+    address: (profile?.address as string) ?? null,
+    codigopostal: (profile?.address_cp4 as string) ?? null,
+    concelho: (profile?.residence_concelho as string) ?? null,
+    profissao: (profile?.job_title as string) ?? null,
+    instituicao: (profile?.work_institution as string) ?? null,
+    habilitacoes: (profile?.education_level as string) ?? null,
+  };
+  return map[k] ?? "";
+}
+
 function ActionDetailPage() {
   const { id } = Route.useParams();
   const fetchFn = useServerFn(getAction);
+  const profileFn = useServerFn(getMyProfile);
   const enrollFn = useServerFn(enrollInAction);
   const qc = useQueryClient();
 
@@ -35,8 +76,29 @@ function ActionDetailPage() {
     queryFn: () => fetchFn({ data: { id } }),
   });
 
+  const { data: me } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => profileFn(),
+  });
+
   const [values, setValues] = useState<Record<string, string>>({});
   const [obs, setObs] = useState("");
+  const [prefilled, setPrefilled] = useState(false);
+
+  // Pré-preencher quando ambos chegarem
+  useEffect(() => {
+    if (prefilled || !data || !me) return;
+    const fields: RequiredField[] = Array.isArray(data.required_fields)
+      ? (data.required_fields as unknown as RequiredField[])
+      : [];
+    const initial: Record<string, string> = {};
+    for (const f of fields) {
+      const v = profileValueFor(f.label ?? f.name, me.profile as Record<string, unknown> | null, me.email);
+      if (v) initial[f.name] = v;
+    }
+    setValues(initial);
+    setPrefilled(true);
+  }, [data, me, prefilled]);
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -60,9 +122,7 @@ function ActionDetailPage() {
 
   if (isLoading) return <p className="text-sm text-muted-foreground">A carregar…</p>;
   if (error)
-    return (
-      <p className="text-sm text-destructive">Erro: {(error as Error).message}</p>
-    );
+    return <p className="text-sm text-destructive">Erro: {(error as Error).message}</p>;
   if (!data) return <p>Ação não encontrada.</p>;
 
   const fields: RequiredField[] = Array.isArray(data.required_fields)
