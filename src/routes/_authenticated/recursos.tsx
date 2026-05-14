@@ -281,6 +281,7 @@ function ResourcesPage() {
           );
         })}
       </Tabs>
+      )}
 
       <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
         <DialogContent className="h-[88vh] max-w-5xl grid-rows-[auto_1fr] p-0">
@@ -299,6 +300,7 @@ function ResourcesPage() {
           )}
         </DialogContent>
       </Dialog>
+      <ComponentAccessMatrix pagePath="/recursos" />
     </div>
   );
 }
