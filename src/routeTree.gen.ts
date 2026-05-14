@@ -19,6 +19,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
+import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 
 const TrainingRoute = TrainingRouteImport.update({
@@ -70,6 +71,12 @@ const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
   path: '/recursos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminRecursosRoute =
+  AuthenticatedAdminRecursosRouteImport.update({
+    id: '/admin/recursos',
+    path: '/admin/recursos',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedActionsIdRoute = AuthenticatedActionsIdRouteImport.update({
   id: '/actions/$id',
   path: '/actions/$id',
@@ -87,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
+  '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -99,6 +107,7 @@ export interface FileRoutesByTo {
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
+  '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -113,6 +122,7 @@ export interface FileRoutesById {
   '/_authenticated/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
+  '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/recursos'
     | '/admin/manager'
     | '/actions/$id'
+    | '/admin/recursos'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/recursos'
     | '/admin/manager'
     | '/actions/$id'
+    | '/admin/recursos'
   id:
     | '__root__'
     | '/'
@@ -152,6 +164,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recursos'
     | '/admin/manager'
     | '/_authenticated/actions/$id'
+    | '/_authenticated/admin/recursos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -238,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/recursos': {
+      id: '/_authenticated/admin/recursos'
+      path: '/admin/recursos'
+      fullPath: '/admin/recursos'
+      preLoaderRoute: typeof AuthenticatedAdminRecursosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/actions/$id': {
       id: '/_authenticated/actions/$id'
       path: '/actions/$id'
@@ -251,11 +271,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteChildren {
   AuthenticatedRecursosRoute: typeof AuthenticatedRecursosRoute
   AuthenticatedActionsIdRoute: typeof AuthenticatedActionsIdRoute
+  AuthenticatedAdminRecursosRoute: typeof AuthenticatedAdminRecursosRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedRecursosRoute: AuthenticatedRecursosRoute,
   AuthenticatedActionsIdRoute: AuthenticatedActionsIdRoute,
+  AuthenticatedAdminRecursosRoute: AuthenticatedAdminRecursosRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -276,3 +298,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
