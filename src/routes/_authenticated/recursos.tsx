@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,8 @@ import {
   Video,
   Download,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
   GraduationCap,
   Briefcase,
   Sparkles,
