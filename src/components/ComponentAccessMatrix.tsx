@@ -70,46 +70,60 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
     toast.success("Visibilidade atualizada");
   };
 
+  const [open, setOpen] = useState(false);
+
   return (
     <Card className="border-dashed">
-      <CardHeader>
-        <CardTitle className="text-base">Matriz de Acessos (componentes)</CardTitle>
-        <CardDescription>
-          Apenas visível para administradores. Define que componentes desta página são visíveis a cada role.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Componente</TableHead>
-              {ALL_ROLES.map((r) => (
-                <TableHead key={r} className="text-center">
-                  {r}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {components.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell>
-                  <div className="font-medium">{c.label}</div>
-                  <div className="text-xs text-muted-foreground">{c.id}</div>
-                </TableCell>
-                {ALL_ROLES.map((role) => (
-                  <TableCell key={role} className="text-center">
-                    <Switch
-                      checked={isGranted(role, c.id)}
-                      onCheckedChange={() => toggle(role, c.id)}
-                    />
-                  </TableCell>
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 px-6 py-3 text-left">
+          <div className="flex items-center gap-2">
+            <Shield className="h-4 w-4 text-muted-foreground" />
+            <div>
+              <div className="text-sm font-medium">Matriz de Acessos (componentes)</div>
+              <div className="text-xs text-muted-foreground">
+                Apenas visível para administradores. Define que componentes desta página são visíveis a cada role.
+              </div>
+            </div>
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Componente</TableHead>
+                  {ALL_ROLES.map((r) => (
+                    <TableHead key={r} className="text-center">
+                      {r}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {components.map((c) => (
+                  <TableRow key={c.id}>
+                    <TableCell>
+                      <div className="font-medium">{c.label}</div>
+                      <div className="text-xs text-muted-foreground">{c.id}</div>
+                    </TableCell>
+                    {ALL_ROLES.map((role) => (
+                      <TableCell key={role} className="text-center">
+                        <Switch
+                          checked={isGranted(role, c.id)}
+                          onCheckedChange={() => toggle(role, c.id)}
+                        />
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }
