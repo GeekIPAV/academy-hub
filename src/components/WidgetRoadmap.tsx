@@ -29,7 +29,17 @@ export function WidgetRoadmap() {
   useEffect(() => {
     let mounted = true;
     fetchRoadmap()
-      .then((r: RoadmapItem[]) => mounted && setItems(r))
+      .then((r: unknown) => {
+        if (!mounted) return;
+        const arr = Array.isArray(r)
+          ? (r as RoadmapItem[])
+          : Array.isArray((r as { data?: RoadmapItem[] } | null)?.data)
+            ? ((r as { data: RoadmapItem[] }).data)
+            : Array.isArray((r as { result?: RoadmapItem[] } | null)?.result)
+              ? ((r as { result: RoadmapItem[] }).result)
+              : [];
+        setItems(arr);
+      })
       .catch((e: Error) => mounted && setError(e.message));
     return () => {
       mounted = false;
