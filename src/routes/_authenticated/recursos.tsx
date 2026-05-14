@@ -200,6 +200,7 @@ function ResourcesPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <ComponentAccessMatrix pagePath="/recursos" />
       {visible("header") && (
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Centro de Recursos</h1>
@@ -300,7 +301,6 @@ function ResourcesPage() {
           )}
         </DialogContent>
       </Dialog>
-      <ComponentAccessMatrix pagePath="/recursos" />
     </div>
   );
 }

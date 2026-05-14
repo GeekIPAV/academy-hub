@@ -23,6 +23,7 @@ function ActionsPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
+      <ComponentAccessMatrix pagePath="/actions" />
       {visible("header") && (
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Eventos e Formações</h1>
@@ -83,7 +84,6 @@ function ActionsPage() {
         </>
       )}
 
-      <ComponentAccessMatrix pagePath="/actions" />
     </div>
   );
 }
