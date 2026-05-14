@@ -125,7 +125,29 @@ export function AppSidebar() {
         )}
       </SidebarContent>
       <SidebarFooter className="border-t group-data-[collapsible=icon]:hidden">
-        <div className="flex items-center gap-2 p-2">
+        {assignedRoles.length > 1 && (
+          <div className="space-y-1 p-2">
+            <label className="px-1 text-xs font-medium text-muted-foreground">
+              A ver como
+            </label>
+            <Select
+              value={activeRoles[0] ?? assignedRoles[0]}
+              onValueChange={(v) => setActiveRoles([v as RoleName])}
+            >
+              <SelectTrigger className="h-8 w-full text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {assignedRoles.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        <div className="flex items-center gap-2 p-2"></div>
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-medium">
             {(user?.email ?? profile.full_name)
               .split(/[\s@.]/)
