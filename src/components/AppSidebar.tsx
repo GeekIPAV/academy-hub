@@ -38,9 +38,7 @@ export function AppSidebar() {
   const isFormando = useIsFormando();
 
   const toggleRole = (r: RoleName) => {
-    const next = activeRoles.includes(r)
-      ? activeRoles.filter((x) => x !== r)
-      : [...activeRoles, r];
+    const next = activeRoles.includes(r) ? activeRoles.filter((x) => x !== r) : [...activeRoles, r];
     setActiveRoles(next.length ? next : [r]);
   };
 
@@ -52,8 +50,7 @@ export function AppSidebar() {
             U
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-semibold">Academia Ubuntu</span>
-            <span className="text-xs text-muted-foreground">Líderes</span>
+            <span className="text-sm font-semibold">Academia de Líderes Ubuntu</span>
           </div>
         </div>
       </SidebarHeader>
@@ -95,10 +92,7 @@ export function AppSidebar() {
           <SidebarGroupContent className="space-y-2 px-2 py-1">
             {ALL_ROLES.map((r) => (
               <label key={r} className="flex cursor-pointer items-center gap-2 text-sm">
-                <Checkbox
-                  checked={activeRoles.includes(r)}
-                  onCheckedChange={() => toggleRole(r)}
-                />
+                <Checkbox checked={activeRoles.includes(r)} onCheckedChange={() => toggleRole(r)} />
                 <span>{r}</span>
               </label>
             ))}
@@ -117,9 +111,7 @@ export function AppSidebar() {
               .toUpperCase()}
           </div>
           <div className="flex-1 leading-tight overflow-hidden">
-            <p className="truncate text-sm font-medium">
-              {user?.email ?? profile.full_name}
-            </p>
+            <p className="truncate text-sm font-medium">{user?.email ?? profile.full_name}</p>
             <div className="flex flex-wrap gap-1">
               {activeRoles.map((r) => (
                 <Badge key={r} variant="secondary" className="text-[10px]">
@@ -141,12 +133,7 @@ export function AppSidebar() {
               <LogOut className="h-4 w-4" />
             </Button>
           ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              title="Entrar"
-              onClick={() => navigate({ to: "/auth" })}
-            >
+            <Button variant="ghost" size="icon" title="Entrar" onClick={() => navigate({ to: "/auth" })}>
               <LogIn className="h-4 w-4" />
             </Button>
           )}
