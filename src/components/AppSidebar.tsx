@@ -57,20 +57,22 @@ export function AppSidebar() {
           <SidebarGroupLabel>Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {visibleRoutes.map((r) => {
-                const Icon = ICONS[r.path] ?? LayoutDashboard;
-                const active = path === r.path || path.startsWith(r.path + "/");
-                return (
-                  <SidebarMenuItem key={r.path}>
-                    <SidebarMenuButton asChild isActive={active}>
-                      <Link to={r.path}>
-                        <Icon className="h-4 w-4" />
-                        <span>{r.label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
+              {visibleRoutes
+                .filter((r) => r.path !== "/admin/manager")
+                .map((r) => {
+                  const Icon = ICONS[r.path] ?? LayoutDashboard;
+                  const active = path === r.path || path.startsWith(r.path + "/");
+                  return (
+                    <SidebarMenuItem key={r.path}>
+                      <SidebarMenuButton asChild isActive={active}>
+                        <Link to={r.path}>
+                          <Icon className="h-4 w-4" />
+                          <span>{r.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
               {isFormando && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={path === "/recursos"}>
@@ -81,6 +83,22 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
+              {visibleRoutes
+                .filter((r) => r.path === "/admin/manager")
+                .map((r) => {
+                  const Icon = ICONS[r.path] ?? LayoutDashboard;
+                  const active = path === r.path || path.startsWith(r.path + "/");
+                  return (
+                    <SidebarMenuItem key={r.path}>
+                      <SidebarMenuButton asChild isActive={active}>
+                        <Link to={r.path}>
+                          <Icon className="h-4 w-4" />
+                          <span>{r.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
