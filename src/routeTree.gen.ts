@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrainingRouteImport } from './routes/training'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DadosCertificacaoRouteImport } from './routes/dados-certificacao'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -32,6 +33,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DadosCertificacaoRoute = DadosCertificacaoRouteImport.update({
+  id: '/dados-certificacao',
+  path: '/dados-certificacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/actions': typeof ActionsRoute
   '/auth': typeof AuthRoute
+  '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/actions': typeof ActionsRoute
   '/auth': typeof AuthRoute
+  '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
@@ -90,6 +98,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/actions': typeof ActionsRoute
   '/auth': typeof AuthRoute
+  '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
@@ -102,6 +111,7 @@ export interface FileRouteTypes {
     | '/'
     | '/actions'
     | '/auth'
+    | '/dados-certificacao'
     | '/dashboard'
     | '/profile'
     | '/training'
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
     | '/'
     | '/actions'
     | '/auth'
+    | '/dados-certificacao'
     | '/dashboard'
     | '/profile'
     | '/training'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/actions'
     | '/auth'
+    | '/dados-certificacao'
     | '/dashboard'
     | '/profile'
     | '/training'
@@ -135,6 +147,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   ActionsRoute: typeof ActionsRoute
   AuthRoute: typeof AuthRoute
+  DadosCertificacaoRoute: typeof DadosCertificacaoRoute
   DashboardRoute: typeof DashboardRoute
   ProfileRoute: typeof ProfileRoute
   TrainingRoute: typeof TrainingRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dados-certificacao': {
+      id: '/dados-certificacao'
+      path: '/dados-certificacao'
+      fullPath: '/dados-certificacao'
+      preLoaderRoute: typeof DadosCertificacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -226,6 +246,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ActionsRoute: ActionsRoute,
   AuthRoute: AuthRoute,
+  DadosCertificacaoRoute: DadosCertificacaoRoute,
   DashboardRoute: DashboardRoute,
   ProfileRoute: ProfileRoute,
   TrainingRoute: TrainingRoute,
@@ -234,3 +255,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
