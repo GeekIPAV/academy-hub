@@ -109,6 +109,82 @@ function ResourcePreviewPane({ preview }: { preview: ResourcePreview }) {
   );
 }
 
+function PdfPreview({ preview }: { preview: ResourcePreview }) {
+  const [pages, setPages] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let pdfDocument: PdfDocumentLike | null = null;
+
+    async function renderPdf() {
+      setPages([]);
+      setError(null);
+
+      try {
+        const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+        const data = new Uint8Array(await preview.blob.arrayBuffer());
+        const task = pdfjs.getDocument({ data, disableWorker: true });
+        pdfDocument = (await task.promise) as PdfDocumentLike;
+        const renderedPages: string[] = [];
+
+        for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+          if (cancelled) return;
+          const page = await pdfDocument.getPage(pageNumber);
+          const viewport = page.getViewport({ scale: 1.55 });
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.ceil(viewport.width);
+          canvas.height = Math.ceil(viewport.height);
+          const context = canvas.getContext("2d");
+          if (!context) throw new Error("Não foi possível preparar a pré-visualização.");
+          await page.render({ canvasContext: context, viewport }).promise;
+          renderedPages.push(canvas.toDataURL("image/png"));
+          if (!cancelled) setPages([...renderedPages]);
+        }
+      } catch {
+        if (!cancelled) setError("Não foi possível pré-visualizar este PDF. Usa o botão de descarregar.");
+      }
+    }
+
+    void renderPdf();
+
+    return () => {
+      cancelled = true;
+      void pdfDocument?.destroy?.();
+    };
+  }, [preview.blob]);
+
+  if (error) {
+    return (
+      <div className="flex min-h-[45vh] flex-col items-center justify-center gap-3 rounded-md border bg-muted p-6 text-center">
+        <FileText className="h-8 w-8 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">{error}</p>
+      </div>
+    );
+  }
+
+  if (pages.length === 0) {
+    return (
+      <div className="flex min-h-[45vh] items-center justify-center rounded-md border bg-muted">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-h-[72vh] space-y-4 overflow-auto rounded-md border bg-muted p-3">
+      {pages.map((page, index) => (
+        <img
+          key={`${preview.filename}-${index}`}
+          src={page}
+          alt={`${preview.title} — página ${index + 1}`}
+          className="mx-auto h-auto max-w-full rounded-sm bg-background shadow-sm"
+        />
+      ))}
+    </div>
+  );
+}
+
 function ResourcesPage() {
   const fetchCtx = useServerFn(getResourcesContext);
   const [ctx, setCtx] = useState<ResourcesContext | null>(null);
