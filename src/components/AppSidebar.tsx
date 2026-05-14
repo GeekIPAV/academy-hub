@@ -29,7 +29,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
 };
 
 export function AppSidebar() {
-  const { visibleRoutes, profile, activeRoles, setActiveRoles } = useApp();
+  const { visibleRoutes, profile, activeRoles, setActiveRoles, isAdmin } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -85,17 +85,19 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>Simular Roles (mock)</SidebarGroupLabel>
-          <SidebarGroupContent className="space-y-2 px-2 py-1">
-            {ALL_ROLES.map((r) => (
-              <label key={r} className="flex cursor-pointer items-center gap-2 text-sm">
-                <Checkbox checked={activeRoles.includes(r)} onCheckedChange={() => toggleRole(r)} />
-                <span>{r}</span>
-              </label>
-            ))}
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {isAdmin && (
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel>Simular Roles (mock)</SidebarGroupLabel>
+            <SidebarGroupContent className="space-y-2 px-2 py-1">
+              {ALL_ROLES.map((r) => (
+                <label key={r} className="flex cursor-pointer items-center gap-2 text-sm">
+                  <Checkbox checked={activeRoles.includes(r)} onCheckedChange={() => toggleRole(r)} />
+                  <span>{r}</span>
+                </label>
+              ))}
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter className="border-t group-data-[collapsible=icon]:hidden">
         <div className="flex items-center gap-2 p-2">
