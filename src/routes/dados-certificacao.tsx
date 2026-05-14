@@ -152,6 +152,7 @@ function CertificationPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <ComponentAccessMatrix pagePath="/dados-certificacao" />
       {visible("header") && (
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Dados de Certificação</h1>
@@ -305,7 +306,6 @@ function CertificationPage() {
           </CardContent>
         </Card>
       )}
-      <ComponentAccessMatrix pagePath="/dados-certificacao" />
     </div>
   );
 }

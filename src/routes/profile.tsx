@@ -16,6 +16,7 @@ function ProfilePage() {
   const visible = (id: string) => isComponentVisible("/profile", id);
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <ComponentAccessMatrix pagePath="/profile" />
       {visible("header") && (
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Editar Perfil</h1>
@@ -47,7 +48,6 @@ function ProfilePage() {
           </CardContent>
         </Card>
       )}
-      <ComponentAccessMatrix pagePath="/profile" />
     </div>
   );
 }

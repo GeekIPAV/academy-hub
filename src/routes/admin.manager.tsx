@@ -38,6 +38,7 @@ function AdminManagerPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
+      <ComponentAccessMatrix pagePath="/admin/manager" />
       {visible("header") && (
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Central de Comando</h1>
@@ -45,7 +46,6 @@ function AdminManagerPage() {
         </div>
       )}
       {visible("route-matrix") && <AccessTab />}
-      <ComponentAccessMatrix pagePath="/admin/manager" />
     </div>
   );
 }

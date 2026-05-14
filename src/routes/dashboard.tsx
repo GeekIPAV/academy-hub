@@ -20,6 +20,7 @@ function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
+      <ComponentAccessMatrix pagePath="/dashboard" />
       {visible("header") && (
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -50,7 +51,6 @@ function DashboardPage() {
         </div>
       )}
       {visible("roadmap") && <WidgetRoadmap />}
-      <ComponentAccessMatrix pagePath="/dashboard" />
     </div>
   );
 }
