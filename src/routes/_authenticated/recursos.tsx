@@ -205,7 +205,6 @@ function ResourcesPage() {
               src={toProxyUrl(preview.file_url)}
               title={preview.title}
               className="h-full w-full border-0"
-              sandbox="allow-scripts allow-same-origin allow-downloads"
             />
           )}
         </DialogContent>
