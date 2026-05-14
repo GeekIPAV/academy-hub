@@ -21,6 +21,7 @@ import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
+import { Route as ApiPublicRecursosSplatRouteImport } from './routes/api/public/recursos.$'
 
 const TrainingRoute = TrainingRouteImport.update({
   id: '/training',
@@ -82,6 +83,11 @@ const AuthenticatedActionsIdRoute = AuthenticatedActionsIdRouteImport.update({
   path: '/actions/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const ApiPublicRecursosSplatRoute = ApiPublicRecursosSplatRouteImport.update({
+  id: '/api/public/recursos/$',
+  path: '/api/public/recursos/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/admin/manager': typeof AdminManagerRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByTo {
   '/admin/manager': typeof AdminManagerRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/admin/manager': typeof AdminManagerRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,6 +147,7 @@ export interface FileRouteTypes {
     | '/admin/manager'
     | '/actions/$id'
     | '/admin/recursos'
+    | '/api/public/recursos/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/admin/manager'
     | '/actions/$id'
     | '/admin/recursos'
+    | '/api/public/recursos/$'
   id:
     | '__root__'
     | '/'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/admin/manager'
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
+    | '/api/public/recursos/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   TrainingRoute: typeof TrainingRoute
   AdminManagerRoute: typeof AdminManagerRoute
+  ApiPublicRecursosSplatRoute: typeof ApiPublicRecursosSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedActionsIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/public/recursos/$': {
+      id: '/api/public/recursos/$'
+      path: '/api/public/recursos/$'
+      fullPath: '/api/public/recursos/$'
+      preLoaderRoute: typeof ApiPublicRecursosSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -294,7 +314,18 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   TrainingRoute: TrainingRoute,
   AdminManagerRoute: AdminManagerRoute,
+  ApiPublicRecursosSplatRoute: ApiPublicRecursosSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
