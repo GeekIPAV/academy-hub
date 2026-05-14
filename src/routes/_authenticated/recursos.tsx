@@ -52,33 +52,6 @@ function ResourcesPage() {
   const [activePhase, setActivePhase] = useState<Phase>("FTC");
   const [resources, setResources] = useState<ResourceRow[]>([]);
   const [loadingRes, setLoadingRes] = useState(false);
-  const [openingId, setOpeningId] = useState<string | null>(null);
-  const [preview, setPreview] = useState<ResourcePreview | null>(null);
-
-  async function openResource(resource: ResourceRow) {
-    setOpeningId(resource.id);
-    try {
-      const response = await fetch(toProxyUrl(resource.file_url));
-      if (!response.ok) throw new Error("Não foi possível abrir o ficheiro.");
-
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      setPreview({
-        title: resource.title,
-        url: blobUrl,
-        filename: filenameFromResource(resource),
-        blob,
-        mimeType: blob.type,
-      });
-    } finally {
-      setOpeningId(null);
-    }
-  }
-
-  function closePreview() {
-    if (preview?.url) URL.revokeObjectURL(preview.url);
-    setPreview(null);
-  }
 
   useEffect(() => {
     let mounted = true;
@@ -184,11 +157,11 @@ function ResourcesPage() {
                         const TypeIcon = r.resource_type === "video" ? Video : FileText;
                         return (
                           <li key={r.id}>
-                            <button
-                              type="button"
-                              onClick={() => void openResource(r)}
-                              disabled={openingId === r.id}
-                              className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-md px-2 py-3 text-left transition-colors hover:bg-muted/50 disabled:cursor-wait disabled:opacity-70"
+                            <a
+                              href={toProxyUrl(r.file_url)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-md px-2 py-3 text-left transition-colors hover:bg-muted/50"
                             >
                               <TypeIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                               <div className="min-w-0 flex-1">
@@ -199,12 +172,8 @@ function ResourcesPage() {
                                   </p>
                                 )}
                               </div>
-                              {openingId === r.id ? (
-                                <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
-                              ) : (
-                                <Download className="h-4 w-4 shrink-0 text-muted-foreground" />
-                              )}
-                            </button>
+                              <Download className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            </a>
                           </li>
                         );
                       })}
