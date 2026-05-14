@@ -20,6 +20,8 @@ import {
   getCertificationContext,
   saveCertificationData,
 } from "@/lib/certification.functions";
+import { useApp } from "@/lib/app-context";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 export const Route = createFileRoute("/dados-certificacao")({
   head: () => ({ meta: [{ title: "Dados de Certificação — Academia Ubuntu" }] }),

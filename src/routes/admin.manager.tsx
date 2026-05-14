@@ -14,6 +14,7 @@ import { useApp } from "@/lib/app-context";
 import { ALL_ROLES, APP_ROUTES } from "@/lib/mock-data";
 import type { RoleName } from "@/lib/types";
 import { toast } from "sonner";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
