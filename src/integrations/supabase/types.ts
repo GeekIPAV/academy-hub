@@ -224,6 +224,90 @@ export type Database = {
         }
         Relationships: []
       }
+      program_cohorts: {
+        Row: {
+          created_at: string | null
+          entity_id: string | null
+          id: string
+          invite_token: string | null
+          is_active: boolean | null
+          program_id: string | null
+          project_notion_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          invite_token?: string | null
+          is_active?: boolean | null
+          program_id?: string | null
+          project_notion_id: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          invite_token?: string | null
+          is_active?: boolean | null
+          program_id?: string | null
+          project_notion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_cohorts_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "notion_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_cohorts_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      program_enrollments: {
+        Row: {
+          cohort_id: string | null
+          created_at: string | null
+          id: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          cohort_id?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          cohort_id?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_enrollments_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "program_cohorts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_enrollments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programs: {
         Row: {
           description: string | null
