@@ -42,6 +42,7 @@ function AdminManagerPage() {
         <p className="text-sm text-muted-foreground">Configure acessos por role.</p>
       </div>
       <AccessTab />
+      <ComponentAccessMatrix pagePath="/admin/manager" />
     </div>
   );
 }
