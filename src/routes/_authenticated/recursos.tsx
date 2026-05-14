@@ -71,7 +71,11 @@ function isVideoPreview(preview: ResourcePreview): boolean {
 
 interface PdfPageLike {
   getViewport: (args: { scale: number }) => { width: number; height: number };
-  render: (args: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
+  render: (args: {
+    canvas: HTMLCanvasElement;
+    canvasContext: CanvasRenderingContext2D;
+    viewport: { width: number; height: number };
+  }) => { promise: Promise<void> };
 }
 
 interface PdfDocumentLike {
@@ -122,9 +126,16 @@ function PdfPreview({ preview }: { preview: ResourcePreview }) {
       setError(null);
 
       try {
-        const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+        const pdfjs = (await import("pdfjs-dist/legacy/build/pdf.mjs")) as unknown as {
+          GlobalWorkerOptions: { workerSrc: string };
+          getDocument: (src: unknown) => { promise: Promise<unknown> };
+        };
+        pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+          "pdfjs-dist/legacy/build/pdf.worker.mjs",
+          import.meta.url,
+        ).toString();
         const data = new Uint8Array(await preview.blob.arrayBuffer());
-        const task = pdfjs.getDocument({ data, disableWorker: true });
+        const task = pdfjs.getDocument({ data });
         pdfDocument = (await task.promise) as PdfDocumentLike;
         const renderedPages: string[] = [];
 
@@ -137,7 +148,7 @@ function PdfPreview({ preview }: { preview: ResourcePreview }) {
           canvas.height = Math.ceil(viewport.height);
           const context = canvas.getContext("2d");
           if (!context) throw new Error("Não foi possível preparar a pré-visualização.");
-          await page.render({ canvasContext: context, viewport }).promise;
+          await page.render({ canvas, canvasContext: context, viewport }).promise;
           renderedPages.push(canvas.toDataURL("image/png"));
           if (!cancelled) setPages([...renderedPages]);
         }
