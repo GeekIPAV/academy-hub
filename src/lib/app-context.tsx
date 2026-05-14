@@ -10,6 +10,7 @@ import type { ComponentPermission, Profile, RoleName, RoutePermission } from "./
 
 interface AppState {
   profile: Profile;
+  assignedRoles: RoleName[];
   activeRoles: RoleName[];
   setActiveRoles: (roles: RoleName[]) => void;
   routePermissions: RoutePermission[];
