@@ -58,6 +58,8 @@ function CertificationPage() {
   const navigate = useNavigate();
   const fetchCtx = useServerFn(getCertificationContext);
   const saveFn = useServerFn(saveCertificationData);
+  const { isComponentVisible } = useApp();
+  const visible = (id: string) => isComponentVisible("/dados-certificacao", id);
 
   const { data, isLoading } = useQuery({
     queryKey: ["certification-context"],
