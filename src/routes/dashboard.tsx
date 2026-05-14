@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useApp } from "@/lib/app-context";
+import { WidgetRoadmap } from "@/components/WidgetRoadmap";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -20,6 +21,7 @@ function DashboardPage() {
           <span className="font-medium text-foreground">{activeRoles.join(" + ")}</span>.
         </p>
       </div>
+      <WidgetRoadmap />
     </div>
   );
 }

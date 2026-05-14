@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useServerFn } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GraduationCap, Briefcase, Sparkles, HeartHandshake, Loader2 } from "lucide-react";
@@ -28,7 +29,7 @@ export function WidgetRoadmap() {
   useEffect(() => {
     let mounted = true;
     fetchRoadmap()
-      .then((r) => mounted && setItems(r))
+      .then((r: RoadmapItem[]) => mounted && setItems(r))
       .catch((e: Error) => mounted && setError(e.message));
     return () => {
       mounted = false;
