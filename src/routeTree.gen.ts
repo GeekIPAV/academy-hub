@@ -18,6 +18,7 @@ import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
+import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 
 const TrainingRoute = TrainingRouteImport.update({
@@ -64,6 +65,11 @@ const AdminManagerRoute = AdminManagerRouteImport.update({
   path: '/admin/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
+  id: '/recursos',
+  path: '/recursos',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedActionsIdRoute = AuthenticatedActionsIdRouteImport.update({
   id: '/actions/$id',
   path: '/actions/$id',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
+  '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
 }
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
+  '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
 }
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/training': typeof TrainingRoute
+  '/_authenticated/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
 }
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/training'
+    | '/recursos'
     | '/admin/manager'
     | '/actions/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/training'
+    | '/recursos'
     | '/admin/manager'
     | '/actions/$id'
   id:
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/training'
+    | '/_authenticated/recursos'
     | '/admin/manager'
     | '/_authenticated/actions/$id'
   fileRoutesById: FileRoutesById
@@ -219,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/recursos': {
+      id: '/_authenticated/recursos'
+      path: '/recursos'
+      fullPath: '/recursos'
+      preLoaderRoute: typeof AuthenticatedRecursosRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/actions/$id': {
       id: '/_authenticated/actions/$id'
       path: '/actions/$id'
@@ -230,10 +249,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedRecursosRoute: typeof AuthenticatedRecursosRoute
   AuthenticatedActionsIdRoute: typeof AuthenticatedActionsIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedRecursosRoute: AuthenticatedRecursosRoute,
   AuthenticatedActionsIdRoute: AuthenticatedActionsIdRoute,
 }
 
@@ -255,3 +276,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
