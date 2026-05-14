@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TrainingRouteImport } from './routes/training'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DadosCertificacaoRouteImport } from './routes/dados-certificacao'
@@ -23,11 +22,6 @@ import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authen
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 import { Route as ApiPublicRecursosSplatRouteImport } from './routes/api/public/recursos.$'
 
-const TrainingRoute = TrainingRouteImport.update({
-  id: '/training',
-  path: '/training',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -96,7 +90,6 @@ export interface FileRoutesByFullPath {
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
-  '/training': typeof TrainingRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
@@ -110,7 +103,6 @@ export interface FileRoutesByTo {
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
-  '/training': typeof TrainingRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
@@ -126,7 +118,6 @@ export interface FileRoutesById {
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
-  '/training': typeof TrainingRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
@@ -142,7 +133,6 @@ export interface FileRouteTypes {
     | '/dados-certificacao'
     | '/dashboard'
     | '/profile'
-    | '/training'
     | '/recursos'
     | '/admin/manager'
     | '/actions/$id'
@@ -156,7 +146,6 @@ export interface FileRouteTypes {
     | '/dados-certificacao'
     | '/dashboard'
     | '/profile'
-    | '/training'
     | '/recursos'
     | '/admin/manager'
     | '/actions/$id'
@@ -171,7 +160,6 @@ export interface FileRouteTypes {
     | '/dados-certificacao'
     | '/dashboard'
     | '/profile'
-    | '/training'
     | '/_authenticated/recursos'
     | '/admin/manager'
     | '/_authenticated/actions/$id'
@@ -187,20 +175,12 @@ export interface RootRouteChildren {
   DadosCertificacaoRoute: typeof DadosCertificacaoRoute
   DashboardRoute: typeof DashboardRoute
   ProfileRoute: typeof ProfileRoute
-  TrainingRoute: typeof TrainingRoute
   AdminManagerRoute: typeof AdminManagerRoute
   ApiPublicRecursosSplatRoute: typeof ApiPublicRecursosSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/training': {
-      id: '/training'
-      path: '/training'
-      fullPath: '/training'
-      preLoaderRoute: typeof TrainingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -312,10 +292,19 @@ const rootRouteChildren: RootRouteChildren = {
   DadosCertificacaoRoute: DadosCertificacaoRoute,
   DashboardRoute: DashboardRoute,
   ProfileRoute: ProfileRoute,
-  TrainingRoute: TrainingRoute,
   AdminManagerRoute: AdminManagerRoute,
   ApiPublicRecursosSplatRoute: ApiPublicRecursosSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

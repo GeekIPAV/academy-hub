@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, User, GraduationCap, Shield, ListChecks, LogIn, LogOut, BookMarked } from "lucide-react";
+import { LayoutDashboard, Shield, ListChecks, LogIn, LogOut, BookMarked } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsFormando } from "@/hooks/use-is-formando";
@@ -23,8 +23,6 @@ import type { RoleName } from "@/lib/types";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
-  "/profile": User,
-  "/training": GraduationCap,
   "/actions": ListChecks,
   "/recursos": BookMarked,
   "/admin/manager": Shield,

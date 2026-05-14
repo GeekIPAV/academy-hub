@@ -13,8 +13,6 @@ export const MOCK_USER_ROLES: UserRole[] = [{ user_id: "user-1", role_name: "For
 
 export const APP_ROUTES: AppRoute[] = [
   { path: "/dashboard", label: "Dashboard" },
-  { path: "/profile", label: "Perfil" },
-  { path: "/training", label: "Formações" },
   { path: "/actions", label: "Eventos e Formações" },
   { path: "/admin/manager", label: "Central de Comando" },
 ];
@@ -28,14 +26,10 @@ export const MOCK_ROUTE_PERMISSIONS: RoutePermission[] = [
   })),
   // Formador
   { role_name: "Formador", route_path: "/dashboard", is_granted: true },
-  { role_name: "Formador", route_path: "/profile", is_granted: true },
-  { role_name: "Formador", route_path: "/training", is_granted: true },
   { role_name: "Formador", route_path: "/actions", is_granted: true },
   { role_name: "Formador", route_path: "/admin/manager", is_granted: false },
   // Formando
   { role_name: "Formando", route_path: "/dashboard", is_granted: true },
-  { role_name: "Formando", route_path: "/profile", is_granted: true },
-  { role_name: "Formando", route_path: "/training", is_granted: true },
   { role_name: "Formando", route_path: "/actions", is_granted: true },
   { role_name: "Formando", route_path: "/admin/manager", is_granted: false },
 ];
