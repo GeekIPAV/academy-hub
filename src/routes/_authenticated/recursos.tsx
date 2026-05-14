@@ -5,7 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Lock,
   FileText,
@@ -228,6 +234,9 @@ function ResourcesPage() {
         <DialogContent className="max-w-5xl gap-4 p-4 sm:p-6">
           <DialogHeader className="space-y-3 pr-8">
             <DialogTitle className="truncate">{preview?.title}</DialogTitle>
+            <DialogDescription>
+              Pré-visualização do recurso sem abrir uma nova página do browser.
+            </DialogDescription>
             {preview && (
               <Button asChild variant="outline" size="sm" className="w-fit">
                 <a href={preview.url} download={preview.filename}>
