@@ -2,14 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listActions } from "@/lib/actions.functions";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/actions")({
@@ -27,18 +20,12 @@ function ActionsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Ações</h1>
-        <p className="text-sm text-muted-foreground">
-          Ações sincronizadas a partir do Notion.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">Eventos e Formações</h1>
+        <p className="text-sm text-muted-foreground">Ações sincronizadas a partir do Notion.</p>
       </div>
 
       {isLoading && <p className="text-sm text-muted-foreground">A carregar…</p>}
-      {error && (
-        <p className="text-sm text-destructive">
-          Erro a carregar ações: {(error as Error).message}
-        </p>
-      )}
+      {error && <p className="text-sm text-destructive">Erro a carregar ações: {(error as Error).message}</p>}
 
       {data && (
         <div className="rounded-md border">
@@ -64,30 +51,18 @@ function ActionsPage() {
               )}
               {data.map((a) => (
                 <TableRow key={a.id}>
-                  <TableCell className="font-medium">
-                    {a.title ?? "(sem título)"}
-                  </TableCell>
+                  <TableCell className="font-medium">{a.title ?? "(sem título)"}</TableCell>
                   <TableCell>{a.programs?.title ?? "—"}</TableCell>
-                  <TableCell>
-                    {a.category ? <Badge variant="outline">{a.category}</Badge> : "—"}
-                  </TableCell>
+                  <TableCell>{a.category ? <Badge variant="outline">{a.category}</Badge> : "—"}</TableCell>
                   <TableCell>{a.action_date ?? "—"}</TableCell>
                   <TableCell>{a.max_capacity ?? "—"}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        a.registration_status === "Aberto" ? "default" : "secondary"
-                      }
-                    >
+                    <Badge variant={a.registration_status === "Aberto" ? "default" : "secondary"}>
                       {a.registration_status ?? "Fechado"}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Link
-                      to="/actions/$id"
-                      params={{ id: a.id }}
-                      className="text-sm text-primary hover:underline"
-                    >
+                    <Link to="/actions/$id" params={{ id: a.id }} className="text-sm text-primary hover:underline">
                       Ver / Inscrever
                     </Link>
                   </TableCell>
