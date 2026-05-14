@@ -104,7 +104,6 @@ function ResourcesPage() {
   const phases: Phase[] = ["FTC", "FTP", "SU", "SF"];
 
   return (
-    <>
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Centro de Recursos</h1>
@@ -186,25 +185,5 @@ function ResourcesPage() {
         })}
       </Tabs>
     </div>
-      <Dialog open={Boolean(preview)} onOpenChange={(open) => !open && closePreview()}>
-        <DialogContent className="max-w-5xl gap-4 p-4 sm:p-6">
-          <DialogHeader className="space-y-3 pr-8">
-            <DialogTitle className="truncate">{preview?.title}</DialogTitle>
-            <DialogDescription>
-              Pré-visualização do recurso sem abrir uma nova página do browser.
-            </DialogDescription>
-            {preview && (
-              <Button asChild variant="outline" size="sm" className="w-fit">
-                <a href={preview.url} download={preview.filename}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Descarregar
-                </a>
-              </Button>
-            )}
-          </DialogHeader>
-          {preview && <ResourcePreviewPane preview={preview} />}
-        </DialogContent>
-      </Dialog>
-    </>
   );
 }
