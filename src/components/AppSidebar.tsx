@@ -1,7 +1,8 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, User, GraduationCap, Shield, ListChecks, LogIn, LogOut } from "lucide-react";
+import { LayoutDashboard, User, GraduationCap, Shield, ListChecks, LogIn, LogOut, BookMarked } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsFormando } from "@/hooks/use-is-formando";
 import { Button } from "@/components/ui/button";
 import { ALL_ROLES } from "@/lib/mock-data";
 import {
@@ -25,6 +26,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   "/profile": User,
   "/training": GraduationCap,
   "/actions": ListChecks,
+  "/recursos": BookMarked,
   "/admin/manager": Shield,
 };
 
@@ -33,6 +35,7 @@ export function AppSidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const isFormando = useIsFormando();
 
   const toggleRole = (r: RoleName) => {
     const next = activeRoles.includes(r)
@@ -73,6 +76,16 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+              {isFormando && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={path === "/recursos"}>
+                    <Link to="/recursos">
+                      <BookMarked className="h-4 w-4" />
+                      <span>Centro de Recursos</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
