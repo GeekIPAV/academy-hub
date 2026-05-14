@@ -7,6 +7,7 @@ export type Phase = "FTC" | "FTP" | "SU" | "SF";
 
 export interface ResourcesContext {
   isFormando: boolean;
+  isAdmin: boolean;
   completed: Record<Phase, boolean>;
 }
 
