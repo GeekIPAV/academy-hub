@@ -1,12 +1,4 @@
-import type {
-  AppRoute,
-  Enrollment,
-  Profile,
-  RoleName,
-  RoutePermission,
-  TrainingAction,
-  UserRole,
-} from "./types";
+import type { AppRoute, Enrollment, Profile, RoleName, RoutePermission, TrainingAction, UserRole } from "./types";
 
 export const ALL_ROLES: RoleName[] = ["Admin", "Formador", "Formando"];
 
@@ -17,15 +9,13 @@ export const MOCK_PROFILE: Profile = {
   email: "joana@ubuntu.pt",
 };
 
-export const MOCK_USER_ROLES: UserRole[] = [
-  { user_id: "user-1", role_name: "Formando" },
-];
+export const MOCK_USER_ROLES: UserRole[] = [{ user_id: "user-1", role_name: "Formando" }];
 
 export const APP_ROUTES: AppRoute[] = [
   { path: "/dashboard", label: "Dashboard" },
   { path: "/profile", label: "Perfil" },
   { path: "/training", label: "Formações" },
-  { path: "/actions", label: "Ações" },
+  { path: "/actions", label: "Eventos e Formações" },
   { path: "/admin/manager", label: "Central de Comando" },
 ];
 
@@ -50,7 +40,6 @@ export const MOCK_ROUTE_PERMISSIONS: RoutePermission[] = [
   { role_name: "Formando", route_path: "/admin/manager", is_granted: false },
 ];
 
-
 export const MOCK_TRAINING_ACTIONS: TrainingAction[] = [
   { id: "ftc-1", category: "FTC", title: "Formação Teórica Comum", status: "open" },
   { id: "ftp-1", category: "FTP", title: "Formação Teórico-Prática", status: "scheduled" },
@@ -58,6 +47,4 @@ export const MOCK_TRAINING_ACTIONS: TrainingAction[] = [
   { id: "sf-1", category: "SF", title: "Serviço Final", status: "closed" },
 ];
 
-export const MOCK_ENROLLMENTS: Enrollment[] = [
-  { user_id: "user-1", action_id: "ftc-1", status: "completed" },
-];
+export const MOCK_ENROLLMENTS: Enrollment[] = [{ user_id: "user-1", action_id: "ftc-1", status: "completed" }];
