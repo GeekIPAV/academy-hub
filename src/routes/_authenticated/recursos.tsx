@@ -284,11 +284,11 @@ function ResourcesPage() {
             </DialogDescription>
           </DialogHeader>
           {preview && (
-            <iframe
-              src={toProxyUrl(preview.file_url)}
-              title={preview.title}
-              className="h-full w-full border-0"
-            />
+            preview.resource_type === "video" ? (
+              <video src={toProxyUrl(preview.file_url)} controls className="h-full w-full bg-muted" />
+            ) : (
+              <PdfPreview url={toProxyUrl(preview.file_url)} />
+            )
           )}
         </DialogContent>
       </Dialog>
