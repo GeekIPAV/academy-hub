@@ -17,10 +17,10 @@ export interface RoadmapItem {
 }
 
 const PHASES: { phase: RoadmapPhase; label: string }[] = [
-  { phase: "FTC", label: "FTC — Formação Técnica Comum" },
-  { phase: "FTP", label: "FTP — Formação Técnica Profissional" },
+  { phase: "FTC", label: "Formação Teórico-Conceptual" },
+  { phase: "FTP", label: "Formação Teórico-Prática" },
   { phase: "SU", label: "Semana Ubuntu" },
-  { phase: "SF", label: "Serviço Final" },
+  { phase: "SF", label: "Sessão Final" },
 ];
 
 export const getRoadmap = createServerFn({ method: "GET" })
