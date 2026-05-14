@@ -19,6 +19,13 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { RoleName } from "@/lib/types";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
@@ -29,7 +36,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
 };
 
 export function AppSidebar() {
-  const { visibleRoutes, profile, activeRoles, setActiveRoles, isAdmin } = useApp();
+  const { visibleRoutes, profile, activeRoles, setActiveRoles, isAdmin, assignedRoles } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
