@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Lock,
   FileText,
@@ -46,6 +47,18 @@ interface ResourceRow {
   description: string | null;
 }
 
+interface ResourcePreview {
+  title: string;
+  url: string;
+  filename: string;
+}
+
+function filenameFromResource(resource: ResourceRow): string {
+  const fromUrl = resource.file_url.split("/").pop()?.split("?")[0];
+  if (fromUrl) return decodeURIComponent(fromUrl);
+  return `${resource.title}.pdf`;
+}
+
 function ResourcesPage() {
   const fetchCtx = useServerFn(getResourcesContext);
   const [ctx, setCtx] = useState<ResourcesContext | null>(null);
@@ -53,6 +66,7 @@ function ResourcesPage() {
   const [resources, setResources] = useState<ResourceRow[]>([]);
   const [loadingRes, setLoadingRes] = useState(false);
   const [openingId, setOpeningId] = useState<string | null>(null);
+  const [preview, setPreview] = useState<ResourcePreview | null>(null);
 
   async function openResource(resource: ResourceRow) {
     setOpeningId(resource.id);
@@ -62,11 +76,15 @@ function ResourcesPage() {
 
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
-      window.open(blobUrl, "_blank", "noopener,noreferrer");
-      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+      setPreview({ title: resource.title, url: blobUrl, filename: filenameFromResource(resource) });
     } finally {
       setOpeningId(null);
     }
+  }
+
+  function closePreview() {
+    if (preview?.url) URL.revokeObjectURL(preview.url);
+    setPreview(null);
   }
 
   useEffect(() => {
@@ -120,6 +138,7 @@ function ResourcesPage() {
   const phases: Phase[] = ["FTC", "FTP", "SU", "SF"];
 
   return (
+    <>
     <div className="mx-auto max-w-4xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Centro de Recursos</h1>
@@ -205,5 +224,28 @@ function ResourcesPage() {
         })}
       </Tabs>
     </div>
+      <Dialog open={Boolean(preview)} onOpenChange={(open) => !open && closePreview()}>
+        <DialogContent className="max-w-5xl gap-4 p-4 sm:p-6">
+          <DialogHeader className="space-y-3 pr-8">
+            <DialogTitle className="truncate">{preview?.title}</DialogTitle>
+            {preview && (
+              <Button asChild variant="outline" size="sm" className="w-fit">
+                <a href={preview.url} download={preview.filename}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Descarregar
+                </a>
+              </Button>
+            )}
+          </DialogHeader>
+          {preview && (
+            <iframe
+              src={preview.url}
+              title={preview.title}
+              className="h-[72vh] w-full rounded-md border bg-muted"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
