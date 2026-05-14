@@ -1,4 +1,14 @@
-import type { AppRoute, Enrollment, Profile, RoleName, RoutePermission, TrainingAction, UserRole } from "./types";
+import type {
+  AppRoute,
+  ComponentPermission,
+  Enrollment,
+  PageComponent,
+  Profile,
+  RoleName,
+  RoutePermission,
+  TrainingAction,
+  UserRole,
+} from "./types";
 
 export const ALL_ROLES: RoleName[] = ["Admin", "Formador", "Formando"];
 
