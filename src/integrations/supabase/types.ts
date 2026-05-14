@@ -90,6 +90,47 @@ export type Database = {
           },
         ]
       }
+      learning_resources: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          file_url: string
+          id: string
+          phase: string
+          program_id: string | null
+          resource_type: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          file_url: string
+          id?: string
+          phase: string
+          program_id?: string | null
+          resource_type: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          file_url?: string
+          id?: string
+          phase?: string
+          program_id?: string | null
+          resource_type?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_resources_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
