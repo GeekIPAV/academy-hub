@@ -30,6 +30,13 @@ const PHASE_META: Record<Phase, { label: string; short: string; Icon: React.Comp
   SF: { label: "Sessão Final", short: "SF", Icon: HeartHandshake },
 };
 
+function toProxyUrl(fileUrl: string): string {
+  const marker = "/storage/v1/object/public/resources/";
+  const idx = fileUrl.indexOf(marker);
+  if (idx < 0) return fileUrl;
+  return `/api/public/recursos/${fileUrl.slice(idx + marker.length)}`;
+}
+
 interface ResourceRow {
   id: string;
   phase: Phase;
