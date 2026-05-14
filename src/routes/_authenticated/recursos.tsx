@@ -102,7 +102,7 @@ function PdfPreview({ url }: { url: string }) {
       if (!context) return;
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-      page.render({ canvasContext: context, viewport }).promise.catch(() => setError(true));
+      page.render({ canvas, canvasContext: context, viewport }).promise.catch(() => setError(true));
     });
 
     return () => {
