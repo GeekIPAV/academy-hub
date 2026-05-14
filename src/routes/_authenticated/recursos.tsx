@@ -57,6 +57,16 @@ interface ResourcePreview {
   title: string;
   url: string;
   filename: string;
+  blob: Blob;
+  mimeType: string;
+}
+
+function isPdfPreview(preview: ResourcePreview): boolean {
+  return preview.mimeType.includes("pdf") || preview.filename.toLowerCase().endsWith(".pdf");
+}
+
+function isVideoPreview(preview: ResourcePreview): boolean {
+  return preview.mimeType.startsWith("video/") || /\.(mp4|webm|ogg|mov)$/i.test(preview.filename);
 }
 
 function filenameFromResource(resource: ResourceRow): string {
@@ -82,7 +92,13 @@ function ResourcesPage() {
 
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
-      setPreview({ title: resource.title, url: blobUrl, filename: filenameFromResource(resource) });
+      setPreview({
+        title: resource.title,
+        url: blobUrl,
+        filename: filenameFromResource(resource),
+        blob,
+        mimeType: blob.type,
+      });
     } finally {
       setOpeningId(null);
     }
@@ -246,13 +262,7 @@ function ResourcesPage() {
               </Button>
             )}
           </DialogHeader>
-          {preview && (
-            <iframe
-              src={preview.url}
-              title={preview.title}
-              className="h-[72vh] w-full rounded-md border bg-muted"
-            />
-          )}
+          {preview && <ResourcePreviewPane preview={preview} />}
         </DialogContent>
       </Dialog>
     </>
