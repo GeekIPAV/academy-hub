@@ -21,7 +21,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, Trash2, Upload } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Loader2, Pencil, Trash2, Upload } from "lucide-react";
 
 type Phase = "FTC" | "FTP" | "SU" | "SF";
 type ResourceType = "pdf" | "video";
@@ -55,6 +63,12 @@ export const Route = createFileRoute("/_authenticated/admin/recursos")({
   component: AdminResourcesPage,
 });
 
+function pathFromUrl(url: string): string | null {
+  const marker = "/object/public/resources/";
+  const idx = url.indexOf(marker);
+  return idx >= 0 ? url.slice(idx + marker.length) : null;
+}
+
 function AdminResourcesPage() {
   const [programs, setPrograms] = useState<ProgramRow[]>([]);
   const [resources, setResources] = useState<ResourceRow[]>([]);
@@ -66,6 +80,14 @@ function AdminResourcesPage() {
   const [resourceType, setResourceType] = useState<ResourceType | "">("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  const [editing, setEditing] = useState<ResourceRow | null>(null);
+  const [eProgramId, setEProgramId] = useState<string>("");
+  const [ePhase, setEPhase] = useState<Phase | "">("");
+  const [eTitle, setETitle] = useState("");
+  const [eResourceType, setEResourceType] = useState<ResourceType | "">("");
+  const [eFile, setEFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const loadResources = async () => {
     setLoadingList(true);
@@ -136,10 +158,7 @@ function AdminResourcesPage() {
   const handleDelete = async (r: ResourceRow) => {
     if (!confirm(`Apagar "${r.title}"?`)) return;
     try {
-      // Extract storage path from public URL: .../object/public/resources/<path>
-      const marker = "/object/public/resources/";
-      const idx = r.file_url.indexOf(marker);
-      const path = idx >= 0 ? r.file_url.slice(idx + marker.length) : null;
+      const path = pathFromUrl(r.file_url);
 
       const { error: dbErr } = await supabase
         .from("learning_resources" as never)
@@ -153,6 +172,79 @@ function AdminResourcesPage() {
       loadResources();
     } catch (err) {
       toast.error((err as Error).message);
+    }
+  };
+
+  const openEdit = (r: ResourceRow) => {
+    setEditing(r);
+    setEProgramId(r.program_id ?? "");
+    setEPhase(r.phase);
+    setETitle(r.title);
+    setEResourceType(r.resource_type as ResourceType);
+    setEFile(null);
+  };
+
+  const closeEdit = () => {
+    if (saving) return;
+    setEditing(null);
+    setEFile(null);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editing) return;
+    if (!eProgramId || !ePhase || !eTitle.trim() || !eResourceType) {
+      toast.error("Preenche todos os campos.");
+      return;
+    }
+    setSaving(true);
+    try {
+      let newFileUrl: string | null = null;
+      let newPath: string | null = null;
+
+      if (eFile) {
+        const ext = eFile.name.split(".").pop() ?? "bin";
+        newPath = `${eProgramId}/${ePhase}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("resources")
+          .upload(newPath, eFile, { contentType: eFile.type, upsert: false });
+        if (upErr) throw upErr;
+        const { data: urlData } = supabase.storage.from("resources").getPublicUrl(newPath);
+        newFileUrl = urlData.publicUrl;
+      }
+
+      const updatePayload: Record<string, unknown> = {
+        program_id: eProgramId,
+        phase: ePhase,
+        title: eTitle.trim(),
+        resource_type: eResourceType,
+      };
+      if (newFileUrl) updatePayload.file_url = newFileUrl;
+
+      const { error: updErr } = await supabase
+        .from("learning_resources" as never)
+        .update(updatePayload as never)
+        .eq("id", editing.id);
+
+      if (updErr) {
+        if (newPath) await supabase.storage.from("resources").remove([newPath]);
+        throw updErr;
+      }
+
+      // Remove old file if it was replaced
+      if (newFileUrl) {
+        const oldPath = pathFromUrl(editing.file_url);
+        if (oldPath) await supabase.storage.from("resources").remove([oldPath]);
+      }
+
+      toast.success("Recurso atualizado.");
+      setEditing(null);
+      setEFile(null);
+      loadResources();
+    } catch (err) {
+      toast.error((err as Error).message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -281,7 +373,7 @@ function AdminResourcesPage() {
                   <TableHead>Título</TableHead>
                   <TableHead>Fase</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead className="w-[100px]" />
+                  <TableHead className="w-[140px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -300,14 +392,24 @@ function AdminResourcesPage() {
                     <TableCell>{r.phase}</TableCell>
                     <TableCell className="uppercase">{r.resource_type}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(r)}
-                        title="Apagar"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEdit(r)}
+                          title="Editar"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(r)}
+                          title="Apagar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -316,6 +418,109 @@ function AdminResourcesPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={editing !== null} onOpenChange={(o) => (!o ? closeEdit() : null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar recurso</DialogTitle>
+            <DialogDescription>
+              Atualizar propriedades do recurso. Substituir o ficheiro é opcional.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSaveEdit} className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Programa</Label>
+              <Select value={eProgramId} onValueChange={setEProgramId} disabled={saving}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar programa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {programs.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.title ?? p.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Fase</Label>
+              <Select
+                value={ePhase}
+                onValueChange={(v) => setEPhase(v as Phase)}
+                disabled={saving}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar fase" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FTC">FTC — Formação Teórico-Conceptual</SelectItem>
+                  <SelectItem value="FTP">FTP — Formação Teórico-Prática</SelectItem>
+                  <SelectItem value="SU">Semana Ubuntu</SelectItem>
+                  <SelectItem value="SF">Sessão Final</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipo</Label>
+              <Select
+                value={eResourceType}
+                onValueChange={(v) => setEResourceType(v as ResourceType)}
+                disabled={saving}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                  <SelectItem value="video">Vídeo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Título</Label>
+              <Input
+                value={eTitle}
+                onChange={(e) => setETitle(e.target.value)}
+                disabled={saving}
+              />
+            </div>
+
+            <div className="space-y-2 sm:col-span-2">
+              <Label>Substituir ficheiro (opcional)</Label>
+              <Input
+                type="file"
+                onChange={(e) => setEFile(e.target.files?.[0] ?? null)}
+                disabled={saving}
+                accept={eResourceType === "video" ? "video/*" : ".pdf,application/pdf"}
+              />
+              {!eFile && editing && (
+                <p className="text-xs text-muted-foreground truncate">
+                  Atual: {editing.file_url.split("/").pop()}
+                </p>
+              )}
+            </div>
+
+            <DialogFooter className="sm:col-span-2">
+              <Button type="button" variant="ghost" onClick={closeEdit} disabled={saving}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />A guardar…
+                  </>
+                ) : (
+                  "Guardar alterações"
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
