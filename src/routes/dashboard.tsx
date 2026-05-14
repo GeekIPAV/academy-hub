@@ -1,6 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useApp } from "@/lib/app-context";
 import { WidgetRoadmap } from "@/components/WidgetRoadmap";
+import { Button } from "@/components/ui/button";
+import { BookMarked } from "lucide-react";
+import { useIsFormando } from "@/hooks/use-is-formando";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({

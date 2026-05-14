@@ -35,6 +35,7 @@ export function AppSidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const isFormando = useIsFormando();
 
   const toggleRole = (r: RoleName) => {
     const next = activeRoles.includes(r)
@@ -75,6 +76,16 @@ export function AppSidebar() {
                   </SidebarMenuItem>
                 );
               })}
+              {isFormando && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={path === "/recursos"}>
+                    <Link to="/recursos">
+                      <BookMarked className="h-4 w-4" />
+                      <span>Centro de Recursos</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
