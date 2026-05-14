@@ -19,7 +19,11 @@ export const MOCK_PROFILE: Profile = {
   email: "joana@ubuntu.pt",
 };
 
-export const MOCK_USER_ROLES: UserRole[] = [{ user_id: "user-1", role_name: "Formando" }];
+export const MOCK_USER_ROLES: UserRole[] = [
+  { user_id: "user-1", role_name: "Admin" },
+  { user_id: "user-1", role_name: "Formador" },
+  { user_id: "user-1", role_name: "Formando" },
+];
 
 export const APP_ROUTES: AppRoute[] = [
   { path: "/dashboard", label: "Dashboard" },

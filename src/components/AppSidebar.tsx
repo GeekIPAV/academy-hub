@@ -19,6 +19,13 @@ import {
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { RoleName } from "@/lib/types";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
@@ -29,7 +36,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
 };
 
 export function AppSidebar() {
-  const { visibleRoutes, profile, activeRoles, setActiveRoles, isAdmin } = useApp();
+  const { visibleRoutes, profile, activeRoles, setActiveRoles, isAdmin, assignedRoles } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -118,6 +125,28 @@ export function AppSidebar() {
         )}
       </SidebarContent>
       <SidebarFooter className="border-t group-data-[collapsible=icon]:hidden">
+        {assignedRoles.length > 1 && (
+          <div className="space-y-1 p-2">
+            <label className="px-1 text-xs font-medium text-muted-foreground">
+              A ver como
+            </label>
+            <Select
+              value={activeRoles[0] ?? assignedRoles[0]}
+              onValueChange={(v) => setActiveRoles([v as RoleName])}
+            >
+              <SelectTrigger className="h-8 w-full text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {assignedRoles.map((r) => (
+                  <SelectItem key={r} value={r}>
+                    {r}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div className="flex items-center gap-2 p-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-medium">
             {(user?.email ?? profile.full_name)
