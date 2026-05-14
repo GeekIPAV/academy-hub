@@ -86,6 +86,29 @@ function filenameFromResource(resource: ResourceRow): string {
   return `${resource.title}.pdf`;
 }
 
+function ResourcePreviewPane({ preview }: { preview: ResourcePreview }) {
+  if (isPdfPreview(preview)) return <PdfPreview preview={preview} />;
+
+  if (isVideoPreview(preview)) {
+    return (
+      <video
+        src={preview.url}
+        controls
+        className="max-h-[72vh] w-full rounded-md border bg-muted"
+      />
+    );
+  }
+
+  return (
+    <div className="flex min-h-[45vh] flex-col items-center justify-center gap-3 rounded-md border bg-muted p-6 text-center">
+      <FileText className="h-8 w-8 text-muted-foreground" />
+      <p className="text-sm text-muted-foreground">
+        Este tipo de ficheiro não tem pré-visualização. Usa o botão de descarregar.
+      </p>
+    </div>
+  );
+}
+
 function ResourcesPage() {
   const fetchCtx = useServerFn(getResourcesContext);
   const [ctx, setCtx] = useState<ResourcesContext | null>(null);
