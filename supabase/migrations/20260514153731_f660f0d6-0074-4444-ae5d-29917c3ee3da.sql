@@ -1,0 +1,1 @@
+ALTER TABLE public.program_cohorts ENABLE ROW LEVEL SECURITY;
