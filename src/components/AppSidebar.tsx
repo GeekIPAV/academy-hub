@@ -147,7 +147,7 @@ export function AppSidebar() {
             </Select>
           </div>
         )}
-        <div className="flex items-center gap-2 p-2"></div>
+        <div className="flex items-center gap-2 p-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-medium">
             {(user?.email ?? profile.full_name)
               .split(/[\s@.]/)
