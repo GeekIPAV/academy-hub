@@ -104,6 +104,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value: AppState = {
     profile: MOCK_PROFILE,
+    assignedRoles: MOCK_USER_ROLES.map((r) => r.role_name),
     activeRoles,
     setActiveRoles,
     routePermissions,
