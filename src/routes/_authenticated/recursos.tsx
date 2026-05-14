@@ -6,6 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Lock,
   FileText,
   Video,
@@ -52,6 +59,7 @@ function ResourcesPage() {
   const [activePhase, setActivePhase] = useState<Phase>("FTC");
   const [resources, setResources] = useState<ResourceRow[]>([]);
   const [loadingRes, setLoadingRes] = useState(false);
+  const [preview, setPreview] = useState<ResourceRow | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -156,10 +164,9 @@ function ResourcesPage() {
                         const TypeIcon = r.resource_type === "video" ? Video : FileText;
                         return (
                           <li key={r.id}>
-                            <a
-                              href={toProxyUrl(r.file_url)}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <button
+                              type="button"
+                              onClick={() => setPreview(r)}
                               className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-md px-2 py-3 text-left transition-colors hover:bg-muted/50"
                             >
                               <TypeIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -172,7 +179,7 @@ function ResourcesPage() {
                                 )}
                               </div>
                               <Download className="h-4 w-4 shrink-0 text-muted-foreground" />
-                            </a>
+                            </button>
                           </li>
                         );
                       })}
@@ -184,6 +191,25 @@ function ResourcesPage() {
           );
         })}
       </Tabs>
+
+      <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
+        <DialogContent className="h-[88vh] max-w-5xl grid-rows-[auto_1fr] p-0">
+          <DialogHeader className="space-y-1 px-6 pt-6">
+            <DialogTitle>{preview?.title}</DialogTitle>
+            <DialogDescription>
+              {preview?.resource_type === "video" ? "Pré-visualização do vídeo" : "Pré-visualização do documento"}
+            </DialogDescription>
+          </DialogHeader>
+          {preview && (
+            <iframe
+              src={toProxyUrl(preview.file_url)}
+              title={preview.title}
+              className="h-full w-full border-0"
+              sandbox="allow-scripts allow-same-origin allow-downloads"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
