@@ -14,6 +14,7 @@ import { useApp } from "@/lib/app-context";
 import { ALL_ROLES, APP_ROUTES } from "@/lib/mock-data";
 import type { RoleName } from "@/lib/types";
 import { toast } from "sonner";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
@@ -21,7 +22,8 @@ export const Route = createFileRoute("/admin/manager")({
 });
 
 function AdminManagerPage() {
-  const { isAdmin } = useApp();
+  const { isAdmin, isComponentVisible } = useApp();
+  const visible = (id: string) => isComponentVisible("/admin/manager", id);
   if (!isAdmin) {
     return (
       <Card className="mx-auto max-w-md p-8 text-center">
@@ -36,11 +38,14 @@ function AdminManagerPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Central de Comando</h1>
-        <p className="text-sm text-muted-foreground">Configure acessos por role.</p>
-      </div>
-      <AccessTab />
+      {visible("header") && (
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Central de Comando</h1>
+          <p className="text-sm text-muted-foreground">Configure acessos por role.</p>
+        </div>
+      )}
+      {visible("route-matrix") && <AccessTab />}
+      <ComponentAccessMatrix pagePath="/admin/manager" />
     </div>
   );
 }

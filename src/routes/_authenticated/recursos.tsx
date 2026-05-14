@@ -26,6 +26,8 @@ import {
   HeartHandshake,
 } from "lucide-react";
 import { getResourcesContext, type Phase, type ResourcesContext } from "@/lib/resources.functions";
+import { useApp } from "@/lib/app-context";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 export const Route = createFileRoute("/_authenticated/recursos")({
   head: () => ({ meta: [{ title: "Centro de Recursos — Academia Ubuntu" }] }),
@@ -143,6 +145,8 @@ function ResourcesPage() {
   const [resources, setResources] = useState<ResourceRow[]>([]);
   const [loadingRes, setLoadingRes] = useState(false);
   const [preview, setPreview] = useState<ResourceRow | null>(null);
+  const { isComponentVisible } = useApp();
+  const visible = (id: string) => isComponentVisible("/recursos", id);
 
   useEffect(() => {
     let mounted = true;
@@ -196,14 +200,17 @@ function ResourcesPage() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Centro de Recursos</h1>
-        <p className="text-sm text-muted-foreground">
-          Materiais de apoio do teu percurso. Os recursos vão sendo desbloqueados à medida
-          que concluis cada fase.
-        </p>
-      </div>
+      {visible("header") && (
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Centro de Recursos</h1>
+          <p className="text-sm text-muted-foreground">
+            Materiais de apoio do teu percurso. Os recursos vão sendo desbloqueados à medida
+            que concluis cada fase.
+          </p>
+        </div>
+      )}
 
+      {visible("tabs") && (
       <Tabs value={activePhase} onValueChange={(v) => setActivePhase(v as Phase)}>
         <TabsList className="grid w-full grid-cols-4">
           {phases.map((p) => (
@@ -274,6 +281,7 @@ function ResourcesPage() {
           );
         })}
       </Tabs>
+      )}
 
       <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
         <DialogContent className="h-[88vh] max-w-5xl grid-rows-[auto_1fr] p-0">
@@ -292,6 +300,7 @@ function ResourcesPage() {
           )}
         </DialogContent>
       </Dialog>
+      <ComponentAccessMatrix pagePath="/recursos" />
     </div>
   );
 }

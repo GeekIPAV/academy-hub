@@ -20,6 +20,8 @@ import {
   getCertificationContext,
   saveCertificationData,
 } from "@/lib/certification.functions";
+import { useApp } from "@/lib/app-context";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 export const Route = createFileRoute("/dados-certificacao")({
   head: () => ({ meta: [{ title: "Dados de Certificação — Academia Ubuntu" }] }),
@@ -56,6 +58,8 @@ function CertificationPage() {
   const navigate = useNavigate();
   const fetchCtx = useServerFn(getCertificationContext);
   const saveFn = useServerFn(saveCertificationData);
+  const { isComponentVisible } = useApp();
+  const visible = (id: string) => isComponentVisible("/dados-certificacao", id);
 
   const { data, isLoading } = useQuery({
     queryKey: ["certification-context"],
@@ -148,14 +152,16 @@ function CertificationPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dados de Certificação</h1>
-        <p className="text-sm text-muted-foreground">
-          Passo {step} de 2 — {step === 1 ? "Enquadramento profissional" : "Dados oficiais"}
-        </p>
-      </div>
+      {visible("header") && (
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Dados de Certificação</h1>
+          <p className="text-sm text-muted-foreground">
+            Passo {step} de 2 — {step === 1 ? "Enquadramento profissional" : "Dados oficiais"}
+          </p>
+        </div>
+      )}
 
-      {step === 1 && (
+      {step === 1 && visible("step1") && (
         <Card>
           <CardHeader>
             <CardTitle>Enquadramento Profissional</CardTitle>
@@ -195,7 +201,7 @@ function CertificationPage() {
         </Card>
       )}
 
-      {step === 2 && (
+      {step === 2 && visible("step2") && (
         <Card>
           <CardHeader>
             <CardTitle>Dados Oficiais (Certificado)</CardTitle>
@@ -299,6 +305,7 @@ function CertificationPage() {
           </CardContent>
         </Card>
       )}
+      <ComponentAccessMatrix pagePath="/dados-certificacao" />
     </div>
   );
 }

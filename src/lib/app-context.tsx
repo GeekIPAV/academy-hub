@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   APP_ROUTES,
+  MOCK_COMPONENT_PERMISSIONS,
   MOCK_PROFILE,
   MOCK_ROUTE_PERMISSIONS,
   MOCK_USER_ROLES,
 } from "./mock-data";
-import type { Profile, RoleName, RoutePermission } from "./types";
+import type { ComponentPermission, Profile, RoleName, RoutePermission } from "./types";
 
 interface AppState {
   profile: Profile;
@@ -13,7 +14,10 @@ interface AppState {
   setActiveRoles: (roles: RoleName[]) => void;
   routePermissions: RoutePermission[];
   setRoutePermissions: (rp: RoutePermission[]) => void;
+  componentPermissions: ComponentPermission[];
+  setComponentPermissions: (cp: ComponentPermission[]) => void;
   canAccess: (path: string) => boolean;
+  isComponentVisible: (pagePath: string, componentId: string) => boolean;
   visibleRoutes: typeof APP_ROUTES;
   isAdmin: boolean;
 }
@@ -22,6 +26,7 @@ const AppCtx = createContext<AppState | null>(null);
 
 const LS_ROLES = "ubuntu.activeRoles";
 const LS_PERMS = "ubuntu.routePerms";
+const LS_COMP = "ubuntu.componentPerms";
 
 function load<T>(k: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -39,11 +44,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
   const [routePermissions, setRoutePermissionsState] =
     useState<RoutePermission[]>(MOCK_ROUTE_PERMISSIONS);
+  const [componentPermissions, setComponentPermissionsState] =
+    useState<ComponentPermission[]>(MOCK_COMPONENT_PERMISSIONS);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     setActiveRolesState(load(LS_ROLES, MOCK_USER_ROLES.map((r) => r.role_name)));
     setRoutePermissionsState(load(LS_PERMS, MOCK_ROUTE_PERMISSIONS));
+    setComponentPermissionsState(load(LS_COMP, MOCK_COMPONENT_PERMISSIONS));
     setHydrated(true);
   }, []);
 
@@ -59,6 +67,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setRoutePermissionsState(rp);
     persist(LS_PERMS, rp);
   };
+  const setComponentPermissions = (cp: ComponentPermission[]) => {
+    setComponentPermissionsState(cp);
+    persist(LS_COMP, cp);
+  };
 
   const canAccess = (path: string) =>
     activeRoles.some((role) =>
@@ -66,6 +78,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
         (p) => p.role_name === role && p.route_path === path && p.is_granted,
       ),
     );
+
+  const isAdmin = activeRoles.includes("Admin");
+
+  const isComponentVisible = (pagePath: string, componentId: string) => {
+    // Admin vê sempre tudo (caso contrário não conseguiria reativar componentes ocultos).
+    if (isAdmin) return true;
+    return activeRoles.some((role) =>
+      componentPermissions.some(
+        (p) =>
+          p.role_name === role &&
+          p.page_path === pagePath &&
+          p.component_id === componentId &&
+          p.is_granted,
+      ),
+    );
+  };
 
   const visibleRoutes = useMemo(
     () => APP_ROUTES.filter((r) => canAccess(r.path)),
@@ -79,9 +107,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setActiveRoles,
     routePermissions,
     setRoutePermissions,
+    componentPermissions,
+    setComponentPermissions,
     canAccess,
+    isComponentVisible,
     visibleRoutes,
-    isAdmin: activeRoles.includes("Admin"),
+    isAdmin,
   };
 
   if (!hydrated) return null;

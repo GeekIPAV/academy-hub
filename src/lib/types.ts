@@ -18,6 +18,18 @@ export interface RoutePermission {
   is_granted: boolean;
 }
 
+export interface ComponentPermission {
+  role_name: RoleName;
+  page_path: string;
+  component_id: string;
+  is_granted: boolean;
+}
+
+export interface PageComponent {
+  id: string;
+  label: string;
+}
+
 export type TrainingCategory = "FTC" | "FTP" | "SU" | "SF";
 export type TrainingStatus = "open" | "scheduled" | "closed";
 

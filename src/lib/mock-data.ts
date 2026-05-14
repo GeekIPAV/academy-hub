@@ -1,4 +1,14 @@
-import type { AppRoute, Enrollment, Profile, RoleName, RoutePermission, TrainingAction, UserRole } from "./types";
+import type {
+  AppRoute,
+  ComponentPermission,
+  Enrollment,
+  PageComponent,
+  Profile,
+  RoleName,
+  RoutePermission,
+  TrainingAction,
+  UserRole,
+} from "./types";
 
 export const ALL_ROLES: RoleName[] = ["Admin", "Formador", "Formando"];
 
@@ -42,3 +52,47 @@ export const MOCK_TRAINING_ACTIONS: TrainingAction[] = [
 ];
 
 export const MOCK_ENROLLMENTS: Enrollment[] = [{ user_id: "user-1", action_id: "ftc-1", status: "completed" }];
+
+// Registo de componentes visíveis por página, controláveis pela matriz de acessos.
+export const PAGE_COMPONENTS: Record<string, PageComponent[]> = {
+  "/dashboard": [
+    { id: "header", label: "Cabeçalho" },
+    { id: "profile-button", label: "Botão Perfil" },
+    { id: "recursos-button", label: "Botão Centro de Recursos" },
+    { id: "roadmap", label: "Widget Meu Percurso" },
+  ],
+  "/actions": [
+    { id: "header", label: "Cabeçalho" },
+    { id: "table", label: "Tabela de ações" },
+  ],
+  "/dados-certificacao": [
+    { id: "header", label: "Cabeçalho" },
+    { id: "step1", label: "Passo 1 — Enquadramento" },
+    { id: "step2", label: "Passo 2 — Dados oficiais" },
+  ],
+  "/profile": [
+    { id: "header", label: "Cabeçalho" },
+    { id: "form", label: "Formulário de dados" },
+  ],
+  "/recursos": [
+    { id: "header", label: "Cabeçalho" },
+    { id: "tabs", label: "Tabs de fases" },
+  ],
+  "/admin/manager": [
+    { id: "header", label: "Cabeçalho" },
+    { id: "route-matrix", label: "Matriz de Rotas" },
+  ],
+};
+
+// Por defeito, todos os componentes são visíveis a todos os roles.
+export const MOCK_COMPONENT_PERMISSIONS: ComponentPermission[] = Object.entries(PAGE_COMPONENTS)
+  .flatMap(([page_path, comps]) =>
+    comps.flatMap((c) =>
+      ALL_ROLES.map((role) => ({
+        role_name: role,
+        page_path,
+        component_id: c.id,
+        is_granted: true,
+      })),
+    ),
+  );
