@@ -4,6 +4,7 @@ import { WidgetRoadmap } from "@/components/WidgetRoadmap";
 import { Button } from "@/components/ui/button";
 import { BookMarked, User } from "lucide-react";
 import { useIsFormando } from "@/hooks/use-is-formando";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -13,27 +14,32 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 function DashboardPage() {
-  const { activeRoles } = useApp();
+  const { activeRoles, isComponentVisible } = useApp();
   const isFormando = useIsFormando();
+  const visible = (id: string) => isComponentVisible("/dashboard", id);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            A visualizar como{" "}
-            <span className="font-medium text-foreground">{activeRoles.join(" + ")}</span>.
-          </p>
+      {visible("header") && (
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+            <p className="text-sm text-muted-foreground">
+              A visualizar como{" "}
+              <span className="font-medium text-foreground">{activeRoles.join(" + ")}</span>.
+            </p>
+          </div>
+          {visible("profile-button") && (
+            <Button asChild variant="outline">
+              <Link to="/profile">
+                <User className="h-4 w-4" />
+                Perfil
+              </Link>
+            </Button>
+          )}
         </div>
-        <Button asChild variant="outline">
-          <Link to="/profile">
-            <User className="h-4 w-4" />
-            Perfil
-          </Link>
-        </Button>
-      </div>
-      {isFormando && (
+      )}
+      {isFormando && visible("recursos-button") && (
         <div className="flex justify-center">
           <Button asChild variant="outline" size="lg">
             <Link to="/recursos">
@@ -43,7 +49,8 @@ function DashboardPage() {
           </Button>
         </div>
       )}
-      <WidgetRoadmap />
+      {visible("roadmap") && <WidgetRoadmap />}
+      <ComponentAccessMatrix pagePath="/dashboard" />
     </div>
   );
 }

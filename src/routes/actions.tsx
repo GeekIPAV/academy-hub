@@ -4,6 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { listActions } from "@/lib/actions.functions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { useApp } from "@/lib/app-context";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 export const Route = createFileRoute("/actions")({
   head: () => ({ meta: [{ title: "Ações — Academia Ubuntu" }] }),
