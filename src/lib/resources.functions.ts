@@ -7,6 +7,7 @@ export type Phase = "FTC" | "FTP" | "SU" | "SF";
 
 export interface ResourcesContext {
   isFormando: boolean;
+  isAdmin: boolean;
   completed: Record<Phase, boolean>;
 }
 
@@ -17,6 +18,13 @@ export const getResourcesContext = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<ResourcesContext> => {
     const { supabase, userId } = context;
 
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+    const isAdmin = (profile as { role?: string } | null)?.role === "admin";
+
     const { data: enrollments } = await supabase
       .from("program_enrollments")
       .select("id")
@@ -26,7 +34,16 @@ export const getResourcesContext = createServerFn({ method: "GET" })
     const isFormando = (enrollments?.length ?? 0) > 0;
     const completed: Record<Phase, boolean> = { FTC: false, FTP: false, SU: false, SF: false };
 
-    if (!isFormando) return { isFormando, completed };
+    // Admins têm acesso total a tudo, sem precisar de inscrição/conclusão
+    if (isAdmin) {
+      return {
+        isFormando: true,
+        isAdmin: true,
+        completed: { FTC: true, FTP: true, SU: true, SF: true },
+      };
+    }
+
+    if (!isFormando) return { isFormando, isAdmin, completed };
 
     const { data: rows } = await supabaseAdmin
       .from("enrollments")
@@ -44,5 +61,5 @@ export const getResourcesContext = createServerFn({ method: "GET" })
       }
     }
 
-    return { isFormando, completed };
+    return { isFormando, isAdmin, completed };
   });
