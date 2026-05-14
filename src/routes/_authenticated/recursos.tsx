@@ -158,6 +158,8 @@ function ResourcesPage() {
                           <li key={r.id}>
                             <a
                               href={toProxyUrl(r.file_url)}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-md px-2 py-3 text-left transition-colors hover:bg-muted/50"
                             >
                               <TypeIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
