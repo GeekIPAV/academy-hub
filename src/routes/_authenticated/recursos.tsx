@@ -69,6 +69,17 @@ function isVideoPreview(preview: ResourcePreview): boolean {
   return preview.mimeType.startsWith("video/") || /\.(mp4|webm|ogg|mov)$/i.test(preview.filename);
 }
 
+interface PdfPageLike {
+  getViewport: (args: { scale: number }) => { width: number; height: number };
+  render: (args: { canvasContext: CanvasRenderingContext2D; viewport: unknown }) => { promise: Promise<void> };
+}
+
+interface PdfDocumentLike {
+  numPages: number;
+  getPage: (pageNumber: number) => Promise<PdfPageLike>;
+  destroy?: () => Promise<void> | void;
+}
+
 function filenameFromResource(resource: ResourceRow): string {
   const fromUrl = resource.file_url.split("/").pop()?.split("?")[0];
   if (fromUrl) return decodeURIComponent(fromUrl);
