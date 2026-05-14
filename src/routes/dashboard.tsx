@@ -26,23 +26,23 @@ function DashboardPage() {
             <span className="font-medium text-foreground">{activeRoles.join(" + ")}</span>.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          {isFormando && (
-            <Button asChild variant="outline">
-              <Link to="/recursos">
-                <BookMarked className="h-4 w-4" />
-                Centro de Recursos
-              </Link>
-            </Button>
-          )}
-          <Button asChild variant="outline">
-            <Link to="/profile">
-              <User className="h-4 w-4" />
-              Perfil
+        <Button asChild variant="outline">
+          <Link to="/profile">
+            <User className="h-4 w-4" />
+            Perfil
+          </Link>
+        </Button>
+      </div>
+      {isFormando && (
+        <div className="flex justify-center">
+          <Button asChild variant="outline" size="lg">
+            <Link to="/recursos">
+              <BookMarked className="h-4 w-4" />
+              Centro de Recursos
             </Link>
           </Button>
         </div>
-      </div>
+      )}
       <WidgetRoadmap />
     </div>
   );
