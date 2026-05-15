@@ -156,10 +156,12 @@ function EntidadeDashboardPage() {
 
 function InviteCard({ entityId }: { entityId?: string }) {
   const fetchFn = useServerFn(listMyCohorts);
-  const { data, isLoading } = useQuery({
+  const { data: rawData, isLoading } = useQuery({
     queryKey: ["my-cohorts", entityId ?? "self"],
     queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
+    retry: false,
   });
+  const data = Array.isArray(rawData) ? rawData : [];
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
