@@ -49,6 +49,7 @@ export const APP_ROUTES: AppRoute[] = [
   { path: "/actions", label: "Eventos e Formações" },
   { path: "/entidade/dashboard", label: "Painel da Entidade" },
   { path: "/admin/manager", label: "Central de Comando" },
+  { path: "/admin/programas", label: "Gestão de Programas" },
 ];
 
 export const MOCK_ROUTE_PERMISSIONS: RoutePermission[] = [
@@ -63,16 +64,19 @@ export const MOCK_ROUTE_PERMISSIONS: RoutePermission[] = [
   { role_name: "Formador", route_path: "/actions", is_granted: true },
   { role_name: "Formador", route_path: "/entidade/dashboard", is_granted: false },
   { role_name: "Formador", route_path: "/admin/manager", is_granted: false },
+  { role_name: "Formador", route_path: "/admin/programas", is_granted: false },
   // Formando
   { role_name: "Formando", route_path: "/dashboard", is_granted: true },
   { role_name: "Formando", route_path: "/actions", is_granted: true },
   { role_name: "Formando", route_path: "/entidade/dashboard", is_granted: false },
   { role_name: "Formando", route_path: "/admin/manager", is_granted: false },
+  { role_name: "Formando", route_path: "/admin/programas", is_granted: false },
   // Entidade
   { role_name: "Entidade", route_path: "/dashboard", is_granted: false },
   { role_name: "Entidade", route_path: "/actions", is_granted: false },
   { role_name: "Entidade", route_path: "/entidade/dashboard", is_granted: true },
   { role_name: "Entidade", route_path: "/admin/manager", is_granted: false },
+  { role_name: "Entidade", route_path: "/admin/programas", is_granted: false },
 ];
 
 export const MOCK_TRAINING_ACTIONS: TrainingAction[] = [

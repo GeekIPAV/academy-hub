@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
+import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
@@ -68,6 +69,11 @@ const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
   path: '/entidade/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminProgramasRoute = AdminProgramasRouteImport.update({
+  id: '/admin/programas',
+  path: '/admin/programas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminManagerRoute = AdminManagerRouteImport.update({
   id: '/admin/manager',
   path: '/admin/manager',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
+  '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
+  '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
+  '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recursos'
     | '/admin/manager'
+    | '/admin/programas'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/actions/$id'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recursos'
     | '/admin/manager'
+    | '/admin/programas'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/actions/$id'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/_authenticated/recursos'
     | '/admin/manager'
+    | '/admin/programas'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/_authenticated/actions/$id'
@@ -200,6 +212,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   ProfileRoute: typeof ProfileRoute
   AdminManagerRoute: typeof AdminManagerRoute
+  AdminProgramasRoute: typeof AdminProgramasRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   ApiPublicRecursosSplatRoute: typeof ApiPublicRecursosSplatRoute
@@ -270,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntidadeDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/programas': {
+      id: '/admin/programas'
+      path: '/admin/programas'
+      fullPath: '/admin/programas'
+      preLoaderRoute: typeof AdminProgramasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/manager': {
       id: '/admin/manager'
       path: '/admin/manager'
@@ -333,6 +353,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   ProfileRoute: ProfileRoute,
   AdminManagerRoute: AdminManagerRoute,
+  AdminProgramasRoute: AdminProgramasRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
   ApiPublicRecursosSplatRoute: ApiPublicRecursosSplatRoute,
