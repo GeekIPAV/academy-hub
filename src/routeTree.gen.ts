@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
@@ -56,6 +57,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
+  id: '/entidade/dashboard',
+  path: '/entidade/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminManagerRoute = AdminManagerRouteImport.update({
   id: '/admin/manager',
   path: '/admin/manager',
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
+  '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
+  '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
+  '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recursos'
     | '/admin/manager'
+    | '/entidade/dashboard'
     | '/actions/$id'
     | '/admin/recursos'
     | '/api/public/recursos/$'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recursos'
     | '/admin/manager'
+    | '/entidade/dashboard'
     | '/actions/$id'
     | '/admin/recursos'
     | '/api/public/recursos/$'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/_authenticated/recursos'
     | '/admin/manager'
+    | '/entidade/dashboard'
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
     | '/api/public/recursos/$'
@@ -176,6 +188,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   ProfileRoute: typeof ProfileRoute
   AdminManagerRoute: typeof AdminManagerRoute
+  EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   ApiPublicRecursosSplatRoute: typeof ApiPublicRecursosSplatRoute
 }
 
@@ -228,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entidade/dashboard': {
+      id: '/entidade/dashboard'
+      path: '/entidade/dashboard'
+      fullPath: '/entidade/dashboard'
+      preLoaderRoute: typeof EntidadeDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/manager': {
@@ -293,6 +313,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   ProfileRoute: ProfileRoute,
   AdminManagerRoute: AdminManagerRoute,
+  EntidadeDashboardRoute: EntidadeDashboardRoute,
   ApiPublicRecursosSplatRoute: ApiPublicRecursosSplatRoute,
 }
 export const routeTree = rootRouteImport
