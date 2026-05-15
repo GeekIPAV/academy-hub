@@ -14,39 +14,130 @@ export type Database = {
   }
   public: {
     Tables: {
-      automation_logs: {
+      acoes: {
         Row: {
-          action_performed: string | null
+          action_date: string | null
+          category: string | null
           created_at: string | null
-          details: Json | null
-          enrollment_id: string | null
+          description: string | null
+          entity_id: string | null
           id: string
+          max_capacity: number | null
+          notion_id: string | null
+          program_id: string | null
+          registration_status: string | null
+          required_fields: Json | null
+          title: string | null
         }
         Insert: {
-          action_performed?: string | null
+          action_date?: string | null
+          category?: string | null
           created_at?: string | null
-          details?: Json | null
-          enrollment_id?: string | null
+          description?: string | null
+          entity_id?: string | null
           id?: string
+          max_capacity?: number | null
+          notion_id?: string | null
+          program_id?: string | null
+          registration_status?: string | null
+          required_fields?: Json | null
+          title?: string | null
         }
         Update: {
-          action_performed?: string | null
+          action_date?: string | null
+          category?: string | null
           created_at?: string | null
-          details?: Json | null
-          enrollment_id?: string | null
+          description?: string | null
+          entity_id?: string | null
           id?: string
+          max_capacity?: number | null
+          notion_id?: string | null
+          program_id?: string | null
+          registration_status?: string | null
+          required_fields?: Json | null
+          title?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "automation_logs_enrollment_id_fkey"
-            columns: ["enrollment_id"]
+            foreignKeyName: "training_actions_entity_id_fkey"
+            columns: ["entity_id"]
             isOneToOne: false
-            referencedRelation: "enrollments"
+            referencedRelation: "entidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_actions_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programas"
             referencedColumns: ["id"]
           },
         ]
       }
-      enrollments: {
+      entidades: {
+        Row: {
+          id: string
+          name: string
+          status: string | null
+        }
+        Insert: {
+          id: string
+          name: string
+          status?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      entidades_programas: {
+        Row: {
+          created_at: string | null
+          entity_id: string | null
+          id: string
+          invite_token: string | null
+          is_active: boolean | null
+          program_id: string | null
+          project_notion_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          invite_token?: string | null
+          is_active?: boolean | null
+          program_id?: string | null
+          project_notion_id: string
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string | null
+          id?: string
+          invite_token?: string | null
+          is_active?: boolean | null
+          program_id?: string | null
+          project_notion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_cohorts_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_cohorts_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inscritos_acoes: {
         Row: {
           action_id: string | null
           additional_data: Json | null
@@ -85,12 +176,128 @@ export type Database = {
             foreignKeyName: "enrollments_action_id_fkey"
             columns: ["action_id"]
             isOneToOne: false
-            referencedRelation: "training_actions"
+            referencedRelation: "acoes"
             referencedColumns: ["id"]
           },
         ]
       }
-      learning_resources: {
+      inscritos_programa: {
+        Row: {
+          cohort_id: string | null
+          created_at: string | null
+          id: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          cohort_id?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          cohort_id?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_enrollments_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "entidades_programas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_enrollments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "utilizadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notificacoes: {
+        Row: {
+          created_at: string | null
+          id: string
+          link: string | null
+          message: string
+          read_at: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message: string
+          read_at?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          message?: string
+          read_at?: string | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "utilizadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programas: {
+        Row: {
+          description: string | null
+          id: string
+          is_active: boolean | null
+          last_synced_at: string | null
+          max_capacity: number | null
+          metadata: Json | null
+          notion_id: string | null
+          required_fields: Json | null
+          sync_status: string | null
+          title: string | null
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          max_capacity?: number | null
+          metadata?: Json | null
+          notion_id?: string | null
+          required_fields?: Json | null
+          sync_status?: string | null
+          title?: string | null
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          max_capacity?: number | null
+          metadata?: Json | null
+          notion_id?: string | null
+          required_fields?: Json | null
+          sync_status?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
+      recursos: {
         Row: {
           created_at: string | null
           description: string | null
@@ -126,68 +333,77 @@ export type Database = {
             foreignKeyName: "learning_resources_program_id_fkey"
             columns: ["program_id"]
             isOneToOne: false
-            referencedRelation: "programs"
+            referencedRelation: "programas"
             referencedColumns: ["id"]
           },
         ]
       }
-      notifications: {
+      registos_automacao: {
         Row: {
+          action_performed: string | null
           created_at: string | null
+          details: Json | null
+          enrollment_id: string | null
           id: string
-          link: string | null
-          message: string
-          read_at: string | null
-          title: string
-          user_id: string | null
         }
         Insert: {
+          action_performed?: string | null
           created_at?: string | null
+          details?: Json | null
+          enrollment_id?: string | null
           id?: string
-          link?: string | null
-          message: string
-          read_at?: string | null
-          title: string
-          user_id?: string | null
         }
         Update: {
+          action_performed?: string | null
           created_at?: string | null
+          details?: Json | null
+          enrollment_id?: string | null
           id?: string
-          link?: string | null
-          message?: string
-          read_at?: string | null
-          title?: string
-          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "automation_logs_enrollment_id_fkey"
+            columns: ["enrollment_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "inscritos_acoes"
             referencedColumns: ["id"]
           },
         ]
       }
-      notion_entities: {
+      registos_sincronizacao: {
         Row: {
+          created_at: string
+          error_message: string | null
+          event_type: string | null
           id: string
-          name: string
-          status: string | null
+          notion_id: string | null
+          payload: Json | null
+          source: string
+          status: string
         }
         Insert: {
-          id: string
-          name: string
-          status?: string | null
+          created_at?: string
+          error_message?: string | null
+          event_type?: string | null
+          id?: string
+          notion_id?: string | null
+          payload?: Json | null
+          source?: string
+          status?: string
         }
         Update: {
+          created_at?: string
+          error_message?: string | null
+          event_type?: string | null
           id?: string
-          name?: string
-          status?: string | null
+          notion_id?: string | null
+          payload?: Json | null
+          source?: string
+          status?: string
         }
         Relationships: []
       }
-      profiles: {
+      utilizadores: {
         Row: {
           address: string | null
           address_cp3: string | null
@@ -265,222 +481,6 @@ export type Database = {
         }
         Relationships: []
       }
-      program_cohorts: {
-        Row: {
-          created_at: string | null
-          entity_id: string | null
-          id: string
-          invite_token: string | null
-          is_active: boolean | null
-          program_id: string | null
-          project_notion_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          entity_id?: string | null
-          id?: string
-          invite_token?: string | null
-          is_active?: boolean | null
-          program_id?: string | null
-          project_notion_id: string
-        }
-        Update: {
-          created_at?: string | null
-          entity_id?: string | null
-          id?: string
-          invite_token?: string | null
-          is_active?: boolean | null
-          program_id?: string | null
-          project_notion_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "program_cohorts_entity_id_fkey"
-            columns: ["entity_id"]
-            isOneToOne: false
-            referencedRelation: "notion_entities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "program_cohorts_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      program_enrollments: {
-        Row: {
-          cohort_id: string | null
-          created_at: string | null
-          id: string
-          status: string | null
-          user_id: string | null
-        }
-        Insert: {
-          cohort_id?: string | null
-          created_at?: string | null
-          id?: string
-          status?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          cohort_id?: string | null
-          created_at?: string | null
-          id?: string
-          status?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "program_enrollments_cohort_id_fkey"
-            columns: ["cohort_id"]
-            isOneToOne: false
-            referencedRelation: "program_cohorts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "program_enrollments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      programs: {
-        Row: {
-          description: string | null
-          id: string
-          is_active: boolean | null
-          last_synced_at: string | null
-          max_capacity: number | null
-          metadata: Json | null
-          notion_id: string | null
-          required_fields: Json | null
-          sync_status: string | null
-          title: string | null
-        }
-        Insert: {
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_synced_at?: string | null
-          max_capacity?: number | null
-          metadata?: Json | null
-          notion_id?: string | null
-          required_fields?: Json | null
-          sync_status?: string | null
-          title?: string | null
-        }
-        Update: {
-          description?: string | null
-          id?: string
-          is_active?: boolean | null
-          last_synced_at?: string | null
-          max_capacity?: number | null
-          metadata?: Json | null
-          notion_id?: string | null
-          required_fields?: Json | null
-          sync_status?: string | null
-          title?: string | null
-        }
-        Relationships: []
-      }
-      sync_logs: {
-        Row: {
-          created_at: string
-          error_message: string | null
-          event_type: string | null
-          id: string
-          notion_id: string | null
-          payload: Json | null
-          source: string
-          status: string
-        }
-        Insert: {
-          created_at?: string
-          error_message?: string | null
-          event_type?: string | null
-          id?: string
-          notion_id?: string | null
-          payload?: Json | null
-          source?: string
-          status?: string
-        }
-        Update: {
-          created_at?: string
-          error_message?: string | null
-          event_type?: string | null
-          id?: string
-          notion_id?: string | null
-          payload?: Json | null
-          source?: string
-          status?: string
-        }
-        Relationships: []
-      }
-      training_actions: {
-        Row: {
-          action_date: string | null
-          category: string | null
-          created_at: string | null
-          description: string | null
-          entity_id: string | null
-          id: string
-          max_capacity: number | null
-          notion_id: string | null
-          program_id: string | null
-          registration_status: string | null
-          required_fields: Json | null
-          title: string | null
-        }
-        Insert: {
-          action_date?: string | null
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          entity_id?: string | null
-          id?: string
-          max_capacity?: number | null
-          notion_id?: string | null
-          program_id?: string | null
-          registration_status?: string | null
-          required_fields?: Json | null
-          title?: string | null
-        }
-        Update: {
-          action_date?: string | null
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          entity_id?: string | null
-          id?: string
-          max_capacity?: number | null
-          notion_id?: string | null
-          program_id?: string | null
-          registration_status?: string | null
-          required_fields?: Json | null
-          title?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "training_actions_entity_id_fkey"
-            columns: ["entity_id"]
-            isOneToOne: false
-            referencedRelation: "notion_entities"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "training_actions_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       action_stats: {
@@ -494,7 +494,7 @@ export type Database = {
             foreignKeyName: "enrollments_action_id_fkey"
             columns: ["action_id"]
             isOneToOne: false
-            referencedRelation: "training_actions"
+            referencedRelation: "acoes"
             referencedColumns: ["id"]
           },
         ]
