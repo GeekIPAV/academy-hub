@@ -16,6 +16,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
@@ -55,6 +56,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InscricaoTokenRoute = InscricaoTokenRouteImport.update({
+  id: '/inscricao/$token',
+  path: '/inscricao/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/inscricao/$token': typeof InscricaoTokenRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/inscricao/$token': typeof InscricaoTokenRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_authenticated/recursos': typeof AuthenticatedRecursosRoute
   '/admin/manager': typeof AdminManagerRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/inscricao/$token': typeof InscricaoTokenRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/recursos'
     | '/admin/manager'
     | '/entidade/dashboard'
+    | '/inscricao/$token'
     | '/actions/$id'
     | '/admin/recursos'
     | '/api/public/recursos/$'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/recursos'
     | '/admin/manager'
     | '/entidade/dashboard'
+    | '/inscricao/$token'
     | '/actions/$id'
     | '/admin/recursos'
     | '/api/public/recursos/$'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recursos'
     | '/admin/manager'
     | '/entidade/dashboard'
+    | '/inscricao/$token'
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
     | '/api/public/recursos/$'
@@ -189,6 +201,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   AdminManagerRoute: typeof AdminManagerRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
+  InscricaoTokenRoute: typeof InscricaoTokenRoute
   ApiPublicRecursosSplatRoute: typeof ApiPublicRecursosSplatRoute
 }
 
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inscricao/$token': {
+      id: '/inscricao/$token'
+      path: '/inscricao/$token'
+      fullPath: '/inscricao/$token'
+      preLoaderRoute: typeof InscricaoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entidade/dashboard': {
@@ -314,8 +334,19 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   AdminManagerRoute: AdminManagerRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
+  InscricaoTokenRoute: InscricaoTokenRoute,
   ApiPublicRecursosSplatRoute: ApiPublicRecursosSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
