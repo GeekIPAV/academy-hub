@@ -47,11 +47,13 @@ function EntidadeDashboardPage() {
   const hasAccess = isAdmin || activeRoles.includes("Entidade");
 
   const fetchEntidades = useServerFn(listAllEntidades);
-  const { data: entidades } = useQuery({
+  const { data: entidadesRaw, error: entidadesError } = useQuery({
     queryKey: ["all-entidades"],
     queryFn: () => fetchEntidades(),
     enabled: hasAccess && isAdmin,
+    retry: false,
   });
+  const entidades = Array.isArray(entidadesRaw) ? entidadesRaw : [];
 
   const [selectedEntityId, setSelectedEntityId] = useState<string | undefined>(
     undefined,
