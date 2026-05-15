@@ -13,10 +13,18 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   getMyEntidade,
+  listAllEntidades,
   listMyCohorts,
   listMyTrainees,
   updateMyEntidade,
 } from "@/lib/entidade.functions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
