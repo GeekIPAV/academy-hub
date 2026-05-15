@@ -218,11 +218,11 @@ function InviteCard({ entityId }: { entityId?: string }) {
   );
 }
 
-function TraineesTable() {
+function TraineesTable({ entityId }: { entityId?: string }) {
   const fetchFn = useServerFn(listMyTrainees);
   const { data, isLoading, error } = useQuery({
-    queryKey: ["my-trainees"],
-    queryFn: () => fetchFn(),
+    queryKey: ["my-trainees", entityId ?? "self"],
+    queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
   });
 
   const trainees = data ?? [];
