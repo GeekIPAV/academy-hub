@@ -60,7 +60,6 @@ function EntidadeDashboardPage() {
   );
 
   useEffect(() => {
-  useEffect(() => {
     if (isAdmin && !selectedEntityId && entidades.length > 0) {
       setSelectedEntityId(entidades[0].id);
     }
