@@ -227,9 +227,10 @@ function TraineesTable({ entityId }: { entityId?: string }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["my-trainees", entityId ?? "self"],
     queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
+    retry: false,
   });
 
-  const trainees = data ?? [];
+  const trainees = Array.isArray(data) ? data : [];
 
   const statusVariant = (s: string | null) => {
     const v = (s ?? "").toLowerCase();
