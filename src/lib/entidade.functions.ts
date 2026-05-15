@@ -85,3 +85,64 @@ export const updateMyEntidade = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return updated;
   });
+
+export const listMyCohorts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    const { data: user, error: uErr } = await supabase
+      .from("utilizadores")
+      .select("entity_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (uErr) throw new Error(uErr.message);
+    if (!user?.entity_id) return [];
+
+    const { data, error } = await supabase
+      .from("entidades_programas")
+      .select("id, invite_token, is_active, program_id, programas(title)")
+      .eq("entity_id", user.entity_id);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const listMyTrainees = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    const { data: user, error: uErr } = await supabase
+      .from("utilizadores")
+      .select("entity_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (uErr) throw new Error(uErr.message);
+    if (!user?.entity_id) return [];
+
+    const { data: cohorts, error: cErr } = await supabase
+      .from("entidades_programas")
+      .select("id, programas(title)")
+      .eq("entity_id", user.entity_id);
+    if (cErr) throw new Error(cErr.message);
+    const cohortIds = (cohorts ?? []).map((c) => c.id);
+    if (cohortIds.length === 0) return [];
+    const cohortMap = new Map(
+      (cohorts ?? []).map((c) => [c.id, c.programas?.title ?? null]),
+    );
+
+    const { data: enrolls, error: eErr } = await supabase
+      .from("inscritos_programa")
+      .select("id, status, created_at, cohort_id, user_id, utilizadores(full_name)")
+      .in("cohort_id", cohortIds)
+      .order("created_at", { ascending: false });
+    if (eErr) throw new Error(eErr.message);
+
+    return (enrolls ?? []).map((e) => ({
+      id: e.id,
+      status: e.status,
+      created_at: e.created_at,
+      full_name: e.utilizadores?.full_name ?? "—",
+      program_title: cohortMap.get(e.cohort_id ?? "") ?? null,
+    }));
+  });
