@@ -128,6 +128,12 @@ function EntidadeDashboardPage() {
               ))}
             </SelectContent>
           </Select>
+          {entidadesError && (
+            <p className="mt-2 text-xs text-destructive">
+              Não foi possível carregar entidades. Verifica que tens sessão iniciada
+              ({(entidadesError as Error).message}).
+            </p>
+          )}
         </Card>
       )}
 
