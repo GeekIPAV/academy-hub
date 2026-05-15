@@ -152,11 +152,11 @@ function EntidadeDashboardPage() {
   );
 }
 
-function InviteCard() {
+function InviteCard({ entityId }: { entityId?: string }) {
   const fetchFn = useServerFn(listMyCohorts);
   const { data, isLoading } = useQuery({
-    queryKey: ["my-cohorts"],
-    queryFn: () => fetchFn(),
+    queryKey: ["my-cohorts", entityId ?? "self"],
+    queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
   });
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
