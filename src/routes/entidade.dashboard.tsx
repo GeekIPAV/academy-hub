@@ -37,6 +37,12 @@ function EntidadeDashboardPage() {
   const { activeRoles, isAdmin, isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/entidade/dashboard", id);
   const hasAccess = isAdmin || activeRoles.includes("Entidade");
+  const fetchEntidade = useServerFn(getMyEntidade);
+  const { data: entidade } = useQuery({
+    queryKey: ["my-entidade"],
+    queryFn: () => fetchEntidade(),
+    enabled: hasAccess,
+  });
 
   if (!hasAccess) {
     return (
