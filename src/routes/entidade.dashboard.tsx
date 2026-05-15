@@ -47,18 +47,20 @@ function EntidadeDashboardPage() {
   const hasAccess = isAdmin || activeRoles.includes("Entidade");
 
   const fetchEntidades = useServerFn(listAllEntidades);
-  const { data: entidades } = useQuery({
+  const { data: entidadesRaw, error: entidadesError } = useQuery({
     queryKey: ["all-entidades"],
     queryFn: () => fetchEntidades(),
     enabled: hasAccess && isAdmin,
+    retry: false,
   });
+  const entidades = Array.isArray(entidadesRaw) ? entidadesRaw : [];
 
   const [selectedEntityId, setSelectedEntityId] = useState<string | undefined>(
     undefined,
   );
 
   useEffect(() => {
-    if (isAdmin && !selectedEntityId && entidades && entidades.length > 0) {
+    if (isAdmin && !selectedEntityId && entidades.length > 0) {
       setSelectedEntityId(entidades[0].id);
     }
   }, [isAdmin, entidades, selectedEntityId]);
@@ -126,6 +128,12 @@ function EntidadeDashboardPage() {
               ))}
             </SelectContent>
           </Select>
+          {entidadesError && (
+            <p className="mt-2 text-xs text-destructive">
+              Não foi possível carregar entidades. Verifica que tens sessão iniciada
+              ({(entidadesError as Error).message}).
+            </p>
+          )}
         </Card>
       )}
 
@@ -154,10 +162,12 @@ function EntidadeDashboardPage() {
 
 function InviteCard({ entityId }: { entityId?: string }) {
   const fetchFn = useServerFn(listMyCohorts);
-  const { data, isLoading } = useQuery({
+  const { data: rawData, isLoading } = useQuery({
     queryKey: ["my-cohorts", entityId ?? "self"],
     queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
+    retry: false,
   });
+  const data = Array.isArray(rawData) ? rawData : [];
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
@@ -184,12 +194,12 @@ function InviteCard({ entityId }: { entityId?: string }) {
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading && <Skeleton className="h-9 w-full" />}
-        {!isLoading && (!data || data.length === 0) && (
+        {!isLoading && data.length === 0 && (
           <p className="text-sm text-muted-foreground">
             Ainda não há programas associados à sua entidade.
           </p>
         )}
-        {data?.map((c) => {
+        {data.map((c) => {
           const url = `${origin}/inscricao/${c.invite_token ?? ""}`;
           return (
             <div key={c.id} className="space-y-1.5">
@@ -223,9 +233,10 @@ function TraineesTable({ entityId }: { entityId?: string }) {
   const { data, isLoading, error } = useQuery({
     queryKey: ["my-trainees", entityId ?? "self"],
     queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
+    retry: false,
   });
 
-  const trainees = data ?? [];
+  const trainees = Array.isArray(data) ? data : [];
 
   const statusVariant = (s: string | null) => {
     const v = (s ?? "").toLowerCase();
