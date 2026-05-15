@@ -169,7 +169,7 @@ function ResourcesPage() {
     }
     setLoadingRes(true);
     supabase
-      .from("learning_resources" as never)
+      .from("recursos" as never)
       .select("id, phase, title, resource_type, file_url, description")
       .eq("phase", activePhase)
       .order("created_at", { ascending: false })

@@ -7,7 +7,7 @@ export const getMyProfile = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabase, userId, claims } = context;
     const { data, error } = await supabase
-      .from("profiles")
+      .from("utilizadores")
       .select("*")
       .eq("id", userId)
       .maybeSingle();

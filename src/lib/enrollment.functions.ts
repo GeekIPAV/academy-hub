@@ -17,7 +17,7 @@ export const enrollInAction = createServerFn({ method: "POST" })
 
     // Carrega ação
     const { data: action, error: aErr } = await supabase
-      .from("training_actions")
+      .from("acoes")
       .select("id, max_capacity, title")
       .eq("id", data.action_id)
       .maybeSingle();
@@ -26,7 +26,7 @@ export const enrollInAction = createServerFn({ method: "POST" })
 
     // Verifica se já existe inscrição deste utilizador para esta ação
     const { data: existing, error: eErr } = await supabase
-      .from("enrollments")
+      .from("inscritos_acoes")
       .select("id, status")
       .eq("action_id", data.action_id)
       .eq("user_id", userId)
@@ -38,7 +38,7 @@ export const enrollInAction = createServerFn({ method: "POST" })
 
     // Conta inscrições já aceites
     const { count, error: cErr } = await supabase
-      .from("enrollments")
+      .from("inscritos_acoes")
       .select("id", { count: "exact", head: true })
       .eq("action_id", data.action_id)
       .eq("status", "aceite");
@@ -49,7 +49,7 @@ export const enrollInAction = createServerFn({ method: "POST" })
     const status = max != null && aceiteCount >= max ? "suplente" : "aceite";
 
     const { data: enr, error: iErr } = await supabase
-      .from("enrollments")
+      .from("inscritos_acoes")
       .insert({
         user_id: userId,
         action_id: data.action_id,
@@ -62,7 +62,7 @@ export const enrollInAction = createServerFn({ method: "POST" })
     if (iErr) throw new Error(iErr.message);
 
     // Notificação
-    await supabase.from("notifications").insert({
+    await supabase.from("notificacoes").insert({
       user_id: userId,
       title: status === "aceite" ? "Inscrição confirmada" : "Inscrição em lista de espera",
       message:

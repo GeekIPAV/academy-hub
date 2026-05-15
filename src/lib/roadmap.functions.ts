@@ -30,14 +30,14 @@ export const getRoadmap = createServerFn({ method: "GET" })
 
     // Get user's enrollment cohort (program_id + entity_id)
     const { data: enrollments, error: eErr } = await supabase
-      .from("program_enrollments")
-      .select("cohort_id, program_cohorts(program_id, entity_id)")
+      .from("inscritos_programa")
+      .select("cohort_id, entidades_programas(program_id, entity_id)")
       .eq("user_id", userId)
       .limit(1);
     if (eErr) throw new Error(eErr.message);
 
-    const cohort = (enrollments?.[0] as { program_cohorts?: { program_id: string | null; entity_id: string | null } | null } | undefined)
-      ?.program_cohorts;
+    const cohort = (enrollments?.[0] as { entidades_programas?: { program_id: string | null; entity_id: string | null } | null } | undefined)
+      ?.entidades_programas;
     const programId = cohort?.program_id ?? null;
     const entityId = cohort?.entity_id ?? null;
 
@@ -47,7 +47,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
 
     // FTC: program-wide
     const { data: ftcActions } = await supabaseAdmin
-      .from("training_actions")
+      .from("acoes")
       .select("id, title, category, registration_status, action_date, program_id, entity_id")
       .eq("program_id", programId)
       .eq("category", "FTC")
@@ -57,7 +57,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
     let entityActions: typeof ftcActions = [];
     if (entityId) {
       const { data } = await supabaseAdmin
-        .from("training_actions")
+        .from("acoes")
         .select("id, title, category, registration_status, action_date, program_id, entity_id")
         .eq("program_id", programId)
         .eq("entity_id", entityId)
