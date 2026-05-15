@@ -11,7 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getMyEntidade, updateMyEntidade } from "@/lib/entidade.functions";
+import {
+  getMyEntidade,
+  listMyCohorts,
+  listMyTrainees,
+  updateMyEntidade,
+} from "@/lib/entidade.functions";
 import {
   Table,
   TableBody,
@@ -21,7 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useApp } from "@/lib/app-context";
-import { MOCK_ENTITY, MOCK_ENTITY_TRAINEES } from "@/lib/mock-data";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 export const Route = createFileRoute("/entidade/dashboard")({
