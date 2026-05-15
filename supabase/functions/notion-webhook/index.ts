@@ -107,7 +107,7 @@ async function log(
   event_type: string | null,
   error_message?: string,
 ) {
-  await admin.from("sync_logs").insert({
+  await admin.from("registos_sincronizacao").insert({
     source: "notion",
     status,
     payload,
@@ -198,7 +198,7 @@ Deno.serve(async (req) => {
 
     if (tipo === "programa") {
       const { error } = await admin
-        .from("programs")
+        .from("programas")
         .upsert(
           {
             notion_id: notionPageId,
@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
       let programId: string | null = null;
       if (parentId) {
         const { data: prog, error: pErr } = await admin
-          .from("programs")
+          .from("programas")
           .select("id")
           .eq("notion_id", parentId)
           .maybeSingle();
@@ -240,7 +240,7 @@ Deno.serve(async (req) => {
       }
 
       const { error } = await admin
-        .from("training_actions")
+        .from("acoes")
         .upsert(
           {
             notion_id: notionPageId,
