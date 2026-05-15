@@ -60,7 +60,8 @@ function EntidadeDashboardPage() {
   );
 
   useEffect(() => {
-    if (isAdmin && !selectedEntityId && entidades && entidades.length > 0) {
+  useEffect(() => {
+    if (isAdmin && !selectedEntityId && entidades.length > 0) {
       setSelectedEntityId(entidades[0].id);
     }
   }, [isAdmin, entidades, selectedEntityId]);
