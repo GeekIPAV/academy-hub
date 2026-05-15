@@ -32,6 +32,7 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
   "/actions": ListChecks,
   "/recursos": BookMarked,
+  "/entidade/dashboard": Building2,
   "/admin/manager": Shield,
 };
 
