@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const updateSchema = z.object({
+  entityId: z.string().uuid().optional(),
   name: z.string().trim().min(1).max(200),
   contact_name: z.string().trim().max(200).optional().nullable(),
   contact_email: z
@@ -27,28 +28,66 @@ const updateSchema = z.object({
   locality: z.string().trim().max(150).optional().nullable(),
 });
 
-export const getMyEntidade = createServerFn({ method: "GET" })
+const optionalEntityIdSchema = z
+  .object({ entityId: z.string().uuid().optional() })
+  .optional()
+  .transform((v) => v ?? {});
+
+async function resolveEntityId(
+  userId: string,
+  requestedEntityId: string | undefined,
+): Promise<string | null> {
+  const { data: user, error } = await supabaseAdmin
+    .from("utilizadores")
+    .select("entity_id, role")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  const isAdmin = user?.role === "admin";
+  if (requestedEntityId) {
+    if (!isAdmin) throw new Error("Apenas admins podem escolher entidade.");
+    return requestedEntityId;
+  }
+  return user?.entity_id ?? null;
+}
+
+export const listAllEntidades = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-
-    const { data: user, error: uErr } = await supabase
+    const { userId } = context;
+    const { data: user, error: uErr } = await supabaseAdmin
       .from("utilizadores")
-      .select("entity_id")
+      .select("role")
       .eq("id", userId)
       .maybeSingle();
     if (uErr) throw new Error(uErr.message);
-    if (!user?.entity_id) return null;
+    if (user?.role !== "admin") throw new Error("Acesso restrito.");
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
+      .from("entidades")
+      .select("id, name")
+      .order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const getMyEntidade = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => optionalEntityIdSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const entityId = await resolveEntityId(userId, data.entityId);
+    if (!entityId) return null;
+
+    const { data: row, error } = await supabaseAdmin
       .from("entidades")
       .select(
         "id, name, status, contact_name, contact_email, contact_phone, address, postal_code, locality",
       )
-      .eq("id", user.entity_id)
+      .eq("id", entityId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return data;
+    return row;
   });
 
 export const updateMyEntidade = createServerFn({ method: "POST" })
@@ -56,16 +95,8 @@ export const updateMyEntidade = createServerFn({ method: "POST" })
   .inputValidator((input) => updateSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-
-    const { data: user, error: uErr } = await supabase
-      .from("utilizadores")
-      .select("entity_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (uErr) throw new Error(uErr.message);
-    if (!user?.entity_id) {
-      throw new Error("Utilizador sem entidade associada.");
-    }
+    const entityId = await resolveEntityId(userId, data.entityId);
+    if (!entityId) throw new Error("Utilizador sem entidade associada.");
 
     const { error, data: updated } = await supabase
       .from("entidades")
@@ -78,7 +109,7 @@ export const updateMyEntidade = createServerFn({ method: "POST" })
         postal_code: data.postal_code ?? null,
         locality: data.locality ?? null,
       })
-      .eq("id", user.entity_id)
+      .eq("id", entityId)
       .select(
         "id, name, status, contact_name, contact_email, contact_phone, address, postal_code, locality",
       )
@@ -89,42 +120,32 @@ export const updateMyEntidade = createServerFn({ method: "POST" })
 
 export const listMyCohorts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+  .inputValidator((input) => optionalEntityIdSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const entityId = await resolveEntityId(userId, data.entityId);
+    if (!entityId) return [];
 
-    const { data: user, error: uErr } = await supabase
-      .from("utilizadores")
-      .select("entity_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (uErr) throw new Error(uErr.message);
-    if (!user?.entity_id) return [];
-
-    const { data, error } = await supabase
+    const { data: rows, error } = await supabaseAdmin
       .from("entidades_programas")
       .select("id, invite_token, is_active, program_id, programas(title)")
-      .eq("entity_id", user.entity_id);
+      .eq("entity_id", entityId);
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return rows ?? [];
   });
 
 export const listMyTrainees = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabase, userId } = context;
+  .inputValidator((input) => optionalEntityIdSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const entityId = await resolveEntityId(userId, data.entityId);
+    if (!entityId) return [];
 
-    const { data: user, error: uErr } = await supabase
-      .from("utilizadores")
-      .select("entity_id")
-      .eq("id", userId)
-      .maybeSingle();
-    if (uErr) throw new Error(uErr.message);
-    if (!user?.entity_id) return [];
-
-    const { data: cohorts, error: cErr } = await supabase
+    const { data: cohorts, error: cErr } = await supabaseAdmin
       .from("entidades_programas")
       .select("id, programas(title)")
-      .eq("entity_id", user.entity_id);
+      .eq("entity_id", entityId);
     if (cErr) throw new Error(cErr.message);
     const cohortIds = (cohorts ?? []).map((c) => c.id);
     if (cohortIds.length === 0) return [];
@@ -132,8 +153,6 @@ export const listMyTrainees = createServerFn({ method: "GET" })
       (cohorts ?? []).map((c) => [c.id, c.programas?.title ?? null]),
     );
 
-    // RLS em utilizadores impede o representante de ver perfis de outros;
-    // usar admin client após termos garantido o filtro pelos cohorts da SUA entidade.
     const { data: enrolls, error: eErr } = await supabaseAdmin
       .from("inscritos_programa")
       .select("id, status, created_at, cohort_id, user_id, utilizadores(full_name)")
