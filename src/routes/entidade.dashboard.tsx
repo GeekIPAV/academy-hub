@@ -13,10 +13,18 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   getMyEntidade,
+  listAllEntidades,
   listMyCohorts,
   listMyTrainees,
   updateMyEntidade,
 } from "@/lib/entidade.functions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -37,11 +45,30 @@ function EntidadeDashboardPage() {
   const { activeRoles, isAdmin, isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/entidade/dashboard", id);
   const hasAccess = isAdmin || activeRoles.includes("Entidade");
+
+  const fetchEntidades = useServerFn(listAllEntidades);
+  const { data: entidades } = useQuery({
+    queryKey: ["all-entidades"],
+    queryFn: () => fetchEntidades(),
+    enabled: hasAccess && isAdmin,
+  });
+
+  const [selectedEntityId, setSelectedEntityId] = useState<string | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    if (isAdmin && !selectedEntityId && entidades && entidades.length > 0) {
+      setSelectedEntityId(entidades[0].id);
+    }
+  }, [isAdmin, entidades, selectedEntityId]);
+
   const fetchEntidade = useServerFn(getMyEntidade);
   const { data: entidade } = useQuery({
-    queryKey: ["my-entidade"],
-    queryFn: () => fetchEntidade(),
-    enabled: hasAccess,
+    queryKey: ["my-entidade", selectedEntityId ?? "self"],
+    queryFn: () =>
+      fetchEntidade(selectedEntityId ? { data: { entityId: selectedEntityId } } : undefined as never),
+    enabled: hasAccess && (!isAdmin || !!selectedEntityId),
   });
 
   if (!hasAccess) {
@@ -79,6 +106,29 @@ function EntidadeDashboardPage() {
         </div>
       )}
 
+      {isAdmin && (
+        <Card className="p-4">
+          <Label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Entidade (modo admin)
+          </Label>
+          <Select
+            value={selectedEntityId ?? ""}
+            onValueChange={(v) => setSelectedEntityId(v)}
+          >
+            <SelectTrigger className="max-w-md">
+              <SelectValue placeholder="Selecionar entidade…" />
+            </SelectTrigger>
+            <SelectContent>
+              {(entidades ?? []).map((e) => (
+                <SelectItem key={e.id} value={e.id}>
+                  {e.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Card>
+      )}
+
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           {visible("tab-overview") && <TabsTrigger value="overview">Visão Geral</TabsTrigger>}
@@ -87,14 +137,14 @@ function EntidadeDashboardPage() {
 
         {visible("tab-overview") && (
           <TabsContent value="overview" className="space-y-6">
-            {visible("invite-card") && <InviteCard />}
-            {visible("trainees-table") && <TraineesTable />}
+            {visible("invite-card") && <InviteCard entityId={selectedEntityId} />}
+            {visible("trainees-table") && <TraineesTable entityId={selectedEntityId} />}
           </TabsContent>
         )}
 
         {visible("tab-data") && (
           <TabsContent value="data">
-            <EntityDataForm />
+            <EntityDataForm entityId={selectedEntityId} />
           </TabsContent>
         )}
       </Tabs>
@@ -102,11 +152,11 @@ function EntidadeDashboardPage() {
   );
 }
 
-function InviteCard() {
+function InviteCard({ entityId }: { entityId?: string }) {
   const fetchFn = useServerFn(listMyCohorts);
   const { data, isLoading } = useQuery({
-    queryKey: ["my-cohorts"],
-    queryFn: () => fetchFn(),
+    queryKey: ["my-cohorts", entityId ?? "self"],
+    queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
   });
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -168,11 +218,11 @@ function InviteCard() {
   );
 }
 
-function TraineesTable() {
+function TraineesTable({ entityId }: { entityId?: string }) {
   const fetchFn = useServerFn(listMyTrainees);
   const { data, isLoading, error } = useQuery({
-    queryKey: ["my-trainees"],
-    queryFn: () => fetchFn(),
+    queryKey: ["my-trainees", entityId ?? "self"],
+    queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
   });
 
   const trainees = data ?? [];
@@ -249,14 +299,14 @@ function TraineesTable() {
   );
 }
 
-function EntityDataForm() {
+function EntityDataForm({ entityId }: { entityId?: string }) {
   const fetchFn = useServerFn(getMyEntidade);
   const updateFn = useServerFn(updateMyEntidade);
   const qc = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["my-entidade"],
-    queryFn: () => fetchFn(),
+    queryKey: ["my-entidade", entityId ?? "self"],
+    queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
   });
 
   const [name, setName] = useState("");
@@ -282,6 +332,7 @@ function EntityDataForm() {
     mutationFn: () =>
       updateFn({
         data: {
+          ...(entityId ? { entityId } : {}),
           name,
           contact_name: contactName || null,
           contact_email: contactEmail || null,
