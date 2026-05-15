@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -11,7 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getMyEntidade, updateMyEntidade } from "@/lib/entidade.functions";
+import {
+  getMyEntidade,
+  listMyCohorts,
+  listMyTrainees,
+  updateMyEntidade,
+} from "@/lib/entidade.functions";
 import {
   Table,
   TableBody,
@@ -21,7 +26,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useApp } from "@/lib/app-context";
-import { MOCK_ENTITY, MOCK_ENTITY_TRAINEES } from "@/lib/mock-data";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 export const Route = createFileRoute("/entidade/dashboard")({
@@ -33,6 +37,12 @@ function EntidadeDashboardPage() {
   const { activeRoles, isAdmin, isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/entidade/dashboard", id);
   const hasAccess = isAdmin || activeRoles.includes("Entidade");
+  const fetchEntidade = useServerFn(getMyEntidade);
+  const { data: entidade } = useQuery({
+    queryKey: ["my-entidade"],
+    queryFn: () => fetchEntidade(),
+    enabled: hasAccess,
+  });
 
   if (!hasAccess) {
     return (
@@ -60,7 +70,7 @@ function EntidadeDashboardPage() {
               Painel da Entidade
             </p>
             <h1 className="text-2xl font-semibold tracking-tight">
-              Bem-vindo, {MOCK_ENTITY.name}
+              Bem-vindo{entidade?.name ? `, ${entidade.name}` : ""}
             </h1>
             <p className="text-sm text-muted-foreground">
               Acompanhe os seus formandos e mantenha os dados institucionais atualizados.
@@ -93,14 +103,17 @@ function EntidadeDashboardPage() {
 }
 
 function InviteCard() {
-  const inviteUrl = useMemo(() => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    return `${origin}/inscricao/${MOCK_ENTITY.invite_token}`;
-  }, []);
+  const fetchFn = useServerFn(listMyCohorts);
+  const { data, isLoading } = useQuery({
+    queryKey: ["my-cohorts"],
+    queryFn: () => fetchFn(),
+  });
 
-  const copy = async () => {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+
+  const copy = async (url: string) => {
     try {
-      await navigator.clipboard.writeText(inviteUrl);
+      await navigator.clipboard.writeText(url);
       toast.success("Link copiado para a área de transferência");
     } catch {
       toast.error("Não foi possível copiar o link");
@@ -112,32 +125,64 @@ function InviteCard() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Link2 className="h-4 w-4 text-primary" />
-          <CardTitle className="text-base">Link de Acesso para Formandos</CardTitle>
+          <CardTitle className="text-base">Links de Acesso para Formandos</CardTitle>
         </div>
         <CardDescription>
-          Partilhe este link com os formandos da sua entidade para que se possam inscrever
-          automaticamente associados ao seu grupo.
+          Partilhe estes links com os formandos da sua entidade para que se possam
+          inscrever automaticamente associados ao seu grupo.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Input readOnly value={inviteUrl} className="font-mono text-xs" />
-          <Button onClick={copy} className="shrink-0">
-            <Copy className="mr-2 h-4 w-4" />
-            Copiar Link
-          </Button>
-        </div>
+      <CardContent className="space-y-4">
+        {isLoading && <Skeleton className="h-9 w-full" />}
+        {!isLoading && (!data || data.length === 0) && (
+          <p className="text-sm text-muted-foreground">
+            Ainda não há programas associados à sua entidade.
+          </p>
+        )}
+        {data?.map((c) => {
+          const url = `${origin}/inscricao/${c.invite_token ?? ""}`;
+          return (
+            <div key={c.id} className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-medium">
+                  {c.programas?.title ?? "Programa"}
+                </p>
+                {!c.is_active && (
+                  <Badge variant="outline" className="text-xs">
+                    Inativo
+                  </Badge>
+                )}
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Input readOnly value={url} className="font-mono text-xs" />
+                <Button onClick={() => copy(url)} className="shrink-0">
+                  <Copy className="mr-2 h-4 w-4" />
+                  Copiar
+                </Button>
+              </div>
+            </div>
+          );
+        })}
       </CardContent>
     </Card>
   );
 }
 
 function TraineesTable() {
-  // Filtragem rigorosa: apenas formandos do cohort_id da Entidade logada.
-  const trainees = MOCK_ENTITY_TRAINEES;
+  const fetchFn = useServerFn(listMyTrainees);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["my-trainees"],
+    queryFn: () => fetchFn(),
+  });
 
-  const statusVariant = (s: string) =>
-    s === "Inscrito" ? "default" : s === "Concluído" ? "secondary" : "outline";
+  const trainees = data ?? [];
+
+  const statusVariant = (s: string | null) => {
+    const v = (s ?? "").toLowerCase();
+    if (v === "aceite" || v === "inscrito") return "default" as const;
+    if (v === "concluido" || v === "concluído") return "secondary" as const;
+    return "outline" as const;
+  };
 
   return (
     <Card>
@@ -145,7 +190,7 @@ function TraineesTable() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base">Ponto de Situação</CardTitle>
-            <CardDescription>Formandos inscritos através do seu link.</CardDescription>
+            <CardDescription>Formandos inscritos através dos seus links.</CardDescription>
           </div>
           <Badge variant="secondary" className="gap-1">
             <Users className="h-3 w-3" />
@@ -154,17 +199,29 @@ function TraineesTable() {
         </div>
       </CardHeader>
       <CardContent>
+        {error && (
+          <p className="text-sm text-destructive">
+            Erro: {(error as Error).message}
+          </p>
+        )}
         <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Status da Inscrição</TableHead>
+                <TableHead>Programa</TableHead>
+                <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {trainees.length === 0 && (
+              {isLoading && (
+                <TableRow>
+                  <TableCell colSpan={3}>
+                    <Skeleton className="h-5 w-full" />
+                  </TableCell>
+                </TableRow>
+              )}
+              {!isLoading && trainees.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center text-muted-foreground">
                     Ainda não há formandos inscritos.
@@ -173,10 +230,14 @@ function TraineesTable() {
               )}
               {trainees.map((t) => (
                 <TableRow key={t.id}>
-                  <TableCell className="font-medium">{t.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{t.email}</TableCell>
+                  <TableCell className="font-medium">{t.full_name}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {t.program_title ?? "—"}
+                  </TableCell>
                   <TableCell>
-                    <Badge variant={statusVariant(t.status)}>{t.status}</Badge>
+                    <Badge variant={statusVariant(t.status)}>
+                      {t.status ?? "—"}
+                    </Badge>
                   </TableCell>
                 </TableRow>
               ))}
