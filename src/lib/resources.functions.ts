@@ -19,14 +19,14 @@ export const getResourcesContext = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
 
     const { data: profile } = await supabaseAdmin
-      .from("profiles")
+      .from("utilizadores")
       .select("role")
       .eq("id", userId)
       .maybeSingle();
     const isAdmin = (profile as { role?: string } | null)?.role === "admin";
 
     const { data: enrollments } = await supabase
-      .from("program_enrollments")
+      .from("inscritos_programa")
       .select("id")
       .eq("user_id", userId)
       .limit(1);
@@ -46,15 +46,15 @@ export const getResourcesContext = createServerFn({ method: "GET" })
     if (!isFormando) return { isFormando, isAdmin, completed };
 
     const { data: rows } = await supabaseAdmin
-      .from("enrollments")
-      .select("status, training_actions!inner(category)")
+      .from("inscritos_acoes")
+      .select("status, acoes!inner(category)")
       .eq("user_id", userId);
 
     for (const row of (rows ?? []) as Array<{
       status: string | null;
-      training_actions: { category: string | null } | null;
+      acoes: { category: string | null } | null;
     }>) {
-      const cat = row.training_actions?.category as Phase | undefined;
+      const cat = row.acoes?.category as Phase | undefined;
       const st = (row.status ?? "").toLowerCase();
       if (cat && cat in completed && COMPLETED_STATUSES.includes(st)) {
         completed[cat] = true;

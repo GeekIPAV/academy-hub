@@ -9,13 +9,13 @@ export const getCertificationContext = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
 
     const { data: enrollments, error: eErr } = await supabase
-      .from("program_enrollments")
+      .from("inscritos_programa")
       .select("id, status")
       .eq("user_id", userId);
     if (eErr) throw new Error(eErr.message);
 
     const { data: profile, error: pErr } = await supabase
-      .from("profiles")
+      .from("utilizadores")
       .select(
         "full_name, education_level, job_title, work_institution, id_doc_type, id_doc_number, id_doc_expiry, nif, birth_date, nationality_country",
       )
@@ -50,7 +50,7 @@ export const saveCertificationData = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     const { error: upErr } = await supabase
-      .from("profiles")
+      .from("utilizadores")
       .update({
         education_level: data.education_level,
         job_title: data.job_title,
@@ -67,7 +67,7 @@ export const saveCertificationData = createServerFn({ method: "POST" })
     if (upErr) throw new Error(upErr.message);
 
     const { error: enErr } = await supabase
-      .from("program_enrollments")
+      .from("inscritos_programa")
       .update({ status: "ativo" })
       .eq("user_id", userId)
       .eq("status", "pendente");

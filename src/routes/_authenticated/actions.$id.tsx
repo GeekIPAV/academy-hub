@@ -142,7 +142,7 @@ function ActionDetailPage() {
           {data.title ?? "(sem título)"}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {data.programs?.title ?? "Sem programa"}
+          {data.programas?.title ?? "Sem programa"}
         </p>
       </div>
 

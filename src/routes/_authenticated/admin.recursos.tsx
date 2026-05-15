@@ -53,7 +53,7 @@ export const Route = createFileRoute("/_authenticated/admin/recursos")({
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) throw redirect({ to: "/auth" });
     const { data: profile } = await supabase
-      .from("profiles")
+      .from("utilizadores")
       .select("role")
       .eq("id", u.user.id)
       .maybeSingle();
@@ -92,7 +92,7 @@ function AdminResourcesPage() {
   const loadResources = async () => {
     setLoadingList(true);
     const { data, error } = await supabase
-      .from("learning_resources" as never)
+      .from("recursos" as never)
       .select("id, program_id, phase, title, resource_type, file_url, created_at")
       .order("created_at", { ascending: false });
     if (error) toast.error(error.message);
@@ -102,7 +102,7 @@ function AdminResourcesPage() {
 
   useEffect(() => {
     supabase
-      .from("programs")
+      .from("programas")
       .select("id, title")
       .order("title")
       .then(({ data }) => setPrograms((data as ProgramRow[]) ?? []));
@@ -133,7 +133,7 @@ function AdminResourcesPage() {
       if (upErr) throw upErr;
       const { data: urlData } = supabase.storage.from("resources").getPublicUrl(path);
 
-      const { error: insErr } = await supabase.from("learning_resources" as never).insert({
+      const { error: insErr } = await supabase.from("recursos" as never).insert({
         program_id: programId,
         phase,
         title: title.trim(),
@@ -161,7 +161,7 @@ function AdminResourcesPage() {
       const path = pathFromUrl(r.file_url);
 
       const { error: dbErr } = await supabase
-        .from("learning_resources" as never)
+        .from("recursos" as never)
         .delete()
         .eq("id", r.id);
       if (dbErr) throw dbErr;
@@ -222,7 +222,7 @@ function AdminResourcesPage() {
       if (newFileUrl) updatePayload.file_url = newFileUrl;
 
       const { error: updErr } = await supabase
-        .from("learning_resources" as never)
+        .from("recursos" as never)
         .update(updatePayload as never)
         .eq("id", editing.id);
 

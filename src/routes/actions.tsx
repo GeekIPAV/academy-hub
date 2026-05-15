@@ -61,7 +61,7 @@ function ActionsPage() {
                   {data.map((a) => (
                     <TableRow key={a.id}>
                       <TableCell className="font-medium">{a.title ?? "(sem título)"}</TableCell>
-                      <TableCell>{a.programs?.title ?? "—"}</TableCell>
+                      <TableCell>{a.programas?.title ?? "—"}</TableCell>
                       <TableCell>{a.category ? <Badge variant="outline">{a.category}</Badge> : "—"}</TableCell>
                       <TableCell>{a.action_date ?? "—"}</TableCell>
                       <TableCell>{a.max_capacity ?? "—"}</TableCell>

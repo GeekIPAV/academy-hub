@@ -4,9 +4,9 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export const listActions = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin
-    .from("training_actions")
+    .from("acoes")
     .select(
-      "id, title, description, action_date, category, max_capacity, registration_status, program_id, programs(title)",
+      "id, title, description, action_date, category, max_capacity, registration_status, program_id, programas(title)",
     )
     .order("action_date", { ascending: true, nullsFirst: false });
   if (error) throw new Error(error.message);
@@ -17,9 +17,9 @@ export const getAction = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data }) => {
     const { data: action, error } = await supabaseAdmin
-      .from("training_actions")
+      .from("acoes")
       .select(
-        "id, title, description, action_date, category, max_capacity, required_fields, registration_status, programs(title)",
+        "id, title, description, action_date, category, max_capacity, required_fields, registration_status, programas(title)",
       )
       .eq("id", data.id)
       .maybeSingle();
@@ -27,7 +27,7 @@ export const getAction = createServerFn({ method: "GET" })
     if (!action) return null;
 
     const { count } = await supabaseAdmin
-      .from("enrollments")
+      .from("inscritos_acoes")
       .select("id", { count: "exact", head: true })
       .eq("action_id", data.id)
       .eq("status", "aceite");
