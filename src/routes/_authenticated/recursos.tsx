@@ -150,7 +150,13 @@ function ResourcesPage() {
 
   useEffect(() => {
     let mounted = true;
-    fetchCtx().then((r: ResourcesContext) => mounted && setCtx(r));
+    fetchCtx()
+      .then((r: ResourcesContext) => mounted && setCtx(r))
+      .catch(() => {
+        if (mounted) {
+          setCtx({ isFormando: false, isAdmin: false, completed: { FTC: false, FTP: false, SU: false, SF: false } });
+        }
+      });
     return () => {
       mounted = false;
     };
