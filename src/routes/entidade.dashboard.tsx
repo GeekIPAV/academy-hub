@@ -189,29 +189,148 @@ function TraineesTable() {
 }
 
 function EntityDataForm() {
-  const [name, setName] = useState(MOCK_ENTITY.name);
-  const [contactName, setContactName] = useState(MOCK_ENTITY.contact_name);
-  const [contactEmail, setContactEmail] = useState(MOCK_ENTITY.contact_email);
-  const [contactPhone, setContactPhone] = useState(MOCK_ENTITY.contact_phone);
+  const fetchFn = useServerFn(getMyEntidade);
+  const updateFn = useServerFn(updateMyEntidade);
+  const qc = useQueryClient();
 
-  const onSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast.success("Dados atualizados (mock)");
-  };
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["my-entidade"],
+    queryFn: () => fetchFn(),
+  });
+
+  const [name, setName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [locality, setLocality] = useState("");
+
+  useEffect(() => {
+    if (!data) return;
+    setName(data.name ?? "");
+    setContactName(data.contact_name ?? "");
+    setContactEmail(data.contact_email ?? "");
+    setContactPhone(data.contact_phone ?? "");
+    setAddress(data.address ?? "");
+    setPostalCode(data.postal_code ?? "");
+    setLocality(data.locality ?? "");
+  }, [data]);
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      updateFn({
+        data: {
+          name,
+          contact_name: contactName || null,
+          contact_email: contactEmail || null,
+          contact_phone: contactPhone || null,
+          address: address || null,
+          postal_code: postalCode || null,
+          locality: locality || null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Dados atualizados");
+      qc.invalidateQueries({ queryKey: ["my-entidade"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-5 w-40" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="p-6 text-sm text-destructive">
+        Erro a carregar dados: {(error as Error).message}
+      </Card>
+    );
+  }
+
+  if (!data) {
+    return (
+      <Card className="p-6 text-sm text-muted-foreground">
+        A sua conta ainda não está associada a nenhuma entidade. Contacte o administrador.
+      </Card>
+    );
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Dados Institucionais</CardTitle>
         <CardDescription>
-          Mantenha o nome da entidade e o ponto de contacto atualizados.
+          Mantenha o nome da entidade, morada e ponto de contacto atualizados.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSave} className="grid gap-4 sm:grid-cols-2">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            mutation.mutate();
+          }}
+          className="grid gap-4 sm:grid-cols-2"
+        >
           <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="entity-name">Nome da Entidade</Label>
-            <Input id="entity-name" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              id="entity-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              maxLength={200}
+            />
+          </div>
+
+          <div className="space-y-2 sm:col-span-2">
+            <div className="border-t pt-4">
+              <p className="text-sm font-medium">Morada</p>
+            </div>
+          </div>
+
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="address">Morada</Label>
+            <Input
+              id="address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              maxLength={300}
+              placeholder="Rua, número, andar"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="postal-code">Código Postal</Label>
+            <Input
+              id="postal-code"
+              value={postalCode}
+              onChange={(e) => setPostalCode(e.target.value)}
+              placeholder="1234-567"
+              maxLength={20}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="locality">Localidade</Label>
+            <Input
+              id="locality"
+              value={locality}
+              onChange={(e) => setLocality(e.target.value)}
+              maxLength={150}
+            />
           </div>
 
           <div className="space-y-2 sm:col-span-2">
@@ -229,6 +348,7 @@ function EntityDataForm() {
               id="contact-name"
               value={contactName}
               onChange={(e) => setContactName(e.target.value)}
+              maxLength={200}
             />
           </div>
 
@@ -239,21 +359,25 @@ function EntityDataForm() {
               type="email"
               value={contactEmail}
               onChange={(e) => setContactEmail(e.target.value)}
+              maxLength={255}
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 sm:col-span-2">
             <Label htmlFor="contact-phone">Telefone da Entidade</Label>
             <Input
               id="contact-phone"
               type="tel"
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}
+              maxLength={50}
             />
           </div>
 
           <div className="sm:col-span-2 flex justify-end">
-            <Button type="submit">Guardar Alterações</Button>
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "A guardar…" : "Guardar Alterações"}
+            </Button>
           </div>
         </form>
       </CardContent>
