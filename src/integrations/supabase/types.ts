@@ -76,18 +76,36 @@ export type Database = {
       }
       entidades: {
         Row: {
+          address: string | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
           id: string
+          locality: string | null
           name: string
+          postal_code: string | null
           status: string | null
         }
         Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           id: string
+          locality?: string | null
           name: string
+          postal_code?: string | null
           status?: string | null
         }
         Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           id?: string
+          locality?: string | null
           name?: string
+          postal_code?: string | null
           status?: string | null
         }
         Relationships: []
@@ -413,6 +431,7 @@ export type Database = {
           created_at: string | null
           data_consent: boolean | null
           education_level: string | null
+          entity_id: string | null
           first_names: string | null
           full_name: string | null
           gender: string | null
@@ -438,6 +457,7 @@ export type Database = {
           created_at?: string | null
           data_consent?: boolean | null
           education_level?: string | null
+          entity_id?: string | null
           first_names?: string | null
           full_name?: string | null
           gender?: string | null
@@ -463,6 +483,7 @@ export type Database = {
           created_at?: string | null
           data_consent?: boolean | null
           education_level?: string | null
+          entity_id?: string | null
           first_names?: string | null
           full_name?: string | null
           gender?: string | null
@@ -479,7 +500,15 @@ export type Database = {
           role?: string | null
           work_institution?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "utilizadores_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entidades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
