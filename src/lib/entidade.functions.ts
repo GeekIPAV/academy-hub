@@ -132,7 +132,9 @@ export const listMyTrainees = createServerFn({ method: "GET" })
       (cohorts ?? []).map((c) => [c.id, c.programas?.title ?? null]),
     );
 
-    const { data: enrolls, error: eErr } = await supabase
+    // RLS em utilizadores impede o representante de ver perfis de outros;
+    // usar admin client após termos garantido o filtro pelos cohorts da SUA entidade.
+    const { data: enrolls, error: eErr } = await supabaseAdmin
       .from("inscritos_programa")
       .select("id, status, created_at, cohort_id, user_id, utilizadores(full_name)")
       .in("cohort_id", cohortIds)
