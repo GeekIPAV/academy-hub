@@ -64,7 +64,7 @@ function EntidadeDashboardPage() {
               Painel da Entidade
             </p>
             <h1 className="text-2xl font-semibold tracking-tight">
-              Bem-vindo, {MOCK_ENTITY.name}
+              Bem-vindo{entidade?.name ? `, ${entidade.name}` : ""}
             </h1>
             <p className="text-sm text-muted-foreground">
               Acompanhe os seus formandos e mantenha os dados institucionais atualizados.
