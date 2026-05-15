@@ -113,6 +113,13 @@ export const PAGE_COMPONENTS: Record<string, PageComponent[]> = {
     { id: "header", label: "Cabeçalho" },
     { id: "route-matrix", label: "Matriz de Rotas" },
   ],
+  "/entidade/dashboard": [
+    { id: "header", label: "Cabeçalho" },
+    { id: "tab-overview", label: "Aba Visão Geral" },
+    { id: "invite-card", label: "Card Link de Convite" },
+    { id: "trainees-table", label: "Tabela de Formandos" },
+    { id: "tab-data", label: "Aba Dados da Entidade" },
+  ],
 };
 
 // Por defeito, todos os componentes são visíveis a todos os roles.
