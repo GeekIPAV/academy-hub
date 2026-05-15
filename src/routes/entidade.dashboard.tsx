@@ -332,6 +332,7 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
     mutationFn: () =>
       updateFn({
         data: {
+          ...(entityId ? { entityId } : {}),
           name,
           contact_name: contactName || null,
           contact_email: contactEmail || null,
