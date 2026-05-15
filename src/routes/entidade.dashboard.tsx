@@ -299,14 +299,14 @@ function TraineesTable({ entityId }: { entityId?: string }) {
   );
 }
 
-function EntityDataForm() {
+function EntityDataForm({ entityId }: { entityId?: string }) {
   const fetchFn = useServerFn(getMyEntidade);
   const updateFn = useServerFn(updateMyEntidade);
   const qc = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["my-entidade"],
-    queryFn: () => fetchFn(),
+    queryKey: ["my-entidade", entityId ?? "self"],
+    queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
   });
 
   const [name, setName] = useState("");
