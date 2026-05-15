@@ -188,12 +188,12 @@ function InviteCard({ entityId }: { entityId?: string }) {
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading && <Skeleton className="h-9 w-full" />}
-        {!isLoading && (!data || data.length === 0) && (
+        {!isLoading && data.length === 0 && (
           <p className="text-sm text-muted-foreground">
             Ainda não há programas associados à sua entidade.
           </p>
         )}
-        {data?.map((c) => {
+        {data.map((c) => {
           const url = `${origin}/inscricao/${c.invite_token ?? ""}`;
           return (
             <div key={c.id} className="space-y-1.5">
