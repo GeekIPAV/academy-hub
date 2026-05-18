@@ -6,10 +6,22 @@ import { toast } from "sonner";
 import {
   ArrowLeft,
   CalendarDays,
+  CalendarCheck2,
+  Camera,
+  ExternalLink,
+  FileText,
   GraduationCap,
+  Info,
+  LinkIcon,
+  Mail,
   Plus,
+  ShieldCheck,
+  Shirt,
+  Sparkles,
   Trash2,
-  UserSquare2,
+  User,
+  Users,
+  XCircle,
 } from "lucide-react";
 import {
   Card,
@@ -49,10 +61,28 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   getEntidadeActionDetails,
   addParticipante,
   updateParticipante,
   removeParticipante,
+  cancelAcaoProposta,
   type UpdateParticipanteInput,
 } from "@/lib/entidade.functions";
 
@@ -64,10 +94,31 @@ export const Route = createFileRoute("/entidade/acoes/$id")({
   component: EntidadeAcaoDetailPage,
 });
 
+function formatDate(d: string | null | undefined) {
+  if (!d) return "—";
+  try {
+    return new Date(d + "T00:00:00").toLocaleDateString("pt-PT", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return d;
+  }
+}
+
+function daysUntil(dateStr: string | null | undefined): number | null {
+  if (!dateStr) return null;
+  const start = new Date(dateStr + "T00:00:00Z").getTime();
+  const today = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00Z").getTime();
+  return Math.floor((start - today) / (1000 * 60 * 60 * 24));
+}
+
 function EntidadeAcaoDetailPage() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
   const fetchDetails = useServerFn(getEntidadeActionDetails);
+  const cancelFn = useServerFn(cancelAcaoProposta);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["entidade-action", id],
@@ -78,7 +129,17 @@ function EntidadeAcaoDetailPage() {
   const invalidate = () =>
     qc.invalidateQueries({ queryKey: ["entidade-action", id] });
 
-  if (isLoading) return <Skeleton className="mx-auto h-64 w-full max-w-5xl" />;
+  const cancelMut = useMutation({
+    mutationFn: () => cancelFn({ data: { actionId: id } }),
+    onSuccess: () => {
+      toast.success("Ação cancelada.");
+      invalidate();
+      qc.invalidateQueries({ queryKey: ["my-acoes"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+
+  if (isLoading) return <Skeleton className="mx-auto h-64 w-full max-w-6xl" />;
   if (isError || !data?.action) {
     return (
       <Card className="mx-auto max-w-md p-8 text-center">
@@ -94,55 +155,219 @@ function EntidadeAcaoDetailPage() {
   }
 
   const a = data.action;
+  const days = daysUntil(a.start_date);
+  const canCancel = a.status !== "Cancelada" && (days === null || days >= 14);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex items-center justify-between">
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/entidade/dashboard">
-            <ArrowLeft className="mr-1 h-4 w-4" /> Dashboard
-          </Link>
-        </Button>
-        <Badge
-          variant={
-            a.status === "Confirmada"
-              ? "default"
-              : a.status === "Cancelada"
-                ? "destructive"
-                : "secondary"
-          }
-        >
-          {a.status}
-        </Badge>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <Button asChild variant="ghost" size="sm" className="-ml-2">
+        <Link to="/entidade/dashboard">
+          <ArrowLeft className="mr-1 h-4 w-4" /> Dashboard
+        </Link>
+      </Button>
+
+      {/* Cabeçalho */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Sparkles className="h-6 w-6" />
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {a.action_type ?? "Ação"}
+            </p>
+            <h1 className="text-2xl font-semibold leading-tight">
+              {a.title ?? "Ação"}
+            </h1>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge
+            variant={
+              a.status === "Confirmada"
+                ? "default"
+                : a.status === "Cancelada"
+                  ? "destructive"
+                  : "secondary"
+            }
+            className="text-xs"
+          >
+            {a.status}
+          </Badge>
+          <TooltipProvider>
+            {canCancel ? (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <XCircle className="mr-1 h-4 w-4" /> Cancelar ação
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancelar esta ação?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta operação altera o estado para Cancelada e não pode
+                      ser revertida pela entidade.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Voltar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => cancelMut.mutate()}
+                      disabled={cancelMut.isPending}
+                    >
+                      Confirmar
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span tabIndex={0}>
+                    <Button variant="outline" size="sm" disabled>
+                      <XCircle className="mr-1 h-4 w-4" /> Cancelar ação
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs text-center">
+                  Cancelamento não permitido com menos de 14 dias de
+                  antecedência. Por favor, contacte-nos diretamente.
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </TooltipProvider>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <CalendarDays className="h-6 w-6" />
-            </div>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                {a.action_type ?? "Ação"}
-              </p>
-              <CardTitle className="text-xl">{a.title ?? "Ação"}</CardTitle>
-              <CardDescription>
-                {a.start_date ?? "—"} → {a.end_date ?? "—"}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-      </Card>
+      {/* Bloco Superior: Informações + Logística */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Info className="h-5 w-5 text-primary" /> Informações
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <InfoRow
+              icon={<CalendarDays className="h-4 w-4" />}
+              label="Data de Início"
+              value={formatDate(a.start_date)}
+            />
+            <InfoRow
+              icon={<CalendarCheck2 className="h-4 w-4" />}
+              label="Data de Fim"
+              value={formatDate(a.end_date)}
+            />
+            <InfoRow
+              icon={<User className="h-4 w-4" />}
+              label="Criado por"
+              value={data.createdByName ?? "—"}
+            />
+            <InfoRow
+              icon={<ShieldCheck className="h-4 w-4" />}
+              label="Entidade"
+              value={data.entityName ?? "—"}
+            />
+          </CardContent>
+        </Card>
 
-      <TrainersSection trainers={data.trainers} />
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <LinkIcon className="h-5 w-5 text-primary" /> Logística
+            </CardTitle>
+            <CardDescription>
+              Links partilhados pela equipa central.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <LogisticaLink
+              href={a.tshirt_tracking_link}
+              icon={<Shirt className="h-4 w-4" />}
+              label="Tracking de T-shirts"
+            />
+            <LogisticaLink
+              href={a.fotos_link}
+              icon={<Camera className="h-4 w-4" />}
+              label="Fotografias"
+            />
+            <LogisticaLink
+              href={a.avaliacao_satisfacao_link}
+              icon={<FileText className="h-4 w-4" />}
+              label="Avaliação de Satisfação"
+            />
+            <LogisticaLink
+              href={a.avaliacao_impacto_link}
+              icon={<FileText className="h-4 w-4" />}
+              label="Avaliação de Impacto"
+            />
+            {!a.tshirt_tracking_link &&
+              !a.fotos_link &&
+              !a.avaliacao_satisfacao_link &&
+              !a.avaliacao_impacto_link && (
+                <p className="py-4 text-center text-sm text-muted-foreground">
+                  Sem links disponíveis. Serão adicionados pela equipa central.
+                </p>
+              )}
+          </CardContent>
+        </Card>
+      </div>
 
+      {/* Bloco do Meio: Participantes */}
       <ParticipantesSection
         actionId={id}
         rows={data.participantes}
         onChanged={invalidate}
       />
+
+      {/* Bloco Inferior: Formadores */}
+      <TrainersSection trainers={data.trainers} />
     </div>
+  );
+}
+
+function InfoRow({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b pb-2 last:border-none last:pb-0">
+      <span className="flex items-center gap-2 text-muted-foreground">
+        {icon} {label}
+      </span>
+      <span className="text-right font-medium">{value}</span>
+    </div>
+  );
+}
+
+function LogisticaLink({
+  href,
+  icon,
+  label,
+}: {
+  href: string | null | undefined;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  if (!href) return null;
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center justify-between gap-2 rounded-md border bg-card px-3 py-2 text-sm transition hover:bg-accent"
+    >
+      <span className="flex items-center gap-2 font-medium">
+        {icon} {label}
+      </span>
+      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+    </a>
   );
 }
 
@@ -155,7 +380,7 @@ function TrainersSection({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
-          <GraduationCap className="h-5 w-5" /> Formadores
+          <GraduationCap className="h-5 w-5 text-primary" /> Formadores
           <Badge variant="secondary" className="ml-1">
             {trainers.length}
           </Badge>
@@ -174,6 +399,7 @@ function TrainersSection({
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
@@ -181,6 +407,18 @@ function TrainersSection({
               {trainers.map((t) => (
                 <TableRow key={t.id}>
                   <TableCell className="font-medium">{t.full_name}</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {t.email ? (
+                      <a
+                        href={`mailto:${t.email}`}
+                        className="inline-flex items-center gap-1 hover:underline"
+                      >
+                        <Mail className="h-3.5 w-3.5" /> {t.email}
+                      </a>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant={
@@ -217,10 +455,13 @@ function ParticipantesSection({
   rows: ParticipanteRow[];
   onChanged: () => void;
 }) {
+  const qc = useQueryClient();
   const addFn = useServerFn(addParticipante);
   const updateFn = useServerFn(updateParticipante);
   const removeFn = useServerFn(removeParticipante);
   const [open, setOpen] = useState(false);
+
+  const queryKey = ["entidade-action", actionId];
 
   const addMut = useMutation({
     mutationFn: (vars: { first_name: string; last_name: string; tshirt_size: TShirtSize }) =>
@@ -233,10 +474,27 @@ function ParticipantesSection({
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
 
+  // Optimistic update for inline edits
   const updateMut = useMutation({
     mutationFn: (vars: UpdateParticipanteInput) => updateFn({ data: vars }),
-    onSuccess: () => onChanged(),
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey });
+      const prev = qc.getQueryData<any>(queryKey);
+      if (prev) {
+        qc.setQueryData(queryKey, {
+          ...prev,
+          participantes: prev.participantes.map((p: ParticipanteRow) =>
+            p.id === vars.participanteId ? { ...p, ...vars.fields } : p,
+          ),
+        });
+      }
+      return { prev };
+    },
+    onError: (e, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
+      toast.error(e instanceof Error ? e.message : "Erro");
+    },
+    onSettled: () => onChanged(),
   });
 
   const removeMut = useMutation({
@@ -254,7 +512,7 @@ function ParticipantesSection({
       <CardHeader className="flex flex-row items-start justify-between gap-2">
         <div>
           <CardTitle className="flex items-center gap-2 text-base">
-            <UserSquare2 className="h-5 w-5" /> Participantes (Alunos)
+            <Users className="h-5 w-5 text-primary" /> Participantes (Alunos)
             <Badge variant="secondary" className="ml-1">
               {rows.length}
             </Badge>
@@ -285,8 +543,9 @@ function ParticipantesSection({
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead className="w-[120px]">T-shirt</TableHead>
-                <TableHead className="w-[100px]">Presença</TableHead>
+                <TableHead className="w-[110px]">T-shirt</TableHead>
+                <TableHead className="w-[90px]">Presença</TableHead>
+                <TableHead className="w-[140px]">Certificado</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
             </TableHeader>
@@ -328,6 +587,28 @@ function ParticipantesSection({
                         })
                       }
                     />
+                  </TableCell>
+                  <TableCell>
+                    {p.certificate_url ? (
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="h-8"
+                      >
+                        <a
+                          href={p.certificate_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <FileText className="mr-1 h-3.5 w-3.5" /> Descarregar
+                        </a>
+                      </Button>
+                    ) : (
+                      <Badge variant="secondary" className="text-xs">
+                        Pendente
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Button
