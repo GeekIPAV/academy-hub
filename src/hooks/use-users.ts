@@ -1,20 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { listUsers, updateUserRole } from "@/lib/users.functions";
+import { assignRole, listUsers, removeRole } from "@/lib/users.functions";
 
 export interface UserRow {
   id: string;
   full_name: string | null;
   email: string;
-  role: string | null;
+  roles: string[];
   created_at: string | null;
 }
 
 export function useUsers() {
   const qc = useQueryClient();
   const listFn = useServerFn(listUsers);
-  const updateFn = useServerFn(updateUserRole);
+  const assignFn = useServerFn(assignRole);
+  const removeFn = useServerFn(removeRole);
 
   const query = useQuery({
     queryKey: ["users"],
@@ -22,34 +23,62 @@ export function useUsers() {
     staleTime: 30_000,
   });
 
-  const updateRole = useMutation({
+  const optimisticToggle = (userId: string, role: string, add: boolean) => {
+    qc.setQueryData<UserRow[]>(["users"], (old) =>
+      (old ?? []).map((u) => {
+        if (u.id !== userId) return u;
+        const set = new Set(u.roles);
+        if (add) set.add(role);
+        else set.delete(role);
+        return { ...u, roles: [...set].sort() };
+      }),
+    );
+  };
+
+  const assign = useMutation({
     mutationFn: (vars: { userId: string; role: string }) =>
-      updateFn({ data: vars }),
+      assignFn({ data: vars }),
     onMutate: async (vars) => {
       await qc.cancelQueries({ queryKey: ["users"] });
       const prev = qc.getQueryData<UserRow[]>(["users"]);
-      qc.setQueryData<UserRow[]>(["users"], (old) =>
-        (old ?? []).map((u) =>
-          u.id === vars.userId ? { ...u, role: vars.role } : u,
-        ),
-      );
+      optimisticToggle(vars.userId, vars.role, true);
       return { prev };
     },
     onError: (err, _vars, ctx) => {
       if (ctx?.prev) qc.setQueryData(["users"], ctx.prev);
-      toast.error(err instanceof Error ? err.message : "Erro ao atualizar perfil");
+      toast.error(err instanceof Error ? err.message : "Erro ao atribuir perfil");
     },
-    onSuccess: () => {
-      toast.success("Perfil atualizado.");
-    },
+    onSuccess: () => toast.success("Perfil atribuído."),
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ["users"] });
+      qc.invalidateQueries({ queryKey: ["current-profile"] });
+    },
+  });
+
+  const remove = useMutation({
+    mutationFn: (vars: { userId: string; role: string }) =>
+      removeFn({ data: vars }),
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey: ["users"] });
+      const prev = qc.getQueryData<UserRow[]>(["users"]);
+      optimisticToggle(vars.userId, vars.role, false);
+      return { prev };
+    },
+    onError: (err, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["users"], ctx.prev);
+      toast.error(err instanceof Error ? err.message : "Erro ao remover perfil");
+    },
+    onSuccess: () => toast.success("Perfil removido."),
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ["users"] });
+      qc.invalidateQueries({ queryKey: ["current-profile"] });
     },
   });
 
   return {
     ...query,
     users: (query.data ?? []) as UserRow[],
-    updateRole,
+    assign,
+    remove,
   };
 }

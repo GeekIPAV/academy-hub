@@ -5,12 +5,13 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 async function assertAdmin(userId: string) {
   const { data, error } = await supabaseAdmin
-    .from("utilizadores")
-    .select("role")
-    .eq("id", userId)
+    .from("user_roles")
+    .select("role_name")
+    .eq("user_id", userId)
+    .eq("role_name", "Admin")
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (data?.role !== "Admin") throw new Error("Acesso restrito.");
+  if (!data) throw new Error("Acesso restrito.");
 }
 
 export const listUsers = createServerFn({ method: "GET" })
@@ -20,11 +21,22 @@ export const listUsers = createServerFn({ method: "GET" })
 
     const { data: profiles, error } = await supabaseAdmin
       .from("utilizadores")
-      .select("id, full_name, role, created_at")
+      .select("id, full_name, created_at")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
-    // Fetch emails from auth.users
+    const { data: roleRows, error: rErr } = await supabaseAdmin
+      .from("user_roles")
+      .select("user_id, role_name");
+    if (rErr) throw new Error(rErr.message);
+
+    const rolesByUser = new Map<string, string[]>();
+    for (const r of roleRows ?? []) {
+      const arr = rolesByUser.get(r.user_id) ?? [];
+      arr.push(r.role_name);
+      rolesByUser.set(r.user_id, arr);
+    }
+
     const { data: authList, error: authErr } =
       await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
     if (authErr) throw new Error(authErr.message);
@@ -35,44 +47,72 @@ export const listUsers = createServerFn({ method: "GET" })
     return (profiles ?? []).map((p) => ({
       id: p.id,
       full_name: p.full_name,
-      role: p.role,
+      roles: (rolesByUser.get(p.id) ?? []).sort(),
       created_at: p.created_at,
       email: emailById.get(p.id) ?? "",
     }));
   });
 
-export const updateUserRole = createServerFn({ method: "POST" })
+const roleMutationSchema = z.object({
+  userId: z.string().uuid(),
+  role: z.string().min(1).max(40),
+});
+
+async function ensureActiveRole(role: string) {
+  const { data, error } = await supabaseAdmin
+    .from("roles")
+    .select("name, is_active")
+    .eq("name", role)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Perfil inexistente.");
+  if (!data.is_active) throw new Error("Perfil inativo.");
+}
+
+export const assignRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z
-      .object({
-        userId: z.string().uuid(),
-        role: z.string().min(1).max(40),
-      })
-      .parse(input),
-  )
+  .inputValidator((input) => roleMutationSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    await ensureActiveRole(data.role);
+
+    const { error } = await supabaseAdmin
+      .from("user_roles")
+      .insert({
+        user_id: data.userId,
+        role_name: data.role,
+        assigned_by: context.userId,
+      });
+    // Ignore duplicate (already assigned)
+    if (error && !/duplicate key/i.test(error.message)) {
+      throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
+export const removeRole = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => roleMutationSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
 
-    if (data.userId === context.userId && data.role !== "Admin") {
-      throw new Error("Não podes remover o teu próprio perfil de Admin.");
+    // Protect: an Admin cannot remove their own Admin role if they are the last one
+    if (data.role === "Admin" && data.userId === context.userId) {
+      const { count, error: cErr } = await supabaseAdmin
+        .from("user_roles")
+        .select("user_id", { count: "exact", head: true })
+        .eq("role_name", "Admin");
+      if (cErr) throw new Error(cErr.message);
+      if ((count ?? 0) <= 1) {
+        throw new Error("Não podes remover o último perfil Admin do sistema.");
+      }
     }
 
-    // Validate role exists and is active
-    const { data: role, error: roleErr } = await supabaseAdmin
-      .from("roles")
-      .select("name, is_active")
-      .eq("name", data.role)
-      .maybeSingle();
-    if (roleErr) throw new Error(roleErr.message);
-    if (!role) throw new Error("Perfil inexistente.");
-    if (!role.is_active) throw new Error("Perfil inativo.");
-
     const { error } = await supabaseAdmin
-      .from("utilizadores")
-      .update({ role: data.role })
-      .eq("id", data.userId);
+      .from("user_roles")
+      .delete()
+      .eq("user_id", data.userId)
+      .eq("role_name", data.role);
     if (error) throw new Error(error.message);
-
     return { ok: true };
   });

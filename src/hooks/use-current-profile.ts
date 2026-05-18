@@ -5,7 +5,8 @@ import { useAuth } from "@/hooks/use-auth";
 export interface CurrentProfile {
   id: string;
   full_name: string | null;
-  role: string | null;
+  role: string | null; // primary role (for legacy compatibility)
+  roles: string[];
 }
 
 export function useCurrentProfile() {
@@ -18,19 +19,35 @@ export function useCurrentProfile() {
     staleTime: 30_000,
     queryFn: async (): Promise<CurrentProfile | null> => {
       if (!userId) return null;
-      const { data, error } = await supabase
-        .from("utilizadores")
-        .select("id, full_name, role")
-        .eq("id", userId)
-        .maybeSingle();
-      if (error) throw new Error(error.message);
-      return data as CurrentProfile | null;
+      const [{ data: profile, error: pErr }, { data: roleRows, error: rErr }] =
+        await Promise.all([
+          supabase
+            .from("utilizadores")
+            .select("id, full_name, role")
+            .eq("id", userId)
+            .maybeSingle(),
+          supabase
+            .from("user_roles")
+            .select("role_name")
+            .eq("user_id", userId),
+        ]);
+      if (pErr) throw new Error(pErr.message);
+      if (rErr) throw new Error(rErr.message);
+      if (!profile) return null;
+      const roles = (roleRows ?? []).map((r) => r.role_name).sort();
+      return {
+        id: profile.id,
+        full_name: profile.full_name,
+        role: profile.role,
+        roles,
+      };
     },
   });
 
   return {
     profile: query.data ?? null,
     role: query.data?.role ?? null,
+    roles: query.data?.roles ?? [],
     isLoading: authLoading || (!!userId && query.isLoading),
   };
 }
