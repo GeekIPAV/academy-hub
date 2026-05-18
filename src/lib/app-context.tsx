@@ -1,22 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import {
-  APP_ROUTES,
-  MOCK_COMPONENT_PERMISSIONS,
-  MOCK_PROFILE,
-  MOCK_ROUTE_PERMISSIONS,
-  MOCK_USER_ROLES,
-} from "./mock-data";
-import type { ComponentPermission, Profile, RoleName, RoutePermission } from "./types";
+import { APP_ROUTES, MOCK_PROFILE, MOCK_USER_ROLES } from "./mock-data";
+import type { Profile, RoleName } from "./types";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface AppState {
   profile: Profile;
   assignedRoles: RoleName[];
   activeRoles: RoleName[];
   setActiveRoles: (roles: RoleName[]) => void;
-  routePermissions: RoutePermission[];
-  setRoutePermissions: (rp: RoutePermission[]) => void;
-  componentPermissions: ComponentPermission[];
-  setComponentPermissions: (cp: ComponentPermission[]) => void;
   canAccess: (path: string) => boolean;
   isComponentVisible: (pagePath: string, componentId: string) => boolean;
   visibleRoutes: typeof APP_ROUTES;
@@ -26,8 +17,6 @@ interface AppState {
 const AppCtx = createContext<AppState | null>(null);
 
 const LS_ROLES = "ubuntu.activeRoles";
-const LS_PERMS = "ubuntu.routePerms";
-const LS_COMP = "ubuntu.componentPerms";
 
 function load<T>(k: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
@@ -43,63 +32,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [activeRoles, setActiveRolesState] = useState<RoleName[]>(
     MOCK_USER_ROLES.map((r) => r.role_name),
   );
-  const [routePermissions, setRoutePermissionsState] =
-    useState<RoutePermission[]>(MOCK_ROUTE_PERMISSIONS);
-  const [componentPermissions, setComponentPermissionsState] =
-    useState<ComponentPermission[]>(MOCK_COMPONENT_PERMISSIONS);
   const [hydrated, setHydrated] = useState(false);
+  const { isAllowed } = usePermissions();
 
   useEffect(() => {
     setActiveRolesState(load(LS_ROLES, MOCK_USER_ROLES.map((r) => r.role_name)));
-    setRoutePermissionsState(load(LS_PERMS, MOCK_ROUTE_PERMISSIONS));
-    setComponentPermissionsState(load(LS_COMP, MOCK_COMPONENT_PERMISSIONS));
     setHydrated(true);
   }, []);
 
-  const persist = <T,>(k: string, v: T) => {
-    if (typeof window !== "undefined") window.localStorage.setItem(k, JSON.stringify(v));
-  };
-
   const setActiveRoles = (r: RoleName[]) => {
     setActiveRolesState(r);
-    persist(LS_ROLES, r);
-  };
-  const setRoutePermissions = (rp: RoutePermission[]) => {
-    setRoutePermissionsState(rp);
-    persist(LS_PERMS, rp);
-  };
-  const setComponentPermissions = (cp: ComponentPermission[]) => {
-    setComponentPermissionsState(cp);
-    persist(LS_COMP, cp);
+    if (typeof window !== "undefined")
+      window.localStorage.setItem(LS_ROLES, JSON.stringify(r));
   };
 
   const canAccess = (path: string) =>
-    activeRoles.some((role) =>
-      routePermissions.some(
-        (p) => p.role_name === role && p.route_path === path && p.is_granted,
-      ),
-    );
+    activeRoles.some((role) => isAllowed(role, path, "rota"));
 
   const isAdmin = activeRoles.includes("Admin");
 
   const isComponentVisible = (pagePath: string, componentId: string) => {
-    // Admin vê sempre tudo (caso contrário não conseguiria reativar componentes ocultos).
+    // Admin vê sempre tudo (escape hatch para reativar componentes ocultos).
     if (isAdmin) return true;
-    return activeRoles.some((role) =>
-      componentPermissions.some(
-        (p) =>
-          p.role_name === role &&
-          p.page_path === pagePath &&
-          p.component_id === componentId &&
-          p.is_granted,
-      ),
-    );
+    const resourceId = `${pagePath}#${componentId}`;
+    return activeRoles.some((role) => isAllowed(role, resourceId, "componente"));
   };
 
   const visibleRoutes = useMemo(
     () => APP_ROUTES.filter((r) => canAccess(r.path)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeRoles, routePermissions],
+    [activeRoles, isAllowed],
   );
 
   const value: AppState = {
@@ -107,10 +69,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     assignedRoles: MOCK_USER_ROLES.map((r) => r.role_name),
     activeRoles,
     setActiveRoles,
-    routePermissions,
-    setRoutePermissions,
-    componentPermissions,
-    setComponentPermissions,
     canAccess,
     isComponentVisible,
     visibleRoutes,
