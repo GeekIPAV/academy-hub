@@ -406,6 +406,40 @@ export const addParticipante = createServerFn({ method: "POST" })
     return row;
   });
 
+const bulkAddSchema = z.object({
+  actionId: z.string().uuid(),
+  default_tshirt_size: z.enum(TSHIRT_SIZES).default("M"),
+  participantes: z
+    .array(
+      z.object({
+        first_name: z.string().trim().min(1).max(100),
+        last_name: z.string().trim().min(1).max(100),
+        tshirt_size: z.enum(TSHIRT_SIZES).optional(),
+      }),
+    )
+    .min(1, "Adicione pelo menos um nome.")
+    .max(200, "Máximo de 200 participantes por importação."),
+});
+
+export const bulkAddParticipantes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => bulkAddSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertActionBelongsToUserEntity(context.userId, data.actionId);
+    const rows = data.participantes.map((p) => ({
+      action_id: data.actionId,
+      first_name: p.first_name,
+      last_name: p.last_name,
+      tshirt_size: p.tshirt_size ?? data.default_tshirt_size,
+    }));
+    const { error, data: inserted } = await supabaseAdmin
+      .from("participantes_acoes")
+      .insert(rows)
+      .select("id");
+    if (error) throw new Error(error.message);
+    return { count: inserted?.length ?? 0 };
+  });
+
 const updateParticipanteSchema = z.object({
   participanteId: z.string().uuid(),
   fields: z
