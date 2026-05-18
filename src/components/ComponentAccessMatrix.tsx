@@ -16,7 +16,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useApp } from "@/lib/app-context";
-import { ALL_ROLES, PAGE_COMPONENTS } from "@/lib/mock-data";
+import { PAGE_COMPONENTS } from "@/lib/mock-data";
+import { useRoles } from "@/hooks/use-roles";
 import type { RoleName } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -30,6 +31,7 @@ interface Props {
  */
 export function ComponentAccessMatrix({ pagePath }: Props) {
   const { isAdmin, componentPermissions, setComponentPermissions } = useApp();
+  const { activeRoleNames } = useRoles();
   if (!isAdmin) return null;
 
   const components = PAGE_COMPONENTS[pagePath] ?? [];
@@ -95,7 +97,7 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Componente</TableHead>
-                  {ALL_ROLES.map((r) => (
+                  {activeRoleNames.map((r) => (
                     <TableHead key={r} className="text-center">
                       {r}
                     </TableHead>
@@ -109,7 +111,7 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
                       <div className="font-medium">{c.label}</div>
                       <div className="text-xs text-muted-foreground">{c.id}</div>
                     </TableCell>
-                    {ALL_ROLES.map((role) => (
+                    {activeRoleNames.map((role) => (
                       <TableCell key={role} className="text-center">
                         <Switch
                           checked={isGranted(role, c.id)}
