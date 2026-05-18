@@ -1,59 +1,46 @@
-# Criar novos roles na Central de Comando
+# Fase 2 — Atribuir Roles a Utilizadores Reais
 
-Objetivo: na página `/admin/manager`, o Admin pode criar/editar/desativar roles (perfis) que ficam guardados na base de dados. As matrizes de permissões existentes (rotas + componentes) passam a usar dinamicamente a lista de roles vinda da BD, em vez do array hardcoded `ALL_ROLES`.
+Fechar o ciclo: normalizar valores existentes, ligar `utilizadores.role` à tabela `roles` via FK, e criar UI no centro de comando para o Admin atribuir perfis a utilizadores reais.
 
-## 1. Base de dados (migração)
+## 1. Migração de Base de Dados
 
-Nova tabela `public.roles`:
-- `name` (text, único) — ex: "Admin", "Mentor"
-- `description` (text, opcional)
-- `is_system` (boolean) — true para os 4 roles base, impede apagar
-- `is_active` (boolean, default true)
-- standard id/created_at
+**Normalização e FK** (ordem estrita numa única migração):
 
-RLS:
-- SELECT: qualquer autenticado
-- INSERT/UPDATE/DELETE: apenas `is_admin(auth.uid())`
-- Trigger a impedir DELETE/rename quando `is_system = true`
+1. `UPDATE public.utilizadores SET role = initcap(role)` → converte `'admin'`→`'Admin'`, `'formando'`→`'Formando'`.
+2. Atualizar `public.is_admin(_user_id)` para comparar `role = 'Admin'` (em vez de `'admin'`).
+3. Atualizar `public.prevent_role_self_escalation()` para usar `'Admin'` na comparação.
+4. Alterar default da coluna: `ALTER TABLE utilizadores ALTER COLUMN role SET DEFAULT 'Formando'`.
+5. Atualizar `public.handle_new_user()` para inserir com role `'Formando'` (caso aplicável).
+6. Adicionar FK: `ALTER TABLE utilizadores ADD CONSTRAINT utilizadores_role_fkey FOREIGN KEY (role) REFERENCES roles(name) ON UPDATE CASCADE ON DELETE RESTRICT`.
+7. Adicionar policy RLS: "Admins update any profile" em `utilizadores` (UPDATE) com `is_admin(auth.uid())` — necessária para que o Admin possa mudar o role de outros.
 
-Seed: inserir "Admin", "Formador", "Formando", "Entidade" com `is_system=true`.
+## 2. Server Functions — `src/lib/users.functions.ts`
 
-(Não tocamos em `utilizadores.role` nesta fase — continua a ser texto livre; a única mudança é que o Admin vê e gere a lista canónica de roles.)
+- `listUsers()` — middleware `requireSupabaseAuth` + `assertAdmin`. Usa `supabaseAdmin` para listar `id, full_name, role, created_at` + email via `auth.admin.listUsers()` (mapeado por id). Retorna DTO ordenado por `created_at desc`.
+- `updateUserRole({ userId, role })` — Zod valida `userId` (uuid) e `role` (string). Verifica que role existe em `roles` e está `is_active`. Impede o admin de despromover-se a si próprio (`if userId === context.userId && role !== 'Admin' → erro`). Faz `update` via `supabaseAdmin`.
 
-## 2. Server functions (`src/lib/roles.functions.ts`)
+Atualizar `assertAdmin` em `roles.functions.ts`, `permissions.functions.ts` e `admin-programas.functions.ts` para comparar `'Admin'`.
 
-- `listRoles()` — leitura pública autenticada
-- `createRole({ name, description })` — protegido, valida com zod (nome 2–40 chars, regex `^[A-Za-zÀ-ÿ0-9 _-]+$`, único)
-- `updateRole({ id, description, is_active })` — protegido, bloqueia rename de system roles
-- `deleteRole({ id })` — protegido, falha se `is_system`
+## 3. Hook — `src/hooks/use-users.ts`
 
-Todas com `requireSupabaseAuth` + verificação `is_admin` no handler.
+`useUsers()` com React Query: `listUsers` query + `updateUserRole` mutation com optimistic update e `invalidateQueries(['users'])`. Toasts de sucesso/erro.
 
-## 3. UI na Central de Comando
+## 4. UI — nova secção em `src/routes/admin.manager.tsx`
 
-Novo bloco "Gestão de Roles" no topo de `/admin/manager`, antes da Matriz de Acessos:
+Componente `UsersManager` adicionado ao topo da página (ou acima de `RolesManager`):
+- Card "Utilizadores" com Table: Nome, Email, Perfil de Acesso, Criado em.
+- Coluna "Perfil de Acesso" é um `<Select>` populado por `useRoles().roles.filter(r => r.is_active)`. `onValueChange` → `updateUserRole.mutate`.
+- Skeletons enquanto carrega; estado vazio amigável.
+- Select desativado para o próprio utilizador autenticado (evita auto-despromoção, mensagem tooltip).
 
-- Tabela compacta: Nome · Descrição · Sistema (badge) · Ativo (switch) · ações (editar/eliminar)
-- Botão "Novo Role" abre Dialog com formulário (nome + descrição), validação inline com zod + react-hook-form, toast de sucesso/erro
-- Usa React Query (`useQuery` + `useMutation` com `invalidateQueries(['roles'])`)
-- Skeleton em loading, empty state se só houver system roles
+## 5. Verificação
 
-## 4. Integração com as matrizes existentes
+- Build compila sem erros.
+- Testar manualmente: criar role "Mentor", atribuí-lo a um utilizador, ver UI a atualizar instantaneamente, recarregar e confirmar persistência.
+- Confirmar que após migração `is_admin()` continua a retornar `true` para o admin atual (role passa de `'admin'` para `'Admin'` no mesmo UPDATE que a função passa a comparar).
 
-- `ALL_ROLES` em `src/lib/mock-data.ts` deixa de ser fonte de verdade. Criar hook `useRoles()` que devolve `roles` ativos da BD (com fallback para os 4 system enquanto carrega).
-- `AccessTab` (matriz de rotas) e `ComponentAccessMatrix` passam a iterar sobre `roles` dinâmicos em vez de `ALL_ROLES`.
-- `RoutePermission`/`ComponentPermission` continuam em localStorage por agora (fora do âmbito); apenas a coluna de roles é dinâmica. Quando um role novo é criado, aparece automaticamente como nova coluna nas matrizes (sem permissões — Admin liga os switches).
-- `RoleName` deixa de ser união literal e passa a `string` (alias) para acomodar roles custom; ajustar tipos onde necessário sem alargar o âmbito.
+## Notas técnicas
 
-## 5. Validação
-
-- Após migração: confirmar seed dos 4 roles em `psql`/read_query.
-- Criar role "Mentor" pela UI → aparece como coluna nova nas duas matrizes.
-- Tentar eliminar "Admin" → bloqueado com mensagem clara.
-- Desativar role custom → some das matrizes, mantém-se na tabela de gestão.
-
-## Fora do âmbito (confirmar se queres incluir depois)
-
-- Atribuir roles a utilizadores reais (convites, mudar `utilizadores.role`).
-- Persistir as próprias matrizes de permissão na BD (continuam em localStorage).
-- Migrar `utilizadores.role` para FK para `roles.name`.
+- A ordem da migração é crítica: o UPDATE de valores tem de ser feito ANTES de adicionar a FK, e a função `is_admin` tem de ser atualizada na MESMA migração para evitar janela em que o admin perde permissões.
+- `ON UPDATE CASCADE` na FK garante que renomear um role (se algum dia possível para roles não-system) propaga automaticamente.
+- Não tocar em `client.ts`, `client.server.ts`, `auth-middleware.ts`, `types.ts` (auto-gerados).

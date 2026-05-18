@@ -10,7 +10,7 @@ async function assertAdmin(userId: string) {
     .eq("id", userId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (data?.role !== "admin") throw new Error("Acesso restrito.");
+  if (data?.role !== "Admin") throw new Error("Acesso restrito.");
 }
 
 const nameSchema = z
