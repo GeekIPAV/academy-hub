@@ -479,6 +479,19 @@ function ParticipantesSection({
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
 
+  const bulkMut = useMutation({
+    mutationFn: (vars: {
+      participantes: { first_name: string; last_name: string }[];
+      default_tshirt_size: TShirtSize;
+    }) => bulkFn({ data: { actionId, ...vars } }),
+    onSuccess: (res) => {
+      toast.success(`${res.count} participantes adicionados.`);
+      setBulkOpen(false);
+      onChanged();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+
   // Optimistic update for inline edits
   const updateMut = useMutation({
     mutationFn: (vars: UpdateParticipanteInput) => updateFn({ data: vars }),
