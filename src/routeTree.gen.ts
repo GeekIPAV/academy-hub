@@ -22,6 +22,7 @@ import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
+import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 import { Route as ApiPublicRecursosSplatRouteImport } from './routes/api/public/recursos.$'
@@ -90,6 +91,11 @@ const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
   path: '/recursos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const EntidadeAcoesIdRoute = EntidadeAcoesIdRouteImport.update({
+  id: '/entidade/acoes/$id',
+  path: '/entidade/acoes/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminRecursosRoute =
   AuthenticatedAdminRecursosRouteImport.update({
     id: '/admin/recursos',
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
 export interface FileRoutesByTo {
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
 export interface FileRoutesById {
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
 export interface FileRouteTypes {
@@ -177,6 +186,7 @@ export interface FileRouteTypes {
     | '/inscricao/$token'
     | '/actions/$id'
     | '/admin/recursos'
+    | '/entidade/acoes/$id'
     | '/api/public/recursos/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/inscricao/$token'
     | '/actions/$id'
     | '/admin/recursos'
+    | '/entidade/acoes/$id'
     | '/api/public/recursos/$'
   id:
     | '__root__'
@@ -212,6 +223,7 @@ export interface FileRouteTypes {
     | '/inscricao/$token'
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
+    | '/entidade/acoes/$id'
     | '/api/public/recursos/$'
   fileRoutesById: FileRoutesById
 }
@@ -228,6 +240,7 @@ export interface RootRouteChildren {
   AdminProgramasRoute: typeof AdminProgramasRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
+  EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
   ApiPublicRecursosSplatRoute: typeof ApiPublicRecursosSplatRoute
 }
 
@@ -324,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/entidade/acoes/$id': {
+      id: '/entidade/acoes/$id'
+      path: '/entidade/acoes/$id'
+      fullPath: '/entidade/acoes/$id'
+      preLoaderRoute: typeof EntidadeAcoesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/recursos': {
       id: '/_authenticated/admin/recursos'
       path: '/admin/recursos'
@@ -377,6 +397,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminProgramasRoute: AdminProgramasRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
+  EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
   ApiPublicRecursosSplatRoute: ApiPublicRecursosSplatRoute,
 }
 export const routeTree = rootRouteImport
