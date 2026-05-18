@@ -32,17 +32,11 @@ function ProfilePage() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nome completo</Label>
-              <Input id="name" defaultValue={profile.full_name} />
+              <Input id="name" defaultValue={profile?.full_name ?? ""} />
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="nif">NIF</Label>
-                <Input id="nif" defaultValue={profile.nif} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" defaultValue={profile.email} />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="role">Perfil de acesso</Label>
+              <Input id="role" value={profile?.role ?? ""} disabled />
             </div>
             <Button>Guardar alterações</Button>
           </CardContent>
