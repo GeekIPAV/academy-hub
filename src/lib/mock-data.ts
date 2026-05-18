@@ -78,15 +78,3 @@ export const PAGE_COMPONENTS: Record<string, PageComponent[]> = {
   ],
 };
 
-// Por defeito, todos os componentes são visíveis a todos os roles.
-export const MOCK_COMPONENT_PERMISSIONS: ComponentPermission[] = Object.entries(PAGE_COMPONENTS)
-  .flatMap(([page_path, comps]) =>
-    comps.flatMap((c) =>
-      ALL_ROLES.map((role) => ({
-        role_name: role,
-        page_path,
-        component_id: c.id,
-        is_granted: true,
-      })),
-    ),
-  );
