@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { APP_ROUTES } from "./mock-data";
 import type { RoleName } from "./types";
 import { usePermissions } from "@/hooks/use-permissions";
