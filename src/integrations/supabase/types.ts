@@ -570,6 +570,13 @@ export type Database = {
             referencedRelation: "entidades"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "utilizadores_role_fkey"
+            columns: ["role"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["name"]
+          },
         ]
       }
     }
