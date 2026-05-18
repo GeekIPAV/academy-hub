@@ -22,7 +22,9 @@ export function usePermissions() {
   const query = useQuery({
     queryKey: QK,
     queryFn: () => list(),
-    staleTime: 30_000,
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const permissions = (query.data ?? []) as PermissionRow[];
