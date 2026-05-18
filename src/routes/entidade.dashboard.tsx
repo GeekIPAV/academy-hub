@@ -761,7 +761,13 @@ function AcoesTab({ entityId }: { entityId?: string }) {
                 return (
                   <TableRow key={a.id}>
                     <TableCell className="font-medium">
-                      {a.action_type ?? a.title ?? "—"}
+                      <Link
+                        to="/entidade/acoes/$id"
+                        params={{ id: a.id }}
+                        className="hover:underline"
+                      >
+                        {a.action_type ?? a.title ?? "—"}
+                      </Link>
                     </TableCell>
                     <TableCell>{formatDate(a.start_date)}</TableCell>
                     <TableCell>{formatDate(a.end_date)}</TableCell>
