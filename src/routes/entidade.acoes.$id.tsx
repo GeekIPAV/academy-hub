@@ -82,6 +82,7 @@ import {
 import {
   getEntidadeActionDetails,
   addParticipante,
+  bulkAddParticipantes,
   updateParticipante,
   removeParticipante,
   cancelAcaoProposta,
