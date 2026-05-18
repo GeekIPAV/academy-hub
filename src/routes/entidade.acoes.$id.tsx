@@ -13,11 +13,14 @@ import {
   GraduationCap,
   Info,
   LinkIcon,
+  Loader2,
   Mail,
   Plus,
+  RefreshCw,
   ShieldCheck,
   Shirt,
   Sparkles,
+  Stamp,
   Trash2,
   Upload,
   User,
@@ -86,6 +89,8 @@ import {
   updateParticipante,
   removeParticipante,
   cancelAcaoProposta,
+  generateCertificate,
+  generateAllCertificates,
   type UpdateParticipanteInput,
 } from "@/lib/entidade.functions";
 
@@ -463,6 +468,9 @@ function ParticipantesSection({
   const bulkFn = useServerFn(bulkAddParticipantes);
   const updateFn = useServerFn(updateParticipante);
   const removeFn = useServerFn(removeParticipante);
+  const genFn = useServerFn(generateCertificate);
+  const genAllFn = useServerFn(generateAllCertificates);
+  const [pendingCertId, setPendingCertId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
 
@@ -525,6 +533,33 @@ function ParticipantesSection({
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
 
+  const generateMut = useMutation({
+    mutationFn: (participanteId: string) =>
+      genFn({ data: { participanteId } }),
+    onMutate: (id) => setPendingCertId(id),
+    onSuccess: () => {
+      toast.success("Certificado gerado.");
+      onChanged();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+    onSettled: () => setPendingCertId(null),
+  });
+
+  const generateAllMut = useMutation({
+    mutationFn: () => genAllFn({ data: { actionId, onlyMissing: true } }),
+    onSuccess: (res) => {
+      if (res.failed > 0) {
+        toast.warning(`${res.generated} gerado(s), ${res.failed} falharam.`);
+      } else if (res.generated === 0) {
+        toast.info("Não há novos certificados para gerar.");
+      } else {
+        toast.success(`${res.generated} certificados gerados.`);
+      }
+      onChanged();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-2">
@@ -539,7 +574,20 @@ function ParticipantesSection({
             Lista de alunos da escola. Sem conta na plataforma.
           </CardDescription>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => generateAllMut.mutate()}
+            disabled={generateAllMut.isPending || rows.length === 0}
+          >
+            {generateAllMut.isPending ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : (
+              <Stamp className="mr-1 h-4 w-4" />
+            )}
+            Gerar certificados
+          </Button>
           <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline">
@@ -620,26 +668,50 @@ function ParticipantesSection({
                     />
                   </TableCell>
                   <TableCell>
-                    {p.certificate_url ? (
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="outline"
-                        className="h-8"
-                      >
-                        <a
-                          href={p.certificate_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                    <div className="flex items-center gap-1">
+                      {p.certificate_url ? (
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
                         >
-                          <FileText className="mr-1 h-3.5 w-3.5" /> Descarregar
-                        </a>
+                          <a
+                            href={p.certificate_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <FileText className="mr-1 h-3.5 w-3.5" /> PDF
+                          </a>
+                        </Button>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">
+                          Pendente
+                        </Badge>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        disabled={
+                          generateMut.isPending && pendingCertId === p.id
+                        }
+                        onClick={() => generateMut.mutate(p.id)}
+                        title={
+                          p.certificate_url
+                            ? "Regenerar certificado"
+                            : "Gerar certificado"
+                        }
+                      >
+                        {generateMut.isPending && pendingCertId === p.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : p.certificate_url ? (
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        ) : (
+                          <Stamp className="h-3.5 w-3.5" />
+                        )}
                       </Button>
-                    ) : (
-                      <Badge variant="secondary" className="text-xs">
-                        Pendente
-                      </Badge>
-                    )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Button

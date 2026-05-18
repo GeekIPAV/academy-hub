@@ -495,3 +495,113 @@ export const removeParticipante = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ============== Certificados ==============
+
+async function buildAndUploadFor(participanteId: string) {
+  const { generateCertificatePdf, uploadCertificate } = await import(
+    "./certificate.server"
+  );
+  const { data: p, error: pErr } = await supabaseAdmin
+    .from("participantes_acoes")
+    .select("id, first_name, last_name, action_id")
+    .eq("id", participanteId)
+    .maybeSingle();
+  if (pErr) throw new Error(pErr.message);
+  if (!p) throw new Error("Participante não encontrado.");
+
+  const { data: a, error: aErr } = await supabaseAdmin
+    .from("acoes")
+    .select("id, title, action_type, start_date, end_date, entity_id")
+    .eq("id", p.action_id)
+    .maybeSingle();
+  if (aErr) throw new Error(aErr.message);
+  if (!a) throw new Error("Ação não encontrada.");
+
+  let entityName: string | null = null;
+  if (a.entity_id) {
+    const { data: ent } = await supabaseAdmin
+      .from("entidades")
+      .select("name")
+      .eq("id", a.entity_id)
+      .maybeSingle();
+    entityName = ent?.name ?? null;
+  }
+
+  const bytes = await generateCertificatePdf({
+    participantName: `${p.first_name} ${p.last_name}`,
+    actionTitle: a.title ?? "Ação",
+    actionType: a.action_type,
+    entityName,
+    startDate: a.start_date,
+    endDate: a.end_date,
+  });
+
+  const publicUrl = await uploadCertificate(a.id, p.id, bytes);
+
+  const { error: updErr } = await supabaseAdmin
+    .from("participantes_acoes")
+    .update({
+      certificate_url: publicUrl,
+      certificate_sent: true,
+      certificate_sent_at: new Date().toISOString(),
+    })
+    .eq("id", p.id);
+  if (updErr) throw new Error(updErr.message);
+
+  return { url: publicUrl, action_id: a.id };
+}
+
+export const generateCertificate = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ participanteId: z.string().uuid() }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { data: existing, error } = await supabaseAdmin
+      .from("participantes_acoes")
+      .select("action_id")
+      .eq("id", data.participanteId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!existing) throw new Error("Participante não encontrado.");
+    await assertActionBelongsToUserEntity(context.userId, existing.action_id);
+
+    const { url } = await buildAndUploadFor(data.participanteId);
+    return { url };
+  });
+
+export const generateAllCertificates = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z
+      .object({
+        actionId: z.string().uuid(),
+        onlyMissing: z.boolean().default(true),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    await assertActionBelongsToUserEntity(context.userId, data.actionId);
+
+    let query = supabaseAdmin
+      .from("participantes_acoes")
+      .select("id, certificate_url")
+      .eq("action_id", data.actionId);
+    if (data.onlyMissing) query = query.is("certificate_url", null);
+
+    const { data: rows, error } = await query;
+    if (error) throw new Error(error.message);
+
+    let generated = 0;
+    const errors: string[] = [];
+    for (const row of rows ?? []) {
+      try {
+        await buildAndUploadFor(row.id);
+        generated++;
+      } catch (e) {
+        errors.push(e instanceof Error ? e.message : String(e));
+      }
+    }
+    return { generated, failed: errors.length, errors };
+  });
