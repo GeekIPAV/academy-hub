@@ -168,3 +168,107 @@ export const listMyTrainees = createServerFn({ method: "GET" })
       program_title: cohortMap.get(e.cohort_id ?? "") ?? null,
     }));
   });
+
+// ============== Ações (propostas pela Entidade) ==============
+
+export const listMyAcoes = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => optionalEntityIdSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const entityId = await resolveEntityId(userId, data.entityId);
+    if (!entityId) return [];
+
+    const { data: rows, error } = await supabaseAdmin
+      .from("acoes")
+      .select("id, title, action_type, status, start_date, end_date, created_at")
+      .eq("entity_id", entityId)
+      .order("start_date", { ascending: false, nullsFirst: false });
+    if (error) throw new Error(error.message);
+    return rows ?? [];
+  });
+
+const createAcaoSchema = z
+  .object({
+    entityId: z.string().uuid().optional(),
+    action_type: z.string().trim().min(1, "Tipo obrigatório").max(100),
+    start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida"),
+    end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida"),
+  })
+  .refine((d) => d.end_date >= d.start_date, {
+    message: "Data fim deve ser igual ou posterior à data início",
+    path: ["end_date"],
+  });
+
+export const createAcaoProposta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => createAcaoSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const entityId = await resolveEntityId(userId, data.entityId);
+    if (!entityId) throw new Error("Utilizador sem entidade associada.");
+
+    const { data: row, error } = await supabaseAdmin
+      .from("acoes")
+      .insert({
+        entity_id: entityId,
+        action_type: data.action_type,
+        title: data.action_type,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        action_date: data.start_date,
+        status: "Pendente",
+        created_by: userId,
+      })
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+const cancelAcaoSchema = z.object({ actionId: z.string().uuid() });
+
+export const cancelAcaoProposta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => cancelAcaoSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+
+    const { data: existing, error: fErr } = await supabaseAdmin
+      .from("acoes")
+      .select("id, entity_id, start_date, status")
+      .eq("id", data.actionId)
+      .maybeSingle();
+    if (fErr) throw new Error(fErr.message);
+    if (!existing) throw new Error("Ação não encontrada.");
+
+    const { data: user, error: uErr } = await supabaseAdmin
+      .from("utilizadores")
+      .select("entity_id, role")
+      .eq("id", userId)
+      .maybeSingle();
+    if (uErr) throw new Error(uErr.message);
+    const isAdmin = user?.role === "Admin";
+    if (!isAdmin && existing.entity_id !== user?.entity_id) {
+      throw new Error("Não pode cancelar ações de outra entidade.");
+    }
+
+    // Regra: 14 dias de antecedência (servidor valida também)
+    if (!isAdmin && existing.start_date) {
+      const start = new Date(existing.start_date + "T00:00:00Z").getTime();
+      const today = new Date(new Date().toISOString().slice(0, 10) + "T00:00:00Z").getTime();
+      const days = Math.floor((start - today) / (1000 * 60 * 60 * 24));
+      if (days < 14) {
+        throw new Error(
+          "Cancelamento não permitido com menos de 14 dias de antecedência.",
+        );
+      }
+    }
+
+    const { error } = await supabaseAdmin
+      .from("acoes")
+      .update({ status: "Cancelada" })
+      .eq("id", data.actionId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
