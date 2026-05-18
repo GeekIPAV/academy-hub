@@ -80,7 +80,7 @@ export function AppSidebar() {
                     </SidebarMenuItem>
                   );
                 })}
-              {isFormando && (
+              {isFormando && !visibleRoutes.some((r) => r.path === "/recursos") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={path === "/recursos"}>
                     <Link to="/recursos">
