@@ -533,6 +533,33 @@ function ParticipantesSection({
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
 
+  const generateMut = useMutation({
+    mutationFn: (participanteId: string) =>
+      genFn({ data: { participanteId } }),
+    onMutate: (id) => setPendingCertId(id),
+    onSuccess: () => {
+      toast.success("Certificado gerado.");
+      onChanged();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+    onSettled: () => setPendingCertId(null),
+  });
+
+  const generateAllMut = useMutation({
+    mutationFn: () => genAllFn({ data: { actionId, onlyMissing: true } }),
+    onSuccess: (res) => {
+      if (res.failed > 0) {
+        toast.warning(`${res.generated} gerado(s), ${res.failed} falharam.`);
+      } else if (res.generated === 0) {
+        toast.info("Não há novos certificados para gerar.");
+      } else {
+        toast.success(`${res.generated} certificados gerados.`);
+      }
+      onChanged();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-2">
