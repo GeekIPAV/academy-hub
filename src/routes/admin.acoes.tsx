@@ -288,7 +288,7 @@ type EnrollmentRow = Awaited<ReturnType<typeof getActionDetails>>["enrollments"]
 function EnrollmentsTab({ rows, onChanged }: { rows: EnrollmentRow[]; onChanged: () => void }) {
   const updateFn = useServerFn(updateEnrollment);
   const mut = useMutation({
-    mutationFn: (vars: Parameters<typeof updateFn>[0]["data"]) => updateFn({ data: vars }),
+    mutationFn: (vars: UpdateEnrollmentInput) => updateFn({ data: vars }),
     onSuccess: () => {
       toast.success("Atualizado.");
       onChanged();
@@ -390,7 +390,7 @@ function TrainersTab({
   });
 
   const updateMut = useMutation({
-    mutationFn: (vars: Parameters<typeof updateFn>[0]["data"]) => updateFn({ data: vars }),
+    mutationFn: (vars: UpdateTrainerInput) => updateFn({ data: vars }),
     onSuccess: () => onChanged(),
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
