@@ -19,10 +19,12 @@ import {
   Shirt,
   Sparkles,
   Trash2,
+  Upload,
   User,
   Users,
   XCircle,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
