@@ -170,6 +170,7 @@ function EntidadeDashboardPage() {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           {visible("tab-overview") && <TabsTrigger value="overview">Visão Geral</TabsTrigger>}
+          {visible("tab-acoes") && <TabsTrigger value="acoes">Marcações</TabsTrigger>}
           {visible("tab-data") && <TabsTrigger value="data">Dados da Entidade</TabsTrigger>}
         </TabsList>
 
@@ -180,12 +181,19 @@ function EntidadeDashboardPage() {
           </TabsContent>
         )}
 
+        {visible("tab-acoes") && (
+          <TabsContent value="acoes">
+            <AcoesTab entityId={selectedEntityId} />
+          </TabsContent>
+        )}
+
         {visible("tab-data") && (
           <TabsContent value="data">
             <EntityDataForm entityId={selectedEntityId} />
           </TabsContent>
         )}
       </Tabs>
+
     </div>
   );
 }
