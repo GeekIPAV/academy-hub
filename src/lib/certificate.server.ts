@@ -10,8 +10,20 @@ export type CertificateInput = {
   endDate: string | null;
 };
 
+const TEMPLATE_URL =
+  "https://ncfqaqfqvgzaerhnocws.supabase.co/storage/v1/object/public/certificados/_template/template.pdf";
+
+let cachedTemplate: Uint8Array | null = null;
+async function loadTemplate(): Promise<Uint8Array> {
+  if (cachedTemplate) return cachedTemplate;
+  const res = await fetch(TEMPLATE_URL);
+  if (!res.ok) throw new Error(`Falha ao carregar template (${res.status})`);
+  cachedTemplate = new Uint8Array(await res.arrayBuffer());
+  return cachedTemplate;
+}
+
 function formatPt(d: string | null): string {
-  if (!d) return "—";
+  if (!d) return "";
   try {
     return new Date(d + "T00:00:00").toLocaleDateString("pt-PT", {
       day: "2-digit",
@@ -23,173 +35,71 @@ function formatPt(d: string | null): string {
   }
 }
 
+function formatDateRange(start: string | null, end: string | null): string {
+  if (!start && !end) return "";
+  if (start && end && start !== end) {
+    return `${formatPt(start)} a ${formatPt(end)}`;
+  }
+  return formatPt(start || end);
+}
+
 /**
- * Generates a simple, clean certificate PDF (A4 landscape) and uploads it
- * to the public `certificados` bucket. Returns the public URL.
- *
- * NOTE: This is a placeholder template — the visual design will be replaced
- * once the final layout is provided.
+ * Generates a certificate PDF by overlaying participant data on top of the
+ * official Escolas Ubuntu template (A5 landscape, 595x420 pt).
  */
 export async function generateCertificatePdf(
   input: CertificateInput,
 ): Promise<Uint8Array> {
-  const pdf = await PDFDocument.create();
-  // A4 landscape (842 x 595 pt)
-  const page = pdf.addPage([842, 595]);
-  const { width, height } = page.getSize();
+  const templateBytes = await loadTemplate();
+  const pdf = await PDFDocument.load(templateBytes);
+  const page = pdf.getPage(0);
+  const { width } = page.getSize();
 
-  const helv = await pdf.embedFont(StandardFonts.Helvetica);
   const helvBold = await pdf.embedFont(StandardFonts.HelveticaBold);
-  const helvOblique = await pdf.embedFont(StandardFonts.HelveticaOblique);
+  const helv = await pdf.embedFont(StandardFonts.Helvetica);
 
-  const primary = rgb(0.16, 0.32, 0.55);
-  const gold = rgb(0.79, 0.66, 0.3);
   const text = rgb(0.12, 0.12, 0.14);
-  const muted = rgb(0.45, 0.45, 0.5);
 
-  // Outer border
-  page.drawRectangle({
-    x: 30,
-    y: 30,
-    width: width - 60,
-    height: height - 60,
-    borderColor: primary,
-    borderWidth: 2,
-  });
-  // Inner thin gold border
-  page.drawRectangle({
-    x: 42,
-    y: 42,
-    width: width - 84,
-    height: height - 84,
-    borderColor: gold,
-    borderWidth: 0.8,
-  });
-
-  // Title
-  const title = "CERTIFICADO";
-  const titleSize = 40;
-  const titleWidth = helvBold.widthOfTextAtSize(title, titleSize);
-  page.drawText(title, {
-    x: (width - titleWidth) / 2,
-    y: height - 130,
-    size: titleSize,
-    font: helvBold,
-    color: primary,
-  });
-
-  // Decorative line
-  page.drawLine({
-    start: { x: width / 2 - 70, y: height - 145 },
-    end: { x: width / 2 + 70, y: height - 145 },
-    thickness: 1.2,
-    color: gold,
-  });
-
-  // Subtitle
-  const subtitle = "DE PARTICIPAÇÃO";
-  const subtitleSize = 14;
-  const subtitleWidth = helv.widthOfTextAtSize(subtitle, subtitleSize);
-  page.drawText(subtitle, {
-    x: (width - subtitleWidth) / 2,
-    y: height - 175,
-    size: subtitleSize,
-    font: helv,
-    color: muted,
-  });
-
-  // "Certifica-se que"
-  const intro = "Certifica-se que";
-  const introSize = 14;
-  const introWidth = helv.widthOfTextAtSize(intro, introSize);
-  page.drawText(intro, {
-    x: (width - introWidth) / 2,
-    y: height - 230,
-    size: introSize,
-    font: helvOblique,
-    color: muted,
-  });
-
-  // Participant name
+  // --- Participant name (centered, above the long underline)
   const name = input.participantName.toUpperCase();
-  const nameSize = 32;
-  const nameWidth = helvBold.widthOfTextAtSize(name, nameSize);
+  let nameSize = 14;
+  const maxNameWidth = width - 180;
+  let nameWidth = helvBold.widthOfTextAtSize(name, nameSize);
+  while (nameWidth > maxNameWidth && nameSize > 9) {
+    nameSize -= 1;
+    nameWidth = helvBold.widthOfTextAtSize(name, nameSize);
+  }
   page.drawText(name, {
-    x: Math.max(60, (width - nameWidth) / 2),
-    y: height - 275,
+    x: (width - nameWidth) / 2,
+    y: 295,
     size: nameSize,
     font: helvBold,
     color: text,
   });
 
-  // Body
-  const actionLabel = input.actionType
-    ? `${input.actionType} — ${input.actionTitle}`
-    : input.actionTitle;
-  const entityPart = input.entityName ? ` na ${input.entityName}` : "";
-  const datesPart =
-    input.startDate && input.endDate
-      ? input.startDate === input.endDate
-        ? ` no dia ${formatPt(input.startDate)}`
-        : ` entre ${formatPt(input.startDate)} e ${formatPt(input.endDate)}`
-      : "";
-
-  const body = `participou na ação "${actionLabel}"${entityPart}${datesPart}.`;
-  // Simple line wrap
-  const bodySize = 14;
-  const maxWidth = width - 160;
-  const words = body.split(" ");
-  const lines: string[] = [];
-  let current = "";
-  for (const w of words) {
-    const tentative = current ? current + " " + w : w;
-    if (helv.widthOfTextAtSize(tentative, bodySize) > maxWidth) {
-      lines.push(current);
-      current = w;
-    } else {
-      current = tentative;
-    }
-  }
-  if (current) lines.push(current);
-  lines.forEach((line, i) => {
-    const w = helv.widthOfTextAtSize(line, bodySize);
-    page.drawText(line, {
-      x: (width - w) / 2,
-      y: height - 325 - i * 20,
-      size: bodySize,
+  // --- Data field
+  const dateText = formatDateRange(input.startDate, input.endDate);
+  if (dateText) {
+    page.drawText(dateText, {
+      x: 245,
+      y: 180,
+      size: 11,
       font: helv,
       color: text,
     });
-  });
+  }
 
-  // Footer left: date emitted
-  const today = new Date().toLocaleDateString("pt-PT", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
-  page.drawText(`Emitido em ${today}`, {
-    x: 80,
-    y: 90,
-    size: 10,
-    font: helv,
-    color: muted,
-  });
-
-  // Footer right: signature line
-  page.drawLine({
-    start: { x: width - 280, y: 110 },
-    end: { x: width - 80, y: 110 },
-    thickness: 0.8,
-    color: muted,
-  });
-  page.drawText("Assinatura", {
-    x: width - 200,
-    y: 92,
-    size: 10,
-    font: helvOblique,
-    color: muted,
-  });
+  // --- Local field
+  const local = input.entityName || "";
+  if (local) {
+    page.drawText(local, {
+      x: 245,
+      y: 158,
+      size: 11,
+      font: helv,
+      color: text,
+    });
+  }
 
   return await pdf.save();
 }
