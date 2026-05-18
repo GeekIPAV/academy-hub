@@ -17,45 +17,75 @@ export type Database = {
       acoes: {
         Row: {
           action_date: string | null
+          avaliacao_impacto: number | null
+          avaliacao_impacto_link: string | null
+          avaliacao_satisfacao: number | null
+          avaliacao_satisfacao_link: string | null
           category: string | null
           created_at: string | null
+          created_by: string | null
           description: string | null
+          end_date: string | null
           entity_id: string | null
+          fotos_link: string | null
           id: string
           max_capacity: number | null
           notion_id: string | null
           program_id: string | null
           registration_status: string | null
           required_fields: Json | null
+          start_date: string | null
           title: string | null
+          tshirt_tracking_link: string | null
+          tshirt_value: number | null
         }
         Insert: {
           action_date?: string | null
+          avaliacao_impacto?: number | null
+          avaliacao_impacto_link?: string | null
+          avaliacao_satisfacao?: number | null
+          avaliacao_satisfacao_link?: string | null
           category?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          end_date?: string | null
           entity_id?: string | null
+          fotos_link?: string | null
           id?: string
           max_capacity?: number | null
           notion_id?: string | null
           program_id?: string | null
           registration_status?: string | null
           required_fields?: Json | null
+          start_date?: string | null
           title?: string | null
+          tshirt_tracking_link?: string | null
+          tshirt_value?: number | null
         }
         Update: {
           action_date?: string | null
+          avaliacao_impacto?: number | null
+          avaliacao_impacto_link?: string | null
+          avaliacao_satisfacao?: number | null
+          avaliacao_satisfacao_link?: string | null
           category?: string | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
+          end_date?: string | null
           entity_id?: string | null
+          fotos_link?: string | null
           id?: string
           max_capacity?: number | null
           notion_id?: string | null
           program_id?: string | null
           registration_status?: string | null
           required_fields?: Json | null
+          start_date?: string | null
           title?: string | null
+          tshirt_tracking_link?: string | null
+          tshirt_value?: number | null
         }
         Relationships: [
           {
@@ -155,37 +185,93 @@ export type Database = {
           },
         ]
       }
+      formadores_acoes: {
+        Row: {
+          action_id: string
+          certificate_sent: boolean
+          certificate_sent_at: string | null
+          certificate_url: string | null
+          created_at: string
+          id: string
+          status: string
+          tshirt_size: string | null
+          user_id: string
+        }
+        Insert: {
+          action_id: string
+          certificate_sent?: boolean
+          certificate_sent_at?: string | null
+          certificate_url?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          tshirt_size?: string | null
+          user_id: string
+        }
+        Update: {
+          action_id?: string
+          certificate_sent?: boolean
+          certificate_sent_at?: string | null
+          certificate_url?: string | null
+          created_at?: string
+          id?: string
+          status?: string
+          tshirt_size?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formadores_acoes_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inscritos_acoes: {
         Row: {
           action_id: string | null
           additional_data: Json | null
+          certificate_sent: boolean
+          certificate_sent_at: string | null
+          certificate_url: string | null
           id: string
           internal_notes: string | null
           invited_at: string | null
           status: string | null
           submitted_at: string | null
+          tshirt_size: string | null
           user_id: string | null
           user_observations: string | null
         }
         Insert: {
           action_id?: string | null
           additional_data?: Json | null
+          certificate_sent?: boolean
+          certificate_sent_at?: string | null
+          certificate_url?: string | null
           id?: string
           internal_notes?: string | null
           invited_at?: string | null
           status?: string | null
           submitted_at?: string | null
+          tshirt_size?: string | null
           user_id?: string | null
           user_observations?: string | null
         }
         Update: {
           action_id?: string | null
           additional_data?: Json | null
+          certificate_sent?: boolean
+          certificate_sent_at?: string | null
+          certificate_url?: string | null
           id?: string
           internal_notes?: string | null
           invited_at?: string | null
           status?: string | null
           submitted_at?: string | null
+          tshirt_size?: string | null
           user_id?: string | null
           user_observations?: string | null
         }

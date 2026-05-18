@@ -20,6 +20,7 @@ import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
+import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
@@ -79,6 +80,11 @@ const AdminManagerRoute = AdminManagerRouteImport.update({
   path: '/admin/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAcoesRoute = AdminAcoesRouteImport.update({
+  id: '/admin/acoes',
+  path: '/admin/acoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
   id: '/recursos',
   path: '/recursos',
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
+  '/admin/acoes': typeof AdminAcoesRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
+  '/admin/acoes': typeof AdminAcoesRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/profile': typeof ProfileRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRoute
+  '/admin/acoes': typeof AdminAcoesRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/recursos'
+    | '/admin/acoes'
     | '/admin/manager'
     | '/admin/programas'
     | '/entidade/dashboard'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/recursos'
+    | '/admin/acoes'
     | '/admin/manager'
     | '/admin/programas'
     | '/entidade/dashboard'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/_authenticated/recursos'
+    | '/admin/acoes'
     | '/admin/manager'
     | '/admin/programas'
     | '/entidade/dashboard'
@@ -211,6 +223,7 @@ export interface RootRouteChildren {
   DadosCertificacaoRoute: typeof DadosCertificacaoRoute
   DashboardRoute: typeof DashboardRoute
   ProfileRoute: typeof ProfileRoute
+  AdminAcoesRoute: typeof AdminAcoesRoute
   AdminManagerRoute: typeof AdminManagerRoute
   AdminProgramasRoute: typeof AdminProgramasRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/acoes': {
+      id: '/admin/acoes'
+      path: '/admin/acoes'
+      fullPath: '/admin/acoes'
+      preLoaderRoute: typeof AdminAcoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/recursos': {
       id: '/_authenticated/recursos'
       path: '/recursos'
@@ -352,6 +372,7 @@ const rootRouteChildren: RootRouteChildren = {
   DadosCertificacaoRoute: DadosCertificacaoRoute,
   DashboardRoute: DashboardRoute,
   ProfileRoute: ProfileRoute,
+  AdminAcoesRoute: AdminAcoesRoute,
   AdminManagerRoute: AdminManagerRoute,
   AdminProgramasRoute: AdminProgramasRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
@@ -361,13 +382,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

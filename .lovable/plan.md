@@ -1,72 +1,77 @@
-# Auditoria de Performance — Multi-Role & Permissões
+# Replicar modelo Zite na Academia Ubuntu
 
-Objetivo: reduzir queries redundantes, acelerar carregamento inicial e remover N+1 sem mexer na lógica de negócio.
+Adapto os campos e relações da plataforma exportada às tabelas que já existem. Nada do que já temos é apagado — só acrescento colunas e uma tabela nova.
 
-## 1. Frontend — Cache agressivo (React Query)
+## 1. Alterações à base de dados
 
-Atualmente `usePermissions`, `useRoles` e `useCurrentProfile` usam `staleTime: 30_000`. Cada navegação volta a tocar no backend.
+### `acoes` — colunas novas
+- `start_date` (date), `end_date` (date) — mantenho `action_date` por retro-compatibilidade
+- `created_by` (uuid, referência opcional ao utilizador)
+- `tshirt_tracking_link` (text)
+- `tshirt_value` (numeric)
+- `fotos_link` (text)
+- `avaliacao_satisfacao` (numeric 0–10) e `avaliacao_satisfacao_link` (text)
+- `avaliacao_impacto` (numeric 0–10) e `avaliacao_impacto_link` (text)
 
-- `src/hooks/use-permissions.ts` → `staleTime: 5 * 60_000`, `gcTime: 30 * 60_000`, `refetchOnWindowFocus: false`. Mantém a invalidação no `onSettled` da mutation (toggle continua imediato).
-- `src/hooks/use-roles.ts` → mesmos valores.
-- `src/hooks/use-current-profile.ts` → mesmos valores. Mantém `enabled: !!userId`.
-- `src/lib/app-context.tsx` → memoizar `canAccess` e `isComponentVisible` com `useCallback` (dependências: `activeRoles.join("|")`, `isAllowed`, `isAdmin`) para evitar re-renders em cascata nos consumidores.
+### `inscritos_acoes` (formandos) — colunas novas
+- `tshirt_size` (text: XS/S/M/L/XL/XXL)
+- `certificate_sent` (boolean default false)
+- `certificate_url` (text)
+- `certificate_sent_at` (timestamptz)
 
-Resultado: depois do primeiro fetch, navegar entre páginas não dispara mais nenhuma chamada de permissões/roles/perfil durante 5 min.
+### Nova tabela `formadores_acoes`
+Liga formadores a ações (no Zite eram registos separados de participantes).
+- `id`, `action_id` → acoes, `user_id` → utilizadores
+- `tshirt_size` (text)
+- `status` (text: 'Confirmado' | 'Pendente' | 'Cancelado')
+- `certificate_sent` (bool), `certificate_url` (text), `certificate_sent_at` (timestamptz)
+- `created_at`
+- Unique (action_id, user_id)
+- RLS: admin tudo; formador vê os seus próprios registos
 
-## 2. Backend — `listUsers` sem N+1 e mais leve
+### `entidades` — não precisa de alterações
+Os campos do Zite (morada, código postal, localidade, telemóvel, email de contacto) já existem com nomes equivalentes. `idProgramaNotion` / `idEntidadeNotion` já existem via `entidades_programas`.
 
-A função já não faz N+1 (faz 2 queries + merge em memória), mas pode ser simplificada para um único `select` embebido via PostgREST. Para isso é preciso a FK entre `user_roles.user_id` e `utilizadores.id` (hoje ausente).
+### Índices
+- `idx_formadores_acoes_action`, `idx_formadores_acoes_user`
+- `idx_inscritos_acoes_action` (se ainda não existir)
 
-- Migração: adicionar `FOREIGN KEY (user_id) REFERENCES utilizadores(id) ON DELETE CASCADE` em `user_roles`.
-- `src/lib/users.functions.ts` → trocar as duas queries por:
-  ```ts
-  supabaseAdmin
-    .from("utilizadores")
-    .select("id, full_name, created_at, user_roles(role_name)")
-    .order("created_at", { ascending: false });
-  ```
-  e mapear `roles = row.user_roles.map(r => r.role_name).sort()`.
-- Manter o `auth.admin.listUsers` para emails (uma chamada). Limitar `perPage` ao mesmo valor.
+## 2. UI Admin
 
-## 3. Base de Dados — Índices + RLS
+Acrescento à página `admin.programas.tsx` (ou crio `admin.acoes.tsx` se preferires) um painel por ação com 3 separadores:
 
-Migração única com:
+### Tab "Detalhes & Logística"
+- Datas (início/fim), link tracking t-shirts, valor t-shirts, link fotos
+- Campos de avaliação (satisfação e impacto: nota + link de formulário)
 
-```sql
-CREATE INDEX IF NOT EXISTS idx_user_roles_user_id        ON public.user_roles(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_roles_role_name      ON public.user_roles(role_name);
-CREATE INDEX IF NOT EXISTS idx_permissoes_roles_role     ON public.permissoes_roles(role_name);
-CREATE INDEX IF NOT EXISTS idx_permissoes_roles_lookup   ON public.permissoes_roles(role_name, resource_id, tipo);
-ALTER TABLE public.user_roles
-  ADD CONSTRAINT user_roles_user_id_fkey
-  FOREIGN KEY (user_id) REFERENCES public.utilizadores(id) ON DELETE CASCADE;
-```
+### Tab "Formandos"
+- Lista de inscritos da ação
+- Edição inline: tamanho t-shirt, certificado enviado (toggle), URL do certificado
+- Botão "Enviar certificado" (marca como enviado + guarda timestamp)
 
-RLS / `is_admin()`:
-- A função é `STABLE SECURITY DEFINER` e faz `EXISTS` em `user_roles`. Com os índices acima passa a ser O(1) e o planeador faz index scan, não sequential scan.
-- **Não** vou migrar agora para `auth.jwt()` claims: exige um auth hook customizado + alterar todas as policies; o ganho real só aparece com muitos utilizadores e a base está praticamente vazia. Fica registado como otimização futura se a carga crescer.
+### Tab "Formadores"
+- Lista de formadores associados à ação
+- Adicionar formador (seleciona utilizador com role Formador/Admin)
+- Mesma edição inline de t-shirt + certificado
+- Remover formador
 
-## 4. Loading inicial (AppProvider)
+Componente partilhado `CertificateCell` para o padrão certificado em ambas as listas.
 
-`AppProvider` espera por permissões + perfil antes de renderizar conteúdo útil para o consumidor. Com `staleTime` agressivo, a partir da segunda navegação é instantâneo. Para o primeiro carregamento:
-- Não bloqueia a UI: `canAccess` devolve `false` enquanto `permissions` está vazio, mas o `isAdmin` bypass garante que admins veem tudo logo que o perfil chega. Sem alterações de fluxo necessárias.
+## 3. Sidebar
+Acrescento entrada **"Ações (admin)"** debaixo de "Gestão de Programas" (só visível a admin).
 
 ## Detalhes técnicos
+- Server functions novas em `src/lib/admin-acoes.functions.ts`:
+  - `listActionDetails(actionId)` — devolve ação + formandos + formadores
+  - `updateAction(actionId, fields)` — campos de logística/avaliação
+  - `updateEnrollment(enrollmentId, fields)` — t-shirt + certificado do formando
+  - `assignTrainer({ actionId, userId })` / `removeTrainer(id)` / `updateTrainer(id, fields)`
+- Todas com `requireSupabaseAuth` + verificação `is_admin(userId)` no handler
+- React Query com invalidações por `["action", id]`
+- Não toco em `roles`, `permissoes_roles`, `user_roles`, `recursos`, `inscritos_programa`
 
-- Ordem das migrações: índices + FK numa só migração para evitar 2 deploys.
-- Tipos do Supabase serão regenerados após a migração (a relação embebida `user_roles(role_name)` só fica tipada depois disso). Até lá, `as any` mínimo no map se necessário.
-- Sem alterações em rotas, RLS policies existentes, schemas Zod ou contratos das server functions (forma de retorno mantém-se).
+## Fora do âmbito (Zite tinha mas não replico)
+- Campo `password` em `entidades` — usamos auth do Supabase, não passwords em texto
+- "Project" como string livre em entidades — já temos `entidades_programas` com FK
 
-## Ficheiros tocados
-
-- `src/hooks/use-permissions.ts`
-- `src/hooks/use-roles.ts`
-- `src/hooks/use-current-profile.ts`
-- `src/lib/app-context.tsx`
-- `src/lib/users.functions.ts`
-- nova migração SQL (índices + FK)
-
-## Fora deste plano
-
-- Migração de RLS para `auth.jwt()` (otimização futura).
-- Alterações de UI ou lógica de impersonation.
+Confirma e avanço com a migração SQL.
