@@ -165,12 +165,19 @@ const updateEnrollmentSchema = z.object({
     .strict(),
 });
 
+export type UpdateEnrollmentInput = z.infer<typeof updateEnrollmentSchema>;
+
 export const updateEnrollment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => updateEnrollmentSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const patch: Record<string, unknown> = { ...data.fields };
+    const patch: {
+      tshirt_size?: (typeof TSHIRT_SIZES)[number] | null;
+      certificate_sent?: boolean;
+      certificate_url?: string | null;
+      certificate_sent_at?: string | null;
+    } = { ...data.fields };
     if (data.fields.certificate_sent === true) {
       patch.certificate_sent_at = new Date().toISOString();
     } else if (data.fields.certificate_sent === false) {
@@ -190,19 +197,20 @@ export const listEligibleTrainers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
-    const { data, error } = await supabaseAdmin
+    const { data: roleRows, error } = await supabaseAdmin
       .from("user_roles")
-      .select("user_id, role_name, utilizadores(id, full_name)")
+      .select("user_id, role_name")
       .in("role_name", ["Formador", "Admin"]);
     if (error) throw new Error(error.message);
-    const seen = new Map<string, { id: string; full_name: string | null }>();
-    for (const row of data ?? []) {
-      const u = row.utilizadores;
-      if (u?.id && !seen.has(u.id)) seen.set(u.id, { id: u.id, full_name: u.full_name });
-    }
-    return Array.from(seen.values()).sort((a, b) =>
-      (a.full_name ?? "").localeCompare(b.full_name ?? ""),
-    );
+    const userIds = Array.from(new Set((roleRows ?? []).map((r) => r.user_id)));
+    if (userIds.length === 0) return [];
+    const { data: profiles } = await supabaseAdmin
+      .from("utilizadores")
+      .select("id, full_name")
+      .in("id", userIds);
+    return (profiles ?? [])
+      .map((p) => ({ id: p.id, full_name: p.full_name }))
+      .sort((a, b) => (a.full_name ?? "").localeCompare(b.full_name ?? ""));
   });
 
 const assignTrainerSchema = z.object({
