@@ -86,6 +86,8 @@ import {
   updateParticipante,
   removeParticipante,
   cancelAcaoProposta,
+  generateCertificate,
+  generateAllCertificates,
   type UpdateParticipanteInput,
 } from "@/lib/entidade.functions";
 
