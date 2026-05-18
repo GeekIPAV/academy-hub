@@ -108,6 +108,39 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+        {isRealAdmin && (
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel className="flex items-center gap-1">
+              <Eye className="h-3 w-3" /> Ver como
+            </SidebarGroupLabel>
+            <SidebarGroupContent className="px-2">
+              <Select
+                value={impersonatedRole ?? "__self"}
+                onValueChange={(v) => setImpersonatedRole(v === "__self" ? null : v)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Eu mesmo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__self">Eu mesmo ({realRole ?? "—"})</SelectItem>
+                  {activeRoleNames
+                    .filter((r) => r !== realRole)
+                    .map((r) => (
+                      <SelectItem key={r} value={r}>
+                        {r}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              {impersonatedRole && (
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  A pré-visualizar como <strong>{impersonatedRole}</strong>
+                </p>
+              )}
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+      </SidebarContent>
       <SidebarFooter className="border-t group-data-[collapsible=icon]:hidden">
         <div className="flex items-center gap-2 p-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-medium">
