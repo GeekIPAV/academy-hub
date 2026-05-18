@@ -460,9 +460,11 @@ function ParticipantesSection({
 }) {
   const qc = useQueryClient();
   const addFn = useServerFn(addParticipante);
+  const bulkFn = useServerFn(bulkAddParticipantes);
   const updateFn = useServerFn(updateParticipante);
   const removeFn = useServerFn(removeParticipante);
   const [open, setOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const queryKey = ["entidade-action", actionId];
 
