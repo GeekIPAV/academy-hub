@@ -29,11 +29,12 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
 };
 
 export function AppSidebar() {
-  const { visibleRoutes, profile, activeRoles } = useApp();
+  const { visibleRoutes, profile, activeRoles, isRealAdmin, impersonatedRole, setImpersonatedRole, realRole } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const isFormando = useIsFormando();
+  const { activeRoleNames } = useRoles();
 
   const displayName = profile?.full_name ?? user?.email ?? "";
   const initials = displayName
