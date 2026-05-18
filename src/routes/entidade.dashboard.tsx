@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, Copy, Link2, ShieldAlert, Users } from "lucide-react";
+import { Building2, CalendarPlus, Copy, Link2, ShieldAlert, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,8 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  cancelAcaoProposta,
+  createAcaoProposta,
   getMyEntidade,
   listAllEntidades,
+  listMyAcoes,
   listMyCohorts,
   listMyTrainees,
   updateMyEntidade,
@@ -33,8 +36,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useApp } from "@/lib/app-context";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+
 
 export const Route = createFileRoute("/entidade/dashboard")({
   head: () => ({ meta: [{ title: "Painel da Entidade — Academia Ubuntu" }] }),
