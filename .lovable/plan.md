@@ -1,23 +1,59 @@
-## Diagnóstico
+# Criar novos roles na Central de Comando
 
-O dashboard `/entidade/dashboard` está vazio porque as 3 server functions (`getMyEntidade`, `listMyCohorts`, `listMyTrainees`) filtram tudo por `utilizadores.entity_id` do user logado. O teu user (`hello@seed-io.co`, role `admin`) tem `entity_id = NULL` → todas devolvem `null`/`[]`.
+Objetivo: na página `/admin/manager`, o Admin pode criar/editar/desativar roles (perfis) que ficam guardados na base de dados. As matrizes de permissões existentes (rotas + componentes) passam a usar dinamicamente a lista de roles vinda da BD, em vez do array hardcoded `ALL_ROLES`.
 
-## Plano: admin pode escolher entidade
+## 1. Base de dados (migração)
 
-### 1. `src/lib/entidade.functions.ts`
-- Adicionar nova fn `listAllEntidades` (admin-only, via `is_admin` check + `supabaseAdmin`) que devolve `{ id, name }[]` de todas as entidades. Bloqueia se não for admin.
-- Aceitar `entityId?: string` opcional como input em `getMyEntidade`, `listMyCohorts`, `listMyTrainees`, `updateMyEntidade`:
-  - Se for **admin** e `entityId` vier → usa esse.
-  - Caso contrário → mantém a lógica atual (lê `utilizadores.entity_id`).
-  - Validação Zod do uuid quando presente.
+Nova tabela `public.roles`:
+- `name` (text, único) — ex: "Admin", "Mentor"
+- `description` (text, opcional)
+- `is_system` (boolean) — true para os 4 roles base, impede apagar
+- `is_active` (boolean, default true)
+- standard id/created_at
 
-### 2. `src/routes/entidade.dashboard.tsx`
-- No topo, se `isAdmin`, renderizar um **Select de entidade** (shadcn `Select`) povoado por `listAllEntidades`. Estado `selectedEntityId` guardado em `useState` (default = primeira entidade da lista, ou a do user se tiver).
-- Passar `selectedEntityId` como `data` para todos os `useQuery` e mutações; incluir no `queryKey` para refetch quando mudar.
-- Para users não-admin nada muda (não vêem o seletor; queries usam o seu próprio `entity_id`).
+RLS:
+- SELECT: qualquer autenticado
+- INSERT/UPDATE/DELETE: apenas `is_admin(auth.uid())`
+- Trigger a impedir DELETE/rename quando `is_system = true`
 
-### 3. Sem migração de schema
-Tudo resolvido em código + ACL no servidor. RLS de `entidades` UPDATE já permite admin via `is_admin(auth.uid())`, portanto admins continuam a poder gravar.
+Seed: inserir "Admin", "Formador", "Formando", "Entidade" com `is_system=true`.
 
-## Resultado esperado
-Como admin, abres `/entidade/dashboard`, escolhes "IPAV" no seletor, e vês imediatamente o invite link do programa "F.F - 3º ciclo e Secundário_25-26" (que já criei) + a tabela de formandos (vazia até alguém se inscrever pelo link).
+(Não tocamos em `utilizadores.role` nesta fase — continua a ser texto livre; a única mudança é que o Admin vê e gere a lista canónica de roles.)
+
+## 2. Server functions (`src/lib/roles.functions.ts`)
+
+- `listRoles()` — leitura pública autenticada
+- `createRole({ name, description })` — protegido, valida com zod (nome 2–40 chars, regex `^[A-Za-zÀ-ÿ0-9 _-]+$`, único)
+- `updateRole({ id, description, is_active })` — protegido, bloqueia rename de system roles
+- `deleteRole({ id })` — protegido, falha se `is_system`
+
+Todas com `requireSupabaseAuth` + verificação `is_admin` no handler.
+
+## 3. UI na Central de Comando
+
+Novo bloco "Gestão de Roles" no topo de `/admin/manager`, antes da Matriz de Acessos:
+
+- Tabela compacta: Nome · Descrição · Sistema (badge) · Ativo (switch) · ações (editar/eliminar)
+- Botão "Novo Role" abre Dialog com formulário (nome + descrição), validação inline com zod + react-hook-form, toast de sucesso/erro
+- Usa React Query (`useQuery` + `useMutation` com `invalidateQueries(['roles'])`)
+- Skeleton em loading, empty state se só houver system roles
+
+## 4. Integração com as matrizes existentes
+
+- `ALL_ROLES` em `src/lib/mock-data.ts` deixa de ser fonte de verdade. Criar hook `useRoles()` que devolve `roles` ativos da BD (com fallback para os 4 system enquanto carrega).
+- `AccessTab` (matriz de rotas) e `ComponentAccessMatrix` passam a iterar sobre `roles` dinâmicos em vez de `ALL_ROLES`.
+- `RoutePermission`/`ComponentPermission` continuam em localStorage por agora (fora do âmbito); apenas a coluna de roles é dinâmica. Quando um role novo é criado, aparece automaticamente como nova coluna nas matrizes (sem permissões — Admin liga os switches).
+- `RoleName` deixa de ser união literal e passa a `string` (alias) para acomodar roles custom; ajustar tipos onde necessário sem alargar o âmbito.
+
+## 5. Validação
+
+- Após migração: confirmar seed dos 4 roles em `psql`/read_query.
+- Criar role "Mentor" pela UI → aparece como coluna nova nas duas matrizes.
+- Tentar eliminar "Admin" → bloqueado com mensagem clara.
+- Desativar role custom → some das matrizes, mantém-se na tabela de gestão.
+
+## Fora do âmbito (confirmar se queres incluir depois)
+
+- Atribuir roles a utilizadores reais (convites, mudar `utilizadores.role`).
+- Persistir as próprias matrizes de permissão na BD (continuam em localStorage).
+- Migrar `utilizadores.role` para FK para `roles.name`.

@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.protect_system_roles() FROM PUBLIC, anon, authenticated;

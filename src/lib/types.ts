@@ -1,4 +1,4 @@
-export type RoleName = "Admin" | "Formador" | "Formando" | "Entidade";
+export type RoleName = string;
 
 export interface Profile {
   id: string;
