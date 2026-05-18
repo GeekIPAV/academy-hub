@@ -265,10 +265,171 @@ export const cancelAcaoProposta = createServerFn({ method: "POST" })
       }
     }
 
-    const { error } = await supabaseAdmin
+  const { error } = await supabaseAdmin
       .from("acoes")
       .update({ status: "Cancelada" })
       .eq("id", data.actionId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ============== Detalhe da Ação (Entidade) ==============
+
+const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
+
+async function assertActionBelongsToUserEntity(userId: string, actionId: string) {
+  const { data: user, error: uErr } = await supabaseAdmin
+    .from("utilizadores")
+    .select("entity_id, role")
+    .eq("id", userId)
+    .maybeSingle();
+  if (uErr) throw new Error(uErr.message);
+  const isAdmin = user?.role === "Admin";
+  const { data: action, error: aErr } = await supabaseAdmin
+    .from("acoes")
+    .select("id, entity_id")
+    .eq("id", actionId)
+    .maybeSingle();
+  if (aErr) throw new Error(aErr.message);
+  if (!action) throw new Error("Ação não encontrada.");
+  if (!isAdmin && action.entity_id !== user?.entity_id) {
+    throw new Error("Sem acesso a esta ação.");
+  }
+  return { isAdmin, entityId: user?.entity_id ?? null };
+}
+
+const actionIdSchema = z.object({ actionId: z.string().uuid() });
+
+export const getEntidadeActionDetails = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => actionIdSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertActionBelongsToUserEntity(context.userId, data.actionId);
+
+    const [actionRes, trainerRes, partRes] = await Promise.all([
+      supabaseAdmin
+        .from("acoes")
+        .select(
+          "id, title, action_type, status, start_date, end_date, entity_id",
+        )
+        .eq("id", data.actionId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("formadores_acoes")
+        .select("id, user_id, status, created_at")
+        .eq("action_id", data.actionId)
+        .order("created_at", { ascending: true }),
+      supabaseAdmin
+        .from("participantes_acoes")
+        .select("id, first_name, last_name, tshirt_size, attendance_confirmed, created_at")
+        .eq("action_id", data.actionId)
+        .order("created_at", { ascending: true }),
+    ]);
+
+    if (actionRes.error) throw new Error(actionRes.error.message);
+    if (trainerRes.error) throw new Error(trainerRes.error.message);
+    if (partRes.error) throw new Error(partRes.error.message);
+
+    const trainerIds = (trainerRes.data ?? []).map((t) => t.user_id);
+    const nameMap = new Map<string, string | null>();
+    if (trainerIds.length > 0) {
+      const { data: profiles } = await supabaseAdmin
+        .from("utilizadores")
+        .select("id, full_name")
+        .in("id", trainerIds);
+      for (const p of profiles ?? []) nameMap.set(p.id, p.full_name);
+    }
+
+    return {
+      action: actionRes.data,
+      trainers: (trainerRes.data ?? []).map((t) => ({
+        id: t.id,
+        user_id: t.user_id,
+        full_name: nameMap.get(t.user_id) ?? "—",
+        status: t.status,
+      })),
+      participantes: partRes.data ?? [],
+    };
+  });
+
+const addParticipanteSchema = z.object({
+  actionId: z.string().uuid(),
+  first_name: z.string().trim().min(1).max(100),
+  last_name: z.string().trim().min(1).max(100),
+  tshirt_size: z.enum(TSHIRT_SIZES),
+});
+
+export const addParticipante = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => addParticipanteSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertActionBelongsToUserEntity(context.userId, data.actionId);
+    const { data: row, error } = await supabaseAdmin
+      .from("participantes_acoes")
+      .insert({
+        action_id: data.actionId,
+        first_name: data.first_name,
+        last_name: data.last_name,
+        tshirt_size: data.tshirt_size,
+      })
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
+const updateParticipanteSchema = z.object({
+  participanteId: z.string().uuid(),
+  fields: z
+    .object({
+      tshirt_size: z.enum(TSHIRT_SIZES).optional(),
+      attendance_confirmed: z.boolean().optional(),
+      first_name: z.string().trim().min(1).max(100).optional(),
+      last_name: z.string().trim().min(1).max(100).optional(),
+    })
+    .strict(),
+});
+
+export type UpdateParticipanteInput = z.infer<typeof updateParticipanteSchema>;
+
+export const updateParticipante = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => updateParticipanteSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: existing, error: fErr } = await supabaseAdmin
+      .from("participantes_acoes")
+      .select("action_id")
+      .eq("id", data.participanteId)
+      .maybeSingle();
+    if (fErr) throw new Error(fErr.message);
+    if (!existing) throw new Error("Participante não encontrado.");
+    await assertActionBelongsToUserEntity(context.userId, existing.action_id);
+
+    const { error } = await supabaseAdmin
+      .from("participantes_acoes")
+      .update(data.fields)
+      .eq("id", data.participanteId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const removeParticipante = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ participanteId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { data: existing, error: fErr } = await supabaseAdmin
+      .from("participantes_acoes")
+      .select("action_id")
+      .eq("id", data.participanteId)
+      .maybeSingle();
+    if (fErr) throw new Error(fErr.message);
+    if (!existing) throw new Error("Participante não encontrado.");
+    await assertActionBelongsToUserEntity(context.userId, existing.action_id);
+
+    const { error } = await supabaseAdmin
+      .from("participantes_acoes")
+      .delete()
+      .eq("id", data.participanteId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
