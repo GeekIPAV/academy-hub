@@ -29,6 +29,7 @@ export const APP_ROUTES: AppRoute[] = [
   { path: "/entidade/dashboard", label: "Painel da Entidade" },
   { path: "/admin/manager", label: "Central de Comando" },
   { path: "/admin/programas", label: "Gestão de Programas" },
+  { path: "/admin/acoes", label: "Gestão de Ações" },
   { path: "/recursos", label: "Recursos" },
   { path: "/admin/recursos", label: "Gestão de Recursos" },
 ];
