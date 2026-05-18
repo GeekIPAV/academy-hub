@@ -483,6 +483,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          role_name: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          role_name: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          role_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_role_name_fkey"
+            columns: ["role_name"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["name"]
+          },
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "utilizadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       utilizadores: {
         Row: {
           address: string | null
@@ -600,6 +636,7 @@ export type Database = {
     }
     Functions: {
       get_next_in_line: { Args: { target_action_id: string }; Returns: string }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
