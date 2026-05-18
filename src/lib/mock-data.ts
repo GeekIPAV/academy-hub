@@ -1,30 +1,9 @@
 import type {
   AppRoute,
-  ComponentPermission,
-  Enrollment,
   PageComponent,
-  Profile,
-  RoleName,
-  RoutePermission,
   TrainingAction,
-  UserRole,
+  Enrollment,
 } from "./types";
-
-export const ALL_ROLES: RoleName[] = ["Admin", "Formador", "Formando", "Entidade"];
-
-export const MOCK_PROFILE: Profile = {
-  id: "user-1",
-  full_name: "Joana Martins",
-  nif: "234567890",
-  email: "joana@ubuntu.pt",
-};
-
-export const MOCK_USER_ROLES: UserRole[] = [
-  { user_id: "user-1", role_name: "Admin" },
-  { user_id: "user-1", role_name: "Formador" },
-  { user_id: "user-1", role_name: "Formando" },
-  { user_id: "user-1", role_name: "Entidade" },
-];
 
 // Entidade mock (representante institucional logado)
 export const MOCK_ENTITY = {
