@@ -1,46 +1,61 @@
-# Fase 2 — Atribuir Roles a Utilizadores Reais
+# Migrar Sidebar para Sistema Real de Roles
 
-Fechar o ciclo: normalizar valores existentes, ligar `utilizadores.role` à tabela `roles` via FK, e criar UI no centro de comando para o Admin atribuir perfis a utilizadores reais.
+A sidebar ainda usa o sistema mock (`Simular Roles`, `A ver como`, `MOCK_PROFILE`, `MOCK_USER_ROLES`, `localStorage`). Após a Fase 2 cada utilizador tem um único role real persistido em `utilizadores.role`, pelo que a simulação multi-role deixou de fazer sentido.
 
-## 1. Migração de Base de Dados
+## 1. Novo hook `src/hooks/use-current-profile.ts`
 
-**Normalização e FK** (ordem estrita numa única migração):
+Lê o perfil do utilizador autenticado a partir da BD (RLS permite ler o próprio perfil):
+- React Query (`queryKey: ["current-profile", userId]`).
+- Faz `supabase.from("utilizadores").select("id, full_name, role").eq("id", userId).maybeSingle()` no browser client.
+- Retorna `{ profile, role, isLoading }`.
+- Invalidação automática no `onAuthStateChange` (já existe no root).
 
-1. `UPDATE public.utilizadores SET role = initcap(role)` → converte `'admin'`→`'Admin'`, `'formando'`→`'Formando'`.
-2. Atualizar `public.is_admin(_user_id)` para comparar `role = 'Admin'` (em vez de `'admin'`).
-3. Atualizar `public.prevent_role_self_escalation()` para usar `'Admin'` na comparação.
-4. Alterar default da coluna: `ALTER TABLE utilizadores ALTER COLUMN role SET DEFAULT 'Formando'`.
-5. Atualizar `public.handle_new_user()` para inserir com role `'Formando'` (caso aplicável).
-6. Adicionar FK: `ALTER TABLE utilizadores ADD CONSTRAINT utilizadores_role_fkey FOREIGN KEY (role) REFERENCES roles(name) ON UPDATE CASCADE ON DELETE RESTRICT`.
-7. Adicionar policy RLS: "Admins update any profile" em `utilizadores` (UPDATE) com `is_admin(auth.uid())` — necessária para que o Admin possa mudar o role de outros.
+## 2. Simplificar `src/lib/app-context.tsx`
 
-## 2. Server Functions — `src/lib/users.functions.ts`
+Remover por completo:
+- `MOCK_PROFILE`, `MOCK_USER_ROLES`, `LS_ROLES`, função `load()`, `useState`/`useEffect` de hidratação.
+- `setActiveRoles`, `assignedRoles` da API pública do contexto.
 
-- `listUsers()` — middleware `requireSupabaseAuth` + `assertAdmin`. Usa `supabaseAdmin` para listar `id, full_name, role, created_at` + email via `auth.admin.listUsers()` (mapeado por id). Retorna DTO ordenado por `created_at desc`.
-- `updateUserRole({ userId, role })` — Zod valida `userId` (uuid) e `role` (string). Verifica que role existe em `roles` e está `is_active`. Impede o admin de despromover-se a si próprio (`if userId === context.userId && role !== 'Admin' → erro`). Faz `update` via `supabaseAdmin`.
+Nova forma:
+- `AppProvider` usa `useCurrentProfile()` para obter o role real.
+- `activeRoles = role ? [role] : []` (sempre 1 elemento, ou vazio se não autenticado).
+- `isAdmin = role === "Admin"`.
+- `canAccess`, `isComponentVisible`, `visibleRoutes` continuam idênticos mas baseados no role real.
+- `profile` exposto vem do hook (ou `null` quando não autenticado).
+- Enquanto `isLoading`, devolver children dentro de um estado neutro (sem rotas visíveis) — o `_authenticated` layout já redireciona não-autenticados para login.
 
-Atualizar `assertAdmin` em `roles.functions.ts`, `permissions.functions.ts` e `admin-programas.functions.ts` para comparar `'Admin'`.
+## 3. Limpar `src/components/AppSidebar.tsx`
 
-## 3. Hook — `src/hooks/use-users.ts`
+- Apagar bloco `Simular Roles (mock)` (linhas ~114-126).
+- Apagar bloco `A ver como` Select (linhas ~129-150) — utilizador só tem 1 role.
+- Apagar `toggleRole`, import de `Checkbox`, import de `Select*`, import de `ALL_ROLES`, import de `RoleName`.
+- Footer mostra o role real do utilizador como único Badge (sem `.map`).
+- `profile.full_name` vem do contexto real.
 
-`useUsers()` com React Query: `listUsers` query + `updateUserRole` mutation com optimistic update e `invalidateQueries(['users'])`. Toasts de sucesso/erro.
+## 4. Limpar `src/lib/mock-data.ts`
 
-## 4. UI — nova secção em `src/routes/admin.manager.tsx`
+Remover (se não houver outros consumidores):
+- `MOCK_PROFILE`
+- `MOCK_USER_ROLES`
+- `MOCK_USER_ID`
+- `ALL_ROLES` (substituído por `useRoles().activeRoleNames`)
 
-Componente `UsersManager` adicionado ao topo da página (ou acima de `RolesManager`):
-- Card "Utilizadores" com Table: Nome, Email, Perfil de Acesso, Criado em.
-- Coluna "Perfil de Acesso" é um `<Select>` populado por `useRoles().roles.filter(r => r.is_active)`. `onValueChange` → `updateUserRole.mutate`.
-- Skeletons enquanto carrega; estado vazio amigável.
-- Select desativado para o próprio utilizador autenticado (evita auto-despromoção, mensagem tooltip).
+Manter `APP_ROUTES` e `PAGE_COMPONENTS` (continuam a ser o registo canónico das rotas/componentes para a matriz de permissões).
 
-## 5. Verificação
+## 5. Limpar `src/hooks/use-roles.ts`
 
-- Build compila sem erros.
-- Testar manualmente: criar role "Mentor", atribuí-lo a um utilizador, ver UI a atualizar instantaneamente, recarregar e confirmar persistência.
-- Confirmar que após migração `is_admin()` continua a retornar `true` para o admin atual (role passa de `'admin'` para `'Admin'` no mesmo UPDATE que a função passa a comparar).
+Remover fallback `ALL_ROLES` — se a query estiver a carregar devolve `[]`; quem precisa de lista de roles deve esperar pelos dados reais (a matriz já trata isso via skeleton).
 
-## Notas técnicas
+## 6. Verificação
 
-- A ordem da migração é crítica: o UPDATE de valores tem de ser feito ANTES de adicionar a FK, e a função `is_admin` tem de ser atualizada na MESMA migração para evitar janela em que o admin perde permissões.
-- `ON UPDATE CASCADE` na FK garante que renomear um role (se algum dia possível para roles não-system) propaga automaticamente.
-- Não tocar em `client.ts`, `client.server.ts`, `auth-middleware.ts`, `types.ts` (auto-gerados).
+- Build compila.
+- Sidebar deixa de mostrar "Simular Roles" e "A ver como".
+- Footer da sidebar mostra o role real (badge "Admin", "Formando", etc.) lido da BD.
+- Mudar o role de um utilizador via `/admin/manager` e recarregar reflete o novo role na sidebar.
+- Rotas visíveis correspondem às permissões reais persistidas em `permissoes_roles` para o role do utilizador.
+
+## Notas
+
+- Não tocar em `client.ts`, `client.server.ts`, `auth-middleware.ts`, `types.ts`.
+- `RoleName` em `types.ts` já é `string` (Fase anterior), nada a alterar.
+- Os 4 roles base continuam protegidos pelo trigger `protect_system_roles`.

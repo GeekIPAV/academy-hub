@@ -1,13 +1,12 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { APP_ROUTES, MOCK_PROFILE, MOCK_USER_ROLES } from "./mock-data";
-import type { Profile, RoleName } from "./types";
+import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { APP_ROUTES } from "./mock-data";
+import type { RoleName } from "./types";
 import { usePermissions } from "@/hooks/use-permissions";
+import { useCurrentProfile, type CurrentProfile } from "@/hooks/use-current-profile";
 
 interface AppState {
-  profile: Profile;
-  assignedRoles: RoleName[];
+  profile: CurrentProfile | null;
   activeRoles: RoleName[];
-  setActiveRoles: (roles: RoleName[]) => void;
   canAccess: (path: string) => boolean;
   isComponentVisible: (pagePath: string, componentId: string) => boolean;
   visibleRoutes: typeof APP_ROUTES;
@@ -16,66 +15,37 @@ interface AppState {
 
 const AppCtx = createContext<AppState | null>(null);
 
-const LS_ROLES = "ubuntu.activeRoles";
-
-function load<T>(k: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const v = window.localStorage.getItem(k);
-    return v ? (JSON.parse(v) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [activeRoles, setActiveRolesState] = useState<RoleName[]>(
-    MOCK_USER_ROLES.map((r) => r.role_name),
-  );
-  const [hydrated, setHydrated] = useState(false);
   const { isAllowed } = usePermissions();
+  const { profile, role } = useCurrentProfile();
 
-  useEffect(() => {
-    setActiveRolesState(load(LS_ROLES, MOCK_USER_ROLES.map((r) => r.role_name)));
-    setHydrated(true);
-  }, []);
-
-  const setActiveRoles = (r: RoleName[]) => {
-    setActiveRolesState(r);
-    if (typeof window !== "undefined")
-      window.localStorage.setItem(LS_ROLES, JSON.stringify(r));
-  };
+  const activeRoles: RoleName[] = role ? [role] : [];
+  const isAdmin = role === "Admin";
 
   const canAccess = (path: string) =>
-    activeRoles.some((role) => isAllowed(role, path, "rota"));
-
-  const isAdmin = activeRoles.includes("Admin");
+    activeRoles.some((r) => isAllowed(r, path, "rota"));
 
   const isComponentVisible = (pagePath: string, componentId: string) => {
-    // Admin vê sempre tudo (escape hatch para reativar componentes ocultos).
     if (isAdmin) return true;
     const resourceId = `${pagePath}#${componentId}`;
-    return activeRoles.some((role) => isAllowed(role, resourceId, "componente"));
+    return activeRoles.some((r) => isAllowed(r, resourceId, "componente"));
   };
 
   const visibleRoutes = useMemo(
     () => APP_ROUTES.filter((r) => canAccess(r.path)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeRoles, isAllowed],
+    [activeRoles.join("|"), isAllowed],
   );
 
   const value: AppState = {
-    profile: MOCK_PROFILE,
-    assignedRoles: MOCK_USER_ROLES.map((r) => r.role_name),
+    profile,
     activeRoles,
-    setActiveRoles,
     canAccess,
     isComponentVisible,
     visibleRoutes,
     isAdmin,
   };
 
-  if (!hydrated) return null;
   return <AppCtx.Provider value={value}>{children}</AppCtx.Provider>;
 }
 

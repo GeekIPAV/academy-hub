@@ -64,7 +64,7 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Componente</TableHead>
-                  {activeRoleNames.map((r) => (
+                  {activeRoleNames.map((r: string) => (
                     <TableHead key={r} className="text-center">
                       {r}
                     </TableHead>
@@ -78,7 +78,7 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
                       <div className="font-medium">{c.label}</div>
                       <div className="text-xs text-muted-foreground">{c.id}</div>
                     </TableCell>
-                    {activeRoleNames.map((role) => {
+                    {activeRoleNames.map((role: string) => {
                       const checked = isAllowed(role, resourceFor(c.id), "componente");
                       return (
                         <TableCell key={role} className="text-center">

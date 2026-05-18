@@ -4,7 +4,6 @@ import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsFormando } from "@/hooks/use-is-formando";
 import { Button } from "@/components/ui/button";
-import { ALL_ROLES } from "@/lib/mock-data";
 import {
   Sidebar,
   SidebarContent,
@@ -18,15 +17,6 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import type { RoleName } from "@/lib/types";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
@@ -37,16 +27,20 @@ const ICONS: Record<string, typeof LayoutDashboard> = {
 };
 
 export function AppSidebar() {
-  const { visibleRoutes, profile, activeRoles, setActiveRoles, isAdmin, assignedRoles } = useApp();
+  const { visibleRoutes, profile, activeRoles } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const isFormando = useIsFormando();
 
-  const toggleRole = (r: RoleName) => {
-    const next = activeRoles.includes(r) ? activeRoles.filter((x) => x !== r) : [...activeRoles, r];
-    setActiveRoles(next.length ? next : [r]);
-  };
+  const displayName = profile?.full_name ?? user?.email ?? "";
+  const initials = displayName
+    .split(/[\s@.]/)
+    .filter(Boolean)
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   return (
     <Sidebar collapsible="icon">
@@ -110,56 +104,14 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {isAdmin && (
-          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-            <SidebarGroupLabel>Simular Roles (mock)</SidebarGroupLabel>
-            <SidebarGroupContent className="space-y-2 px-2 py-1">
-              {ALL_ROLES.map((r) => (
-                <label key={r} className="flex cursor-pointer items-center gap-2 text-sm">
-                  <Checkbox checked={activeRoles.includes(r)} onCheckedChange={() => toggleRole(r)} />
-                  <span>{r}</span>
-                </label>
-              ))}
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
       </SidebarContent>
       <SidebarFooter className="border-t group-data-[collapsible=icon]:hidden">
-        {assignedRoles.length > 1 && (
-          <div className="space-y-1 p-2">
-            <label className="px-1 text-xs font-medium text-muted-foreground">
-              A ver como
-            </label>
-            <Select
-              value={activeRoles[0] ?? assignedRoles[0]}
-              onValueChange={(v) => setActiveRoles([v as RoleName])}
-            >
-              <SelectTrigger className="h-8 w-full text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {assignedRoles.map((r) => (
-                  <SelectItem key={r} value={r}>
-                    {r}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
         <div className="flex items-center gap-2 p-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted text-sm font-medium">
-            {(user?.email ?? profile.full_name)
-              .split(/[\s@.]/)
-              .filter(Boolean)
-              .map((n) => n[0])
-              .slice(0, 2)
-              .join("")
-              .toUpperCase()}
+            {initials || "?"}
           </div>
           <div className="flex-1 leading-tight overflow-hidden">
-            <p className="truncate text-sm font-medium">{user?.email ?? profile.full_name}</p>
+            <p className="truncate text-sm font-medium">{displayName || "—"}</p>
             <div className="flex flex-wrap gap-1">
               {activeRoles.map((r) => (
                 <Badge key={r} variant="secondary" className="text-[10px]">

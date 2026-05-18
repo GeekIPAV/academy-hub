@@ -1,30 +1,9 @@
 import type {
   AppRoute,
-  ComponentPermission,
-  Enrollment,
   PageComponent,
-  Profile,
-  RoleName,
-  RoutePermission,
   TrainingAction,
-  UserRole,
+  Enrollment,
 } from "./types";
-
-export const ALL_ROLES: RoleName[] = ["Admin", "Formador", "Formando", "Entidade"];
-
-export const MOCK_PROFILE: Profile = {
-  id: "user-1",
-  full_name: "Joana Martins",
-  nif: "234567890",
-  email: "joana@ubuntu.pt",
-};
-
-export const MOCK_USER_ROLES: UserRole[] = [
-  { user_id: "user-1", role_name: "Admin" },
-  { user_id: "user-1", role_name: "Formador" },
-  { user_id: "user-1", role_name: "Formando" },
-  { user_id: "user-1", role_name: "Entidade" },
-];
 
 // Entidade mock (representante institucional logado)
 export const MOCK_ENTITY = {
@@ -50,33 +29,6 @@ export const APP_ROUTES: AppRoute[] = [
   { path: "/entidade/dashboard", label: "Painel da Entidade" },
   { path: "/admin/manager", label: "Central de Comando" },
   { path: "/admin/programas", label: "Gestão de Programas" },
-];
-
-export const MOCK_ROUTE_PERMISSIONS: RoutePermission[] = [
-  // Admin: tudo
-  ...APP_ROUTES.map((r) => ({
-    role_name: "Admin" as RoleName,
-    route_path: r.path,
-    is_granted: true,
-  })),
-  // Formador
-  { role_name: "Formador", route_path: "/dashboard", is_granted: true },
-  { role_name: "Formador", route_path: "/actions", is_granted: true },
-  { role_name: "Formador", route_path: "/entidade/dashboard", is_granted: false },
-  { role_name: "Formador", route_path: "/admin/manager", is_granted: false },
-  { role_name: "Formador", route_path: "/admin/programas", is_granted: false },
-  // Formando
-  { role_name: "Formando", route_path: "/dashboard", is_granted: true },
-  { role_name: "Formando", route_path: "/actions", is_granted: true },
-  { role_name: "Formando", route_path: "/entidade/dashboard", is_granted: false },
-  { role_name: "Formando", route_path: "/admin/manager", is_granted: false },
-  { role_name: "Formando", route_path: "/admin/programas", is_granted: false },
-  // Entidade
-  { role_name: "Entidade", route_path: "/dashboard", is_granted: false },
-  { role_name: "Entidade", route_path: "/actions", is_granted: false },
-  { role_name: "Entidade", route_path: "/entidade/dashboard", is_granted: true },
-  { role_name: "Entidade", route_path: "/admin/manager", is_granted: false },
-  { role_name: "Entidade", route_path: "/admin/programas", is_granted: false },
 ];
 
 export const MOCK_TRAINING_ACTIONS: TrainingAction[] = [
@@ -126,15 +78,3 @@ export const PAGE_COMPONENTS: Record<string, PageComponent[]> = {
   ],
 };
 
-// Por defeito, todos os componentes são visíveis a todos os roles.
-export const MOCK_COMPONENT_PERMISSIONS: ComponentPermission[] = Object.entries(PAGE_COMPONENTS)
-  .flatMap(([page_path, comps]) =>
-    comps.flatMap((c) =>
-      ALL_ROLES.map((role) => ({
-        role_name: role,
-        page_path,
-        component_id: c.id,
-        is_granted: true,
-      })),
-    ),
-  );

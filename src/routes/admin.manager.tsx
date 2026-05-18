@@ -381,7 +381,7 @@ function AccessTab() {
           <TableHeader>
             <TableRow>
               <TableHead>Rota</TableHead>
-              {activeRoleNames.map((r) => (
+              {activeRoleNames.map((r: string) => (
                 <TableHead key={r} className="text-center">
                   {r}
                 </TableHead>
@@ -395,7 +395,7 @@ function AccessTab() {
                   <div className="font-medium">{route.label}</div>
                   <div className="text-xs text-muted-foreground">{route.path}</div>
                 </TableCell>
-                {activeRoleNames.map((role) => (
+                {activeRoleNames.map((role: string) => (
                   <TableCell key={role} className="text-center">
                     <Switch
                       checked={isGranted(role, route.path)}
