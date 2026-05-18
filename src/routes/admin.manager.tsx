@@ -42,6 +42,7 @@ import { APP_ROUTES } from "@/lib/mock-data";
 import type { RoleName } from "@/lib/types";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { useRoles } from "@/hooks/use-roles";
+import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
 
 export const Route = createFileRoute("/admin/manager")({
@@ -296,7 +297,7 @@ function AccessTab() {
                   <TableCell key={role} className="text-center">
                     <Switch
                       checked={isGranted(role, route.path)}
-                      onCheckedChange={() => toggle(role, route.path)}
+                      onCheckedChange={(v) => handleToggle(role, route.path, v)}
                     />
                   </TableCell>
                 ))}
