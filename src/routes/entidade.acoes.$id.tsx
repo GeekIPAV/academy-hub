@@ -19,10 +19,12 @@ import {
   Shirt,
   Sparkles,
   Trash2,
+  Upload,
   User,
   Users,
   XCircle,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -80,6 +82,7 @@ import {
 import {
   getEntidadeActionDetails,
   addParticipante,
+  bulkAddParticipantes,
   updateParticipante,
   removeParticipante,
   cancelAcaoProposta,
@@ -457,9 +460,11 @@ function ParticipantesSection({
 }) {
   const qc = useQueryClient();
   const addFn = useServerFn(addParticipante);
+  const bulkFn = useServerFn(bulkAddParticipantes);
   const updateFn = useServerFn(updateParticipante);
   const removeFn = useServerFn(removeParticipante);
   const [open, setOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const queryKey = ["entidade-action", actionId];
 
@@ -469,6 +474,19 @@ function ParticipantesSection({
     onSuccess: () => {
       toast.success("Participante adicionado.");
       setOpen(false);
+      onChanged();
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
+  });
+
+  const bulkMut = useMutation({
+    mutationFn: (vars: {
+      participantes: { first_name: string; last_name: string }[];
+      default_tshirt_size: TShirtSize;
+    }) => bulkFn({ data: { actionId, ...vars } }),
+    onSuccess: (res) => {
+      toast.success(`${res.count} participantes adicionados.`);
+      setBulkOpen(false);
       onChanged();
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
@@ -521,17 +539,30 @@ function ParticipantesSection({
             Lista de alunos da escola. Sem conta na plataforma.
           </CardDescription>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="mr-1 h-4 w-4" /> Adicionar
-            </Button>
-          </DialogTrigger>
-          <AddParticipanteDialog
-            onSubmit={(v) => addMut.mutate(v)}
-            isPending={addMut.isPending}
-          />
-        </Dialog>
+        <div className="flex items-center gap-2">
+          <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <Upload className="mr-1 h-4 w-4" /> Importar em massa
+              </Button>
+            </DialogTrigger>
+            <BulkImportDialog
+              onSubmit={(v) => bulkMut.mutate(v)}
+              isPending={bulkMut.isPending}
+            />
+          </Dialog>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="mr-1 h-4 w-4" /> Adicionar
+              </Button>
+            </DialogTrigger>
+            <AddParticipanteDialog
+              onSubmit={(v) => addMut.mutate(v)}
+              isPending={addMut.isPending}
+            />
+          </Dialog>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {rows.length === 0 ? (
@@ -694,6 +725,116 @@ function AddParticipanteDialog({
           }
         >
           {isPending ? "A guardar…" : "Adicionar"}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+}
+
+function parseBulkNames(
+  text: string,
+): { first_name: string; last_name: string }[] {
+  return text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .map((line) => {
+      // Aceita "Primeiro Último", "Último, Primeiro" ou separado por tab/;
+      let first = "";
+      let last = "";
+      if (line.includes(",")) {
+        const [a, b] = line.split(",").map((s) => s.trim());
+        last = a;
+        first = b ?? "";
+      } else if (line.includes("\t") || line.includes(";")) {
+        const [a, b] = line.split(/[\t;]/).map((s) => s.trim());
+        first = a;
+        last = b ?? "";
+      } else {
+        const parts = line.split(/\s+/);
+        first = parts[0] ?? "";
+        last = parts.slice(1).join(" ");
+      }
+      return { first_name: first, last_name: last };
+    })
+    .filter((p) => p.first_name && p.last_name);
+}
+
+function BulkImportDialog({
+  onSubmit,
+  isPending,
+}: {
+  onSubmit: (v: {
+    participantes: { first_name: string; last_name: string }[];
+    default_tshirt_size: TShirtSize;
+  }) => void;
+  isPending: boolean;
+}) {
+  const [text, setText] = useState("");
+  const [size, setSize] = useState<TShirtSize>("M");
+  const parsed = parseBulkNames(text);
+  const totalLines = text
+    .split(/\r?\n/)
+    .filter((l) => l.trim().length > 0).length;
+  const skipped = totalLines - parsed.length;
+
+  return (
+    <DialogContent className="sm:max-w-lg">
+      <DialogHeader>
+        <DialogTitle>Importar participantes em massa</DialogTitle>
+        <DialogDescription>
+          Um aluno por linha. Formatos aceites:{" "}
+          <code className="rounded bg-muted px-1">João Silva</code>,{" "}
+          <code className="rounded bg-muted px-1">Silva, João</code> ou
+          separado por tabulação/ponto e vírgula.
+        </DialogDescription>
+      </DialogHeader>
+      <div className="grid gap-3">
+        <div>
+          <Label className="mb-1 block text-xs">Nomes</Label>
+          <Textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={10}
+            placeholder={"João Silva\nMaria Santos\nAna Costa"}
+            autoFocus
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {parsed.length} válido(s)
+            {skipped > 0 ? ` · ${skipped} ignorada(s) (falta apelido)` : ""}
+          </p>
+        </div>
+        <div>
+          <Label className="mb-1 block text-xs">
+            Tamanho de t-shirt (predefinido)
+          </Label>
+          <Select value={size} onValueChange={(v) => setSize(v as TShirtSize)}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TSHIRT_SIZES.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Pode ser ajustado por aluno depois, na tabela.
+          </p>
+        </div>
+      </div>
+      <DialogFooter>
+        <Button
+          disabled={isPending || parsed.length === 0}
+          onClick={() =>
+            onSubmit({ participantes: parsed, default_tshirt_size: size })
+          }
+        >
+          {isPending
+            ? "A importar…"
+            : `Importar ${parsed.length} participante(s)`}
         </Button>
       </DialogFooter>
     </DialogContent>
