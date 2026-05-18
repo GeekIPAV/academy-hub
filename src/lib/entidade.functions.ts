@@ -43,7 +43,7 @@ async function resolveEntityId(
     .eq("id", userId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "Admin";
   if (requestedEntityId) {
     if (!isAdmin) throw new Error("Apenas admins podem escolher entidade.");
     return requestedEntityId;
@@ -61,7 +61,7 @@ export const listAllEntidades = createServerFn({ method: "GET" })
       .eq("id", userId)
       .maybeSingle();
     if (uErr) throw new Error(uErr.message);
-    if (user?.role !== "admin") throw new Error("Acesso restrito.");
+    if (user?.role !== "Admin") throw new Error("Acesso restrito.");
 
     const { data, error } = await supabaseAdmin
       .from("entidades")
