@@ -29,6 +29,8 @@ export const APP_ROUTES: AppRoute[] = [
   { path: "/entidade/dashboard", label: "Painel da Entidade" },
   { path: "/admin/manager", label: "Central de Comando" },
   { path: "/admin/programas", label: "Gestão de Programas" },
+  { path: "/recursos", label: "Recursos" },
+  { path: "/admin/recursos", label: "Gestão de Recursos" },
 ];
 
 export const MOCK_TRAINING_ACTIONS: TrainingAction[] = [

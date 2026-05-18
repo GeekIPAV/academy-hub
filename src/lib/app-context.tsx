@@ -56,8 +56,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     isRealAdmin && impersonatedRole ? [impersonatedRole] : realRoles;
   const isAdmin = activeRoles.includes("Admin" as RoleName);
 
-  const canAccess = (path: string) =>
-    activeRoles.some((r) => isAllowed(r, path, "rota"));
+  const canAccess = (path: string) => {
+    if (isAdmin) return true;
+    return activeRoles.some((r) => isAllowed(r, path, "rota"));
+  };
 
   const isComponentVisible = (pagePath: string, componentId: string) => {
     if (isAdmin) return true;
