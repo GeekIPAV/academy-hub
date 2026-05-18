@@ -176,6 +176,53 @@ function AdminProgramasPage() {
   );
 }
 
+function ProgramasTable({
+  rows,
+  selectedId,
+  onSelect,
+}: {
+  rows: Array<{ id: string; title: string | null; is_active: boolean | null }>;
+  selectedId?: string;
+  onSelect: (id: string) => void;
+}) {
+  if (rows.length === 0) {
+    return (
+      <p className="py-6 text-center text-sm text-muted-foreground">
+        Nenhum programa encontrado.
+      </p>
+    );
+  }
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Título</TableHead>
+            <TableHead className="w-32">Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((p) => (
+            <TableRow
+              key={p.id}
+              onClick={() => onSelect(p.id)}
+              data-state={selectedId === p.id ? "selected" : undefined}
+              className="cursor-pointer"
+            >
+              <TableCell className="font-medium">{p.title ?? "(sem título)"}</TableCell>
+              <TableCell>
+                <Badge variant={p.is_active ? "default" : "outline"}>
+                  {p.is_active ? "Ativo" : "Inativo"}
+                </Badge>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 function EmptyState() {
   return (
     <Card className="border-dashed">
