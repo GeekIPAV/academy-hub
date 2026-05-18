@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Shield, ListChecks, LogIn, LogOut, BookMarked, Building2, Eye } from "lucide-react";
+import { LayoutDashboard, Shield, ListChecks, LogIn, LogOut, BookMarked, Building2, Eye, FolderCog } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsFormando } from "@/hooks/use-is-formando";
