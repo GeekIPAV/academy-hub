@@ -1,7 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Shield } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
+import { Plus, Shield, Trash2 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -10,11 +36,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
 import { useApp } from "@/lib/app-context";
-import { ALL_ROLES, APP_ROUTES } from "@/lib/mock-data";
+import { APP_ROUTES } from "@/lib/mock-data";
 import type { RoleName } from "@/lib/types";
-import { toast } from "sonner";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+import { useRoles } from "@/hooks/use-roles";
+import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
 
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
@@ -42,16 +70,194 @@ function AdminManagerPage() {
       {visible("header") && (
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Central de Comando</h1>
-          <p className="text-sm text-muted-foreground">Configure acessos por role.</p>
+          <p className="text-sm text-muted-foreground">
+            Gere os perfis de utilizador e configure os respetivos acessos.
+          </p>
         </div>
       )}
+      <RolesManager />
       {visible("route-matrix") && <AccessTab />}
     </div>
   );
 }
 
+function RolesManager() {
+  const qc = useQueryClient();
+  const { roles, isLoading } = useRoles();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+
+  const createFn = useServerFn(createRole);
+  const updateFn = useServerFn(updateRole);
+  const deleteFn = useServerFn(deleteRole);
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["roles"] });
+
+  const createMut = useMutation({
+    mutationFn: (input: { name: string; description: string }) =>
+      createFn({ data: { name: input.name, description: input.description || null } }),
+    onSuccess: () => {
+      toast.success("Perfil criado");
+      setOpen(false);
+      setName("");
+      setDescription("");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleMut = useMutation({
+    mutationFn: (input: { id: string; is_active: boolean }) =>
+      updateFn({ data: input }),
+    onSuccess: () => {
+      toast.success("Perfil atualizado");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => deleteFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Perfil eliminado");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = name.trim();
+    if (trimmed.length < 2) {
+      toast.error("Nome demasiado curto");
+      return;
+    }
+    createMut.mutate({ name: trimmed, description: description.trim() });
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+        <div>
+          <CardTitle>Perfis de Utilizador</CardTitle>
+          <CardDescription>
+            Cria novos perfis para depois definir, na matriz abaixo, o que cada um pode ver.
+          </CardDescription>
+        </div>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="mr-1 h-4 w-4" />
+              Novo Perfil
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <form onSubmit={submit}>
+              <DialogHeader>
+                <DialogTitle>Criar novo perfil</DialogTitle>
+                <DialogDescription>
+                  O perfil ficará disponível como coluna nas matrizes de acesso.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="role-name">Nome</Label>
+                  <Input
+                    id="role-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Ex: Mentor"
+                    maxLength={40}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role-desc">Descrição (opcional)</Label>
+                  <Textarea
+                    id="role-desc"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    maxLength={200}
+                    rows={3}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createMut.isPending}>
+                  {createMut.isPending ? "A criar..." : "Criar"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead className="w-[100px] text-center">Sistema</TableHead>
+                <TableHead className="w-[100px] text-center">Ativo</TableHead>
+                <TableHead className="w-[60px]" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {roles.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">{r.name}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {r.description ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {r.is_system ? <Badge variant="secondary">Sistema</Badge> : null}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Switch
+                      checked={r.is_active}
+                      onCheckedChange={(checked) =>
+                        toggleMut.mutate({ id: r.id, is_active: checked })
+                      }
+                    />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {!r.is_system && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
+                          if (confirm(`Eliminar perfil "${r.name}"?`))
+                            deleteMut.mutate(r.id);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 function AccessTab() {
   const { routePermissions, setRoutePermissions } = useApp();
+  const { activeRoleNames } = useRoles();
 
   const isGranted = (role: RoleName, path: string) =>
     routePermissions.some(
@@ -81,7 +287,7 @@ function AccessTab() {
       <CardHeader>
         <CardTitle>Matriz de Acessos</CardTitle>
         <CardDescription>
-          Controle que rotas cada role pode aceder. Linhas: rotas. Colunas: roles.
+          Controle que rotas cada perfil pode aceder. Linhas: rotas. Colunas: perfis.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -89,7 +295,7 @@ function AccessTab() {
           <TableHeader>
             <TableRow>
               <TableHead>Rota</TableHead>
-              {ALL_ROLES.map((r) => (
+              {activeRoleNames.map((r) => (
                 <TableHead key={r} className="text-center">
                   {r}
                 </TableHead>
@@ -103,7 +309,7 @@ function AccessTab() {
                   <div className="font-medium">{route.label}</div>
                   <div className="text-xs text-muted-foreground">{route.path}</div>
                 </TableCell>
-                {ALL_ROLES.map((role) => (
+                {activeRoleNames.map((role) => (
                   <TableCell key={role} className="text-center">
                     <Switch
                       checked={isGranted(role, route.path)}
