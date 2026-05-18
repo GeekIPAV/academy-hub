@@ -81,6 +81,48 @@ function AdminProgramasPage() {
       </div>
 
       <Card className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium">Programas</p>
+            <p className="text-xs text-muted-foreground">Lista completa de programas registados.</p>
+          </div>
+          <Badge variant="secondary">{programas.length}</Badge>
+        </div>
+        {loadingProgramas ? (
+          <Skeleton className="h-24 w-full" />
+        ) : (
+          <Tabs defaultValue="ativos">
+            <TabsList>
+              <TabsTrigger value="ativos">
+                Ativos
+                <Badge variant="secondary" className="ml-2">
+                  {programas.filter((p) => p.is_active).length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="geral">
+                Geral
+                <Badge variant="secondary" className="ml-2">{programas.length}</Badge>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="ativos">
+              <ProgramasTable
+                rows={programas.filter((p) => p.is_active)}
+                selectedId={programId}
+                onSelect={setProgramId}
+              />
+            </TabsContent>
+            <TabsContent value="geral">
+              <ProgramasTable
+                rows={programas}
+                selectedId={programId}
+                onSelect={setProgramId}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
+      </Card>
+
+      <Card className="p-4">
         <Label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Programa
         </Label>
@@ -130,6 +172,53 @@ function AdminProgramasPage() {
           </TabsContent>
         </Tabs>
       )}
+    </div>
+  );
+}
+
+function ProgramasTable({
+  rows,
+  selectedId,
+  onSelect,
+}: {
+  rows: Array<{ id: string; title: string | null; is_active: boolean | null }>;
+  selectedId?: string;
+  onSelect: (id: string) => void;
+}) {
+  if (rows.length === 0) {
+    return (
+      <p className="py-6 text-center text-sm text-muted-foreground">
+        Nenhum programa encontrado.
+      </p>
+    );
+  }
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Título</TableHead>
+            <TableHead className="w-32">Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((p) => (
+            <TableRow
+              key={p.id}
+              onClick={() => onSelect(p.id)}
+              data-state={selectedId === p.id ? "selected" : undefined}
+              className="cursor-pointer"
+            >
+              <TableCell className="font-medium">{p.title ?? "(sem título)"}</TableCell>
+              <TableCell>
+                <Badge variant={p.is_active ? "default" : "outline"}>
+                  {p.is_active ? "Ativo" : "Inativo"}
+                </Badge>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
