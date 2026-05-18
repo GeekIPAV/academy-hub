@@ -468,6 +468,9 @@ function ParticipantesSection({
   const bulkFn = useServerFn(bulkAddParticipantes);
   const updateFn = useServerFn(updateParticipante);
   const removeFn = useServerFn(removeParticipante);
+  const genFn = useServerFn(generateCertificate);
+  const genAllFn = useServerFn(generateAllCertificates);
+  const [pendingCertId, setPendingCertId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
 
