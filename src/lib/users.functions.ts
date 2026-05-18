@@ -21,21 +21,9 @@ export const listUsers = createServerFn({ method: "GET" })
 
     const { data: profiles, error } = await supabaseAdmin
       .from("utilizadores")
-      .select("id, full_name, created_at")
+      .select("id, full_name, created_at, user_roles(role_name)")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-
-    const { data: roleRows, error: rErr } = await supabaseAdmin
-      .from("user_roles")
-      .select("user_id, role_name");
-    if (rErr) throw new Error(rErr.message);
-
-    const rolesByUser = new Map<string, string[]>();
-    for (const r of roleRows ?? []) {
-      const arr = rolesByUser.get(r.user_id) ?? [];
-      arr.push(r.role_name);
-      rolesByUser.set(r.user_id, arr);
-    }
 
     const { data: authList, error: authErr } =
       await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
@@ -44,13 +32,17 @@ export const listUsers = createServerFn({ method: "GET" })
       authList.users.map((u) => [u.id, u.email ?? ""]),
     );
 
-    return (profiles ?? []).map((p) => ({
-      id: p.id,
-      full_name: p.full_name,
-      roles: (rolesByUser.get(p.id) ?? []).sort(),
-      created_at: p.created_at,
-      email: emailById.get(p.id) ?? "",
-    }));
+    return (profiles ?? []).map((p) => {
+      const roleRows = (p as unknown as { user_roles: { role_name: string }[] | null })
+        .user_roles ?? [];
+      return {
+        id: p.id,
+        full_name: p.full_name,
+        roles: roleRows.map((r) => r.role_name).sort(),
+        created_at: p.created_at,
+        email: emailById.get(p.id) ?? "",
+      };
+    });
   });
 
 const roleMutationSchema = z.object({

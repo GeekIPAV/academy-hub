@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { APP_ROUTES } from "./mock-data";
 import type { RoleName } from "./types";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -56,21 +56,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     isRealAdmin && impersonatedRole ? [impersonatedRole] : realRoles;
   const isAdmin = activeRoles.includes("Admin" as RoleName);
 
-  const canAccess = (path: string) => {
-    if (isAdmin) return true;
-    return activeRoles.some((r) => isAllowed(r, path, "rota"));
-  };
+  const activeRolesKey = activeRoles.join("|");
 
-  const isComponentVisible = (pagePath: string, componentId: string) => {
-    if (isAdmin) return true;
-    const resourceId = `${pagePath}#${componentId}`;
-    return activeRoles.some((r) => isAllowed(r, resourceId, "componente"));
-  };
+  const canAccess = useCallback(
+    (path: string) => {
+      if (isAdmin) return true;
+      return activeRoles.some((r) => isAllowed(r, path, "rota"));
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeRolesKey, isAdmin, isAllowed],
+  );
+
+  const isComponentVisible = useCallback(
+    (pagePath: string, componentId: string) => {
+      if (isAdmin) return true;
+      const resourceId = `${pagePath}#${componentId}`;
+      return activeRoles.some((r) => isAllowed(r, resourceId, "componente"));
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeRolesKey, isAdmin, isAllowed],
+  );
 
   const visibleRoutes = useMemo(
     () => APP_ROUTES.filter((r) => canAccess(r.path)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [activeRoles.join("|"), isAllowed],
+    [canAccess],
   );
 
   const value: AppState = {
