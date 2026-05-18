@@ -761,59 +761,60 @@ function AcoesTab({ entityId }: { entityId?: string }) {
                 return (
                   <TableRow key={a.id}>
                     <TableCell className="font-medium">
-                      <Link
-                        to="/entidade/acoes/$id"
-                        params={{ id: a.id }}
-                        className="hover:underline"
-                      >
-                        {a.action_type ?? a.title ?? "—"}
-                      </Link>
+                      {a.action_type ?? a.title ?? "—"}
                     </TableCell>
                     <TableCell>{formatDate(a.start_date)}</TableCell>
                     <TableCell>{formatDate(a.end_date)}</TableCell>
                     <TableCell>{statusBadge(a.status)}</TableCell>
                     <TableCell className="text-right">
-                      {canCancel ? (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm">
-                              Cancelar
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Cancelar marcação?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta ação não pode ser revertida. A marcação ficará
-                                marcada como cancelada.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Voltar</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => cancelMut.mutate(a.id)}
-                              >
-                                Confirmar cancelamento
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      ) : (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="inline-block">
-                                <Button variant="outline" size="sm" disabled>
-                                  Cancelar
-                                </Button>
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-xs">
-                              {reason}
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
+                      <div className="flex justify-end gap-2">
+                        <Button asChild variant="default" size="sm">
+                          <Link to="/entidade/acoes/$id" params={{ id: a.id }}>
+                            Abrir
+                          </Link>
+                        </Button>
+                        {canCancel ? (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                Cancelar
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Cancelar marcação?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta ação não pode ser revertida. A marcação ficará
+                                  marcada como cancelada.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Voltar</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => cancelMut.mutate(a.id)}
+                                >
+                                  Confirmar cancelamento
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        ) : (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="inline-block">
+                                  <Button variant="outline" size="sm" disabled>
+                                    Cancelar
+                                  </Button>
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                {reason}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
