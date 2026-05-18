@@ -81,6 +81,48 @@ function AdminProgramasPage() {
       </div>
 
       <Card className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium">Programas</p>
+            <p className="text-xs text-muted-foreground">Lista completa de programas registados.</p>
+          </div>
+          <Badge variant="secondary">{programas.length}</Badge>
+        </div>
+        {loadingProgramas ? (
+          <Skeleton className="h-24 w-full" />
+        ) : (
+          <Tabs defaultValue="ativos">
+            <TabsList>
+              <TabsTrigger value="ativos">
+                Ativos
+                <Badge variant="secondary" className="ml-2">
+                  {programas.filter((p) => p.is_active).length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="geral">
+                Geral
+                <Badge variant="secondary" className="ml-2">{programas.length}</Badge>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="ativos">
+              <ProgramasTable
+                rows={programas.filter((p) => p.is_active)}
+                selectedId={programId}
+                onSelect={setProgramId}
+              />
+            </TabsContent>
+            <TabsContent value="geral">
+              <ProgramasTable
+                rows={programas}
+                selectedId={programId}
+                onSelect={setProgramId}
+              />
+            </TabsContent>
+          </Tabs>
+        )}
+      </Card>
+
+      <Card className="p-4">
         <Label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
           Programa
         </Label>
