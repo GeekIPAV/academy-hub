@@ -539,17 +539,30 @@ function ParticipantesSection({
             Lista de alunos da escola. Sem conta na plataforma.
           </CardDescription>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="mr-1 h-4 w-4" /> Adicionar
-            </Button>
-          </DialogTrigger>
-          <AddParticipanteDialog
-            onSubmit={(v) => addMut.mutate(v)}
-            isPending={addMut.isPending}
-          />
-        </Dialog>
+        <div className="flex items-center gap-2">
+          <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="outline">
+                <Upload className="mr-1 h-4 w-4" /> Importar em massa
+              </Button>
+            </DialogTrigger>
+            <BulkImportDialog
+              onSubmit={(v) => bulkMut.mutate(v)}
+              isPending={bulkMut.isPending}
+            />
+          </Dialog>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="mr-1 h-4 w-4" /> Adicionar
+              </Button>
+            </DialogTrigger>
+            <AddParticipanteDialog
+              onSubmit={(v) => addMut.mutate(v)}
+              isPending={addMut.isPending}
+            />
+          </Dialog>
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {rows.length === 0 ? (
