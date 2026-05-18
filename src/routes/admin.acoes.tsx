@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CalendarDays, ShieldAlert, ListChecks, Users, GraduationCap, Trash2, Plus, Download } from "lucide-react";
+import { CalendarDays, ShieldAlert, ListChecks, Users, GraduationCap, Trash2, Plus, UserSquare2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -12,8 +12,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   listAcoes,
   getActionDetails,
@@ -36,31 +49,6 @@ export const Route = createFileRoute("/admin/acoes")({
 const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 const TRAINER_STATUS = ["Pendente", "Confirmado", "Cancelado"] as const;
 
-// Função utilitária global para contornar o bloqueio de downloads Cross-Origin do Chrome
-const handleDownloadCertificado = async (url: string | null | undefined, name: string) => {
-  if (!url) return;
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Falha ao descarregar");
-
-    const blob = await response.blob();
-    const blobUrl = window.URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = `Certificado_${name.replace(/\s+/g, "_")}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(blobUrl);
-    toast.success("Certificado descarregado com sucesso.");
-  } catch (error) {
-    console.error("Erro no download seguro, a abrir em nova aba:", error);
-    window.open(url, "_blank", "noopener,noreferrer");
-  }
-};
-
 function AdminAcoesPage() {
   const { isAdmin } = useApp();
   const fetchAcoes = useServerFn(listAcoes);
@@ -82,7 +70,9 @@ function AdminAcoesPage() {
       <Card className="mx-auto max-w-md p-8 text-center">
         <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
         <p className="font-medium">Acesso restrito</p>
-        <p className="mt-1 text-sm text-muted-foreground">Esta área é exclusiva para administradores.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Esta área é exclusiva para administradores.
+        </p>
       </Card>
     );
   }
@@ -96,12 +86,16 @@ function AdminAcoesPage() {
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
           <h1 className="text-2xl font-semibold tracking-tight">Gestão de Ações</h1>
-          <p className="text-sm text-muted-foreground">Logística, formandos, formadores e certificados por ação.</p>
+          <p className="text-sm text-muted-foreground">
+            Logística, formandos, formadores e certificados por ação.
+          </p>
         </div>
       </div>
 
       <Card className="p-4">
-        <Label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">Ação</Label>
+        <Label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Ação
+        </Label>
         {isLoading ? (
           <Skeleton className="h-10 max-w-md" />
         ) : acoes.length === 0 ? (
@@ -132,7 +126,7 @@ function AdminAcoesPage() {
 function ActionPanel({ actionId }: { actionId: string }) {
   const qc = useQueryClient();
   const fetchDetails = useServerFn(getActionDetails);
-  const { data: data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["admin-action", actionId],
     queryFn: () => fetchDetails({ data: { actionId } }),
     retry: false,
@@ -151,15 +145,15 @@ function ActionPanel({ actionId }: { actionId: string }) {
         </TabsTrigger>
         <TabsTrigger value="formandos">
           <Users className="mr-2 h-4 w-4" /> Formandos
-          <Badge variant="secondary" className="ml-2">
-            {data.enrollments.length}
-          </Badge>
+          <Badge variant="secondary" className="ml-2">{data.enrollments.length}</Badge>
         </TabsTrigger>
         <TabsTrigger value="formadores">
           <GraduationCap className="mr-2 h-4 w-4" /> Formadores
-          <Badge variant="secondary" className="ml-2">
-            {data.trainers.length}
-          </Badge>
+          <Badge variant="secondary" className="ml-2">{data.trainers.length}</Badge>
+        </TabsTrigger>
+        <TabsTrigger value="participantes">
+          <UserSquare2 className="mr-2 h-4 w-4" /> Participantes
+          <Badge variant="secondary" className="ml-2">{data.participantes.length}</Badge>
         </TabsTrigger>
       </TabsList>
 
@@ -172,13 +166,89 @@ function ActionPanel({ actionId }: { actionId: string }) {
       <TabsContent value="formadores">
         <TrainersTab actionId={actionId} rows={data.trainers} onChanged={invalidate} />
       </TabsContent>
+      <TabsContent value="participantes">
+        <ParticipantesReadOnly rows={data.participantes} />
+      </TabsContent>
     </Tabs>
   );
 }
 
-type ActionDetails = NonNullable<Awaited<ReturnType<typeof getActionDetails>>>["action"];
+function ParticipantesReadOnly({
+  rows,
+}: {
+  rows: Awaited<ReturnType<typeof getActionDetails>>["participantes"];
+}) {
+  if (rows.length === 0) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-10 text-center text-sm text-muted-foreground">
+          Sem participantes (alunos) registados pela entidade.
+        </CardContent>
+      </Card>
+    );
+  }
+  const sizeCounts = rows.reduce<Record<string, number>>((acc, r) => {
+    acc[r.tshirt_size] = (acc[r.tshirt_size] ?? 0) + 1;
+    return acc;
+  }, {});
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Participantes (alunos)</CardTitle>
+        <CardDescription>
+          Total: {rows.length} ·{" "}
+          {Object.entries(sizeCounts)
+            .map(([s, n]) => `${s}: ${n}`)
+            .join(" · ")}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>T-shirt</TableHead>
+              <TableHead>Presença</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((p) => (
+              <TableRow key={p.id}>
+                <TableCell>
+                  {p.first_name} {p.last_name}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{p.tshirt_size}</Badge>
+                </TableCell>
+                <TableCell>
+                  {p.attendance_confirmed ? (
+                    <Badge>Presente</Badge>
+                  ) : (
+                    <Badge variant="secondary">—</Badge>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
 
-function DetailsTab({ actionId, action, onSaved }: { actionId: string; action: ActionDetails; onSaved: () => void }) {
+type ActionDetails = NonNullable<
+  Awaited<ReturnType<typeof getActionDetails>>
+>["action"];
+
+function DetailsTab({
+  actionId,
+  action,
+  onSaved,
+}: {
+  actionId: string;
+  action: ActionDetails;
+  onSaved: () => void;
+}) {
   const updateFn = useServerFn(updateAction);
   const [form, setForm] = useState(() => ({
     start_date: action?.start_date ?? "",
@@ -203,9 +273,11 @@ function DetailsTab({ actionId, action, onSaved }: { actionId: string; action: A
             tshirt_tracking_link: form.tshirt_tracking_link || null,
             tshirt_value: form.tshirt_value === "" ? null : Number(form.tshirt_value),
             fotos_link: form.fotos_link || null,
-            avaliacao_satisfacao: form.avaliacao_satisfacao === "" ? null : Number(form.avaliacao_satisfacao),
+            avaliacao_satisfacao:
+              form.avaliacao_satisfacao === "" ? null : Number(form.avaliacao_satisfacao),
             avaliacao_satisfacao_link: form.avaliacao_satisfacao_link || null,
-            avaliacao_impacto: form.avaliacao_impacto === "" ? null : Number(form.avaliacao_impacto),
+            avaliacao_impacto:
+              form.avaliacao_impacto === "" ? null : Number(form.avaliacao_impacto),
             avaliacao_impacto_link: form.avaliacao_impacto_link || null,
           },
         },
@@ -217,7 +289,8 @@ function DetailsTab({ actionId, action, onSaved }: { actionId: string; action: A
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao guardar"),
   });
 
-  const setField = <K extends keyof typeof form>(k: K, v: string) => setForm((s) => ({ ...s, [k]: v }));
+  const setField = <K extends keyof typeof form>(k: K, v: string) =>
+    setForm((s) => ({ ...s, [k]: v }));
 
   return (
     <Card>
@@ -237,63 +310,28 @@ function DetailsTab({ actionId, action, onSaved }: { actionId: string; action: A
         </Field>
 
         <Field label="Link tracking T-shirts">
-          <Input
-            value={form.tshirt_tracking_link}
-            onChange={(e) => setField("tshirt_tracking_link", e.target.value)}
-            placeholder="https://…"
-          />
+          <Input value={form.tshirt_tracking_link} onChange={(e) => setField("tshirt_tracking_link", e.target.value)} placeholder="https://…" />
         </Field>
         <Field label="Valor das T-shirts (€)">
-          <Input
-            type="number"
-            step="0.01"
-            value={form.tshirt_value}
-            onChange={(e) => setField("tshirt_value", e.target.value)}
-          />
+          <Input type="number" step="0.01" value={form.tshirt_value} onChange={(e) => setField("tshirt_value", e.target.value)} />
         </Field>
 
         <Field label="Link Fotos" className="sm:col-span-2">
-          <Input
-            value={form.fotos_link}
-            onChange={(e) => setField("fotos_link", e.target.value)}
-            placeholder="https://…"
-          />
+          <Input value={form.fotos_link} onChange={(e) => setField("fotos_link", e.target.value)} placeholder="https://…" />
         </Field>
 
         <Field label="Avaliação Satisfação (0–10)">
-          <Input
-            type="number"
-            min={0}
-            max={10}
-            step="0.1"
-            value={form.avaliacao_satisfacao}
-            onChange={(e) => setField("avaliacao_satisfacao", e.target.value)}
-          />
+          <Input type="number" min={0} max={10} step="0.1" value={form.avaliacao_satisfacao} onChange={(e) => setField("avaliacao_satisfacao", e.target.value)} />
         </Field>
         <Field label="Link Avaliação Satisfação">
-          <Input
-            value={form.avaliacao_satisfacao_link}
-            onChange={(e) => setField("avaliacao_satisfacao_link", e.target.value)}
-            placeholder="https://…"
-          />
+          <Input value={form.avaliacao_satisfacao_link} onChange={(e) => setField("avaliacao_satisfacao_link", e.target.value)} placeholder="https://…" />
         </Field>
 
         <Field label="Avaliação Impacto (0–10)">
-          <Input
-            type="number"
-            min={0}
-            max={10}
-            step="0.1"
-            value={form.avaliacao_impacto}
-            onChange={(e) => setField("avaliacao_impacto", e.target.value)}
-          />
+          <Input type="number" min={0} max={10} step="0.1" value={form.avaliacao_impacto} onChange={(e) => setField("avaliacao_impacto", e.target.value)} />
         </Field>
         <Field label="Link Avaliação Impacto">
-          <Input
-            value={form.avaliacao_impacto_link}
-            onChange={(e) => setField("avaliacao_impacto_link", e.target.value)}
-            placeholder="https://…"
-          />
+          <Input value={form.avaliacao_impacto_link} onChange={(e) => setField("avaliacao_impacto_link", e.target.value)} placeholder="https://…" />
         </Field>
 
         <div className="sm:col-span-2">
@@ -364,27 +402,18 @@ function EnrollmentsTab({ rows, onChanged }: { rows: EnrollmentRow[]; onChanged:
                 <TableCell>
                   <Switch
                     checked={!!r.certificate_sent}
-                    onCheckedChange={(v) => mut.mutate({ enrollmentId: r.id, fields: { certificate_sent: v } })}
+                    onCheckedChange={(v) =>
+                      mut.mutate({ enrollmentId: r.id, fields: { certificate_sent: v } })
+                    }
                   />
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
-                    <UrlInput
-                      initial={r.certificate_url ?? ""}
-                      onSave={(v) => mut.mutate({ enrollmentId: r.id, fields: { certificate_url: v || null } })}
-                    />
-                    {r.certificate_url && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 shrink-0 text-muted-foreground hover:text-primary"
-                        onClick={() => handleDownloadCertificado(r.certificate_url, r.full_name || "Formando")}
-                        title="Testar/Descarregar Certificado"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  <UrlInput
+                    initial={r.certificate_url ?? ""}
+                    onSave={(v) =>
+                      mut.mutate({ enrollmentId: r.id, fields: { certificate_url: v || null } })
+                    }
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -397,7 +426,15 @@ function EnrollmentsTab({ rows, onChanged }: { rows: EnrollmentRow[]; onChanged:
 
 type TrainerRow = Awaited<ReturnType<typeof getActionDetails>>["trainers"][number];
 
-function TrainersTab({ actionId, rows, onChanged }: { actionId: string; rows: TrainerRow[]; onChanged: () => void }) {
+function TrainersTab({
+  actionId,
+  rows,
+  onChanged,
+}: {
+  actionId: string;
+  rows: TrainerRow[];
+  onChanged: () => void;
+}) {
   const fetchEligible = useServerFn(listEligibleTrainers);
   const assignFn = useServerFn(assignTrainer);
   const updateFn = useServerFn(updateTrainer);
@@ -442,7 +479,9 @@ function TrainersTab({ actionId, rows, onChanged }: { actionId: string; rows: Tr
       <Card>
         <CardContent className="flex flex-wrap items-end gap-3 pt-6">
           <div className="min-w-[260px] flex-1">
-            <Label className="mb-1 block text-xs font-medium text-muted-foreground">Adicionar formador</Label>
+            <Label className="mb-1 block text-xs font-medium text-muted-foreground">
+              Adicionar formador
+            </Label>
             <Select value={picked ?? ""} onValueChange={setPicked}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecionar utilizador…" />
@@ -502,9 +541,7 @@ function TrainersTab({ actionId, rows, onChanged }: { actionId: string; rows: Tr
                         </SelectTrigger>
                         <SelectContent>
                           {TRAINER_STATUS.map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {s}
-                            </SelectItem>
+                            <SelectItem key={s} value={s}>{s}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -512,7 +549,9 @@ function TrainersTab({ actionId, rows, onChanged }: { actionId: string; rows: Tr
                     <TableCell>
                       <SizeSelect
                         value={r.tshirt_size}
-                        onChange={(v) => updateMut.mutate({ trainerId: r.id, fields: { tshirt_size: v } })}
+                        onChange={(v) =>
+                          updateMut.mutate({ trainerId: r.id, fields: { tshirt_size: v } })
+                        }
                       />
                     </TableCell>
                     <TableCell>
@@ -527,31 +566,23 @@ function TrainersTab({ actionId, rows, onChanged }: { actionId: string; rows: Tr
                       />
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <UrlInput
-                          initial={r.certificate_url ?? ""}
-                          onSave={(v) =>
-                            updateMut.mutate({
-                              trainerId: r.id,
-                              fields: { certificate_url: v || null },
-                            })
-                          }
-                        />
-                        {r.certificate_url && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-primary"
-                            onClick={() => handleDownloadCertificado(r.certificate_url, r.full_name || "Formador")}
-                            title="Testar/Descarregar Certificado"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
+                      <UrlInput
+                        initial={r.certificate_url ?? ""}
+                        onSave={(v) =>
+                          updateMut.mutate({
+                            trainerId: r.id,
+                            fields: { certificate_url: v || null },
+                          })
+                        }
+                      />
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => removeMut.mutate(r.id)} title="Remover">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeMut.mutate(r.id)}
+                        title="Remover"
+                      >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
                     </TableCell>
@@ -580,9 +611,7 @@ function SizeSelect({
       </SelectTrigger>
       <SelectContent>
         {TSHIRT_SIZES.map((s) => (
-          <SelectItem key={s} value={s}>
-            {s}
-          </SelectItem>
+          <SelectItem key={s} value={s}>{s}</SelectItem>
         ))}
       </SelectContent>
     </Select>
