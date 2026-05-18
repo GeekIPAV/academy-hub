@@ -671,18 +671,26 @@ function ParticipantesSection({
                     <div className="flex items-center gap-1">
                       {p.certificate_url ? (
                         <Button
-                          asChild
                           size="sm"
                           variant="outline"
                           className="h-8"
+                          onClick={() => {
+                            const raw = `/api/certificates/${actionId}/${p.id}`;
+                            const absolute = new URL(
+                              raw,
+                              window.location.origin,
+                            ).toString();
+                            const secureUrl = absolute.startsWith("http://")
+                              ? absolute.replace(/^http:\/\//, "https://")
+                              : absolute;
+                            window.open(
+                              secureUrl,
+                              "_blank",
+                              "noopener,noreferrer",
+                            );
+                          }}
                         >
-                          <a
-                            href={`/api/certificates/${actionId}/${p.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <FileText className="mr-1 h-3.5 w-3.5" /> PDF
-                          </a>
+                          <FileText className="mr-1 h-3.5 w-3.5" /> PDF
                         </Button>
                       ) : (
                         <Badge variant="secondary" className="text-xs">
