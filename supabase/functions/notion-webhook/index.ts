@@ -197,6 +197,14 @@ Deno.serve(async (req) => {
     }
 
     if (tipo === "programa") {
+      const statusName = getSelectName(props["Status"]);
+      const isActive =
+        (statusName ?? "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim() === "ativo";
+
       const { error } = await admin
         .from("programas")
         .upsert(
@@ -206,6 +214,7 @@ Deno.serve(async (req) => {
             description,
             max_capacity: maxCapacity,
             required_fields: requiredFields,
+            is_active: isActive,
             sync_status: "synced",
             last_synced_at: new Date().toISOString(),
             metadata: payload,
