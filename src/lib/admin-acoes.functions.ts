@@ -125,6 +125,7 @@ export const getActionDetails = createServerFn({ method: "POST" })
         certificate_url: t.certificate_url,
         certificate_sent_at: t.certificate_sent_at,
       })),
+      participantes: partRes.data ?? [],
     };
   });
 
