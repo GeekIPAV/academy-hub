@@ -60,18 +60,18 @@ export async function generateCertificatePdf(
 
   const text = rgb(0.12, 0.12, 0.14);
 
-  // --- Participant name (centered, above the "completou a Semana Ubuntu" line)
+  // --- Participant name (centered, above the long underline)
   const name = input.participantName.toUpperCase();
-  let nameSize = 18;
+  let nameSize = 14;
   const maxNameWidth = width - 180;
   let nameWidth = helvBold.widthOfTextAtSize(name, nameSize);
-  while (nameWidth > maxNameWidth && nameSize > 10) {
+  while (nameWidth > maxNameWidth && nameSize > 9) {
     nameSize -= 1;
     nameWidth = helvBold.widthOfTextAtSize(name, nameSize);
   }
   page.drawText(name, {
     x: (width - nameWidth) / 2,
-    y: 298,
+    y: 282,
     size: nameSize,
     font: helvBold,
     color: text,
