@@ -122,11 +122,47 @@ function daysUntil(dateStr: string | null | undefined): number | null {
   return Math.floor((start - today) / (1000 * 60 * 60 * 24));
 }
 
+// Função utilitária para contornar de forma robusta o bloqueio de downloads do Chrome
+const downloadCertificadoViaBlob = async (actionId: string, participanteId: string, fullName: string) => {
+  try {
+    const raw = `/api/certificates/${actionId}/${participanteId}`;
+    const absolute = new URL(raw, window.location.origin).toString();
+    const secureUrl = absolute.startsWith("http://")
+      ? absolute.replace(/^http:\/\//, "https://")
+      : absolute;
+
+    // Descarrega o PDF via fetch para a memória local como Blob
+    const response = await fetch(secureUrl);
+    if (!response.ok) throw new Error("Falha no download direto");
+
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    // Simula o clique num link interno do próprio domínio (Bypass do Chrome)
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = `Certificado_${fullName.replace(/\s+/g, "_")}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+
+    // Limpa a memória
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (error) {
+    console.error("Erro no download seguro via Blob, a usar fallback:", error);
+    // Fallback caso ocorra alguma restrição estrita de CORS
+    const raw = `/api/certificates/${actionId}/${participanteId}`;
+    const absolute = new URL(raw, window.location.origin).toString();
+    const secureUrl = absolute.startsWith("http://") ? absolute.replace(/^http:\/\//, "https://") : absolute;
+    window.open(secureUrl, "_blank", "noopener,noreferrer");
+  }
+};
+
 function EntidadeAcaoDetailPage() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
   const fetchDetails = useServerFn(getEntidadeActionDetails);
-  const cancelFn = useServerFn(cancelAcaoProposta);
+  const cancelFn = useServerFn(cancelAcaoPro proposta);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["entidade-action", id],
@@ -500,7 +536,6 @@ function ParticipantesSection({
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro"),
   });
 
-  // Optimistic update for inline edits
   const updateMut = useMutation({
     mutationFn: (vars: UpdateParticipanteInput) => updateFn({ data: vars }),
     onMutate: async (vars) => {
@@ -674,21 +709,7 @@ function ParticipantesSection({
                           size="sm"
                           variant="outline"
                           className="h-8"
-                          onClick={() => {
-                            const raw = `/api/certificates/${actionId}/${p.id}`;
-                            const absolute = new URL(
-                              raw,
-                              window.location.origin,
-                            ).toString();
-                            const secureUrl = absolute.startsWith("http://")
-                              ? absolute.replace(/^http:\/\//, "https://")
-                              : absolute;
-                            window.open(
-                              secureUrl,
-                              "_blank",
-                              "noopener,noreferrer",
-                            );
-                          }}
+                          onClick={() => downloadCertificadoViaBlob(actionId, p.id, `${p.first_name} ${p.last_name}`)}
                         >
                           <FileText className="mr-1 h-3.5 w-3.5" /> PDF
                         </Button>
@@ -819,7 +840,6 @@ function parseBulkNames(
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
     .map((line) => {
-      // Aceita "Primeiro Último", "Último, Primeiro" ou separado por tab/;
       let first = "";
       let last = "";
       if (line.includes(",")) {
