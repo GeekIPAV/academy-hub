@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Building2, CalendarPlus, Copy, Link2, ShieldAlert, Users } from "lucide-react";
@@ -761,7 +761,13 @@ function AcoesTab({ entityId }: { entityId?: string }) {
                 return (
                   <TableRow key={a.id}>
                     <TableCell className="font-medium">
-                      {a.action_type ?? a.title ?? "—"}
+                      <Link
+                        to="/entidade/acoes/$id"
+                        params={{ id: a.id }}
+                        className="hover:underline"
+                      >
+                        {a.action_type ?? a.title ?? "—"}
+                      </Link>
                     </TableCell>
                     <TableCell>{formatDate(a.start_date)}</TableCell>
                     <TableCell>{formatDate(a.end_date)}</TableCell>

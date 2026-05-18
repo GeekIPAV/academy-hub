@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CalendarDays, ShieldAlert, ListChecks, Users, GraduationCap, Trash2, Plus } from "lucide-react";
+import { CalendarDays, ShieldAlert, ListChecks, Users, GraduationCap, Trash2, Plus, UserSquare2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -151,6 +151,10 @@ function ActionPanel({ actionId }: { actionId: string }) {
           <GraduationCap className="mr-2 h-4 w-4" /> Formadores
           <Badge variant="secondary" className="ml-2">{data.trainers.length}</Badge>
         </TabsTrigger>
+        <TabsTrigger value="participantes">
+          <UserSquare2 className="mr-2 h-4 w-4" /> Participantes
+          <Badge variant="secondary" className="ml-2">{data.participantes.length}</Badge>
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="detalhes">
@@ -162,7 +166,73 @@ function ActionPanel({ actionId }: { actionId: string }) {
       <TabsContent value="formadores">
         <TrainersTab actionId={actionId} rows={data.trainers} onChanged={invalidate} />
       </TabsContent>
+      <TabsContent value="participantes">
+        <ParticipantesReadOnly rows={data.participantes} />
+      </TabsContent>
     </Tabs>
+  );
+}
+
+function ParticipantesReadOnly({
+  rows,
+}: {
+  rows: Awaited<ReturnType<typeof getActionDetails>>["participantes"];
+}) {
+  if (rows.length === 0) {
+    return (
+      <Card className="border-dashed">
+        <CardContent className="py-10 text-center text-sm text-muted-foreground">
+          Sem participantes (alunos) registados pela entidade.
+        </CardContent>
+      </Card>
+    );
+  }
+  const sizeCounts = rows.reduce<Record<string, number>>((acc, r) => {
+    acc[r.tshirt_size] = (acc[r.tshirt_size] ?? 0) + 1;
+    return acc;
+  }, {});
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Participantes (alunos)</CardTitle>
+        <CardDescription>
+          Total: {rows.length} ·{" "}
+          {Object.entries(sizeCounts)
+            .map(([s, n]) => `${s}: ${n}`)
+            .join(" · ")}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>T-shirt</TableHead>
+              <TableHead>Presença</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((p) => (
+              <TableRow key={p.id}>
+                <TableCell>
+                  {p.first_name} {p.last_name}
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{p.tshirt_size}</Badge>
+                </TableCell>
+                <TableCell>
+                  {p.attendance_confirmed ? (
+                    <Badge>Presente</Badge>
+                  ) : (
+                    <Badge variant="secondary">—</Badge>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
 

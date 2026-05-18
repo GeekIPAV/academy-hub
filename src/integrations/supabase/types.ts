@@ -368,6 +368,44 @@ export type Database = {
           },
         ]
       }
+      participantes_acoes: {
+        Row: {
+          action_id: string
+          attendance_confirmed: boolean
+          created_at: string
+          first_name: string
+          id: string
+          last_name: string
+          tshirt_size: string
+        }
+        Insert: {
+          action_id: string
+          attendance_confirmed?: boolean
+          created_at?: string
+          first_name: string
+          id?: string
+          last_name: string
+          tshirt_size: string
+        }
+        Update: {
+          action_id?: string
+          attendance_confirmed?: boolean
+          created_at?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          tshirt_size?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "participantes_acoes_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissoes_roles: {
         Row: {
           created_at: string

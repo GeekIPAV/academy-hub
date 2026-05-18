@@ -42,7 +42,7 @@ export const getActionDetails = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
 
-    const [actionRes, enrollRes, trainerRes] = await Promise.all([
+    const [actionRes, enrollRes, trainerRes, partRes] = await Promise.all([
       supabaseAdmin
         .from("acoes")
         .select(
@@ -64,11 +64,17 @@ export const getActionDetails = createServerFn({ method: "POST" })
         )
         .eq("action_id", data.actionId)
         .order("created_at", { ascending: true }),
+      supabaseAdmin
+        .from("participantes_acoes")
+        .select("id, first_name, last_name, tshirt_size, attendance_confirmed, created_at")
+        .eq("action_id", data.actionId)
+        .order("created_at", { ascending: true }),
     ]);
 
     if (actionRes.error) throw new Error(actionRes.error.message);
     if (enrollRes.error) throw new Error(enrollRes.error.message);
     if (trainerRes.error) throw new Error(trainerRes.error.message);
+    if (partRes.error) throw new Error(partRes.error.message);
 
     const userIds = Array.from(
       new Set([
@@ -119,6 +125,7 @@ export const getActionDetails = createServerFn({ method: "POST" })
         certificate_url: t.certificate_url,
         certificate_sent_at: t.certificate_sent_at,
       })),
+      participantes: partRes.data ?? [],
     };
   });
 
