@@ -1,8 +1,9 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Shield, ListChecks, LogIn, LogOut, BookMarked, Building2 } from "lucide-react";
+import { LayoutDashboard, Shield, ListChecks, LogIn, LogOut, BookMarked, Building2, Eye } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsFormando } from "@/hooks/use-is-formando";
+import { useRoles } from "@/hooks/use-roles";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -17,6 +18,7 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const ICONS: Record<string, typeof LayoutDashboard> = {
   "/dashboard": LayoutDashboard,
