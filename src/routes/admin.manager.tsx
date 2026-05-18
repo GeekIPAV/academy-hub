@@ -85,9 +85,102 @@ function AdminManagerPage() {
           </p>
         </div>
       )}
+      <UsersManager />
       <RolesManager />
       {visible("route-matrix") && <AccessTab />}
     </div>
+  );
+}
+
+function UsersManager() {
+  const { users, isLoading, updateRole } = useUsers();
+  const { roles } = useRoles();
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setCurrentUserId(data.user?.id ?? null);
+    });
+  }, []);
+
+  const activeRoles = roles.filter((r) => r.is_active);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Utilizadores</CardTitle>
+        <CardDescription>
+          Atribui um perfil de acesso a cada utilizador. As alterações são imediatas.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : users.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Sem utilizadores registados.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="w-[200px]">Perfil de Acesso</TableHead>
+                <TableHead className="w-[140px]">Criado em</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {users.map((u) => {
+                const isSelf = u.id === currentUserId;
+                return (
+                  <TableRow key={u.id}>
+                    <TableCell className="font-medium">
+                      {u.full_name || "—"}
+                      {isSelf && (
+                        <Badge variant="outline" className="ml-2 text-xs">
+                          tu
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {u.email || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={u.role ?? undefined}
+                        onValueChange={(value) =>
+                          updateRole.mutate({ userId: u.id, role: value })
+                        }
+                        disabled={isSelf}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {activeRoles.map((r) => (
+                            <SelectItem key={r.id} value={r.name}>
+                              {r.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {u.created_at
+                        ? new Date(u.created_at).toLocaleDateString("pt-PT")
+                        : "—"}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
