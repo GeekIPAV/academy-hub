@@ -276,6 +276,38 @@ export type Database = {
           },
         ]
       }
+      permissoes_roles: {
+        Row: {
+          created_at: string
+          id: string
+          resource_id: string
+          role_name: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          resource_id: string
+          role_name: string
+          tipo: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          resource_id?: string
+          role_name?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permissoes_roles_role_name_fkey"
+            columns: ["role_name"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["name"]
+          },
+        ]
+      }
       programas: {
         Row: {
           description: string | null
