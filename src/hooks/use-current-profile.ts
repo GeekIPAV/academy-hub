@@ -16,7 +16,9 @@ export function useCurrentProfile() {
   const query = useQuery({
     queryKey: ["current-profile", userId],
     enabled: !!userId,
-    staleTime: 30_000,
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    refetchOnWindowFocus: false,
     queryFn: async (): Promise<CurrentProfile | null> => {
       if (!userId) return null;
       const [{ data: profile, error: pErr }, { data: roleRows, error: rErr }] =
