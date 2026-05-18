@@ -310,7 +310,7 @@ export const getEntidadeActionDetails = createServerFn({ method: "POST" })
       supabaseAdmin
         .from("acoes")
         .select(
-          "id, title, action_type, status, start_date, end_date, entity_id",
+          "id, title, action_type, status, start_date, end_date, entity_id, created_by, tshirt_tracking_link, fotos_link, avaliacao_satisfacao_link, avaliacao_impacto_link",
         )
         .eq("id", data.actionId)
         .maybeSingle(),
@@ -321,7 +321,9 @@ export const getEntidadeActionDetails = createServerFn({ method: "POST" })
         .order("created_at", { ascending: true }),
       supabaseAdmin
         .from("participantes_acoes")
-        .select("id, first_name, last_name, tshirt_size, attendance_confirmed, created_at")
+        .select(
+          "id, first_name, last_name, tshirt_size, attendance_confirmed, certificate_sent, certificate_url, certificate_sent_at, created_at",
+        )
         .eq("action_id", data.actionId)
         .order("created_at", { ascending: true }),
     ]);
@@ -331,21 +333,47 @@ export const getEntidadeActionDetails = createServerFn({ method: "POST" })
     if (partRes.error) throw new Error(partRes.error.message);
 
     const trainerIds = (trainerRes.data ?? []).map((t) => t.user_id);
+    const extraIds: string[] = [];
+    if (actionRes.data?.created_by) extraIds.push(actionRes.data.created_by);
+    const allIds = Array.from(new Set([...trainerIds, ...extraIds]));
     const nameMap = new Map<string, string | null>();
-    if (trainerIds.length > 0) {
+    const emailMap = new Map<string, string | null>();
+    if (allIds.length > 0) {
       const { data: profiles } = await supabaseAdmin
         .from("utilizadores")
         .select("id, full_name")
-        .in("id", trainerIds);
+        .in("id", allIds);
       for (const p of profiles ?? []) nameMap.set(p.id, p.full_name);
+      const { data: authList } = await supabaseAdmin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
+      });
+      for (const u of authList?.users ?? []) {
+        if (allIds.includes(u.id)) emailMap.set(u.id, u.email ?? null);
+      }
+    }
+
+    let entityName: string | null = null;
+    if (actionRes.data?.entity_id) {
+      const { data: ent } = await supabaseAdmin
+        .from("entidades")
+        .select("name")
+        .eq("id", actionRes.data.entity_id)
+        .maybeSingle();
+      entityName = ent?.name ?? null;
     }
 
     return {
       action: actionRes.data,
+      entityName,
+      createdByName: actionRes.data?.created_by
+        ? nameMap.get(actionRes.data.created_by) ?? null
+        : null,
       trainers: (trainerRes.data ?? []).map((t) => ({
         id: t.id,
         user_id: t.user_id,
         full_name: nameMap.get(t.user_id) ?? "—",
+        email: emailMap.get(t.user_id) ?? null,
         status: t.status,
       })),
       participantes: partRes.data ?? [],
