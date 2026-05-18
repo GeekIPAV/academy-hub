@@ -74,7 +74,7 @@ export const updateRole = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const patch: Record<string, unknown> = {};
+    const patch: { description?: string | null; is_active?: boolean } = {};
     if (data.description !== undefined) patch.description = data.description;
     if (data.is_active !== undefined) patch.is_active = data.is_active;
     const { data: row, error } = await supabaseAdmin
