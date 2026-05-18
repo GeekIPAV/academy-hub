@@ -244,12 +244,20 @@ const updateTrainerSchema = z.object({
     .strict(),
 });
 
+export type UpdateTrainerInput = z.infer<typeof updateTrainerSchema>;
+
 export const updateTrainer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => updateTrainerSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const patch: Record<string, unknown> = { ...data.fields };
+    const patch: {
+      status?: (typeof TRAINER_STATUS)[number];
+      tshirt_size?: (typeof TSHIRT_SIZES)[number] | null;
+      certificate_sent?: boolean;
+      certificate_url?: string | null;
+      certificate_sent_at?: string | null;
+    } = { ...data.fields };
     if (data.fields.certificate_sent === true) {
       patch.certificate_sent_at = new Date().toISOString();
     } else if (data.fields.certificate_sent === false) {
