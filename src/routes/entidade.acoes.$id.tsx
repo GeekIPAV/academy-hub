@@ -574,7 +574,20 @@ function ParticipantesSection({
             Lista de alunos da escola. Sem conta na plataforma.
           </CardDescription>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => generateAllMut.mutate()}
+            disabled={generateAllMut.isPending || rows.length === 0}
+          >
+            {generateAllMut.isPending ? (
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+            ) : (
+              <Stamp className="mr-1 h-4 w-4" />
+            )}
+            Gerar certificados
+          </Button>
           <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
             <DialogTrigger asChild>
               <Button size="sm" variant="outline">
