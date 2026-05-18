@@ -53,14 +53,14 @@ export const getActionDetails = createServerFn({ method: "POST" })
       supabaseAdmin
         .from("inscritos_acoes")
         .select(
-          "id, user_id, status, submitted_at, tshirt_size, certificate_sent, certificate_url, certificate_sent_at, utilizadores(full_name)",
+          "id, user_id, status, submitted_at, tshirt_size, certificate_sent, certificate_url, certificate_sent_at",
         )
         .eq("action_id", data.actionId)
         .order("submitted_at", { ascending: true }),
       supabaseAdmin
         .from("formadores_acoes")
         .select(
-          "id, user_id, status, tshirt_size, certificate_sent, certificate_url, certificate_sent_at, created_at, utilizadores(full_name)",
+          "id, user_id, status, tshirt_size, certificate_sent, certificate_url, certificate_sent_at, created_at",
         )
         .eq("action_id", data.actionId)
         .order("created_at", { ascending: true }),
@@ -76,6 +76,16 @@ export const getActionDetails = createServerFn({ method: "POST" })
         ...(trainerRes.data ?? []).map((t) => t.user_id),
       ]),
     );
+
+    const nameMap = new Map<string, string | null>();
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabaseAdmin
+        .from("utilizadores")
+        .select("id, full_name")
+        .in("id", userIds);
+      for (const p of profiles ?? []) nameMap.set(p.id, p.full_name);
+    }
+
     const emailMap = new Map<string, string>();
     await Promise.all(
       userIds.map(async (uid) => {
@@ -89,7 +99,7 @@ export const getActionDetails = createServerFn({ method: "POST" })
       enrollments: (enrollRes.data ?? []).map((e) => ({
         id: e.id,
         user_id: e.user_id,
-        full_name: e.utilizadores?.full_name ?? "—",
+        full_name: (e.user_id && nameMap.get(e.user_id)) ?? "—",
         email: e.user_id ? emailMap.get(e.user_id) ?? null : null,
         status: e.status,
         submitted_at: e.submitted_at,
@@ -101,7 +111,7 @@ export const getActionDetails = createServerFn({ method: "POST" })
       trainers: (trainerRes.data ?? []).map((t) => ({
         id: t.id,
         user_id: t.user_id,
-        full_name: t.utilizadores?.full_name ?? "—",
+        full_name: nameMap.get(t.user_id) ?? "—",
         email: emailMap.get(t.user_id) ?? null,
         status: t.status,
         tshirt_size: t.tshirt_size,
