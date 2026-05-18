@@ -64,7 +64,7 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Componente</TableHead>
-                  {activeRoleNames.map((r) => (
+                  {activeRoleNames.map((r: string) => (
                     <TableHead key={r} className="text-center">
                       {r}
                     </TableHead>
