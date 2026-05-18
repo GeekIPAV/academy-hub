@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, Copy, Link2, ShieldAlert, Users } from "lucide-react";
+import { Building2, CalendarPlus, Copy, Link2, ShieldAlert, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,8 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  cancelAcaoProposta,
+  createAcaoProposta,
   getMyEntidade,
   listAllEntidades,
+  listMyAcoes,
   listMyCohorts,
   listMyTrainees,
   updateMyEntidade,
@@ -33,8 +36,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useApp } from "@/lib/app-context";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+
 
 export const Route = createFileRoute("/entidade/dashboard")({
   head: () => ({ meta: [{ title: "Painel da Entidade — Academia Ubuntu" }] }),
@@ -140,6 +170,7 @@ function EntidadeDashboardPage() {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           {visible("tab-overview") && <TabsTrigger value="overview">Visão Geral</TabsTrigger>}
+          {visible("tab-acoes") && <TabsTrigger value="acoes">Marcações</TabsTrigger>}
           {visible("tab-data") && <TabsTrigger value="data">Dados da Entidade</TabsTrigger>}
         </TabsList>
 
@@ -150,12 +181,19 @@ function EntidadeDashboardPage() {
           </TabsContent>
         )}
 
+        {visible("tab-acoes") && (
+          <TabsContent value="acoes">
+            <AcoesTab entityId={selectedEntityId} />
+          </TabsContent>
+        )}
+
         {visible("tab-data") && (
           <TabsContent value="data">
             <EntityDataForm entityId={selectedEntityId} />
           </TabsContent>
         )}
       </Tabs>
+
     </div>
   );
 }
@@ -507,3 +545,278 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
     </Card>
   );
 }
+
+// ============== Tab: Marcações (ações propostas pela Entidade) ==============
+
+const ACTION_TYPES = [
+  "Semana Ubuntu",
+  "Fórum",
+  "Clube Ubuntu",
+  "Formação Teórico-Conceptual",
+  "Formação Teórico-Prática",
+  "Sessão Final",
+] as const;
+
+function daysUntil(dateISO: string | null): number | null {
+  if (!dateISO) return null;
+  const start = new Date(dateISO + "T00:00:00").getTime();
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const today = new Date(todayStr + "T00:00:00").getTime();
+  return Math.floor((start - today) / (1000 * 60 * 60 * 24));
+}
+
+function statusBadge(status: string | null) {
+  const s = (status ?? "Pendente").toLowerCase();
+  if (s === "confirmada" || s === "confirmado")
+    return <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">Confirmada</Badge>;
+  if (s === "cancelada" || s === "cancelado")
+    return <Badge variant="destructive">Cancelada</Badge>;
+  return (
+    <Badge className="bg-amber-500 text-white hover:bg-amber-500">
+      {status ?? "Pendente"}
+    </Badge>
+  );
+}
+
+function formatDate(d: string | null) {
+  if (!d) return "—";
+  const [y, m, day] = d.split("-");
+  return `${day}/${m}/${y}`;
+}
+
+function AcoesTab({ entityId }: { entityId?: string }) {
+  const qc = useQueryClient();
+  const listFn = useServerFn(listMyAcoes);
+  const createFn = useServerFn(createAcaoProposta);
+  const cancelFn = useServerFn(cancelAcaoProposta);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["my-acoes", entityId ?? "self"],
+    queryFn: () => listFn(entityId ? { data: { entityId } } : (undefined as never)),
+    retry: false,
+  });
+  const acoes = Array.isArray(data) ? data : [];
+
+  const [open, setOpen] = useState(false);
+  const [actionType, setActionType] = useState<string>("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const createMut = useMutation({
+    mutationFn: () =>
+      createFn({
+        data: {
+          ...(entityId ? { entityId } : {}),
+          action_type: actionType,
+          start_date: startDate,
+          end_date: endDate,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Marcação criada (aguarda confirmação).");
+      setOpen(false);
+      setActionType("");
+      setStartDate("");
+      setEndDate("");
+      qc.invalidateQueries({ queryKey: ["my-acoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const cancelMut = useMutation({
+    mutationFn: (actionId: string) => cancelFn({ data: { actionId } }),
+    onSuccess: () => {
+      toast.success("Marcação cancelada.");
+      qc.invalidateQueries({ queryKey: ["my-acoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <CardTitle className="text-base">Marcações</CardTitle>
+            <CardDescription>
+              Proponha novas ações para a sua entidade. Aguardam confirmação da Academia.
+            </CardDescription>
+          </div>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <CalendarPlus className="mr-2 h-4 w-4" />
+                Nova marcação
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Nova marcação</DialogTitle>
+                <DialogDescription>
+                  Indique o tipo de ação e o período pretendido.
+                </DialogDescription>
+              </DialogHeader>
+              <form
+                id="new-acao-form"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!actionType) return toast.error("Escolha o tipo de ação.");
+                  if (!startDate || !endDate) return toast.error("Defina as datas.");
+                  if (endDate < startDate)
+                    return toast.error("Data fim deve ser posterior à data início.");
+                  createMut.mutate();
+                }}
+                className="grid gap-4"
+              >
+                <div className="space-y-2">
+                  <Label>Tipo de ação</Label>
+                  <Select value={actionType} onValueChange={setActionType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecionar…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ACTION_TYPES.map((t) => (
+                        <SelectItem key={t} value={t}>
+                          {t}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="start-date">Data início</Label>
+                    <Input
+                      id="start-date"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="end-date">Data fim</Label>
+                    <Input
+                      id="end-date"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+              </form>
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  form="new-acao-form"
+                  disabled={createMut.isPending}
+                >
+                  {createMut.isPending ? "A criar…" : "Criar marcação"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {error && (
+          <p className="mb-3 text-sm text-destructive">
+            Erro: {(error as Error).message}
+          </p>
+        )}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Início</TableHead>
+                <TableHead>Fim</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading && (
+                <TableRow>
+                  <TableCell colSpan={5}>
+                    <Skeleton className="h-5 w-full" />
+                  </TableCell>
+                </TableRow>
+              )}
+              {!isLoading && acoes.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    Ainda não há marcações.
+                  </TableCell>
+                </TableRow>
+              )}
+              {acoes.map((a) => {
+                const days = daysUntil(a.start_date);
+                const isCancelled = (a.status ?? "").toLowerCase().startsWith("cancel");
+                const canCancel = !isCancelled && days !== null && days >= 14;
+                const reason = isCancelled
+                  ? "Esta marcação já foi cancelada."
+                  : "Cancelamento não permitido com menos de 14 dias de antecedência. Por favor, contacte-nos diretamente.";
+                return (
+                  <TableRow key={a.id}>
+                    <TableCell className="font-medium">
+                      {a.action_type ?? a.title ?? "—"}
+                    </TableCell>
+                    <TableCell>{formatDate(a.start_date)}</TableCell>
+                    <TableCell>{formatDate(a.end_date)}</TableCell>
+                    <TableCell>{statusBadge(a.status)}</TableCell>
+                    <TableCell className="text-right">
+                      {canCancel ? (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              Cancelar
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Cancelar marcação?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Esta ação não pode ser revertida. A marcação ficará
+                                marcada como cancelada.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Voltar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => cancelMut.mutate(a.id)}
+                              >
+                                Confirmar cancelamento
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      ) : (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-block">
+                                <Button variant="outline" size="sm" disabled>
+                                  Cancelar
+                                </Button>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              {reason}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+

@@ -17,6 +17,7 @@ export type Database = {
       acoes: {
         Row: {
           action_date: string | null
+          action_type: string | null
           avaliacao_impacto: number | null
           avaliacao_impacto_link: string | null
           avaliacao_satisfacao: number | null
@@ -35,12 +36,14 @@ export type Database = {
           registration_status: string | null
           required_fields: Json | null
           start_date: string | null
+          status: string
           title: string | null
           tshirt_tracking_link: string | null
           tshirt_value: number | null
         }
         Insert: {
           action_date?: string | null
+          action_type?: string | null
           avaliacao_impacto?: number | null
           avaliacao_impacto_link?: string | null
           avaliacao_satisfacao?: number | null
@@ -59,12 +62,14 @@ export type Database = {
           registration_status?: string | null
           required_fields?: Json | null
           start_date?: string | null
+          status?: string
           title?: string | null
           tshirt_tracking_link?: string | null
           tshirt_value?: number | null
         }
         Update: {
           action_date?: string | null
+          action_type?: string | null
           avaliacao_impacto?: number | null
           avaliacao_impacto_link?: string | null
           avaliacao_satisfacao?: number | null
@@ -83,6 +88,7 @@ export type Database = {
           registration_status?: string | null
           required_fields?: Json | null
           start_date?: string | null
+          status?: string
           title?: string | null
           tshirt_tracking_link?: string | null
           tshirt_value?: number | null
