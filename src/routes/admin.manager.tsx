@@ -381,7 +381,7 @@ function AccessTab() {
           <TableHeader>
             <TableRow>
               <TableHead>Rota</TableHead>
-              {activeRoleNames.map((r) => (
+              {activeRoleNames.map((r: string) => (
                 <TableHead key={r} className="text-center">
                   {r}
                 </TableHead>
