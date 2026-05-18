@@ -677,7 +677,7 @@ function ParticipantesSection({
                           className="h-8"
                         >
                           <a
-                            href={p.certificate_url}
+                            href={`/api/certificates/${id}/${p.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
