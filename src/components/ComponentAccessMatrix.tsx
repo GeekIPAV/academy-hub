@@ -18,8 +18,7 @@ import {
 import { useApp } from "@/lib/app-context";
 import { PAGE_COMPONENTS } from "@/lib/mock-data";
 import { useRoles } from "@/hooks/use-roles";
-import type { RoleName } from "@/lib/types";
-import { toast } from "sonner";
+import { usePermissions } from "@/hooks/use-permissions";
 
 interface Props {
   pagePath: string;
@@ -30,49 +29,17 @@ interface Props {
  * Permite ligar/desligar a visibilidade de cada componente da página por role.
  */
 export function ComponentAccessMatrix({ pagePath }: Props) {
-  const { isAdmin, componentPermissions, setComponentPermissions } = useApp();
+  const { isAdmin } = useApp();
   const { activeRoleNames } = useRoles();
+  const { isAllowed, toggle } = usePermissions();
+  const [open, setOpen] = useState(false);
+
   if (!isAdmin) return null;
 
   const components = PAGE_COMPONENTS[pagePath] ?? [];
   if (components.length === 0) return null;
 
-  const isGranted = (role: RoleName, componentId: string) =>
-    componentPermissions.some(
-      (p) =>
-        p.role_name === role &&
-        p.page_path === pagePath &&
-        p.component_id === componentId &&
-        p.is_granted,
-    );
-
-  const toggle = (role: RoleName, componentId: string) => {
-    const exists = componentPermissions.find(
-      (p) =>
-        p.role_name === role &&
-        p.page_path === pagePath &&
-        p.component_id === componentId,
-    );
-    let next;
-    if (exists) {
-      next = componentPermissions.map((p) =>
-        p.role_name === role &&
-        p.page_path === pagePath &&
-        p.component_id === componentId
-          ? { ...p, is_granted: !p.is_granted }
-          : p,
-      );
-    } else {
-      next = [
-        ...componentPermissions,
-        { role_name: role, page_path: pagePath, component_id: componentId, is_granted: true },
-      ];
-    }
-    setComponentPermissions(next);
-    toast.success("Visibilidade atualizada");
-  };
-
-  const [open, setOpen] = useState(false);
+  const resourceFor = (componentId: string) => `${pagePath}#${componentId}`;
 
   return (
     <Card className="border-dashed">
@@ -83,7 +50,7 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
             <div>
               <div className="text-sm font-medium">Matriz de Acessos (componentes)</div>
               <div className="text-xs text-muted-foreground">
-                Apenas visível para administradores. Define que componentes desta página são visíveis a cada role.
+                Apenas visível para administradores. Define que componentes desta página são visíveis a cada perfil.
               </div>
             </div>
           </div>
@@ -111,14 +78,19 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
                       <div className="font-medium">{c.label}</div>
                       <div className="text-xs text-muted-foreground">{c.id}</div>
                     </TableCell>
-                    {activeRoleNames.map((role) => (
-                      <TableCell key={role} className="text-center">
-                        <Switch
-                          checked={isGranted(role, c.id)}
-                          onCheckedChange={() => toggle(role, c.id)}
-                        />
-                      </TableCell>
-                    ))}
+                    {activeRoleNames.map((role) => {
+                      const checked = isAllowed(role, resourceFor(c.id), "componente");
+                      return (
+                        <TableCell key={role} className="text-center">
+                          <Switch
+                            checked={checked}
+                            onCheckedChange={(v) =>
+                              toggle(role, resourceFor(c.id), "componente", v)
+                            }
+                          />
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
                 ))}
               </TableBody>

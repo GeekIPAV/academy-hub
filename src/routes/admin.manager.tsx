@@ -42,6 +42,7 @@ import { APP_ROUTES } from "@/lib/mock-data";
 import type { RoleName } from "@/lib/types";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { useRoles } from "@/hooks/use-roles";
+import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
 
 export const Route = createFileRoute("/admin/manager")({
@@ -256,30 +257,13 @@ function RolesManager() {
 }
 
 function AccessTab() {
-  const { routePermissions, setRoutePermissions } = useApp();
   const { activeRoleNames } = useRoles();
+  const { isAllowed, toggle } = usePermissions();
 
-  const isGranted = (role: RoleName, path: string) =>
-    routePermissions.some(
-      (p) => p.role_name === role && p.route_path === path && p.is_granted,
-    );
+  const isGranted = (role: RoleName, path: string) => isAllowed(role, path, "rota");
 
-  const toggle = (role: RoleName, path: string) => {
-    const exists = routePermissions.find(
-      (p) => p.role_name === role && p.route_path === path,
-    );
-    let next;
-    if (exists) {
-      next = routePermissions.map((p) =>
-        p.role_name === role && p.route_path === path
-          ? { ...p, is_granted: !p.is_granted }
-          : p,
-      );
-    } else {
-      next = [...routePermissions, { role_name: role, route_path: path, is_granted: true }];
-    }
-    setRoutePermissions(next);
-    toast.success("Permissão atualizada");
+  const handleToggle = (role: RoleName, path: string, next: boolean) => {
+    toggle(role, path, "rota", next);
   };
 
   return (
@@ -313,7 +297,7 @@ function AccessTab() {
                   <TableCell key={role} className="text-center">
                     <Switch
                       checked={isGranted(role, route.path)}
-                      onCheckedChange={() => toggle(role, route.path)}
+                      onCheckedChange={(v) => handleToggle(role, route.path, v)}
                     />
                   </TableCell>
                 ))}
