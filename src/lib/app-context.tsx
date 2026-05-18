@@ -8,11 +8,14 @@ const LS_IMPERSONATE = "appalu:impersonate-role";
 
 interface AppState {
   profile: CurrentProfile | null;
-  realRole: RoleName | null;
+  realRoles: RoleName[];
   isRealAdmin: boolean;
   impersonatedRole: RoleName | null;
   setImpersonatedRole: (role: RoleName | null) => void;
+  /** When impersonating, this is the single simulated role; otherwise all real roles */
   activeRoles: RoleName[];
+  /** Backward-compat: first active role */
+  realRole: RoleName | null;
   canAccess: (path: string) => boolean;
   isComponentVisible: (pagePath: string, componentId: string) => boolean;
   visibleRoutes: typeof APP_ROUTES;
@@ -23,17 +26,17 @@ const AppCtx = createContext<AppState | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const { isAllowed } = usePermissions();
-  const { profile, role } = useCurrentProfile();
+  const { profile, roles } = useCurrentProfile();
 
-  const realRole: RoleName | null = role;
-  const isRealAdmin = realRole === "Admin";
+  const realRoles: RoleName[] = roles as RoleName[];
+  const isRealAdmin = realRoles.includes("Admin" as RoleName);
+  const realRole: RoleName | null = realRoles[0] ?? null;
 
   const [impersonatedRole, setImpersonatedRoleState] = useState<RoleName | null>(() => {
     if (typeof window === "undefined") return null;
     return (window.localStorage.getItem(LS_IMPERSONATE) as RoleName | null) || null;
   });
 
-  // Only admins can impersonate; clear if non-admin
   useEffect(() => {
     if (!isRealAdmin && impersonatedRole) {
       setImpersonatedRoleState(null);
@@ -49,10 +52,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const effectiveRole: RoleName | null =
-    isRealAdmin && impersonatedRole ? impersonatedRole : realRole;
-  const activeRoles: RoleName[] = effectiveRole ? [effectiveRole] : [];
-  const isAdmin = effectiveRole === "Admin";
+  const activeRoles: RoleName[] =
+    isRealAdmin && impersonatedRole ? [impersonatedRole] : realRoles;
+  const isAdmin = activeRoles.includes("Admin" as RoleName);
 
   const canAccess = (path: string) =>
     activeRoles.some((r) => isAllowed(r, path, "rota"));
@@ -71,6 +73,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value: AppState = {
     profile,
+    realRoles,
     realRole,
     isRealAdmin,
     impersonatedRole,
