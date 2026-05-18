@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { listPermissions, togglePermission } from "@/lib/permissions.functions";
+import { useAuth } from "@/hooks/use-auth";
 
 export type PermissionTipo = "rota" | "componente";
 
@@ -15,6 +16,7 @@ export interface PermissionRow {
 const QK = ["permissions"] as const;
 
 export function usePermissions() {
+  const { user } = useAuth();
   const qc = useQueryClient();
   const list = useServerFn(listPermissions);
   const toggleFn = useServerFn(togglePermission);
@@ -22,12 +24,15 @@ export function usePermissions() {
   const query = useQuery({
     queryKey: QK,
     queryFn: () => list(),
+    enabled: !!user?.id,
     staleTime: 5 * 60_000,
     gcTime: 30 * 60_000,
     refetchOnWindowFocus: false,
   });
 
-  const permissions = (query.data ?? []) as PermissionRow[];
+  const permissions: PermissionRow[] = Array.isArray(query.data)
+    ? (query.data as PermissionRow[])
+    : [];
 
   const isAllowed = (role: string, resourceId: string, tipo: PermissionTipo) =>
     permissions.some(
