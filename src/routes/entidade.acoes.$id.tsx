@@ -668,26 +668,50 @@ function ParticipantesSection({
                     />
                   </TableCell>
                   <TableCell>
-                    {p.certificate_url ? (
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="outline"
-                        className="h-8"
-                      >
-                        <a
-                          href={p.certificate_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                    <div className="flex items-center gap-1">
+                      {p.certificate_url ? (
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="outline"
+                          className="h-8"
                         >
-                          <FileText className="mr-1 h-3.5 w-3.5" /> Descarregar
-                        </a>
+                          <a
+                            href={p.certificate_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <FileText className="mr-1 h-3.5 w-3.5" /> PDF
+                          </a>
+                        </Button>
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">
+                          Pendente
+                        </Badge>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        disabled={
+                          generateMut.isPending && pendingCertId === p.id
+                        }
+                        onClick={() => generateMut.mutate(p.id)}
+                        title={
+                          p.certificate_url
+                            ? "Regenerar certificado"
+                            : "Gerar certificado"
+                        }
+                      >
+                        {generateMut.isPending && pendingCertId === p.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : p.certificate_url ? (
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        ) : (
+                          <Stamp className="h-3.5 w-3.5" />
+                        )}
                       </Button>
-                    ) : (
-                      <Badge variant="secondary" className="text-xs">
-                        Pendente
-                      </Badge>
-                    )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <Button
