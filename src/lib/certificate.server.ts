@@ -71,7 +71,7 @@ export async function generateCertificatePdf(
   }
   page.drawText(name, {
     x: (width - nameWidth) / 2,
-    y: 282,
+    y: 289,
     size: nameSize,
     font: helvBold,
     color: text,
