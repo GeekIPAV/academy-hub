@@ -372,6 +372,9 @@ export type Database = {
         Row: {
           action_id: string
           attendance_confirmed: boolean
+          certificate_sent: boolean
+          certificate_sent_at: string | null
+          certificate_url: string | null
           created_at: string
           first_name: string
           id: string
@@ -381,6 +384,9 @@ export type Database = {
         Insert: {
           action_id: string
           attendance_confirmed?: boolean
+          certificate_sent?: boolean
+          certificate_sent_at?: string | null
+          certificate_url?: string | null
           created_at?: string
           first_name: string
           id?: string
@@ -390,6 +396,9 @@ export type Database = {
         Update: {
           action_id?: string
           attendance_confirmed?: boolean
+          certificate_sent?: boolean
+          certificate_sent_at?: string | null
+          certificate_url?: string | null
           created_at?: string
           first_name?: string
           id?: string
