@@ -87,7 +87,7 @@ function AdminManagerPage() {
 }
 
 function UsersManager() {
-  const { users, isLoading, updateRole } = useUsers();
+  const { users, isLoading, assign, remove } = useUsers();
   const { roles } = useRoles();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
@@ -104,7 +104,7 @@ function UsersManager() {
       <CardHeader>
         <CardTitle>Utilizadores</CardTitle>
         <CardDescription>
-          Atribui um perfil de acesso a cada utilizador. As alterações são imediatas.
+          Atribui um ou mais perfis a cada utilizador. As alterações são imediatas.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -122,16 +122,17 @@ function UsersManager() {
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead className="w-[200px]">Perfil de Acesso</TableHead>
+                <TableHead>Perfis de Acesso</TableHead>
                 <TableHead className="w-[140px]">Criado em</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((u) => {
                 const isSelf = u.id === currentUserId;
+                const userRoles = new Set(u.roles);
                 return (
                   <TableRow key={u.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium align-top">
                       {u.full_name || "—"}
                       {isSelf && (
                         <Badge variant="outline" className="ml-2 text-xs">
@@ -139,30 +140,36 @@ function UsersManager() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground align-top">
                       {u.email || "—"}
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={u.role ?? undefined}
-                        onValueChange={(value) =>
-                          updateRole.mutate({ userId: u.id, role: value })
-                        }
-                        disabled={isSelf}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecionar..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {activeRoles.map((r) => (
-                            <SelectItem key={r.id} value={r.name}>
-                              {r.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="flex flex-wrap gap-3">
+                        {activeRoles.map((r) => {
+                          const checked = userRoles.has(r.name);
+                          const isLastAdmin =
+                            isSelf && r.name === "Admin" && checked;
+                          return (
+                            <label
+                              key={r.id}
+                              className="flex items-center gap-1.5 text-sm cursor-pointer"
+                              title={isLastAdmin ? "Não podes despromover-te a ti próprio" : undefined}
+                            >
+                              <Checkbox
+                                checked={checked}
+                                disabled={isLastAdmin && [...userRoles].length === 1}
+                                onCheckedChange={(v) => {
+                                  if (v) assign.mutate({ userId: u.id, role: r.name });
+                                  else remove.mutate({ userId: u.id, role: r.name });
+                                }}
+                              />
+                              <span>{r.name}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground align-top">
                       {u.created_at
                         ? new Date(u.created_at).toLocaleDateString("pt-PT")
                         : "—"}
