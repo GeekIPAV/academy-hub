@@ -36,6 +36,8 @@ import {
   assignTrainer,
   updateTrainer,
   removeTrainer,
+  type UpdateEnrollmentInput,
+  type UpdateTrainerInput,
 } from "@/lib/admin-acoes.functions";
 import { useApp } from "@/lib/app-context";
 
