@@ -26,6 +26,7 @@ import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 import { Route as ApiPublicRecursosSplatRouteImport } from './routes/api/public/recursos.$'
+import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './routes/api/certificates.$actionId.$participanteId'
 
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
@@ -112,6 +113,12 @@ const ApiPublicRecursosSplatRoute = ApiPublicRecursosSplatRouteImport.update({
   path: '/api/public/recursos/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCertificatesActionIdParticipanteIdRoute =
+  ApiCertificatesActionIdParticipanteIdRouteImport.update({
+    id: '/api/certificates/$actionId/$participanteId',
+    path: '/api/certificates/$actionId/$participanteId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
+  '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
 export interface FileRoutesByTo {
@@ -147,6 +155,7 @@ export interface FileRoutesByTo {
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
+  '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
 export interface FileRoutesById {
@@ -167,6 +176,7 @@ export interface FileRoutesById {
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
+  '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
 export interface FileRouteTypes {
@@ -187,6 +197,7 @@ export interface FileRouteTypes {
     | '/actions/$id'
     | '/admin/recursos'
     | '/entidade/acoes/$id'
+    | '/api/certificates/$actionId/$participanteId'
     | '/api/public/recursos/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/actions/$id'
     | '/admin/recursos'
     | '/entidade/acoes/$id'
+    | '/api/certificates/$actionId/$participanteId'
     | '/api/public/recursos/$'
   id:
     | '__root__'
@@ -224,6 +236,7 @@ export interface FileRouteTypes {
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
     | '/entidade/acoes/$id'
+    | '/api/certificates/$actionId/$participanteId'
     | '/api/public/recursos/$'
   fileRoutesById: FileRoutesById
 }
@@ -241,6 +254,7 @@ export interface RootRouteChildren {
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
+  ApiCertificatesActionIdParticipanteIdRoute: typeof ApiCertificatesActionIdParticipanteIdRoute
   ApiPublicRecursosSplatRoute: typeof ApiPublicRecursosSplatRoute
 }
 
@@ -365,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicRecursosSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/certificates/$actionId/$participanteId': {
+      id: '/api/certificates/$actionId/$participanteId'
+      path: '/api/certificates/$actionId/$participanteId'
+      fullPath: '/api/certificates/$actionId/$participanteId'
+      preLoaderRoute: typeof ApiCertificatesActionIdParticipanteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -398,6 +419,8 @@ const rootRouteChildren: RootRouteChildren = {
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
+  ApiCertificatesActionIdParticipanteIdRoute:
+    ApiCertificatesActionIdParticipanteIdRoute,
   ApiPublicRecursosSplatRoute: ApiPublicRecursosSplatRoute,
 }
 export const routeTree = rootRouteImport
