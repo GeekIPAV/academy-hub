@@ -18,7 +18,7 @@ interface AppState {
   realRole: RoleName | null;
   canAccess: (path: string) => boolean;
   isComponentVisible: (pagePath: string, componentId: string) => boolean;
-  visibleRoutes: typeof APP_ROUTES;
+  visibleRoutes: AppRoute[];
   isAdmin: boolean;
 }
 
