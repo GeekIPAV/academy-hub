@@ -17,6 +17,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PublicacoesRevistasRouteImport } from './routes/publicacoes.revistas'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
@@ -66,6 +67,11 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicacoesRevistasRoute = PublicacoesRevistasRouteImport.update({
+  id: '/publicacoes/revistas',
+  path: '/publicacoes/revistas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InscricaoTokenRoute = InscricaoTokenRouteImport.update({
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
+  '/publicacoes/revistas': typeof PublicacoesRevistasRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
@@ -160,6 +167,7 @@ export interface FileRoutesByTo {
   '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
+  '/publicacoes/revistas': typeof PublicacoesRevistasRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
+  '/publicacoes/revistas': typeof PublicacoesRevistasRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/admin/programas'
     | '/entidade/dashboard'
     | '/inscricao/$token'
+    | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
     | '/entidade/acoes/$id'
@@ -224,6 +234,7 @@ export interface FileRouteTypes {
     | '/admin/programas'
     | '/entidade/dashboard'
     | '/inscricao/$token'
+    | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
     | '/entidade/acoes/$id'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/admin/programas'
     | '/entidade/dashboard'
     | '/inscricao/$token'
+    | '/publicacoes/revistas'
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
     | '/entidade/acoes/$id'
@@ -266,6 +278,7 @@ export interface RootRouteChildren {
   AdminProgramasRoute: typeof AdminProgramasRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
+  PublicacoesRevistasRoute: typeof PublicacoesRevistasRoute
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
   ApiCertificatesActionIdParticipanteIdRoute: typeof ApiCertificatesActionIdParticipanteIdRoute
   ApiPublicRecursosSplatRoute: typeof ApiPublicRecursosSplatRoute
@@ -327,6 +340,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publicacoes/revistas': {
+      id: '/publicacoes/revistas'
+      path: '/publicacoes/revistas'
+      fullPath: '/publicacoes/revistas'
+      preLoaderRoute: typeof PublicacoesRevistasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inscricao/$token': {
@@ -439,6 +459,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminProgramasRoute: AdminProgramasRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
+  PublicacoesRevistasRoute: PublicacoesRevistasRoute,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
   ApiCertificatesActionIdParticipanteIdRoute:
     ApiCertificatesActionIdParticipanteIdRoute,
@@ -447,3 +468,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
