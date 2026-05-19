@@ -40,13 +40,14 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { useApp } from "@/lib/app-context";
-import { APP_ROUTES } from "@/lib/mock-data";
+import { useAppRoutes, collectValidResourceIds } from "@/lib/access-registry";
 import type { RoleName } from "@/lib/types";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { useRoles } from "@/hooks/use-roles";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
+import { cleanupStalePermissions } from "@/lib/permissions.functions";
 
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
