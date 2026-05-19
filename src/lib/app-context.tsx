@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { APP_ROUTES } from "./mock-data";
+import { useAppRoutes, type AppRoute } from "./access-registry";
 import type { RoleName } from "./types";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile, type CurrentProfile } from "@/hooks/use-current-profile";
