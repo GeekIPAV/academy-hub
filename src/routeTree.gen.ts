@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ElearningRouteImport } from './routes/elearning'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DadosCertificacaoRouteImport } from './routes/dados-certificacao'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -31,6 +32,11 @@ import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './rou
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ElearningRoute = ElearningRouteImport.update({
+  id: '/elearning',
+  path: '/elearning',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
+  '/elearning': typeof ElearningRoute
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/acoes': typeof AdminAcoesRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
+  '/elearning': typeof ElearningRoute
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/acoes': typeof AdminAcoesRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
+  '/elearning': typeof ElearningRoute
   '/profile': typeof ProfileRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRoute
   '/admin/acoes': typeof AdminAcoesRoute
@@ -187,6 +196,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
+    | '/elearning'
     | '/profile'
     | '/recursos'
     | '/admin/acoes'
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
+    | '/elearning'
     | '/profile'
     | '/recursos'
     | '/admin/acoes'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
+    | '/elearning'
     | '/profile'
     | '/_authenticated/recursos'
     | '/admin/acoes'
@@ -247,6 +259,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DadosCertificacaoRoute: typeof DadosCertificacaoRoute
   DashboardRoute: typeof DashboardRoute
+  ElearningRoute: typeof ElearningRoute
   ProfileRoute: typeof ProfileRoute
   AdminAcoesRoute: typeof AdminAcoesRoute
   AdminManagerRoute: typeof AdminManagerRoute
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/elearning': {
+      id: '/elearning'
+      path: '/elearning'
+      fullPath: '/elearning'
+      preLoaderRoute: typeof ElearningRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -412,6 +432,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DadosCertificacaoRoute: DadosCertificacaoRoute,
   DashboardRoute: DashboardRoute,
+  ElearningRoute: ElearningRoute,
   ProfileRoute: ProfileRoute,
   AdminAcoesRoute: AdminAcoesRoute,
   AdminManagerRoute: AdminManagerRoute,
