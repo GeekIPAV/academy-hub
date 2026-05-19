@@ -37,7 +37,7 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
   if (!isAdmin) return null;
 
   const components = PAGE_COMPONENTS[pagePath] ?? [];
-  if (components.length === 0) return null;
+
 
   const resourceFor = (componentId: string) => `${pagePath}#${componentId}`;
 
