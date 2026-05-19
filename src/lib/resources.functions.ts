@@ -43,12 +43,20 @@ export const getResourcesContext = createServerFn({ method: "GET" })
     const userId = claimsData?.claims?.sub;
     if (!userId) return EMPTY;
 
-    const { data: profile } = await supabaseAdmin
-      .from("utilizadores")
-      .select("role")
-      .eq("id", userId)
-      .maybeSingle();
-    const isAdmin = (profile as { role?: string } | null)?.role === "admin";
+    const [{ data: profile }, { data: roleRows }] = await Promise.all([
+      supabaseAdmin
+        .from("utilizadores")
+        .select("role")
+        .eq("id", userId)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("user_roles")
+        .select("role_name")
+        .eq("user_id", userId),
+    ]);
+    const legacyRole = (profile as { role?: string } | null)?.role?.toLowerCase();
+    const roleNames = (roleRows ?? []).map((r) => (r as { role_name: string }).role_name.toLowerCase());
+    const isAdmin = legacyRole === "admin" || roleNames.includes("admin");
 
     if (isAdmin) {
       return {
