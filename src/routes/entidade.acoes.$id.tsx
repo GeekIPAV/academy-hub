@@ -8,6 +8,8 @@ import {
   CalendarDays,
   CalendarCheck2,
   Camera,
+  Check,
+  Copy,
   ExternalLink,
   FileText,
   GraduationCap,
