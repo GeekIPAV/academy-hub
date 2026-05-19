@@ -79,8 +79,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const visibleRoutes = useMemo(
-    () => APP_ROUTES.filter((r) => canAccess(r.path)),
-    [canAccess],
+    () => appRoutes.filter((r) => canAccess(r.path)),
+    [appRoutes, canAccess],
   );
 
   const value: AppState = {
