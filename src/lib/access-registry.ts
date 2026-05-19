@@ -46,7 +46,8 @@ export function useAppRoutes(): AppRoute[] {
   const router = useRouter();
   return useMemo(() => {
     const flat =
-      (router.flatRoutes as Array<{ fullPath?: string; id?: string }>) ?? [];
+      ((router as unknown as { flatRoutes?: Array<{ fullPath?: string; id?: string }> })
+        .flatRoutes) ?? [];
     const seen = new Set<string>();
     const out: AppRoute[] = [];
     for (const r of flat) {
