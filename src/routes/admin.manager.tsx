@@ -363,6 +363,16 @@ function RolesManager() {
 function AccessTab() {
   const { activeRoleNames } = useRoles();
   const { isAllowed, toggle } = usePermissions();
+  const appRoutes = useAppRoutes();
+  const cleanupFn = useServerFn(cleanupStalePermissions);
+
+  // Auto-prune permission rows pointing to routes/components that no longer exist.
+  useEffect(() => {
+    const { validRouteIds, validComponentIds } = collectValidResourceIds(appRoutes);
+    cleanupFn({ data: { validRouteIds, validComponentIds } }).catch(() => {
+      /* silent — non-blocking */
+    });
+  }, [appRoutes, cleanupFn]);
 
   const isGranted = (role: RoleName, path: string) => isAllowed(role, path, "rota");
 
