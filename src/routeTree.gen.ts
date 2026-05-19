@@ -22,6 +22,7 @@ import { Route as PublicacoesIpavRouteImport } from './routes/publicacoes.ipav'
 import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
+import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
@@ -96,6 +97,12 @@ const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
   path: '/entidade/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComunicacaoPressMediaKitRoute =
+  ComunicacaoPressMediaKitRouteImport.update({
+    id: '/comunicacao/press-media-kit',
+    path: '/comunicacao/press-media-kit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminProgramasRoute = AdminProgramasRouteImport.update({
   id: '/admin/programas',
   path: '/admin/programas',
@@ -156,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
+  '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
@@ -179,6 +187,7 @@ export interface FileRoutesByTo {
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
+  '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
@@ -204,6 +213,7 @@ export interface FileRoutesById {
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
+  '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/admin/acoes'
     | '/admin/manager'
     | '/admin/programas'
+    | '/comunicacao/press-media-kit'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/admin/acoes'
     | '/admin/manager'
     | '/admin/programas'
+    | '/comunicacao/press-media-kit'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
@@ -276,6 +288,7 @@ export interface FileRouteTypes {
     | '/admin/acoes'
     | '/admin/manager'
     | '/admin/programas'
+    | '/comunicacao/press-media-kit'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
@@ -300,6 +313,7 @@ export interface RootRouteChildren {
   AdminAcoesRoute: typeof AdminAcoesRoute
   AdminManagerRoute: typeof AdminManagerRoute
   AdminProgramasRoute: typeof AdminProgramasRoute
+  ComunicacaoPressMediaKitRoute: typeof ComunicacaoPressMediaKitRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
@@ -403,6 +417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntidadeDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/comunicacao/press-media-kit': {
+      id: '/comunicacao/press-media-kit'
+      path: '/comunicacao/press-media-kit'
+      fullPath: '/comunicacao/press-media-kit'
+      preLoaderRoute: typeof ComunicacaoPressMediaKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/programas': {
       id: '/admin/programas'
       path: '/admin/programas'
@@ -497,6 +518,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminAcoesRoute: AdminAcoesRoute,
   AdminManagerRoute: AdminManagerRoute,
   AdminProgramasRoute: AdminProgramasRoute,
+  ComunicacaoPressMediaKitRoute: ComunicacaoPressMediaKitRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
