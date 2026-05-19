@@ -4,6 +4,7 @@ import type {
   TrainingAction,
   Enrollment,
 } from "./types";
+import { NAV_GROUPS } from "./nav-config";
 
 // Entidade mock (representante institucional logado)
 export const MOCK_ENTITY = {
@@ -23,16 +24,16 @@ export const MOCK_ENTITY_TRAINEES = [
   { id: "t-4", name: "Diana Ferreira", email: "diana.ferreira@email.pt", status: "Concluído" as const },
 ];
 
-export const APP_ROUTES: AppRoute[] = [
-  { path: "/dashboard", label: "Dashboard" },
-  { path: "/actions", label: "Eventos e Formações" },
-  { path: "/entidade/dashboard", label: "Painel da Entidade" },
-  { path: "/admin/manager", label: "Central de Comando" },
-  { path: "/admin/programas", label: "Gestão de Programas" },
-  { path: "/admin/acoes", label: "Gestão de Ações" },
-  { path: "/recursos", label: "Recursos" },
-  { path: "/admin/recursos", label: "Gestão de Recursos" },
-];
+/**
+ * Derivado automaticamente do NAV_GROUPS (single source of truth).
+ * Sempre que uma página é adicionada/removida da sidebar, esta matriz atualiza.
+ */
+export const APP_ROUTES: AppRoute[] = NAV_GROUPS.flatMap((g) =>
+  g.items.map((it) => ({
+    path: it.path,
+    label: g.label ? `${g.label} · ${it.label}` : it.label,
+  })),
+);
 
 export const MOCK_TRAINING_ACTIONS: TrainingAction[] = [
   { id: "ftc-1", category: "FTC", title: "Formação Teórica Comum", status: "open" },
