@@ -8,6 +8,8 @@ import {
   CalendarDays,
   CalendarCheck2,
   Camera,
+  Check,
+  Copy,
   ExternalLink,
   FileText,
   GraduationCap,
@@ -322,15 +324,15 @@ function EntidadeAcaoDetailPage() {
         </Card>
       </div>
 
-      {/* Bloco do Meio: Participantes */}
-      <ParticipantesSection
-        actionId={id}
-        rows={data.participantes}
-        onChanged={invalidate}
-      />
-
-      {/* Bloco Inferior: Formadores */}
-      <TrainersSection trainers={data.trainers} />
+      {/* Formadores + Participantes lado a lado */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <TrainersSection actionId={id} trainers={data.trainers} />
+        <ParticipantesSection
+          actionId={id}
+          rows={data.participantes}
+          onChanged={invalidate}
+        />
+      </div>
     </div>
   );
 }
@@ -380,12 +382,31 @@ function LogisticaLink({
 }
 
 function TrainersSection({
+  actionId,
   trainers,
 }: {
+  actionId: string;
   trainers: Awaited<ReturnType<typeof getEntidadeActionDetails>>["trainers"];
 }) {
+  const [copied, setCopied] = useState(false);
+  const inviteUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/inscricao-formador/${actionId}`
+      : `/inscricao-formador/${actionId}`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopied(true);
+      toast.success("Link copiado para a área de transferência.");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Não foi possível copiar o link.");
+    }
+  };
+
   return (
-    <Card>
+    <Card className="flex flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <GraduationCap className="h-5 w-5 text-primary" /> Formadores
@@ -397,10 +418,42 @@ function TrainersSection({
           Formadores que vão facilitar esta ação.
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="space-y-4 p-0 sm:px-0">
+        <div className="mx-6 rounded-md border bg-muted/40 p-3">
+          <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <LinkIcon className="h-3.5 w-3.5" /> Link de inscrição para formadores
+          </div>
+          <div className="flex items-center gap-2">
+            <Input
+              readOnly
+              value={inviteUrl}
+              className="h-9 flex-1 font-mono text-xs"
+              onFocus={(e) => e.currentTarget.select()}
+            />
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleCopy}
+              className="shrink-0"
+            >
+              {copied ? (
+                <>
+                  <Check className="mr-1 h-4 w-4" /> Copiado
+                </>
+              ) : (
+                <>
+                  <Copy className="mr-1 h-4 w-4" /> Copiar
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
         {trainers.length === 0 ? (
           <p className="px-6 py-8 text-center text-sm text-muted-foreground">
-            Ainda sem formadores atribuídos. A equipa central irá designá-los.
+            Ainda sem formadores atribuídos. Partilhe o link acima para que se
+            possam inscrever.
           </p>
         ) : (
           <Table>
