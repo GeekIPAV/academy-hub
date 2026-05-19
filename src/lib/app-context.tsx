@@ -70,6 +70,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const isComponentVisible = useCallback(
     (pagePath: string, componentId: string) => {
+      registerPageComponent(pagePath, componentId);
       if (isAdmin) return true;
       const resourceId = `${pagePath}#${componentId}`;
       return activeRoles.some((r) => isAllowed(r, resourceId, "componente"));
