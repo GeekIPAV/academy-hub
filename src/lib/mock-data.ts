@@ -76,9 +76,10 @@ export const PAGE_COMPONENTS: Record<string, PageComponent[]> = {
   "/entidade/dashboard": [
     { id: "header", label: "Cabeçalho" },
     { id: "tab-overview", label: "Aba Visão Geral" },
+    { id: "tab-acoes", label: "Aba Marcações" },
+    { id: "tab-data", label: "Aba Dados da Entidade" },
     { id: "invite-card", label: "Card Link de Convite" },
     { id: "trainees-table", label: "Tabela de Formandos" },
-    { id: "tab-data", label: "Aba Dados da Entidade" },
   ],
 };
 
