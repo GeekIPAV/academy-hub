@@ -324,15 +324,15 @@ function EntidadeAcaoDetailPage() {
         </Card>
       </div>
 
-      {/* Bloco do Meio: Participantes */}
-      <ParticipantesSection
-        actionId={id}
-        rows={data.participantes}
-        onChanged={invalidate}
-      />
-
-      {/* Bloco Inferior: Formadores */}
-      <TrainersSection trainers={data.trainers} />
+      {/* Formadores + Participantes lado a lado */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <TrainersSection actionId={id} trainers={data.trainers} />
+        <ParticipantesSection
+          actionId={id}
+          rows={data.participantes}
+          onChanged={invalidate}
+        />
+      </div>
     </div>
   );
 }
