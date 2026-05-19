@@ -40,13 +40,14 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { useApp } from "@/lib/app-context";
-import { APP_ROUTES } from "@/lib/mock-data";
+import { useAppRoutes, collectValidResourceIds } from "@/lib/access-registry";
 import type { RoleName } from "@/lib/types";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { useRoles } from "@/hooks/use-roles";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
+import { cleanupStalePermissions } from "@/lib/permissions.functions";
 
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
@@ -362,6 +363,16 @@ function RolesManager() {
 function AccessTab() {
   const { activeRoleNames } = useRoles();
   const { isAllowed, toggle } = usePermissions();
+  const appRoutes = useAppRoutes();
+  const cleanupFn = useServerFn(cleanupStalePermissions);
+
+  // Auto-prune permission rows pointing to routes/components that no longer exist.
+  useEffect(() => {
+    const { validRouteIds, validComponentIds } = collectValidResourceIds(appRoutes);
+    cleanupFn({ data: { validRouteIds, validComponentIds } }).catch(() => {
+      /* silent — non-blocking */
+    });
+  }, [appRoutes, cleanupFn]);
 
   const isGranted = (role: RoleName, path: string) => isAllowed(role, path, "rota");
 
@@ -390,7 +401,7 @@ function AccessTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {APP_ROUTES.map((route) => (
+            {appRoutes.map((route) => (
               <TableRow key={route.path}>
                 <TableCell>
                   <div className="font-medium">{route.label}</div>

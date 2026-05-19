@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { APP_ROUTES } from "./mock-data";
+import { useAppRoutes, type AppRoute } from "./access-registry";
 import type { RoleName } from "./types";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useCurrentProfile, type CurrentProfile } from "@/hooks/use-current-profile";
@@ -18,7 +18,7 @@ interface AppState {
   realRole: RoleName | null;
   canAccess: (path: string) => boolean;
   isComponentVisible: (pagePath: string, componentId: string) => boolean;
-  visibleRoutes: typeof APP_ROUTES;
+  visibleRoutes: AppRoute[];
   isAdmin: boolean;
 }
 
@@ -27,6 +27,7 @@ const AppCtx = createContext<AppState | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const { isAllowed } = usePermissions();
   const { profile, roles } = useCurrentProfile();
+  const appRoutes = useAppRoutes();
 
   const realRoles: RoleName[] = roles as RoleName[];
   const isRealAdmin = realRoles.includes("Admin" as RoleName);
@@ -78,8 +79,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const visibleRoutes = useMemo(
-    () => APP_ROUTES.filter((r) => canAccess(r.path)),
-    [canAccess],
+    () => appRoutes.filter((r) => canAccess(r.path)),
+    [appRoutes, canAccess],
   );
 
   const value: AppState = {
