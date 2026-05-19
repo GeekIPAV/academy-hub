@@ -27,6 +27,7 @@ const AppCtx = createContext<AppState | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const { isAllowed } = usePermissions();
   const { profile, roles } = useCurrentProfile();
+  const appRoutes = useAppRoutes();
 
   const realRoles: RoleName[] = roles as RoleName[];
   const isRealAdmin = realRoles.includes("Admin" as RoleName);
