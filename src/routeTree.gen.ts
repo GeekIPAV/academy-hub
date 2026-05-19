@@ -10,14 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as FaqsRouteImport } from './routes/faqs'
+import { Route as ElearningRouteImport } from './routes/elearning'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DadosCertificacaoRouteImport } from './routes/dados-certificacao'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PublicacoesRevistasRouteImport } from './routes/publicacoes.revistas'
+import { Route as PublicacoesIpavRouteImport } from './routes/publicacoes.ipav'
+import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
+import { Route as ComunicacaoPropriedadeIntelectualRouteImport } from './routes/comunicacao.propriedade-intelectual'
+import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
@@ -31,6 +38,16 @@ import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './rou
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqsRoute = FaqsRouteImport.update({
+  id: '/faqs',
+  path: '/faqs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ElearningRoute = ElearningRouteImport.update({
+  id: '/elearning',
+  path: '/elearning',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -62,6 +79,21 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PublicacoesRevistasRoute = PublicacoesRevistasRouteImport.update({
+  id: '/publicacoes/revistas',
+  path: '/publicacoes/revistas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicacoesIpavRoute = PublicacoesIpavRouteImport.update({
+  id: '/publicacoes/ipav',
+  path: '/publicacoes/ipav',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicacoesBibliotecaRoute = PublicacoesBibliotecaRouteImport.update({
+  id: '/publicacoes/biblioteca',
+  path: '/publicacoes/biblioteca',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InscricaoTokenRoute = InscricaoTokenRouteImport.update({
   id: '/inscricao/$token',
   path: '/inscricao/$token',
@@ -72,6 +104,18 @@ const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
   path: '/entidade/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComunicacaoPropriedadeIntelectualRoute =
+  ComunicacaoPropriedadeIntelectualRouteImport.update({
+    id: '/comunicacao/propriedade-intelectual',
+    path: '/comunicacao/propriedade-intelectual',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ComunicacaoPressMediaKitRoute =
+  ComunicacaoPressMediaKitRouteImport.update({
+    id: '/comunicacao/press-media-kit',
+    path: '/comunicacao/press-media-kit',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AdminProgramasRoute = AdminProgramasRouteImport.update({
   id: '/admin/programas',
   path: '/admin/programas',
@@ -126,13 +170,20 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
+  '/elearning': typeof ElearningRoute
+  '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
+  '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
+  '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
+  '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
+  '/publicacoes/ipav': typeof PublicacoesIpavRoute
+  '/publicacoes/revistas': typeof PublicacoesRevistasRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
@@ -145,13 +196,20 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
+  '/elearning': typeof ElearningRoute
+  '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
+  '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
+  '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
+  '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
+  '/publicacoes/ipav': typeof PublicacoesIpavRoute
+  '/publicacoes/revistas': typeof PublicacoesRevistasRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
@@ -166,13 +224,20 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
+  '/elearning': typeof ElearningRoute
+  '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRoute
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
+  '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
+  '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
+  '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
+  '/publicacoes/ipav': typeof PublicacoesIpavRoute
+  '/publicacoes/revistas': typeof PublicacoesRevistasRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
@@ -187,13 +252,20 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
+    | '/elearning'
+    | '/faqs'
     | '/profile'
     | '/recursos'
     | '/admin/acoes'
     | '/admin/manager'
     | '/admin/programas'
+    | '/comunicacao/press-media-kit'
+    | '/comunicacao/propriedade-intelectual'
     | '/entidade/dashboard'
     | '/inscricao/$token'
+    | '/publicacoes/biblioteca'
+    | '/publicacoes/ipav'
+    | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
     | '/entidade/acoes/$id'
@@ -206,13 +278,20 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
+    | '/elearning'
+    | '/faqs'
     | '/profile'
     | '/recursos'
     | '/admin/acoes'
     | '/admin/manager'
     | '/admin/programas'
+    | '/comunicacao/press-media-kit'
+    | '/comunicacao/propriedade-intelectual'
     | '/entidade/dashboard'
     | '/inscricao/$token'
+    | '/publicacoes/biblioteca'
+    | '/publicacoes/ipav'
+    | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
     | '/entidade/acoes/$id'
@@ -226,13 +305,20 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
+    | '/elearning'
+    | '/faqs'
     | '/profile'
     | '/_authenticated/recursos'
     | '/admin/acoes'
     | '/admin/manager'
     | '/admin/programas'
+    | '/comunicacao/press-media-kit'
+    | '/comunicacao/propriedade-intelectual'
     | '/entidade/dashboard'
     | '/inscricao/$token'
+    | '/publicacoes/biblioteca'
+    | '/publicacoes/ipav'
+    | '/publicacoes/revistas'
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
     | '/entidade/acoes/$id'
@@ -247,12 +333,19 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DadosCertificacaoRoute: typeof DadosCertificacaoRoute
   DashboardRoute: typeof DashboardRoute
+  ElearningRoute: typeof ElearningRoute
+  FaqsRoute: typeof FaqsRoute
   ProfileRoute: typeof ProfileRoute
   AdminAcoesRoute: typeof AdminAcoesRoute
   AdminManagerRoute: typeof AdminManagerRoute
   AdminProgramasRoute: typeof AdminProgramasRoute
+  ComunicacaoPressMediaKitRoute: typeof ComunicacaoPressMediaKitRoute
+  ComunicacaoPropriedadeIntelectualRoute: typeof ComunicacaoPropriedadeIntelectualRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
+  PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
+  PublicacoesIpavRoute: typeof PublicacoesIpavRoute
+  PublicacoesRevistasRoute: typeof PublicacoesRevistasRoute
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
   ApiCertificatesActionIdParticipanteIdRoute: typeof ApiCertificatesActionIdParticipanteIdRoute
   ApiPublicRecursosSplatRoute: typeof ApiPublicRecursosSplatRoute
@@ -265,6 +358,20 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faqs': {
+      id: '/faqs'
+      path: '/faqs'
+      fullPath: '/faqs'
+      preLoaderRoute: typeof FaqsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/elearning': {
+      id: '/elearning'
+      path: '/elearning'
+      fullPath: '/elearning'
+      preLoaderRoute: typeof ElearningRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -309,6 +416,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/publicacoes/revistas': {
+      id: '/publicacoes/revistas'
+      path: '/publicacoes/revistas'
+      fullPath: '/publicacoes/revistas'
+      preLoaderRoute: typeof PublicacoesRevistasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publicacoes/ipav': {
+      id: '/publicacoes/ipav'
+      path: '/publicacoes/ipav'
+      fullPath: '/publicacoes/ipav'
+      preLoaderRoute: typeof PublicacoesIpavRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publicacoes/biblioteca': {
+      id: '/publicacoes/biblioteca'
+      path: '/publicacoes/biblioteca'
+      fullPath: '/publicacoes/biblioteca'
+      preLoaderRoute: typeof PublicacoesBibliotecaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/inscricao/$token': {
       id: '/inscricao/$token'
       path: '/inscricao/$token'
@@ -321,6 +449,20 @@ declare module '@tanstack/react-router' {
       path: '/entidade/dashboard'
       fullPath: '/entidade/dashboard'
       preLoaderRoute: typeof EntidadeDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comunicacao/propriedade-intelectual': {
+      id: '/comunicacao/propriedade-intelectual'
+      path: '/comunicacao/propriedade-intelectual'
+      fullPath: '/comunicacao/propriedade-intelectual'
+      preLoaderRoute: typeof ComunicacaoPropriedadeIntelectualRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comunicacao/press-media-kit': {
+      id: '/comunicacao/press-media-kit'
+      path: '/comunicacao/press-media-kit'
+      fullPath: '/comunicacao/press-media-kit'
+      preLoaderRoute: typeof ComunicacaoPressMediaKitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/programas': {
@@ -412,12 +554,20 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DadosCertificacaoRoute: DadosCertificacaoRoute,
   DashboardRoute: DashboardRoute,
+  ElearningRoute: ElearningRoute,
+  FaqsRoute: FaqsRoute,
   ProfileRoute: ProfileRoute,
   AdminAcoesRoute: AdminAcoesRoute,
   AdminManagerRoute: AdminManagerRoute,
   AdminProgramasRoute: AdminProgramasRoute,
+  ComunicacaoPressMediaKitRoute: ComunicacaoPressMediaKitRoute,
+  ComunicacaoPropriedadeIntelectualRoute:
+    ComunicacaoPropriedadeIntelectualRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
+  PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
+  PublicacoesIpavRoute: PublicacoesIpavRoute,
+  PublicacoesRevistasRoute: PublicacoesRevistasRoute,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
   ApiCertificatesActionIdParticipanteIdRoute:
     ApiCertificatesActionIdParticipanteIdRoute,
