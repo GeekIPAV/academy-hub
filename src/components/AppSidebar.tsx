@@ -93,8 +93,8 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               )}
               {visibleRoutes
-                .filter((r) => r.path === "/admin/manager")
-                .map((r) => {
+                .filter((r: AppRoute) => r.path === "/admin/manager")
+                .map((r: AppRoute) => {
                   const Icon = ICONS[r.path] ?? LayoutDashboard;
                   const active = path === r.path || path.startsWith(r.path + "/");
                   return (
