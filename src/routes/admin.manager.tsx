@@ -401,7 +401,7 @@ function AccessTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {APP_ROUTES.map((route) => (
+            {appRoutes.map((route) => (
               <TableRow key={route.path}>
                 <TableCell>
                   <div className="font-medium">{route.label}</div>
