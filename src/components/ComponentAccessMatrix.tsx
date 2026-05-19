@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { ChevronDown, Shield } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -17,8 +17,13 @@ import {
 } from "@/components/ui/table";
 import { useApp } from "@/lib/app-context";
 import { PAGE_COMPONENTS } from "@/lib/mock-data";
+import {
+  getRegisteredComponents,
+  subscribeRegistry,
+} from "@/lib/component-registry";
 import { useRoles } from "@/hooks/use-roles";
 import { usePermissions } from "@/hooks/use-permissions";
+import type { PageComponent } from "@/lib/types";
 
 interface Props {
   pagePath: string;
@@ -34,9 +39,22 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
   const { isAllowed, toggle } = usePermissions();
   const [open, setOpen] = useState(false);
 
+  // Re-render when new components register at runtime.
+  useSyncExternalStore(
+    subscribeRegistry,
+    () => getRegisteredComponents(pagePath).length,
+    () => 0,
+  );
+
   if (!isAdmin) return null;
 
-  const components = PAGE_COMPONENTS[pagePath] ?? [];
+  const declared = PAGE_COMPONENTS[pagePath] ?? [];
+  const observed = getRegisteredComponents(pagePath);
+  const byId = new Map<string, PageComponent>();
+  for (const c of [...declared, ...observed]) {
+    if (!byId.has(c.id)) byId.set(c.id, c);
+  }
+  const components = Array.from(byId.values());
 
 
   const resourceFor = (componentId: string) => `${pagePath}#${componentId}`;
