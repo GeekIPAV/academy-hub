@@ -1,27 +1,9 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import {
-  BookMarked,
-  BookOpen,
-  Building2,
-  CalendarCog,
-  Copyright,
-  Eye,
-  FolderCog,
-  GraduationCap,
-  HelpCircle,
-  LayoutDashboard,
-  Library,
-  ListChecks,
-  LogIn,
-  LogOut,
-  Megaphone,
-  Newspaper,
-  Shield,
-  type LucideIcon,
-} from "lucide-react";
+import { Eye, LogIn, LogOut } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useRoles } from "@/hooks/use-roles";
+import { NAV_GROUPS } from "@/lib/nav-config";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -44,64 +26,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type NavItem = {
-  path: string;
-  label: string;
-  icon: LucideIcon;
-  /** If true, item is filtered by canAccess (existing permission matrix). */
-  gated?: boolean;
-};
-
-type NavGroup = {
-  label?: string;
-  adminOnly?: boolean;
-  items: NavItem[];
-};
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    items: [
-      { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard, gated: true },
-      { path: "/entidade/dashboard", label: "Painel da Entidade", icon: Building2, gated: true },
-      { path: "/actions", label: "Eventos e Formações", icon: ListChecks, gated: true },
-    ],
-  },
-  {
-    label: "Formação",
-    items: [
-      { path: "/elearning", label: "E-learning", icon: GraduationCap },
-      { path: "/recursos", label: "Centro de Recursos", icon: BookMarked },
-    ],
-  },
-  {
-    label: "Publicações",
-    items: [
-      { path: "/publicacoes/revistas", label: "Revistas Científicas", icon: BookOpen },
-      { path: "/publicacoes/ipav", label: "Publicações IPAV", icon: Newspaper },
-      { path: "/publicacoes/biblioteca", label: "Biblioteca", icon: Library },
-    ],
-  },
-  {
-    label: "Comunicação",
-    items: [
-      { path: "/comunicacao/press-media-kit", label: "Press Media Kit", icon: Megaphone },
-      { path: "/comunicacao/propriedade-intelectual", label: "Propriedade Intelectual", icon: Copyright },
-    ],
-  },
-  {
-    items: [{ path: "/faqs", label: "FAQs", icon: HelpCircle }],
-  },
-  {
-    label: "Admin",
-    adminOnly: true,
-    items: [
-      { path: "/admin/programas", label: "Gestão de Programas", icon: Shield },
-      { path: "/admin/acoes", label: "Gestão de Ações", icon: CalendarCog },
-      { path: "/admin/recursos", label: "Gestão de Recursos", icon: FolderCog },
-      { path: "/admin/manager", label: "Central de Comando", icon: Shield },
-    ],
-  },
-];
 
 export function AppSidebar() {
   const { canAccess, profile, activeRoles, isRealAdmin, isAdmin, impersonatedRole, setImpersonatedRole, realRole } = useApp();

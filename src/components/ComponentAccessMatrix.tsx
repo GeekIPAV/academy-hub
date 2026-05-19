@@ -37,7 +37,7 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
   if (!isAdmin) return null;
 
   const components = PAGE_COMPONENTS[pagePath] ?? [];
-  if (components.length === 0) return null;
+
 
   const resourceFor = (componentId: string) => `${pagePath}#${componentId}`;
 
@@ -60,43 +60,53 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Componente</TableHead>
-                  {activeRoleNames.map((r: string) => (
-                    <TableHead key={r} className="text-center">
-                      {r}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {components.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell>
-                      <div className="font-medium">{c.label}</div>
-                      <div className="text-xs text-muted-foreground">{c.id}</div>
-                    </TableCell>
-                    {activeRoleNames.map((role: string) => {
-                      const checked = isAllowed(role, resourceFor(c.id), "componente");
-                      return (
-                        <TableCell key={role} className="text-center">
-                          <Switch
-                            checked={checked}
-                            onCheckedChange={(v) =>
-                              toggle(role, resourceFor(c.id), "componente", v)
-                            }
-                          />
-                        </TableCell>
-                      );
-                    })}
+            {components.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Esta página ainda não tem componentes registados na matriz. O
+                acesso é controlado pela <strong>Matriz de Rotas</strong> na
+                Central de Comando. Para granularidade por componente,
+                adiciona-o em <code>PAGE_COMPONENTS</code> (<code>src/lib/mock-data.ts</code>).
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Componente</TableHead>
+                    {activeRoleNames.map((r: string) => (
+                      <TableHead key={r} className="text-center">
+                        {r}
+                      </TableHead>
+                    ))}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {components.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell>
+                        <div className="font-medium">{c.label}</div>
+                        <div className="text-xs text-muted-foreground">{c.id}</div>
+                      </TableCell>
+                      {activeRoleNames.map((role: string) => {
+                        const checked = isAllowed(role, resourceFor(c.id), "componente");
+                        return (
+                          <TableCell key={role} className="text-center">
+                            <Switch
+                              checked={checked}
+                              onCheckedChange={(v) =>
+                                toggle(role, resourceFor(c.id), "componente", v)
+                              }
+                            />
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </CollapsibleContent>
+
       </Collapsible>
     </Card>
   );
