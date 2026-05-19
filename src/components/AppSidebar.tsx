@@ -1,7 +1,6 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { LayoutDashboard, Shield, ListChecks, LogIn, LogOut, BookMarked, Building2, Eye, FolderCog, CalendarCog } from "lucide-react";
 import { useApp } from "@/lib/app-context";
-import type { AppRoute } from "@/lib/access-registry";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsFormando } from "@/hooks/use-is-formando";
 import { useRoles } from "@/hooks/use-roles";
@@ -67,8 +66,8 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {visibleRoutes
-                .filter((r: AppRoute) => r.path !== "/admin/manager")
-                .map((r: AppRoute) => {
+                .filter((r) => r.path !== "/admin/manager")
+                .map((r) => {
                   const Icon = ICONS[r.path] ?? LayoutDashboard;
                   const active = path === r.path || path.startsWith(r.path + "/");
                   return (
@@ -82,7 +81,7 @@ export function AppSidebar() {
                     </SidebarMenuItem>
                   );
                 })}
-              {isFormando && !visibleRoutes.some((r: AppRoute) => r.path === "/recursos") && (
+              {isFormando && !visibleRoutes.some((r) => r.path === "/recursos") && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild isActive={path === "/recursos"}>
                     <Link to="/recursos">
@@ -93,8 +92,8 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               )}
               {visibleRoutes
-                .filter((r: AppRoute) => r.path === "/admin/manager")
-                .map((r: AppRoute) => {
+                .filter((r) => r.path === "/admin/manager")
+                .map((r) => {
                   const Icon = ICONS[r.path] ?? LayoutDashboard;
                   const active = path === r.path || path.startsWith(r.path + "/");
                   return (
