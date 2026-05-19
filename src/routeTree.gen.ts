@@ -22,6 +22,7 @@ import { Route as PublicacoesIpavRouteImport } from './routes/publicacoes.ipav'
 import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
+import { Route as ComunicacaoPropriedadeIntelectualRouteImport } from './routes/comunicacao.propriedade-intelectual'
 import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
@@ -97,6 +98,12 @@ const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
   path: '/entidade/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComunicacaoPropriedadeIntelectualRoute =
+  ComunicacaoPropriedadeIntelectualRouteImport.update({
+    id: '/comunicacao/propriedade-intelectual',
+    path: '/comunicacao/propriedade-intelectual',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ComunicacaoPressMediaKitRoute =
   ComunicacaoPressMediaKitRouteImport.update({
     id: '/comunicacao/press-media-kit',
@@ -164,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
+  '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
@@ -188,6 +196,7 @@ export interface FileRoutesByTo {
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
+  '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
@@ -214,6 +223,7 @@ export interface FileRoutesById {
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
+  '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/admin/manager'
     | '/admin/programas'
     | '/comunicacao/press-media-kit'
+    | '/comunicacao/propriedade-intelectual'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/admin/manager'
     | '/admin/programas'
     | '/comunicacao/press-media-kit'
+    | '/comunicacao/propriedade-intelectual'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
@@ -289,6 +301,7 @@ export interface FileRouteTypes {
     | '/admin/manager'
     | '/admin/programas'
     | '/comunicacao/press-media-kit'
+    | '/comunicacao/propriedade-intelectual'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
@@ -314,6 +327,7 @@ export interface RootRouteChildren {
   AdminManagerRoute: typeof AdminManagerRoute
   AdminProgramasRoute: typeof AdminProgramasRoute
   ComunicacaoPressMediaKitRoute: typeof ComunicacaoPressMediaKitRoute
+  ComunicacaoPropriedadeIntelectualRoute: typeof ComunicacaoPropriedadeIntelectualRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
@@ -415,6 +429,13 @@ declare module '@tanstack/react-router' {
       path: '/entidade/dashboard'
       fullPath: '/entidade/dashboard'
       preLoaderRoute: typeof EntidadeDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comunicacao/propriedade-intelectual': {
+      id: '/comunicacao/propriedade-intelectual'
+      path: '/comunicacao/propriedade-intelectual'
+      fullPath: '/comunicacao/propriedade-intelectual'
+      preLoaderRoute: typeof ComunicacaoPropriedadeIntelectualRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comunicacao/press-media-kit': {
@@ -519,6 +540,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminManagerRoute: AdminManagerRoute,
   AdminProgramasRoute: AdminProgramasRoute,
   ComunicacaoPressMediaKitRoute: ComunicacaoPressMediaKitRoute,
+  ComunicacaoPropriedadeIntelectualRoute:
+    ComunicacaoPropriedadeIntelectualRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
