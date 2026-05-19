@@ -19,6 +19,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PublicacoesRevistasRouteImport } from './routes/publicacoes.revistas'
 import { Route as PublicacoesIpavRouteImport } from './routes/publicacoes.ipav'
+import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
@@ -78,6 +79,11 @@ const PublicacoesRevistasRoute = PublicacoesRevistasRouteImport.update({
 const PublicacoesIpavRoute = PublicacoesIpavRouteImport.update({
   id: '/publicacoes/ipav',
   path: '/publicacoes/ipav',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicacoesBibliotecaRoute = PublicacoesBibliotecaRouteImport.update({
+  id: '/publicacoes/biblioteca',
+  path: '/publicacoes/biblioteca',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InscricaoTokenRoute = InscricaoTokenRouteImport.update({
@@ -152,6 +158,7 @@ export interface FileRoutesByFullPath {
   '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
+  '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/ipav': typeof PublicacoesIpavRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
@@ -174,6 +181,7 @@ export interface FileRoutesByTo {
   '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
+  '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/ipav': typeof PublicacoesIpavRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRoute
   '/actions/$id': typeof AuthenticatedActionsIdRoute
@@ -198,6 +206,7 @@ export interface FileRoutesById {
   '/admin/programas': typeof AdminProgramasRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
+  '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/ipav': typeof PublicacoesIpavRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRoute
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
@@ -222,6 +231,7 @@ export interface FileRouteTypes {
     | '/admin/programas'
     | '/entidade/dashboard'
     | '/inscricao/$token'
+    | '/publicacoes/biblioteca'
     | '/publicacoes/ipav'
     | '/publicacoes/revistas'
     | '/actions/$id'
@@ -244,6 +254,7 @@ export interface FileRouteTypes {
     | '/admin/programas'
     | '/entidade/dashboard'
     | '/inscricao/$token'
+    | '/publicacoes/biblioteca'
     | '/publicacoes/ipav'
     | '/publicacoes/revistas'
     | '/actions/$id'
@@ -267,6 +278,7 @@ export interface FileRouteTypes {
     | '/admin/programas'
     | '/entidade/dashboard'
     | '/inscricao/$token'
+    | '/publicacoes/biblioteca'
     | '/publicacoes/ipav'
     | '/publicacoes/revistas'
     | '/_authenticated/actions/$id'
@@ -290,6 +302,7 @@ export interface RootRouteChildren {
   AdminProgramasRoute: typeof AdminProgramasRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
+  PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
   PublicacoesIpavRoute: typeof PublicacoesIpavRoute
   PublicacoesRevistasRoute: typeof PublicacoesRevistasRoute
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
@@ -367,6 +380,13 @@ declare module '@tanstack/react-router' {
       path: '/publicacoes/ipav'
       fullPath: '/publicacoes/ipav'
       preLoaderRoute: typeof PublicacoesIpavRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publicacoes/biblioteca': {
+      id: '/publicacoes/biblioteca'
+      path: '/publicacoes/biblioteca'
+      fullPath: '/publicacoes/biblioteca'
+      preLoaderRoute: typeof PublicacoesBibliotecaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inscricao/$token': {
@@ -479,6 +499,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminProgramasRoute: AdminProgramasRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
+  PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
   PublicacoesIpavRoute: PublicacoesIpavRoute,
   PublicacoesRevistasRoute: PublicacoesRevistasRoute,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
