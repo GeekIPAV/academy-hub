@@ -1,8 +1,26 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, Shield, ListChecks, LogIn, LogOut, BookMarked, Building2, Eye, FolderCog, CalendarCog } from "lucide-react";
+import {
+  BookMarked,
+  BookOpen,
+  Building2,
+  CalendarCog,
+  Copyright,
+  Eye,
+  FolderCog,
+  GraduationCap,
+  HelpCircle,
+  LayoutDashboard,
+  Library,
+  ListChecks,
+  LogIn,
+  LogOut,
+  Megaphone,
+  Newspaper,
+  Shield,
+  type LucideIcon,
+} from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
-import { useIsFormando } from "@/hooks/use-is-formando";
 import { useRoles } from "@/hooks/use-roles";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,25 +36,78 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const ICONS: Record<string, typeof LayoutDashboard> = {
-  "/dashboard": LayoutDashboard,
-  "/actions": ListChecks,
-  "/recursos": BookMarked,
-  "/admin/recursos": FolderCog,
-  "/admin/programas": Shield,
-  "/admin/acoes": CalendarCog,
-  "/entidade/dashboard": Building2,
-  "/admin/manager": Shield,
+type NavItem = {
+  path: string;
+  label: string;
+  icon: LucideIcon;
+  /** If true, item is filtered by canAccess (existing permission matrix). */
+  gated?: boolean;
 };
 
+type NavGroup = {
+  label?: string;
+  adminOnly?: boolean;
+  items: NavItem[];
+};
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    items: [
+      { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard, gated: true },
+      { path: "/entidade/dashboard", label: "Painel da Entidade", icon: Building2, gated: true },
+      { path: "/actions", label: "Eventos e Formações", icon: ListChecks, gated: true },
+    ],
+  },
+  {
+    label: "Formação",
+    items: [
+      { path: "/elearning", label: "E-learning", icon: GraduationCap },
+      { path: "/recursos", label: "Centro de Recursos", icon: BookMarked },
+    ],
+  },
+  {
+    label: "Publicações",
+    items: [
+      { path: "/publicacoes/revistas", label: "Revistas Científicas", icon: BookOpen },
+      { path: "/publicacoes/ipav", label: "Publicações IPAV", icon: Newspaper },
+      { path: "/publicacoes/biblioteca", label: "Biblioteca", icon: Library },
+    ],
+  },
+  {
+    label: "Comunicação",
+    items: [
+      { path: "/comunicacao/press-media-kit", label: "Press Media Kit", icon: Megaphone },
+      { path: "/comunicacao/propriedade-intelectual", label: "Propriedade Intelectual", icon: Copyright },
+    ],
+  },
+  {
+    items: [{ path: "/faqs", label: "FAQs", icon: HelpCircle }],
+  },
+  {
+    label: "Admin",
+    adminOnly: true,
+    items: [
+      { path: "/admin/programas", label: "Gestão de Programas", icon: Shield },
+      { path: "/admin/acoes", label: "Gestão de Ações", icon: CalendarCog },
+      { path: "/admin/recursos", label: "Gestão de Recursos", icon: FolderCog },
+      { path: "/admin/manager", label: "Central de Comando", icon: Shield },
+    ],
+  },
+];
+
 export function AppSidebar() {
-  const { visibleRoutes, profile, activeRoles, isRealAdmin, impersonatedRole, setImpersonatedRole, realRole } = useApp();
+  const { canAccess, profile, activeRoles, isRealAdmin, isAdmin, impersonatedRole, setImpersonatedRole, realRole } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const isFormando = useIsFormando();
   const { activeRoleNames } = useRoles();
 
   const displayName = profile?.full_name ?? user?.email ?? "";
@@ -61,55 +132,35 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {visibleRoutes
-                .filter((r) => r.path !== "/admin/manager")
-                .map((r) => {
-                  const Icon = ICONS[r.path] ?? LayoutDashboard;
-                  const active = path === r.path || path.startsWith(r.path + "/");
-                  return (
-                    <SidebarMenuItem key={r.path}>
-                      <SidebarMenuButton asChild isActive={active}>
-                        <Link to={r.path}>
-                          <Icon className="h-4 w-4" />
-                          <span>{r.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              {isFormando && !visibleRoutes.some((r) => r.path === "/recursos") && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={path === "/recursos"}>
-                    <Link to="/recursos">
-                      <BookMarked className="h-4 w-4" />
-                      <span>Centro de Recursos</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-              {visibleRoutes
-                .filter((r) => r.path === "/admin/manager")
-                .map((r) => {
-                  const Icon = ICONS[r.path] ?? LayoutDashboard;
-                  const active = path === r.path || path.startsWith(r.path + "/");
-                  return (
-                    <SidebarMenuItem key={r.path}>
-                      <SidebarMenuButton asChild isActive={active}>
-                        <Link to={r.path}>
-                          <Icon className="h-4 w-4" />
-                          <span>{r.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {NAV_GROUPS.map((group, idx) => {
+          if (group.adminOnly && !isAdmin) return null;
+          const items = group.items.filter((it) => (it.gated ? canAccess(it.path) : true));
+          if (items.length === 0) return null;
+          return (
+            <SidebarGroup key={group.label ?? `g-${idx}`}>
+              {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {items.map((it) => {
+                    const Icon = it.icon;
+                    const active = path === it.path || path.startsWith(it.path + "/");
+                    return (
+                      <SidebarMenuItem key={it.path}>
+                        <SidebarMenuButton asChild isActive={active} tooltip={it.label}>
+                          <Link to={it.path}>
+                            <Icon className="h-4 w-4" />
+                            <span>{it.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    );
+                  })}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          );
+        })}
+
         {isRealAdmin && (
           <SidebarGroup className="group-data-[collapsible=icon]:hidden">
             <SidebarGroupLabel className="flex items-center gap-1">
