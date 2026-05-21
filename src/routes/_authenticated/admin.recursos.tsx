@@ -433,6 +433,8 @@ function AdminResourcesPage() {
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={editing !== null} onOpenChange={(o) => (!o ? closeEdit() : null)}>
         <DialogContent className="sm:max-w-lg">
