@@ -576,14 +576,81 @@ function TemasTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos" as never)
-        .select("id, cluster, bloco, title, description, context, objectives, order_index")
+        .select("id, cluster, bloco, title, description, context, objectives, order_index, bloco_order")
         .eq("cluster", activeCluster)
-        .order("order_index");
+        .order("bloco_order", { ascending: true })
+        .order("order_index", { ascending: true });
       if (error) throw error;
       return (data as unknown as TemaRow[]) ?? [];
     },
   });
   const temas = temasQuery.data ?? [];
+
+  // Agrupar temas por bloco, preservando a ordem (bloco_order) já vinda do servidor.
+  const blocoGroups = useMemo(() => {
+    const groups: Array<{ bloco: string | null; blocoOrder: number; temas: TemaRow[] }> = [];
+    const idx = new Map<string, number>();
+    for (const t of temas) {
+      const key = t.bloco ?? "__none__";
+      let pos = idx.get(key);
+      if (pos === undefined) {
+        pos = groups.length;
+        idx.set(key, pos);
+        groups.push({ bloco: t.bloco, blocoOrder: t.bloco_order ?? 0, temas: [] });
+      }
+      groups[pos].temas.push(t);
+    }
+    return groups;
+  }, [temas]);
+
+  const moveBlock = useMutation({
+    mutationFn: async ({ blocoKey, dir }: { blocoKey: string | null; dir: "up" | "down" }) => {
+      const i = blocoGroups.findIndex((g) => (g.bloco ?? null) === blocoKey);
+      const j = dir === "up" ? i - 1 : i + 1;
+      if (i < 0 || j < 0 || j >= blocoGroups.length) return;
+      const a = blocoGroups[i];
+      const b = blocoGroups[j];
+      const aIds = a.temas.map((t) => t.id);
+      const bIds = b.temas.map((t) => t.id);
+      // Trocar bloco_order entre todos os registos dos dois blocos.
+      const { error: e1 } = await supabase
+        .from("temas_momentos" as never)
+        .update({ bloco_order: b.blocoOrder } as never)
+        .in("id", aIds);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase
+        .from("temas_momentos" as never)
+        .update({ bloco_order: a.blocoOrder } as never)
+        .in("id", bIds);
+      if (e2) throw e2;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-temas", activeCluster] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const moveTheme = useMutation({
+    mutationFn: async ({ themeId, dir }: { themeId: string; dir: "up" | "down" }) => {
+      const group = blocoGroups.find((g) => g.temas.some((t) => t.id === themeId));
+      if (!group) return;
+      const i = group.temas.findIndex((t) => t.id === themeId);
+      const j = dir === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= group.temas.length) return;
+      const a = group.temas[i];
+      const b = group.temas[j];
+      const { error: e1 } = await supabase
+        .from("temas_momentos" as never)
+        .update({ order_index: b.order_index } as never)
+        .eq("id", a.id);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase
+        .from("temas_momentos" as never)
+        .update({ order_index: a.order_index } as never)
+        .eq("id", b.id);
+      if (e2) throw e2;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-temas", activeCluster] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TemaRow | null>(null);
