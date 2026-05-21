@@ -1,11 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -30,24 +33,27 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ClusterTemasManager } from "@/components/admin/ClusterTemasManager";
-import { Loader2, Pencil, Trash2, Upload } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, Upload } from "lucide-react";
 
-type Phase = "FTC" | "FTP" | "SU" | "SF";
 type ResourceType = "pdf" | "video";
 
-interface ProgramRow {
-  id: string;
-  title: string | null;
-}
 interface ResourceRow {
   id: string;
-  program_id: string | null;
-  phase: Phase;
   title: string;
+  description: string | null;
   resource_type: string;
   file_url: string;
   created_at: string | null;
+}
+
+interface TemaRow {
+  id: string;
+  cluster: string;
+  title: string;
+  description: string | null;
+  context: string | null;
+  objectives: string | null;
+  order_index: number;
 }
 
 export const Route = createFileRoute("/_authenticated/admin/recursos")({
@@ -65,338 +71,170 @@ export const Route = createFileRoute("/_authenticated/admin/recursos")({
   component: AdminResourcesPage,
 });
 
+const BUCKET = "resources";
+
 function pathFromUrl(url: string): string | null {
-  const marker = "/object/public/resources/";
-  const idx = url.indexOf(marker);
-  return idx >= 0 ? url.slice(idx + marker.length) : null;
+  const m1 = url.indexOf(`/object/public/${BUCKET}/`);
+  if (m1 >= 0) return url.slice(m1 + `/object/public/${BUCKET}/`.length);
+  const m2 = url.indexOf(`/object/sign/${BUCKET}/`);
+  if (m2 >= 0) {
+    const after = url.slice(m2 + `/object/sign/${BUCKET}/`.length);
+    return after.split("?")[0] ?? null;
+  }
+  return null;
 }
 
 function AdminResourcesPage() {
-  const [programs, setPrograms] = useState<ProgramRow[]>([]);
-  const [resources, setResources] = useState<ResourceRow[]>([]);
-  const [loadingList, setLoadingList] = useState(true);
+  return (
+    <div className="container mx-auto max-w-6xl space-y-6 p-6">
+      <header>
+        <h1 className="text-2xl font-semibold">Centro de Recursos</h1>
+        <p className="text-sm text-muted-foreground">
+          Gere a Biblioteca, os Temas dos clusters e as suas associações.
+        </p>
+      </header>
 
-  const [programId, setProgramId] = useState<string>("");
-  const [phase, setPhase] = useState<Phase | "">("");
+      <Tabs defaultValue="biblioteca" className="w-full">
+        <TabsList>
+          <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
+          <TabsTrigger value="temas">Gestão de Temas</TabsTrigger>
+          <TabsTrigger value="assoc">Associações</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="biblioteca" className="mt-4">
+          <BibliotecaTab />
+        </TabsContent>
+        <TabsContent value="temas" className="mt-4">
+          <TemasTab />
+        </TabsContent>
+        <TabsContent value="assoc" className="mt-4">
+          <AssociacoesTab />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+/* ───────────────────────── Tab 1 — Biblioteca ───────────────────────── */
+
+function useRecursos() {
+  return useQuery({
+    queryKey: ["recursos-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("recursos")
+        .select("id, title, description, resource_type, file_url, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as ResourceRow[];
+    },
+  });
+}
+
+function BibliotecaTab() {
+  const qc = useQueryClient();
+  const { data: resources = [], isLoading } = useRecursos();
+
   const [title, setTitle] = useState("");
-  const [resourceType, setResourceType] = useState<ResourceType | "">("");
+  const [description, setDescription] = useState("");
+  const [resourceType, setResourceType] = useState<ResourceType>("pdf");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
   const [editing, setEditing] = useState<ResourceRow | null>(null);
-  const [eProgramId, setEProgramId] = useState<string>("");
-  const [ePhase, setEPhase] = useState<Phase | "">("");
-  const [eTitle, setETitle] = useState("");
-  const [eResourceType, setEResourceType] = useState<ResourceType | "">("");
-  const [eFile, setEFile] = useState<File | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  // Bulk upload state (cluster-based)
-  const [clusters, setClusters] = useState<string[]>([]);
-  const [bCluster, setBCluster] = useState<string>("");
-  const [bPhase, setBPhase] = useState<Phase | "">("");
-  const [bResourceType, setBResourceType] = useState<ResourceType | "">("");
-  const [bFiles, setBFiles] = useState<File[]>([]);
-  const [bulkUploading, setBulkUploading] = useState(false);
-  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
-
-  const loadResources = async () => {
-    setLoadingList(true);
-    const { data, error } = await supabase
-      .from("recursos" as never)
-      .select("id, program_id, phase, title, resource_type, file_url, created_at")
-      .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    setResources((data as ResourceRow[]) ?? []);
-    setLoadingList(false);
-  };
-
-  useEffect(() => {
-    supabase
-      .from("programas")
-      .select("id, title, cluster")
-      .order("title")
-      .then(({ data }) => {
-        const rows = (data as Array<{ id: string; title: string | null; cluster: string | null }>) ?? [];
-        setPrograms(rows.map((r) => ({ id: r.id, title: r.title })));
-        const uniq = Array.from(new Set(rows.map((r) => r.cluster).filter((c): c is string => !!c && c.trim() !== "")));
-        uniq.sort((a, b) => a.localeCompare(b));
-        setClusters(uniq);
-      });
-    loadResources();
-  }, []);
 
   const reset = () => {
-    setProgramId("");
-    setPhase("");
     setTitle("");
-    setResourceType("");
+    setDescription("");
+    setResourceType("pdf");
     setFile(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!programId || !phase || !title.trim() || !resourceType || !file) {
-      toast.error("Preenche todos os campos e seleciona um ficheiro.");
+    if (!title.trim()) {
+      toast.error("Indica um título.");
+      return;
+    }
+    if (!file) {
+      toast.error("Seleciona um ficheiro.");
       return;
     }
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() ?? "bin";
-      const path = `${programId}/${phase}/${crypto.randomUUID()}.${ext}`;
+      const path = `biblioteca/${crypto.randomUUID()}.${ext}`;
       const { error: upErr } = await supabase.storage
-        .from("resources")
-        .upload(path, file, { contentType: file.type, upsert: false });
+        .from(BUCKET)
+        .upload(path, file, { upsert: false });
       if (upErr) throw upErr;
-      const { data: urlData } = supabase.storage.from("resources").getPublicUrl(path);
-
-      const { error: insErr } = await supabase.from("recursos" as never).insert({
-        program_id: programId,
-        phase,
+      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+      const { error: insErr } = await supabase.from("recursos").insert({
         title: title.trim(),
+        description: description.trim() || null,
         resource_type: resourceType,
-        file_url: urlData.publicUrl,
+        file_url: pub.publicUrl,
       } as never);
       if (insErr) {
-        await supabase.storage.from("resources").remove([path]);
+        await supabase.storage.from(BUCKET).remove([path]);
         throw insErr;
       }
-
-      toast.success("Recurso carregado com sucesso.");
+      toast.success("Recurso carregado.");
       reset();
-      loadResources();
+      qc.invalidateQueries({ queryKey: ["recursos-all"] });
     } catch (err) {
-      toast.error((err as Error).message);
+      toast.error(err instanceof Error ? err.message : "Erro ao carregar.");
     } finally {
       setUploading(false);
     }
   };
 
-  const handleBulkSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!bCluster || !bPhase || !bResourceType || bFiles.length === 0) {
-      toast.error("Seleciona cluster, fase, tipo e pelo menos um ficheiro.");
-      return;
-    }
-    setBulkUploading(true);
-    setBulkProgress({ done: 0, total: bFiles.length });
-    let successCount = 0;
-    const errors: string[] = [];
-    const clusterSlug = bCluster.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "cluster";
-    for (const f of bFiles) {
-      try {
-        const ext = f.name.split(".").pop() ?? "bin";
-        const baseName = f.name.replace(/\.[^.]+$/, "").trim() || f.name;
-        const path = `${clusterSlug}/${bPhase}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("resources")
-          .upload(path, f, { contentType: f.type, upsert: false });
-        if (upErr) throw upErr;
-        const { data: urlData } = supabase.storage.from("resources").getPublicUrl(path);
-        const { error: insErr } = await supabase.from("recursos" as never).insert({
-          program_id: null,
-          phase: bPhase,
-          title: baseName,
-          resource_type: bResourceType,
-          file_url: urlData.publicUrl,
-        } as never);
-        if (insErr) {
-          await supabase.storage.from("resources").remove([path]);
-          throw insErr;
-        }
-        successCount += 1;
-      } catch (err) {
-        errors.push(`${f.name}: ${(err as Error).message}`);
-      } finally {
-        setBulkProgress((p) => ({ ...p, done: p.done + 1 }));
-      }
-    }
-    setBulkUploading(false);
-    if (successCount > 0) toast.success(`${successCount} recurso(s) carregado(s).`);
-    if (errors.length > 0) toast.error(`Falharam ${errors.length}: ${errors[0]}`);
-    setBFiles([]);
-    loadResources();
-  };
-
-
-
-  const handleDelete = async (r: ResourceRow) => {
-    if (!confirm(`Apagar "${r.title}"?`)) return;
-    try {
-      const path = pathFromUrl(r.file_url);
-
-      const { error: dbErr } = await supabase
-        .from("recursos" as never)
-        .delete()
-        .eq("id", r.id);
-      if (dbErr) throw dbErr;
-
-      if (path) await supabase.storage.from("resources").remove([path]);
-
-      toast.success("Recurso removido.");
-      loadResources();
-    } catch (err) {
-      toast.error((err as Error).message);
-    }
-  };
-
-  const openEdit = (r: ResourceRow) => {
-    setEditing(r);
-    setEProgramId(r.program_id ?? "");
-    setEPhase(r.phase);
-    setETitle(r.title);
-    setEResourceType(r.resource_type as ResourceType);
-    setEFile(null);
-  };
-
-  const closeEdit = () => {
-    if (saving) return;
-    setEditing(null);
-    setEFile(null);
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editing) return;
-    if (!eProgramId || !ePhase || !eTitle.trim() || !eResourceType) {
-      toast.error("Preenche todos os campos.");
-      return;
-    }
-    setSaving(true);
-    try {
-      let newFileUrl: string | null = null;
-      let newPath: string | null = null;
-
-      if (eFile) {
-        const ext = eFile.name.split(".").pop() ?? "bin";
-        newPath = `${eProgramId}/${ePhase}/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from("resources")
-          .upload(newPath, eFile, { contentType: eFile.type, upsert: false });
-        if (upErr) throw upErr;
-        const { data: urlData } = supabase.storage.from("resources").getPublicUrl(newPath);
-        newFileUrl = urlData.publicUrl;
-      }
-
-      const updatePayload: Record<string, unknown> = {
-        program_id: eProgramId,
-        phase: ePhase,
-        title: eTitle.trim(),
-        resource_type: eResourceType,
-      };
-      if (newFileUrl) updatePayload.file_url = newFileUrl;
-
-      const { error: updErr } = await supabase
-        .from("recursos" as never)
-        .update(updatePayload as never)
-        .eq("id", editing.id);
-
-      if (updErr) {
-        if (newPath) await supabase.storage.from("resources").remove([newPath]);
-        throw updErr;
-      }
-
-      // Remove old file if it was replaced
-      if (newFileUrl) {
-        const oldPath = pathFromUrl(editing.file_url);
-        if (oldPath) await supabase.storage.from("resources").remove([oldPath]);
-      }
-
-      toast.success("Recurso atualizado.");
-      setEditing(null);
-      setEFile(null);
-      loadResources();
-    } catch (err) {
-      toast.error((err as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  };
+  const deleteMutation = useMutation({
+    mutationFn: async (row: ResourceRow) => {
+      const path = pathFromUrl(row.file_url);
+      const { error } = await supabase.from("recursos").delete().eq("id", row.id);
+      if (error) throw error;
+      if (path) await supabase.storage.from(BUCKET).remove([path]);
+    },
+    onSuccess: () => {
+      toast.success("Recurso apagado.");
+      qc.invalidateQueries({ queryKey: ["recursos-all"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Gestor de Recursos</h1>
-        <p className="text-sm text-muted-foreground">
-          Biblioteca central de recursos e organização por cluster.
-        </p>
-      </div>
-
-      {/* defined later as handleBulkSubmit */}
-
-      <Tabs defaultValue="biblioteca">
-        <TabsList>
-          <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
-          <TabsTrigger value="clusters">Temas por Cluster</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="clusters" className="mt-4">
-          <ClusterTemasManager />
-        </TabsContent>
-
-        <TabsContent value="biblioteca" className="mt-4 space-y-6">
-
-
+    <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Novo recurso</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Programa</Label>
-              <Select value={programId} onValueChange={setProgramId} disabled={uploading}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar programa" />
-                </SelectTrigger>
-                <SelectContent>
-                  {programs.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.title ?? p.id}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Fase</Label>
-              <Select
-                value={phase}
-                onValueChange={(v) => setPhase(v as Phase)}
-                disabled={uploading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar fase" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FTC">FTC — Formação Teórico-Conceptual</SelectItem>
-                  <SelectItem value="FTP">FTP — Formação Teórico-Prática</SelectItem>
-                  <SelectItem value="SU">Semana Ubuntu</SelectItem>
-                  <SelectItem value="SF">Sessão Final</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
+          <form onSubmit={handleUpload} className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1 sm:col-span-2">
               <Label>Título</Label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                disabled={uploading}
-                placeholder="Ex: Guião do Formando"
+                required
               />
             </div>
-
-            <div className="space-y-2">
+            <div className="space-y-1 sm:col-span-2">
+              <Label>Descrição</Label>
+              <Textarea
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1">
               <Label>Tipo</Label>
               <Select
                 value={resourceType}
                 onValueChange={(v) => setResourceType(v as ResourceType)}
-                disabled={uploading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecionar tipo" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="pdf">PDF</SelectItem>
@@ -404,154 +242,34 @@ function AdminResourcesPage() {
                 </SelectContent>
               </Select>
             </div>
-
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label>Ficheiro</Label>
               <Input
                 type="file"
+                accept={resourceType === "pdf" ? "application/pdf" : "video/*"}
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                disabled={uploading}
-                accept={resourceType === "video" ? "video/*" : ".pdf,application/pdf"}
               />
             </div>
-
             <div className="sm:col-span-2">
-              <Button type="submit" disabled={uploading} className="w-full sm:w-auto">
+              <Button type="submit" disabled={uploading}>
                 {uploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />A carregar…
-                  </>
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <>
-                    <Upload className="h-4 w-4" />
-                    Carregar recurso
-                  </>
+                  <Upload className="h-4 w-4" />
                 )}
+                Carregar recurso
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Carregamento em massa</CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Escolhe cluster, fase e tipo uma vez e seleciona vários ficheiros. O título de cada recurso será o nome do ficheiro (sem extensão).
-          </p>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleBulkSubmit} className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Cluster</Label>
-              <Select value={bCluster} onValueChange={setBCluster} disabled={bulkUploading}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar cluster" />
-                </SelectTrigger>
-                <SelectContent>
-                  {clusters.length === 0 ? (
-                    <SelectItem value="__none__" disabled>Sem clusters definidos</SelectItem>
-                  ) : (
-                    clusters.map((c) => (
-                      <SelectItem key={c} value={c}>{c}</SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Fase</Label>
-              <Select
-                value={bPhase}
-                onValueChange={(v) => setBPhase(v as Phase)}
-                disabled={bulkUploading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar fase" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FTC">FTC — Formação Teórico-Conceptual</SelectItem>
-                  <SelectItem value="FTP">FTP — Formação Teórico-Prática</SelectItem>
-                  <SelectItem value="SU">Semana Ubuntu</SelectItem>
-                  <SelectItem value="SF">Sessão Final</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select
-                value={bResourceType}
-                onValueChange={(v) => setBResourceType(v as ResourceType)}
-                disabled={bulkUploading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pdf">PDF</SelectItem>
-                  <SelectItem value="video">Vídeo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Ficheiros (vários)</Label>
-              <Input
-                type="file"
-                multiple
-                onChange={(e) => setBFiles(Array.from(e.target.files ?? []))}
-                disabled={bulkUploading}
-                accept={bResourceType === "video" ? "video/*" : ".pdf,application/pdf"}
-              />
-              {bFiles.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  {bFiles.length} ficheiro(s) selecionado(s)
-                </p>
-              )}
-            </div>
-
-            {bFiles.length > 0 && (
-              <div className="sm:col-span-2 max-h-40 overflow-auto rounded border p-2 text-xs text-muted-foreground">
-                <ul className="space-y-1">
-                  {bFiles.map((f, i) => (
-                    <li key={i} className="flex justify-between gap-2">
-                      <span className="truncate">{f.name.replace(/\.[^.]+$/, "")}</span>
-                      <span className="shrink-0">{(f.size / 1024).toFixed(0)} KB</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            <div className="sm:col-span-2">
-              <Button type="submit" disabled={bulkUploading} className="w-full sm:w-auto">
-                {bulkUploading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    A carregar {bulkProgress.done}/{bulkProgress.total}…
-                  </>
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4" />
-                    Carregar {bFiles.length > 0 ? `${bFiles.length} ficheiro(s)` : "em massa"}
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-
-
 
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Recursos carregados</CardTitle>
         </CardHeader>
         <CardContent>
-          {loadingList ? (
+          {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
@@ -564,45 +282,37 @@ function AdminResourcesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Título</TableHead>
-                  <TableHead>Fase</TableHead>
                   <TableHead>Tipo</TableHead>
-                  <TableHead className="w-[140px]" />
+                  <TableHead>Descrição</TableHead>
+                  <TableHead className="w-32 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {resources.map((r) => (
                   <TableRow key={r.id}>
-                    <TableCell>
-                      <a
-                        href={r.file_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-medium underline-offset-2 hover:underline"
-                      >
-                        {r.title}
-                      </a>
-                    </TableCell>
-                    <TableCell>{r.phase}</TableCell>
+                    <TableCell className="font-medium">{r.title}</TableCell>
                     <TableCell className="uppercase">{r.resource_type}</TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEdit(r)}
-                          title="Editar"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(r)}
-                          title="Apagar"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                    <TableCell className="max-w-md truncate text-muted-foreground">
+                      {r.description ?? "—"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setEditing(r)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          if (confirm(`Apagar "${r.title}"?`))
+                            deleteMutation.mutate(r);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -611,111 +321,603 @@ function AdminResourcesPage() {
           )}
         </CardContent>
       </Card>
-        </TabsContent>
-      </Tabs>
 
-      <Dialog open={editing !== null} onOpenChange={(o) => (!o ? closeEdit() : null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Editar recurso</DialogTitle>
-            <DialogDescription>
-              Atualizar propriedades do recurso. Substituir o ficheiro é opcional.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSaveEdit} className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
-              <Label>Programa</Label>
-              <Select value={eProgramId} onValueChange={setEProgramId} disabled={saving}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar programa" />
+      <EditRecursoDialog
+        recurso={editing}
+        onClose={() => setEditing(null)}
+        onSaved={() => qc.invalidateQueries({ queryKey: ["recursos-all"] })}
+      />
+    </div>
+  );
+}
+
+function EditRecursoDialog({
+  recurso,
+  onClose,
+  onSaved,
+}: {
+  recurso: ResourceRow | null;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [resourceType, setResourceType] = useState<ResourceType>("pdf");
+  const [file, setFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (recurso) {
+      setTitle(recurso.title);
+      setDescription(recurso.description ?? "");
+      setResourceType((recurso.resource_type as ResourceType) ?? "pdf");
+      setFile(null);
+    }
+  }, [recurso]);
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recurso) return;
+    setSaving(true);
+    try {
+      let file_url = recurso.file_url;
+      if (file) {
+        const ext = file.name.split(".").pop() ?? "bin";
+        const path = `biblioteca/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from(BUCKET)
+          .upload(path, file, { upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
+        file_url = pub.publicUrl;
+        const oldPath = pathFromUrl(recurso.file_url);
+        if (oldPath) await supabase.storage.from(BUCKET).remove([oldPath]);
+      }
+      const { error } = await supabase
+        .from("recursos")
+        .update({
+          title: title.trim(),
+          description: description.trim() || null,
+          resource_type: resourceType,
+          file_url,
+        } as never)
+        .eq("id", recurso.id);
+      if (error) throw error;
+      toast.success("Recurso atualizado.");
+      onSaved();
+      onClose();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao guardar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!recurso} onOpenChange={(o) => !o && !saving && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Editar recurso</DialogTitle>
+          <DialogDescription>
+            Atualiza os campos. Carrega um novo ficheiro só se quiseres substituir.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={save} className="space-y-3">
+          <div className="space-y-1">
+            <Label>Título</Label>
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>Descrição</Label>
+            <Textarea
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>Tipo</Label>
+            <Select
+              value={resourceType}
+              onValueChange={(v) => setResourceType(v as ResourceType)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pdf">PDF</SelectItem>
+                <SelectItem value="video">Vídeo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Substituir ficheiro (opcional)</Label>
+            <Input
+              type="file"
+              accept={resourceType === "pdf" ? "application/pdf" : "video/*"}
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ─────────────────────── Shared — Clusters ─────────────────────── */
+
+function useClusters() {
+  return useQuery({
+    queryKey: ["clusters"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("programas")
+        .select("cluster")
+        .not("cluster", "is", null);
+      if (error) throw error;
+      const set = new Set<string>();
+      (data ?? []).forEach((r) => {
+        const c = (r as { cluster: string | null }).cluster;
+        if (c && c.trim()) set.add(c.trim());
+      });
+      return Array.from(set).sort((a, b) => a.localeCompare(b, "pt"));
+    },
+  });
+}
+
+/* ─────────────────────── Tab 2 — Gestão de Temas ─────────────────────── */
+
+interface TemaForm {
+  title: string;
+  description: string;
+  context: string;
+  objectives: string;
+}
+const EMPTY_TEMA: TemaForm = { title: "", description: "", context: "", objectives: "" };
+
+function TemasTab() {
+  const qc = useQueryClient();
+  const { data: clusters = [], isLoading: loadingClusters } = useClusters();
+  const [cluster, setCluster] = useState<string>("");
+  const activeCluster = cluster || clusters[0] || "";
+
+  const temasQuery = useQuery({
+    queryKey: ["admin-temas", activeCluster],
+    enabled: !!activeCluster,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("temas_momentos" as never)
+        .select("id, cluster, title, description, context, objectives, order_index")
+        .eq("cluster", activeCluster)
+        .order("order_index");
+      if (error) throw error;
+      return (data as unknown as TemaRow[]) ?? [];
+    },
+  });
+  const temas = temasQuery.data ?? [];
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<TemaRow | null>(null);
+  const [form, setForm] = useState<TemaForm>(EMPTY_TEMA);
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(EMPTY_TEMA);
+    setDialogOpen(true);
+  };
+  const openEdit = (t: TemaRow) => {
+    setEditing(t);
+    setForm({
+      title: t.title,
+      description: t.description ?? "",
+      context: t.context ?? "",
+      objectives: t.objectives ?? "",
+    });
+    setDialogOpen(true);
+  };
+
+  const upsertMutation = useMutation({
+    mutationFn: async () => {
+      if (!activeCluster) throw new Error("Seleciona um cluster.");
+      if (!form.title.trim()) throw new Error("O título é obrigatório.");
+      if (editing) {
+        const { error } = await supabase
+          .from("temas_momentos" as never)
+          .update({
+            title: form.title.trim(),
+            description: form.description.trim() || null,
+            context: form.context.trim() || null,
+            objectives: form.objectives.trim() || null,
+          } as never)
+          .eq("id", editing.id);
+        if (error) throw error;
+      } else {
+        const maxOrder = temas.reduce((m, t) => Math.max(m, t.order_index), -1);
+        const { error } = await supabase.from("temas_momentos" as never).insert({
+          cluster: activeCluster,
+          title: form.title.trim(),
+          description: form.description.trim() || null,
+          context: form.context.trim() || null,
+          objectives: form.objectives.trim() || null,
+          order_index: maxOrder + 1,
+        } as never);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success(editing ? "Tema atualizado." : "Tema criado.");
+      setDialogOpen(false);
+      setEditing(null);
+      setForm(EMPTY_TEMA);
+      qc.invalidateQueries({ queryKey: ["admin-temas", activeCluster] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("temas_momentos" as never)
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Tema removido.");
+      qc.invalidateQueries({ queryKey: ["admin-temas", activeCluster] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Cluster</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loadingClusters ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : clusters.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Não existem clusters definidos nos programas.
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-3">
+              <Select value={activeCluster} onValueChange={setCluster}>
+                <SelectTrigger className="max-w-sm">
+                  <SelectValue placeholder="Selecionar cluster" />
                 </SelectTrigger>
                 <SelectContent>
-                  {programs.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.title ?? p.id}
+                  {clusters.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <Button onClick={openCreate} disabled={!activeCluster} size="sm">
+                <Plus className="h-4 w-4" /> Adicionar Tema
+              </Button>
             </div>
+          )}
+        </CardContent>
+      </Card>
 
-            <div className="space-y-2">
-              <Label>Fase</Label>
-              <Select
-                value={ePhase}
-                onValueChange={(v) => setEPhase(v as Phase)}
-                disabled={saving}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar fase" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="FTC">FTC — Formação Teórico-Conceptual</SelectItem>
-                  <SelectItem value="FTP">FTP — Formação Teórico-Prática</SelectItem>
-                  <SelectItem value="SU">Semana Ubuntu</SelectItem>
-                  <SelectItem value="SF">Sessão Final</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      {activeCluster && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Temas — {activeCluster}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {temasQuery.isLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : temas.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Sem temas. Cria o primeiro.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Título</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead className="w-32 text-right">Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {temas.map((t) => (
+                    <TableRow key={t.id}>
+                      <TableCell className="font-medium">{t.title}</TableCell>
+                      <TableCell className="max-w-md truncate text-muted-foreground">
+                        {t.description ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(t)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            if (confirm(`Apagar tema "${t.title}"?`))
+                              deleteMutation.mutate(t.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select
-                value={eResourceType}
-                onValueChange={(v) => setEResourceType(v as ResourceType)}
-                disabled={saving}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pdf">PDF</SelectItem>
-                  <SelectItem value="video">Vídeo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2 sm:col-span-2">
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(o) => !upsertMutation.isPending && setDialogOpen(o)}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Editar tema" : "Novo tema"}</DialogTitle>
+            <DialogDescription>Cluster: {activeCluster}</DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              upsertMutation.mutate();
+            }}
+            className="space-y-3"
+          >
+            <div className="space-y-1">
               <Label>Título</Label>
               <Input
-                value={eTitle}
-                onChange={(e) => setETitle(e.target.value)}
-                disabled={saving}
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+                required
               />
             </div>
-
-            <div className="space-y-2 sm:col-span-2">
-              <Label>Substituir ficheiro (opcional)</Label>
-              <Input
-                type="file"
-                onChange={(e) => setEFile(e.target.files?.[0] ?? null)}
-                disabled={saving}
-                accept={eResourceType === "video" ? "video/*" : ".pdf,application/pdf"}
+            <div className="space-y-1">
+              <Label>Descrição</Label>
+              <Textarea
+                rows={3}
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
-              {!eFile && editing && (
-                <p className="text-xs text-muted-foreground truncate">
-                  Atual: {editing.file_url.split("/").pop()}
-                </p>
-              )}
             </div>
-
-            <DialogFooter className="sm:col-span-2">
-              <Button type="button" variant="ghost" onClick={closeEdit} disabled={saving}>
+            <div className="space-y-1">
+              <Label>Contexto</Label>
+              <Textarea
+                rows={3}
+                value={form.context}
+                onChange={(e) => setForm({ ...form, context: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Objetivos</Label>
+              <Textarea
+                rows={3}
+                value={form.objectives}
+                onChange={(e) => setForm({ ...form, objectives: e.target.value })}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setDialogOpen(false)}
+                disabled={upsertMutation.isPending}
+              >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={saving}>
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />A guardar…
-                  </>
+              <Button type="submit" disabled={upsertMutation.isPending}>
+                {upsertMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  "Guardar alterações"
+                  "Guardar"
                 )}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+/* ─────────────────────── Tab 3 — Associações ─────────────────────── */
+
+function AssociacoesTab() {
+  const qc = useQueryClient();
+  const { data: clusters = [] } = useClusters();
+  const { data: recursos = [] } = useRecursos();
+
+  const [cluster, setCluster] = useState<string>("");
+  const activeCluster = cluster || clusters[0] || "";
+
+  const temasQuery = useQuery({
+    queryKey: ["assoc-temas", activeCluster],
+    enabled: !!activeCluster,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("temas_momentos" as never)
+        .select("id, cluster, title, description, context, objectives, order_index")
+        .eq("cluster", activeCluster)
+        .order("order_index");
+      if (error) throw error;
+      return (data as unknown as TemaRow[]) ?? [];
+    },
+  });
+  const temas = temasQuery.data ?? [];
+
+  const [temaId, setTemaId] = useState<string>("");
+  useEffect(() => {
+    setTemaId("");
+  }, [activeCluster]);
+
+  const existingQuery = useQuery({
+    queryKey: ["tema-recursos", temaId],
+    enabled: !!temaId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tema_recursos" as never)
+        .select("recurso_id")
+        .eq("tema_id", temaId);
+      if (error) throw error;
+      return ((data ?? []) as Array<{ recurso_id: string }>).map((r) => r.recurso_id);
+    },
+  });
+
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    setSelected(new Set(existingQuery.data ?? []));
+  }, [existingQuery.data, temaId]);
+
+  const sortedRecursos = useMemo(
+    () => [...recursos].sort((a, b) => a.title.localeCompare(b.title, "pt")),
+    [recursos],
+  );
+
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (!temaId) throw new Error("Seleciona um tema.");
+      const { error: delErr } = await supabase
+        .from("tema_recursos" as never)
+        .delete()
+        .eq("tema_id", temaId);
+      if (delErr) throw delErr;
+      const ids = [...selected];
+      if (ids.length > 0) {
+        const { error } = await supabase
+          .from("tema_recursos" as never)
+          .insert(ids.map((rid) => ({ tema_id: temaId, recurso_id: rid })) as never);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Associações guardadas.");
+      qc.invalidateQueries({ queryKey: ["tema-recursos", temaId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggle = (id: string) => {
+    const next = new Set(selected);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelected(next);
+  };
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Selecionar tema</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1">
+            <Label>Cluster</Label>
+            <Select value={activeCluster} onValueChange={setCluster}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecionar cluster" />
+              </SelectTrigger>
+              <SelectContent>
+                {clusters.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Tema</Label>
+            <Select value={temaId} onValueChange={setTemaId} disabled={!activeCluster}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecionar tema" />
+              </SelectTrigger>
+              <SelectContent>
+                {temas.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {temaId && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Recursos associados ({selected.size})
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {sortedRecursos.length === 0 ? (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                A Biblioteca está vazia.
+              </p>
+            ) : (
+              <ul className="divide-y rounded-md border">
+                {sortedRecursos.map((r) => {
+                  const checked = selected.has(r.id);
+                  return (
+                    <li
+                      key={r.id}
+                      className="flex items-start gap-3 px-3 py-2 hover:bg-muted/40"
+                    >
+                      <Checkbox
+                        id={`r-${r.id}`}
+                        checked={checked}
+                        onCheckedChange={() => toggle(r.id)}
+                        className="mt-1"
+                      />
+                      <label htmlFor={`r-${r.id}`} className="flex-1 cursor-pointer">
+                        <div className="font-medium">{r.title}</div>
+                        <div className="text-xs uppercase text-muted-foreground">
+                          {r.resource_type}
+                          {r.description ? ` · ${r.description}` : ""}
+                        </div>
+                      </label>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <div className="flex justify-end">
+              <Button
+                onClick={() => saveMutation.mutate()}
+                disabled={saveMutation.isPending}
+              >
+                {saveMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : null}
+                Guardar Associações
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
