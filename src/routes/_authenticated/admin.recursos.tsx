@@ -114,9 +114,15 @@ function AdminResourcesPage() {
   useEffect(() => {
     supabase
       .from("programas")
-      .select("id, title")
+      .select("id, title, cluster")
       .order("title")
-      .then(({ data }) => setPrograms((data as ProgramRow[]) ?? []));
+      .then(({ data }) => {
+        const rows = (data as Array<{ id: string; title: string | null; cluster: string | null }>) ?? [];
+        setPrograms(rows.map((r) => ({ id: r.id, title: r.title })));
+        const uniq = Array.from(new Set(rows.map((r) => r.cluster).filter((c): c is string => !!c && c.trim() !== "")));
+        uniq.sort((a, b) => a.localeCompare(b));
+        setClusters(uniq);
+      });
     loadResources();
   }, []);
 
