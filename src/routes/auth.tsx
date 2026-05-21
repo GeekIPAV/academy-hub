@@ -98,7 +98,7 @@ function AuthPage() {
           <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-32 w-auto" />
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login">
+          <Tabs defaultValue="login" className="mt-[15px]">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Entrar</TabsTrigger>
               <TabsTrigger value="signup">Criar conta</TabsTrigger>
@@ -108,7 +108,7 @@ function AuthPage() {
               <form onSubmit={handleLogin} className="space-y-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="login-email">Email</Label>
-                  <Input
+                  <Input className="bg-white"
                     id="login-email"
                     type="email"
                     required
@@ -118,7 +118,7 @@ function AuthPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="login-password">Password</Label>
-                  <Input
+                  <Input className="bg-white"
                     id="login-password"
                     type="password"
                     required
@@ -136,7 +136,7 @@ function AuthPage() {
               <form onSubmit={handleSignup} className="space-y-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="su-name">Nome completo</Label>
-                  <Input
+                  <Input className="bg-white"
                     id="su-name"
                     required
                     value={fullName}
@@ -145,7 +145,7 @@ function AuthPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="su-email">Email</Label>
-                  <Input
+                  <Input className="bg-white"
                     id="su-email"
                     type="email"
                     required
@@ -155,7 +155,7 @@ function AuthPage() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="su-password">Password</Label>
-                  <Input
+                  <Input className="bg-white"
                     id="su-password"
                     type="password"
                     required
