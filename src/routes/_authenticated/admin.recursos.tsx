@@ -526,7 +526,14 @@ function BibliotecaTab() {
               </TableHeader>
               <TableBody>
                 {filteredResources.map((r) => (
-                  <TableRow key={r.id}>
+                  <TableRow key={r.id} data-state={selectedIds.includes(r.id) ? "selected" : undefined}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.includes(r.id)}
+                        onCheckedChange={(v) => toggleSelect(r.id, v === true)}
+                        aria-label={`Selecionar ${r.title}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{r.title}</TableCell>
                     <TableCell className="uppercase">{r.resource_type}</TableCell>
                     <TableCell className="text-muted-foreground">
