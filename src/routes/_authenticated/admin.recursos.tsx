@@ -91,6 +91,14 @@ function AdminResourcesPage() {
   const [eFile, setEFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Bulk upload state
+  const [bProgramId, setBProgramId] = useState<string>("");
+  const [bPhase, setBPhase] = useState<Phase | "">("");
+  const [bResourceType, setBResourceType] = useState<ResourceType | "">("");
+  const [bFiles, setBFiles] = useState<File[]>([]);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+
   const loadResources = async () => {
     setLoadingList(true);
     const { data, error } = await supabase
