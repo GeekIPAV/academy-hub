@@ -45,7 +45,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
 
 type ResourceType = "pdf" | "video";
 
@@ -247,6 +247,7 @@ function BibliotecaTab() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkTypeOpen, setBulkTypeOpen] = useState(false);
   const [bulkType, setBulkType] = useState<ResourceType>("pdf");
+  const [formOpen, setFormOpen] = useState(true);
 
   const visibleIds = useMemo(() => filteredResources.map((r) => r.id), [filteredResources]);
   const allVisibleSelected =
@@ -299,23 +300,49 @@ function BibliotecaTab() {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="single" className="w-full">
-        <TabsList>
-          <TabsTrigger value="single">
-            <Plus className="mr-1 h-4 w-4" /> Novo recurso
-          </TabsTrigger>
-          <TabsTrigger value="bulk">
-            <ListPlus className="mr-1 h-4 w-4" /> Adicionar em massa
-          </TabsTrigger>
-        </TabsList>
+      <Card>
+        <CardHeader
+          className="cursor-pointer select-none"
+          onClick={() => setFormOpen((v) => !v)}
+        >
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Novo recurso
+            </CardTitle>
+            <Button variant="ghost" size="icon" asChild>
+              <span>
+                {formOpen ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </span>
+            </Button>
+          </div>
+        </CardHeader>
+        {formOpen && (
+          <CardContent>
+            <Tabs defaultValue="single" className="w-full">
+              <TabsList>
+                <TabsTrigger value="single">
+                  <Plus className="mr-1 h-4 w-4" /> Novo recurso
+                </TabsTrigger>
+                <TabsTrigger value="bulk">
+                  <ListPlus className="mr-1 h-4 w-4" /> Adicionar em massa
+                </TabsTrigger>
+              </TabsList>
 
-        <TabsContent value="single" className="mt-4">
-          <SingleResourceForm />
-        </TabsContent>
-        <TabsContent value="bulk" className="mt-4">
-          <BulkAddForm />
-        </TabsContent>
-      </Tabs>
+              <TabsContent value="single" className="mt-4">
+                <SingleResourceForm />
+              </TabsContent>
+              <TabsContent value="bulk" className="mt-4">
+                <BulkAddForm />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        )}
+      </Card>
 
       <Card>
         <CardHeader>
