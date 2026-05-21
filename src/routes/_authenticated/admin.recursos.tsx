@@ -360,7 +360,7 @@ function BibliotecaTab() {
                       {sortBy === "created_at" && <ArrowUpDown className="h-3 w-3" />}
                     </span>
                   </TableHead>
-                  <TableHead className="w-32 text-right">Ações</TableHead>
+                  <TableHead className="w-40 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
