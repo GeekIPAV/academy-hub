@@ -165,6 +165,53 @@ function AdminResourcesPage() {
     }
   };
 
+  const handleBulkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bProgramId || !bPhase || !bResourceType || bFiles.length === 0) {
+      toast.error("Seleciona programa, fase, tipo e pelo menos um ficheiro.");
+      return;
+    }
+    setBulkUploading(true);
+    setBulkProgress({ done: 0, total: bFiles.length });
+    let successCount = 0;
+    const errors: string[] = [];
+    for (const f of bFiles) {
+      try {
+        const ext = f.name.split(".").pop() ?? "bin";
+        const baseName = f.name.replace(/\.[^.]+$/, "").trim() || f.name;
+        const path = `${bProgramId}/${bPhase}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("resources")
+          .upload(path, f, { contentType: f.type, upsert: false });
+        if (upErr) throw upErr;
+        const { data: urlData } = supabase.storage.from("resources").getPublicUrl(path);
+        const { error: insErr } = await supabase.from("recursos" as never).insert({
+          program_id: bProgramId,
+          phase: bPhase,
+          title: baseName,
+          resource_type: bResourceType,
+          file_url: urlData.publicUrl,
+        } as never);
+        if (insErr) {
+          await supabase.storage.from("resources").remove([path]);
+          throw insErr;
+        }
+        successCount += 1;
+      } catch (err) {
+        errors.push(`${f.name}: ${(err as Error).message}`);
+      } finally {
+        setBulkProgress((p) => ({ ...p, done: p.done + 1 }));
+      }
+    }
+    setBulkUploading(false);
+    if (successCount > 0) toast.success(`${successCount} recurso(s) carregado(s).`);
+    if (errors.length > 0) toast.error(`Falharam ${errors.length}: ${errors[0]}`);
+    setBFiles([]);
+    loadResources();
+  };
+
+
+
   const handleDelete = async (r: ResourceRow) => {
     if (!confirm(`Apagar "${r.title}"?`)) return;
     try {
