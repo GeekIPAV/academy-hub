@@ -68,39 +68,39 @@
 :root {
   --radius: 0.625rem;
 
-  /* Academia de Líderes Ubuntu — brand tokens (light mode) */
-  --background: oklch(1 0 0);                       /* #FFFFFF */
-  --foreground: oklch(0.24 0.04 256.3);             /* #182B47 navy body text */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.24 0.04 256.3);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.24 0.04 256.3);
-  --primary: oklch(0.68 0.22 39.5);                 /* #FF8226 Ubuntu orange */
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.35 0.11 254.2);              /* #193B69 Ubuntu deep blue */
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.97 0.005 256);
-  --muted-foreground: oklch(0.45 0.03 255.0);
-  --accent: oklch(0.81 0.18 84.3);                  /* #FFB90B yellow */
-  --accent-foreground: oklch(0.24 0.04 256.3);
-  --destructive: oklch(0.63 0.215 20);              /* #EF4552 */
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.92 0.012 256);
-  --input: oklch(0.92 0.012 256);
-  --ring: oklch(0.68 0.22 39.5);
-  --chart-1: oklch(0.68 0.22 39.5);
-  --chart-2: oklch(0.35 0.11 254.2);
-  --chart-3: oklch(0.62 0.155 240);                 /* #008DD5 light blue */
-  --chart-4: oklch(0.81 0.18 84.3);
-  --chart-5: oklch(0.63 0.215 20);
-  --sidebar: oklch(0.35 0.11 254.2);
-  --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(0.68 0.22 39.5);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.30 0.09 254.2);
-  --sidebar-accent-foreground: oklch(1 0 0);
-  --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.68 0.22 39.5);
+  /* Academia de Líderes Ubuntu — brand tokens (strict HEX) */
+  --background: #FFFFFF;
+  --foreground: #182B47;
+  --card: #FFFFFF;
+  --card-foreground: #182B47;
+  --popover: #FFFFFF;
+  --popover-foreground: #182B47;
+  --primary: #FF8226;
+  --primary-foreground: #FFFFFF;
+  --secondary: #193B69;
+  --secondary-foreground: #FFFFFF;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --accent: #FFB90B;
+  --accent-foreground: #182B47;
+  --destructive: #EF4552;
+  --destructive-foreground: #FFFFFF;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --ring: #FF8226;
+  --chart-1: #FF8226;
+  --chart-2: #193B69;
+  --chart-3: #008DD5;
+  --chart-4: #FFB90B;
+  --chart-5: #EF4552;
+  --sidebar: #193B69;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #FF8226;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #182B47;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #182B47;
+  --sidebar-ring: #FF8226;
 }
 
 
