@@ -127,6 +127,10 @@ function UsersManager() {
       toast.error("Email obrigatório");
       return;
     }
+    if (inviteRoles.size === 0) {
+      toast.error("Seleciona pelo menos um perfil");
+      return;
+    }
     inviteMut.mutate({
       email,
       full_name: inviteName.trim() || undefined,
