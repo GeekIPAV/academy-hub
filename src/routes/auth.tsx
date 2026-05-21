@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import aluLogo from "@/assets/alu-logo.svg";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
@@ -76,8 +77,8 @@ function AuthPage() {
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-md items-center">
       <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Academia Ubuntu</CardTitle>
+        <CardHeader className="flex items-center justify-center">
+          <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-32 w-auto" />
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login">
