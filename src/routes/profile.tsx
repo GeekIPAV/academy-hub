@@ -125,7 +125,7 @@ function PrivacySection({ userId }: { userId: string | null }) {
                 onCheckedChange={(v) => setConfirmed(v === true)}
                 className="mt-0.5"
               />
-              <span>Confirmo que desejo anonimizar os meus dados.</span>
+              <span>Confirmo que desejo eliminar a minha conta.</span>
             </label>
             <AlertDialogFooter>
               <AlertDialogCancel disabled={mut.isPending}>Cancelar</AlertDialogCancel>
