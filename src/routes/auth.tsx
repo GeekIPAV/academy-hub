@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import aluLogo from "@/assets/alu-logo.svg";
 import authBackground from "@/assets/auth-background.png";
+import { LoadingU } from "@/components/LoadingU";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
