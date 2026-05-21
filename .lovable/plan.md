@@ -1,77 +1,71 @@
-# Replicar modelo Zite na Academia Ubuntu
+# Centro de Recursos por Cluster
 
-Adapto os campos e relações da plataforma exportada às tabelas que já existem. Nada do que já temos é apagado — só acrescento colunas e uma tabela nova.
+Reestrutura o Centro de Recursos para ser organizado por **Cluster** (atemporal, partilhado entre edições anuais) em vez de por programa ou por fase fixa (FTC/FTP/SU/SF).
 
-## 1. Alterações à base de dados
+## 1. Base de dados (migração)
 
-### `acoes` — colunas novas
-- `start_date` (date), `end_date` (date) — mantenho `action_date` por retro-compatibilidade
-- `created_by` (uuid, referência opcional ao utilizador)
-- `tshirt_tracking_link` (text)
-- `tshirt_value` (numeric)
-- `fotos_link` (text)
-- `avaliacao_satisfacao` (numeric 0–10) e `avaliacao_satisfacao_link` (text)
-- `avaliacao_impacto` (numeric 0–10) e `avaliacao_impacto_link` (text)
+Novas tabelas:
 
-### `inscritos_acoes` (formandos) — colunas novas
-- `tshirt_size` (text: XS/S/M/L/XL/XXL)
-- `certificate_sent` (boolean default false)
-- `certificate_url` (text)
-- `certificate_sent_at` (timestamptz)
+- `temas_momentos`
+  - `id uuid pk`, `cluster text not null`, `title text not null`,
+    `description text`, `context text`, `objectives text`,
+    `order_index int not null default 0`,
+    `created_at`, `updated_at`
+  - Index em `(cluster, order_index)`
+- `tema_recursos` (pivot M:N)
+  - `tema_id uuid → temas_momentos(id) on delete cascade`
+  - `recurso_id uuid → recursos(id) on delete cascade`
+  - PK composta `(tema_id, recurso_id)`
 
-### Nova tabela `formadores_acoes`
-Liga formadores a ações (no Zite eram registos separados de participantes).
-- `id`, `action_id` → acoes, `user_id` → utilizadores
-- `tshirt_size` (text)
-- `status` (text: 'Confirmado' | 'Pendente' | 'Cancelado')
-- `certificate_sent` (bool), `certificate_url` (text), `certificate_sent_at` (timestamptz)
-- `created_at`
-- Unique (action_id, user_id)
-- RLS: admin tudo; formador vê os seus próprios registos
+RLS:
+- `temas_momentos`: SELECT para `authenticated`; INSERT/UPDATE/DELETE só `is_admin(auth.uid())`.
+- `tema_recursos`: mesmas regras.
 
-### `entidades` — não precisa de alterações
-Os campos do Zite (morada, código postal, localidade, telemóvel, email de contacto) já existem com nomes equivalentes. `idProgramaNotion` / `idEntidadeNotion` já existem via `entidades_programas`.
+Nota: a tabela `recursos` existente mantém-se. A coluna `phase` deixa de ser usada na nova UI (mantida para compatibilidade, sem migração destrutiva).
 
-### Índices
-- `idx_formadores_acoes_action`, `idx_formadores_acoes_user`
-- `idx_inscritos_acoes_action` (se ainda não existir)
+## 2. Visão Formando — `/recursos`
 
-## 2. UI Admin
+Substitui a UI atual baseada em fases por navegação por Cluster:
 
-Acrescento à página `admin.programas.tsx` (ou crio `admin.acoes.tsx` se preferires) um painel por ação com 3 separadores:
+- Topo: seletor (Tabs ou Select) com os valores **únicos** de `programas.cluster` (filtrando nulos, ordenados alfabeticamente).
+- Conteúdo: `Accordion` com os `temas_momentos` do cluster selecionado (ordenados por `order_index`).
+  - Cada item mostra: título, descrição, contexto, objetivos.
+  - Lista de recursos associados (via `tema_recursos`) em cards: título, descrição, botão "Abrir" com `target="_blank" rel="noopener noreferrer"` para `file_url` (proxy `/api/public/recursos/...` quando aplicável).
+- Sem lógica de "desbloqueio por fase" — todos os formandos autenticados veem tudo do cluster.
+- Manter `ComponentAccessMatrix` e `isComponentVisible` para o header/seletor/lista.
 
-### Tab "Detalhes & Logística"
-- Datas (início/fim), link tracking t-shirts, valor t-shirts, link fotos
-- Campos de avaliação (satisfação e impacto: nota + link de formulário)
+Fetch via TanStack Query numa única chamada:
+```ts
+supabase.from("temas_momentos")
+  .select("*, tema_recursos(recursos(*))")
+  .eq("cluster", cluster)
+  .order("order_index");
+```
 
-### Tab "Formandos"
-- Lista de inscritos da ação
-- Edição inline: tamanho t-shirt, certificado enviado (toggle), URL do certificado
-- Botão "Enviar certificado" (marca como enviado + guarda timestamp)
+## 3. Visão Admin — `/admin/recursos`
 
-### Tab "Formadores"
-- Lista de formadores associados à ação
-- Adicionar formador (seleciona utilizador com role Formador/Admin)
-- Mesma edição inline de t-shirt + certificado
-- Remover formador
+Reorganiza a página existente em três tabs:
 
-Componente partilhado `CertificateCell` para o padrão certificado em ambas as listas.
+1. **Biblioteca de Recursos** — CRUD da tabela `recursos` (título, descrição, tipo, upload de ficheiro para bucket `resources`). Reutiliza UI existente onde possível.
+2. **Temas por Cluster** — Select de cluster → lista ordenável (drag handles simples com botões ↑/↓) de temas. Dialog para criar/editar (título, descrição, contexto, objetivos). Eliminar com confirmação.
+3. **Associações** — Dentro de cada tema, multi-select (Checkbox list em Dialog) para escolher quais recursos da biblioteca estão ligados; grava em `tema_recursos`.
 
-## 3. Sidebar
-Acrescento entrada **"Ações (admin)"** debaixo de "Gestão de Programas" (só visível a admin).
+Mutations invalidam queries `['temas', cluster]` e `['recursos']`.
 
-## Detalhes técnicos
-- Server functions novas em `src/lib/admin-acoes.functions.ts`:
-  - `listActionDetails(actionId)` — devolve ação + formandos + formadores
-  - `updateAction(actionId, fields)` — campos de logística/avaliação
-  - `updateEnrollment(enrollmentId, fields)` — t-shirt + certificado do formando
-  - `assignTrainer({ actionId, userId })` / `removeTrainer(id)` / `updateTrainer(id, fields)`
-- Todas com `requireSupabaseAuth` + verificação `is_admin(userId)` no handler
-- React Query com invalidações por `["action", id]`
-- Não toco em `roles`, `permissoes_roles`, `user_roles`, `recursos`, `inscritos_programa`
+## 4. Ficheiros
 
-## Fora do âmbito (Zite tinha mas não replico)
-- Campo `password` em `entidades` — usamos auth do Supabase, não passwords em texto
-- "Project" como string livre em entidades — já temos `entidades_programas` com FK
+**Novos**
+- `src/lib/cluster-resources.functions.ts` — server fns: `listClusters`, `getTemasByCluster`, admin: `upsertTema`, `deleteTema`, `reorderTemas`, `setTemaRecursos`.
+- `src/components/admin/TemasManager.tsx`
+- `src/components/admin/RecursoAssociacoes.tsx`
 
-Confirma e avanço com a migração SQL.
+**Editados**
+- `src/routes/_authenticated/recursos.tsx` — nova UI por cluster.
+- `src/routes/_authenticated/admin.recursos.tsx` — adiciona tabs com gestor de temas e associações.
+- `src/integrations/supabase/types.ts` — regenerado automaticamente após migração.
+
+## Notas técnicas
+
+- `cluster` é text livre na tabela `programas`. Lista de clusters obtida com `select('cluster').not('cluster', 'is', null)` + dedupe no cliente.
+- Server fns públicas (formando) usam `requireSupabaseAuth`; admin fns verificam role admin via `user_roles`/`utilizadores` como em `resources.functions.ts`.
+- Manter compatibilidade com `phase` na tabela `recursos` (não remover coluna).
