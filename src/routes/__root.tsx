@@ -126,7 +126,9 @@ function AppShell() {
   const { session, loading } = useAuth();
   const isRouterLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
 
-  if (loading || isRouterLoading) {
+  // Only the initial auth bootstrap shows the full-screen loader.
+  // Router transitions show a loader inside <main> so the sidebar stays mounted.
+  if (loading) {
     return <LoadingU />;
   }
 
@@ -148,6 +150,9 @@ function AppShell() {
         </div>
       );
     }
+    if (isRouterLoading) {
+      return <LoadingU />;
+    }
     return (
       <div className="min-h-screen bg-muted/30">
         <Outlet />
@@ -167,11 +172,19 @@ function AppShell() {
             </div>
           </header>
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
-            <Outlet />
+            {isRouterLoading ? <InlineLoader /> : <Outlet />}
           </main>
         </div>
       </div>
     </SidebarProvider>
+  );
+}
+
+function InlineLoader() {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="loading-mandela-draw text-secondary" aria-label="A carregar" />
+    </div>
   );
 }
 
