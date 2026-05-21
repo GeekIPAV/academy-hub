@@ -1,28 +1,28 @@
 import { useEffect, useRef } from "react";
-// Import raw SVG markup
 // eslint-disable-next-line import/no-unresolved
-import mandelaSvgUrl from "@/assets/mandela-traced.svg?raw";
+import mandelaSvgRaw from "@/assets/mandela-traced.svg?raw";
+
+// Pre-process the raw SVG once so that even the very first paint (SSR included)
+// already has pathLength="1" on every <path>, the right viewBox sizing and no
+// inline width/height that could blow it up to its natural size.
+const processedSvg = (mandelaSvgRaw as unknown as string)
+  // strip any hard-coded width/height on the root <svg> so CSS controls size
+  .replace(/<svg([^>]*?)\swidth="[^"]*"/i, "<svg$1")
+  .replace(/<svg([^>]*?)\sheight="[^"]*"/i, "<svg$1")
+  // ensure every path has pathLength="1" for the stroke-dash animation
+  .replace(/<path\b(?![^>]*\bpathLength=)/gi, '<path pathLength="1"');
 
 export function LoadingU() {
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Safety net: if the raw SVG ever ships a <path> the regex didn't catch,
+  // make sure pathLength is set so the animation works.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const paths = el.querySelectorAll("path");
-    paths.forEach((p) => {
-      p.setAttribute("fill", "none");
-      p.setAttribute("stroke", "currentColor");
-      p.setAttribute("stroke-width", "36");
-      p.setAttribute("stroke-linecap", "round");
-      p.setAttribute("stroke-linejoin", "round");
-      p.setAttribute("pathLength", "1");
+    el.querySelectorAll("path").forEach((p) => {
+      if (!p.getAttribute("pathLength")) p.setAttribute("pathLength", "1");
     });
-    const svg = el.querySelector("svg");
-    if (svg) {
-      svg.setAttribute("width", "160");
-      svg.setAttribute("height", "200");
-    }
   }, []);
 
   return (
@@ -30,7 +30,7 @@ export function LoadingU() {
       <div
         ref={containerRef}
         className="loading-mandela-draw text-secondary"
-        dangerouslySetInnerHTML={{ __html: mandelaSvgUrl as unknown as string }}
+        dangerouslySetInnerHTML={{ __html: processedSvg }}
       />
       <div className="text-sm text-muted-foreground">A carregar…</div>
     </div>
