@@ -122,13 +122,30 @@ export const syncGovernanceSchema = createServerFn({ method: "POST" })
 
 const anonSchema = z.object({ userId: z.string().uuid() });
 
+const DEFAULT_SENSITIVE = [
+  "full_name",
+  "first_names",
+  "last_names",
+  "nif",
+  "address",
+  "address_cp3",
+  "address_cp4",
+  "id_doc_number",
+  "birth_date",
+  "job_title",
+  "work_institution",
+];
+
 export const anonimizarUtilizador = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => anonSchema.parse(input))
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
+    // Allow either an admin OR the user acting on themselves (RGPD self-service).
+    if (data.userId !== context.userId) {
+      await assertAdmin(context.userId);
+    }
 
-    // Read sensitive columns from config; loop dynamically (no hard-coding)
+    // Read sensitive columns from config; loop dynamically (no hard-coding).
     const { data: cfg, error: cfgErr } = await supabaseAdmin
       .from("config_privacidade_campos")
       .select("column_name")
@@ -138,23 +155,34 @@ export const anonimizarUtilizador = createServerFn({ method: "POST" })
     const cols = await fetchSchemaColumns();
     const existing = new Set(cols.map((c) => c.column_name));
 
-    const targets = (cfg ?? [])
+    let targets = (cfg ?? [])
       .map((r) => r.column_name as string)
       .filter((c) => existing.has(c) && !LOCKED_COLUMNS.has(c));
 
-    if (targets.length === 0) return { affected: 0, columns: [] };
+    // Fallback when no config exists yet: anonymise the canonical PII set.
+    if (targets.length === 0) {
+      targets = DEFAULT_SENSITIVE.filter((c) => existing.has(c));
+    }
 
-    const patch: Record<string, null> = {};
-    for (const c of targets) patch[c] = null;
+    if (targets.length > 0) {
+      const patch: Record<string, null> = {};
+      for (const c of targets) patch[c] = null;
 
-    const { error } = await (supabaseAdmin.from("utilizadores") as unknown as {
-      update: (p: Record<string, null>) => {
-        eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
-      };
-    })
-      .update(patch)
-      .eq("id", data.userId);
-    if (error) throw new Error(error.message);
+      const { error } = await (supabaseAdmin.from("utilizadores") as unknown as {
+        update: (p: Record<string, null>) => {
+          eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+        };
+      })
+        .update(patch)
+        .eq("id", data.userId);
+      if (error) throw new Error(error.message);
+    }
+
+    // Self-anonymisation: revoke access by signing the auth user out everywhere.
+    if (data.userId === context.userId) {
+      await supabaseAdmin.auth.admin.signOut(data.userId, "global");
+    }
 
     return { affected: targets.length, columns: targets };
   });
+
