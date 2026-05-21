@@ -243,6 +243,60 @@ function BibliotecaTab() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // ── Bulk selection ──
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkTypeOpen, setBulkTypeOpen] = useState(false);
+  const [bulkType, setBulkType] = useState<ResourceType>("pdf");
+
+  const visibleIds = useMemo(() => filteredResources.map((r) => r.id), [filteredResources]);
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+  const someVisibleSelected =
+    !allVisibleSelected && visibleIds.some((id) => selectedIds.includes(id));
+
+  const toggleSelect = (id: string, checked: boolean) => {
+    setSelectedIds((prev) =>
+      checked ? Array.from(new Set([...prev, id])) : prev.filter((x) => x !== id),
+    );
+  };
+  const toggleSelectAllVisible = (checked: boolean) => {
+    setSelectedIds((prev) => {
+      if (checked) return Array.from(new Set([...prev, ...visibleIds]));
+      return prev.filter((id) => !visibleIds.includes(id));
+    });
+  };
+  const clearSelection = () => setSelectedIds([]);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("recursos").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, ids) => {
+      toast.success(`${ids.length} recurso(s) apagado(s).`);
+      clearSelection();
+      qc.invalidateQueries({ queryKey: ["recursos-all"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const bulkTypeMutation = useMutation({
+    mutationFn: async ({ ids, type }: { ids: string[]; type: ResourceType }) => {
+      const { error } = await supabase
+        .from("recursos")
+        .update({ resource_type: type })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(`Tipo atualizado em ${vars.ids.length} recurso(s).`);
+      setBulkTypeOpen(false);
+      clearSelection();
+      qc.invalidateQueries({ queryKey: ["recursos-all"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="single" className="w-full">
