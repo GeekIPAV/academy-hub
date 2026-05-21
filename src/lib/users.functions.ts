@@ -112,7 +112,7 @@ export const removeRole = createServerFn({ method: "POST" })
 const inviteSchema = z.object({
   email: z.string().email().max(255),
   full_name: z.string().trim().min(1).max(120).optional(),
-  roles: z.array(z.string().min(1).max(40)).max(10).optional(),
+  roles: z.array(z.string().min(1).max(40)).min(1).max(10),
 });
 
 export const inviteUser = createServerFn({ method: "POST" })
@@ -120,6 +120,12 @@ export const inviteUser = createServerFn({ method: "POST" })
   .inputValidator((input) => inviteSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
+
+    // Validate all selected roles before creating the user
+    const selected = Array.from(new Set(data.roles));
+    for (const role of selected) {
+      await ensureActiveRole(role);
+    }
 
     const { data: invited, error: invErr } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
@@ -135,9 +141,15 @@ export const inviteUser = createServerFn({ method: "POST" })
         .upsert({ id: newUserId, full_name: data.full_name });
     }
 
-    const roles = (data.roles ?? []).filter((r) => r !== "Formando");
-    for (const role of roles) {
-      await ensureActiveRole(role);
+    // The handle_new_user trigger auto-assigns "Formando". Clear all roles
+    // and apply exactly what the admin selected.
+    const { error: delErr } = await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", newUserId);
+    if (delErr) throw new Error(delErr.message);
+
+    for (const role of selected) {
       const { error } = await supabaseAdmin.from("user_roles").insert({
         user_id: newUserId,
         role_name: role,
