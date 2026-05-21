@@ -32,30 +32,6 @@ export const Route = createFileRoute("/_authenticated/recursos")({
   component: ResourcesPage,
 });
 
-function getEmbedUrl(url: string): string {
-  try {
-    const u = new URL(url);
-    const host = u.hostname.toLowerCase();
-    // YouTube
-    if (host.includes("youtube.com") && u.searchParams.get("v")) {
-      return `https://www.youtube.com/embed/${u.searchParams.get("v")}`;
-    }
-    if (host === "youtu.be") {
-      const id = u.pathname.replace(/^\//, "");
-      if (id) return `https://www.youtube.com/embed/${id}`;
-    }
-    // Microsoft OneDrive / SharePoint
-    if (host.includes("sharepoint.com") || host.includes("onedrive.live.com")) {
-      if (!u.searchParams.has("action")) {
-        u.searchParams.set("action", "embedview");
-      }
-      return u.toString();
-    }
-    return url;
-  } catch {
-    return url;
-  }
-}
 
 interface RecursoRow {
   id: string;
@@ -342,30 +318,31 @@ function ResourcesPage() {
         open={!!viewerResource}
         onOpenChange={(o) => !o && setViewerResource(null)}
       >
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle className="pr-8">{viewerResource?.title}</DialogTitle>
+            <DialogTitle className="text-center text-xl leading-relaxed">
+              {viewerResource?.title}
+            </DialogTitle>
           </DialogHeader>
           {viewerResource && (
-            <div className="space-y-3">
-              <Button asChild size="sm" className="w-full sm:w-auto">
+            <div className="flex flex-col items-center space-y-6 py-2">
+              {viewerResource.description && (
+                <p className="text-center text-sm text-muted-foreground leading-relaxed max-w-md">
+                  {viewerResource.description}
+                </p>
+              )}
+              <Button asChild size="lg" className="w-full sm:w-auto">
                 <a
                   href={viewerResource.file_url}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <ExternalLink className="h-4 w-4" />
-                  Abrir em nova aba
+                  <ExternalLink className="h-5 w-5" />
+                  Abrir Recurso (Novo Separador)
                 </a>
               </Button>
-              <iframe
-                title={viewerResource.title}
-                src={getEmbedUrl(viewerResource.file_url)}
-                className="w-full h-[60vh] border-0 rounded-md bg-muted"
-                allow="autoplay; encrypted-media; fullscreen"
-              />
-              <p className="text-xs text-muted-foreground">
-                Se a pré-visualização não aparecer, usa o botão "Abrir em nova aba".
+              <p className="text-xs text-muted-foreground text-center max-w-sm">
+                Este recurso abrirá numa página externa da Academia para garantir que visualizas o documento com todas as permissões necessárias.
               </p>
             </div>
           )}
