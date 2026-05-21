@@ -147,8 +147,11 @@ export const anonimizarUtilizador = createServerFn({ method: "POST" })
     const patch: Record<string, null> = {};
     for (const c of targets) patch[c] = null;
 
-    const { error } = await supabaseAdmin
-      .from("utilizadores")
+    const { error } = await (supabaseAdmin.from("utilizadores") as unknown as {
+      update: (p: Record<string, null>) => {
+        eq: (col: string, val: string) => Promise<{ error: { message: string } | null }>;
+      };
+    })
       .update(patch)
       .eq("id", data.userId);
     if (error) throw new Error(error.message);
