@@ -1,71 +1,61 @@
-# Centro de Recursos por Cluster
+# Reescrita de `admin/recursos`
 
-Reestrutura o Centro de Recursos para ser organizado por **Cluster** (atemporal, partilhado entre edições anuais) em vez de por programa ou por fase fixa (FTC/FTP/SU/SF).
+## 1. Migração de base de dados
 
-## 1. Base de dados (migração)
+A tabela `recursos` tem hoje `phase text NOT NULL` (legado FTC/FTP/SU/SF). Como a nova Biblioteca deixa de gravar fase, esse insert falharia. Aplicar:
 
-Novas tabelas:
-
-- `temas_momentos`
-  - `id uuid pk`, `cluster text not null`, `title text not null`,
-    `description text`, `context text`, `objectives text`,
-    `order_index int not null default 0`,
-    `created_at`, `updated_at`
-  - Index em `(cluster, order_index)`
-- `tema_recursos` (pivot M:N)
-  - `tema_id uuid → temas_momentos(id) on delete cascade`
-  - `recurso_id uuid → recursos(id) on delete cascade`
-  - PK composta `(tema_id, recurso_id)`
-
-RLS:
-- `temas_momentos`: SELECT para `authenticated`; INSERT/UPDATE/DELETE só `is_admin(auth.uid())`.
-- `tema_recursos`: mesmas regras.
-
-Nota: a tabela `recursos` existente mantém-se. A coluna `phase` deixa de ser usada na nova UI (mantida para compatibilidade, sem migração destrutiva).
-
-## 2. Visão Formando — `/recursos`
-
-Substitui a UI atual baseada em fases por navegação por Cluster:
-
-- Topo: seletor (Tabs ou Select) com os valores **únicos** de `programas.cluster` (filtrando nulos, ordenados alfabeticamente).
-- Conteúdo: `Accordion` com os `temas_momentos` do cluster selecionado (ordenados por `order_index`).
-  - Cada item mostra: título, descrição, contexto, objetivos.
-  - Lista de recursos associados (via `tema_recursos`) em cards: título, descrição, botão "Abrir" com `target="_blank" rel="noopener noreferrer"` para `file_url` (proxy `/api/public/recursos/...` quando aplicável).
-- Sem lógica de "desbloqueio por fase" — todos os formandos autenticados veem tudo do cluster.
-- Manter `ComponentAccessMatrix` e `isComponentVisible` para o header/seletor/lista.
-
-Fetch via TanStack Query numa única chamada:
-```ts
-supabase.from("temas_momentos")
-  .select("*, tema_recursos(recursos(*))")
-  .eq("cluster", cluster)
-  .order("order_index");
+```sql
+ALTER TABLE public.recursos ALTER COLUMN phase DROP NOT NULL;
 ```
 
-## 3. Visão Admin — `/admin/recursos`
+`program_id` já é nullable e mantém-se assim. Não se mexe em RLS nem nas tabelas `temas_momentos` / `tema_recursos` (já existem com o schema previsto).
 
-Reorganiza a página existente em três tabs:
+## 2. Reescrita de `src/routes/_authenticated/admin.recursos.tsx`
 
-1. **Biblioteca de Recursos** — CRUD da tabela `recursos` (título, descrição, tipo, upload de ficheiro para bucket `resources`). Reutiliza UI existente onde possível.
-2. **Temas por Cluster** — Select de cluster → lista ordenável (drag handles simples com botões ↑/↓) de temas. Dialog para criar/editar (título, descrição, contexto, objetivos). Eliminar com confirmação.
-3. **Associações** — Dentro de cada tema, multi-select (Checkbox list em Dialog) para escolher quais recursos da biblioteca estão ligados; grava em `tema_recursos`.
+Apagar todo o conteúdo atual (Phase, program_id, bulk legado) e construir uma página única com `<Tabs>` shadcn e 3 separadores. Manter o `beforeLoad` que valida admin via `user_roles`.
 
-Mutations invalidam queries `['temas', cluster]` e `['recursos']`.
+### Tab 1 — "Biblioteca" (CRUD recursos puro)
 
-## 4. Ficheiros
+- Card "Novo recurso" com formulário:
+  - `Input` Título (obrigatório)
+  - `Textarea` Descrição (opcional)
+  - `Select` Tipo: `pdf` | `video`
+  - `Input type="file"` (accept varia com o tipo)
+  - Botão "Carregar recurso"
+- Insert: `{ title, description, resource_type, file_url }` em `recursos`. `program_id` e `phase` ficam `NULL`. Upload para bucket `resources` em `biblioteca/<uuid>.<ext>`.
+- Card "Recursos carregados": `Table` com colunas Título, Descrição, Tipo, Ações (Editar/Apagar).
+- Dialog de edição: mesmos 4 campos; substituir ficheiro é opcional e, se substituído, apaga o antigo do storage.
+- Apagar: remove linha + ficheiro do storage. `toast.success` / `toast.error` em todos os caminhos; `loading` por ação.
+- Sem `Phase`, sem programa.
 
-**Novos**
-- `src/lib/cluster-resources.functions.ts` — server fns: `listClusters`, `getTemasByCluster`, admin: `upsertTema`, `deleteTema`, `reorderTemas`, `setTemaRecursos`.
-- `src/components/admin/TemasManager.tsx`
-- `src/components/admin/RecursoAssociacoes.tsx`
+### Tab 2 — "Gestão de Temas"
 
-**Editados**
-- `src/routes/_authenticated/recursos.tsx` — nova UI por cluster.
-- `src/routes/_authenticated/admin.recursos.tsx` — adiciona tabs com gestor de temas e associações.
-- `src/integrations/supabase/types.ts` — regenerado automaticamente após migração.
+- Topo: `Select` Cluster — valores únicos não-nulos de `programas.cluster` (`.not("cluster", "is", null)` + dedup + sort pt).
+- Quando há cluster ativo:
+  - Botão "Adicionar Tema" abre `Dialog` com `Input` Título, `Textarea` Descrição, `Textarea` Contexto, `Textarea` Objetivos.
+  - Submit faz insert em `temas_momentos` com `{ cluster, title, description, context, objectives, order_index: maxOrder+1 }`. Edição faz update.
+  - Lista (cards ou table) dos temas do cluster, ordenados por `order_index`, com botões Editar e Apagar (com confirm).
+- Dados via TanStack Query (`['admin-temas', cluster]`), invalidados após mutações.
 
-## Notas técnicas
+### Tab 3 — "Associações" (M:N)
 
-- `cluster` é text livre na tabela `programas`. Lista de clusters obtida com `select('cluster').not('cluster', 'is', null)` + dedupe no cliente.
-- Server fns públicas (formando) usam `requireSupabaseAuth`; admin fns verificam role admin via `user_roles`/`utilizadores` como em `resources.functions.ts`.
-- Manter compatibilidade com `phase` na tabela `recursos` (não remover coluna).
+- Topo: `Select` Cluster, depois `Select` Tema (temas do cluster).
+- Quando há tema selecionado: lista vertical com `Checkbox` para cada recurso da Biblioteca (`recursos` ordenados por título).
+- Estado inicial dos checkboxes = `tema_recursos` atuais do tema.
+- Botão "Guardar Associações":
+  1. `delete from tema_recursos where tema_id = X` (todos os registos antigos do tema).
+  2. `insert` dos selecionados como `{ tema_id, recurso_id }`.
+  3. Toast + invalidar query `['tema-recursos', tema_id]`.
+- Mensagem clara quando não há recursos na Biblioteca ou temas no cluster.
+
+## 3. Aspetos técnicos
+
+- Imports shadcn: `Tabs, TabsList, TabsTrigger, TabsContent, Checkbox, Dialog…, Select…, Card…, Table…, Input, Textarea, Label, Button`.
+- Tipos: declarar localmente `RecursoRow`, `TemaRow` e usar `from("temas_momentos" as never)` / `from("tema_recursos" as never)` (não constam em `types.ts`).
+- `ClusterTemasManager.tsx` deixa de ser importado por esta rota (já existia mas tinha tudo num só componente); fica órfão no projeto — remover esse import e o ficheiro pode ser apagado num passo seguinte se preferires (não faz parte deste plano).
+- Sem alterações ao `recursos.tsx` (visão formando) nem a outras rotas.
+
+## Ficheiros tocados
+
+- `supabase/migrations/<timestamp>_recursos_phase_nullable.sql` (novo).
+- `src/routes/_authenticated/admin.recursos.tsx` (reescrito).
