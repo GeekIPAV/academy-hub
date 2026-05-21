@@ -75,6 +75,51 @@ export const Route = createFileRoute("/_authenticated/admin/recursos")({
   component: AdminResourcesPage,
 });
 
+function AdminResourcesPage() {
+  return (
+    <div className="container mx-auto max-w-6xl space-y-6 p-6">
+      <header>
+        <h1 className="text-2xl font-semibold">Centro de Recursos</h1>
+        <p className="text-sm text-muted-foreground">
+          Gere a Biblioteca, os Temas dos clusters e as suas associações.
+        </p>
+      </header>
+
+      <Tabs defaultValue="biblioteca" className="w-full">
+        <TabsList>
+          <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
+          <TabsTrigger value="temas">Gestão de Temas</TabsTrigger>
+          <TabsTrigger value="assoc">Associações</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="biblioteca" className="mt-4">
+          <BibliotecaTab />
+        </TabsContent>
+        <TabsContent value="temas" className="mt-4">
+          <TemasTab />
+        </TabsContent>
+        <TabsContent value="assoc" className="mt-4">
+          <AssociacoesTab />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function useRecursos() {
+  return useQuery({
+    queryKey: ["recursos-all"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("recursos")
+        .select("id, title, description, resource_type, file_url, created_at")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as ResourceRow[];
+    },
+  });
+}
+
 function BibliotecaTab() {
   const qc = useQueryClient();
   const { data: resources = [], isLoading } = useRecursos();
