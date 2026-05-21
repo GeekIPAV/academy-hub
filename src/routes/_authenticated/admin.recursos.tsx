@@ -29,6 +29,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClusterTemasManager } from "@/components/admin/ClusterTemasManager";
 import { Loader2, Pencil, Trash2, Upload } from "lucide-react";
 
 type Phase = "FTC" | "FTP" | "SU" | "SF";
