@@ -1,31 +1,39 @@
-## Diagnóstico
+## Problema
 
-O erro `Missing Supabase environment variable(s): SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY` vem de `src/integrations/supabase/client.ts`, que lê:
+No `src/components/LoadingU.tsx`, o SVG do mandala é injetado com `dangerouslySetInnerHTML` e os atributos visuais (`width`, `height`, `stroke`, `stroke-width`, `fill="none"`, `pathLength`) só são aplicados dentro de um `useEffect`.
 
-- `import.meta.env.VITE_SUPABASE_URL`
-- `import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY`
+Consequências:
+- Durante SSR e antes da hidratação, o SVG aparece no tamanho natural do `viewBox` (centenas/milhares de px) e a preto sólido — é o "gigante" que aparece às vezes.
+- Em transições de rota rápidas o componente pode montar/desmontar antes do efeito correr, mostrando o SVG cru por um frame.
 
-Estas são substituídas pelo Vite **em build time** a partir do `.env`. O `.env` local existe e já contém:
+## Correção
 
-```
-VITE_SUPABASE_URL=...
-VITE_SUPABASE_PUBLISHABLE_KEY=...
-VITE_SUPABASE_PROJECT_ID=...
-SUPABASE_URL=...
-SUPABASE_PUBLISHABLE_KEY=...
-```
+Mover toda a estilização do SVG do `useEffect` para CSS, para que seja aplicada imediatamente no primeiro paint (SSR incluído).
 
-A backend (Lovable Cloud) está saudável. O que falta é apenas **forçar um novo build/publish** para que a versão publicada seja regenerada com as variáveis atualizadas (após a rotação das chaves feita recentemente, o build publicado ficou com o snapshot antigo).
+1. Em `src/styles.css`, adicionar regras que afetem o SVG dentro de `.loading-mandela-draw`:
+   ```css
+   .loading-mandela-draw svg {
+     width: 160px;
+     height: 200px;
+     display: block;
+   }
+   .loading-mandela-draw svg path {
+     fill: none;
+     stroke: currentColor;
+     stroke-width: 36;
+     stroke-linecap: round;
+     stroke-linejoin: round;
+   }
+   ```
+   (manter a animação `loading-mandela-draw` que já existe; `pathLength` continua a ser definido onde já está hoje para o stroke-dasharray funcionar — mantemos o `useEffect` apenas para isso ou setamos `pathLength` via atributo no SVG fonte se possível).
 
-## Passos
+2. Em `src/components/LoadingU.tsx`, remover do `useEffect` tudo o que agora vive no CSS. Manter apenas o set de `pathLength="1"` nos `<path>` (necessário em runtime porque é um atributo SVG, não CSS).
 
-1. Atualizar o marcador `src/republish-trigger.ts` para a data atual, de modo a forçar o botão **Publish** a detectar uma alteração e gerar novo build.
-2. Pedir-te para clicar em **Publish → Update** no canto superior direito (ou no menu `...` em mobile) para republicar.
-3. Após o deploy, abrir a versão publicada e confirmar que o erro desapareceu. Se ainda persistir, recolher logs com `stack_modern--server-function-logs` no deployment `published` para confirmar que as VITE_ vars foram realmente substituídas no bundle.
+3. Para evitar qualquer flash durante o frame em que `pathLength` ainda não foi aplicado, dar um `opacity: 0` inicial ao SVG e passar a `opacity: 1` depois do efeito — ou, alternativa mais simples, aplicar via wrapper `overflow: hidden` + tamanho fixo (160×200) para que mesmo sem estilo o SVG nunca passe desse bounding box.
+
+Resultado: o loader passa a aparecer sempre no tamanho certo, com o traço fino animado, sem nunca mostrar a versão "gigante".
 
 ## Ficheiros tocados
 
-- `.gitignore` — removido o ignore explícito de `.env` para permitir que o snapshot gerido do Lovable Cloud entre no build.
-- `src/republish-trigger.ts` — bump da data para forçar novo build/publish.
-
-Nenhuma alteração ao `client.ts` nem aos valores do `.env`.
+- `src/components/LoadingU.tsx` — simplifica o `useEffect`.
+- `src/styles.css` — adiciona regras de tamanho e stroke para `.loading-mandela-draw svg`.
