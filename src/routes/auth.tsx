@@ -77,8 +77,8 @@ function AuthPage() {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${authBackground})` }}>
-      <Card className="w-full max-w-md backdrop-blur-sm bg-card/95">
-        <CardHeader className="flex items-center justify-center">
+      <Card className="w-full max-w-md backdrop-blur-sm bg-card/95 overflow-hidden">
+        <CardHeader className="flex items-center justify-center bg-[#183967]">
           <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-32 w-auto" />
         </CardHeader>
         <CardContent>
