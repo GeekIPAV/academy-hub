@@ -138,7 +138,7 @@ function useTemasOfCluster(cluster: string) {
     enabled: !!cluster,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("temas_momentos" as never)
+        .from("temas_momentos")
         .select("id, title, bloco, bloco_order, order_index")
         .eq("cluster", cluster)
         .order("bloco_order", { ascending: true })
@@ -159,7 +159,7 @@ function useAllowedRecursoIds(cluster: string, temaId: string) {
         temaIds = [temaId];
       } else {
         const { data: temas, error: e1 } = await supabase
-          .from("temas_momentos" as never)
+          .from("temas_momentos")
           .select("id")
           .eq("cluster", cluster);
         if (e1) throw e1;
@@ -167,7 +167,7 @@ function useAllowedRecursoIds(cluster: string, temaId: string) {
       }
       if (temaIds.length === 0) return new Set<string>();
       const { data, error } = await supabase
-        .from("tema_recursos" as never)
+        .from("tema_recursos")
         .select("recurso_id")
         .in("tema_id", temaIds);
       if (error) throw error;
@@ -636,7 +636,7 @@ function SingleResourceForm() {
         description: description.trim() || null,
         resource_type: resourceType,
         file_url: fileUrl.trim(),
-      } as never);
+      });
       if (error) throw error;
       toast.success("Recurso adicionado.");
       reset();
@@ -738,7 +738,7 @@ function BulkAddForm() {
         resource_type: resourceType,
         file_url: r.url,
       }));
-      const { error } = await supabase.from("recursos").insert(payload as never);
+      const { error } = await supabase.from("recursos").insert(payload);
       if (error) throw error;
       toast.success(`${rows.length} recurso(s) adicionado(s).`);
       setRaw("");
@@ -833,7 +833,7 @@ function EditRecursoDialog({
           description: description.trim() || null,
           resource_type: resourceType,
           file_url: fileUrl.trim(),
-        } as never)
+        })
         .eq("id", recurso.id);
       if (error) throw error;
       toast.success("Recurso atualizado.");
@@ -956,7 +956,7 @@ function TemasTab() {
     enabled: !!activeCluster,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("temas_momentos" as never)
+        .from("temas_momentos")
         .select("id, cluster, bloco, title, description, context, objectives, order_index, bloco_order")
         .eq("cluster", activeCluster)
         .order("bloco_order", { ascending: true })
@@ -996,8 +996,8 @@ function TemasTab() {
         const ids = next[k].temas.map((t) => t.id);
         if (ids.length === 0) continue;
         const { error } = await supabase
-          .from("temas_momentos" as never)
-          .update({ bloco_order: k } as never)
+          .from("temas_momentos")
+          .update({ bloco_order: k })
           .in("id", ids);
         if (error) throw error;
       }
@@ -1018,8 +1018,8 @@ function TemasTab() {
       [next[i], next[j]] = [next[j], next[i]];
       for (let k = 0; k < next.length; k++) {
         const { error } = await supabase
-          .from("temas_momentos" as never)
-          .update({ order_index: k } as never)
+          .from("temas_momentos")
+          .update({ order_index: k })
           .eq("id", next[k].id);
         if (error) throw error;
       }
@@ -1055,19 +1055,19 @@ function TemasTab() {
       if (!form.title.trim()) throw new Error("O título é obrigatório.");
       if (editing) {
         const { error } = await supabase
-          .from("temas_momentos" as never)
+          .from("temas_momentos")
           .update({
             title: form.title.trim(),
             description: form.description.trim() || null,
             context: form.context.trim() || null,
             objectives: form.objectives.trim() || null,
             bloco: form.bloco.trim() || null,
-          } as never)
+          })
           .eq("id", editing.id);
         if (error) throw error;
       } else {
         const maxOrder = temas.reduce((m, t) => Math.max(m, t.order_index), -1);
-        const { error } = await supabase.from("temas_momentos" as never).insert({
+        const { error } = await supabase.from("temas_momentos").insert({
           cluster: activeCluster,
           title: form.title.trim(),
           description: form.description.trim() || null,
@@ -1075,7 +1075,7 @@ function TemasTab() {
           objectives: form.objectives.trim() || null,
           bloco: form.bloco.trim() || null,
           order_index: maxOrder + 1,
-        } as never);
+        });
         if (error) throw error;
       }
     },
@@ -1092,7 +1092,7 @@ function TemasTab() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from("temas_momentos" as never)
+        .from("temas_momentos")
         .delete()
         .eq("id", id);
       if (error) throw error;
@@ -1360,7 +1360,7 @@ function AssociacoesTab() {
     enabled: !!activeCluster,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("temas_momentos" as never)
+        .from("temas_momentos")
         .select("id, cluster, title, description, context, objectives, order_index")
         .eq("cluster", activeCluster)
         .order("order_index");
@@ -1380,7 +1380,7 @@ function AssociacoesTab() {
     enabled: !!temaId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("tema_recursos" as never)
+        .from("tema_recursos")
         .select("recurso_id")
         .eq("tema_id", temaId);
       if (error) throw error;
@@ -1417,15 +1417,15 @@ function AssociacoesTab() {
     mutationFn: async () => {
       if (!temaId) throw new Error("Seleciona um tema.");
       const { error: delErr } = await supabase
-        .from("tema_recursos" as never)
+        .from("tema_recursos")
         .delete()
         .eq("tema_id", temaId);
       if (delErr) throw delErr;
       const ids = [...selected];
       if (ids.length > 0) {
         const { error } = await supabase
-          .from("tema_recursos" as never)
-          .insert(ids.map((rid) => ({ tema_id: temaId, recurso_id: rid })) as never);
+          .from("tema_recursos")
+          .insert(ids.map((rid) => ({ tema_id: temaId, recurso_id: rid })));
         if (error) throw error;
       }
     },
