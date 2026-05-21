@@ -253,8 +253,8 @@ function ResourcesPage() {
                                 ) : (
                                   <div className="grid gap-2 sm:grid-cols-2">
                                     {recs.map((r) => {
-                                      const Icon =
-                                        r.resource_type === "video" ? Video : FileText;
+                                      const isVideo = r.resource_type === "video";
+                                      const Icon = isVideo ? Video : FileText;
                                       return (
                                         <a
                                           key={r.id}
@@ -268,9 +268,21 @@ function ResourcesPage() {
                                               <div className="flex items-start gap-2">
                                                 <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                                                 <div className="min-w-0 flex-1">
-                                                  <p className="truncate text-sm font-medium">
-                                                    {r.title}
-                                                  </p>
+                                                  <div className="flex items-center gap-2">
+                                                    <p className="truncate text-sm font-medium">
+                                                      {r.title}
+                                                    </p>
+                                                    <span
+                                                      className={
+                                                        "shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white " +
+                                                        (isVideo
+                                                          ? "bg-[oklch(0.62_0.155_240)]"
+                                                          : "bg-destructive")
+                                                      }
+                                                    >
+                                                      {isVideo ? "Vídeo" : "PDF"}
+                                                    </span>
+                                                  </div>
                                                   {r.description && (
                                                     <p className="text-xs text-muted-foreground line-clamp-2">
                                                       {r.description}
