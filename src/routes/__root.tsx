@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -122,8 +123,9 @@ function RootComponent() {
 
 function AppShell() {
   const { session, loading } = useAuth();
+  const isRouterLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
 
-  if (loading) {
+  if (loading || isRouterLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="text-sm text-muted-foreground">A carregar…</div>
