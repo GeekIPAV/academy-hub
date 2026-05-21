@@ -174,26 +174,27 @@ function AdminResourcesPage() {
 
   const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bProgramId || !bPhase || !bResourceType || bFiles.length === 0) {
-      toast.error("Seleciona programa, fase, tipo e pelo menos um ficheiro.");
+    if (!bCluster || !bPhase || !bResourceType || bFiles.length === 0) {
+      toast.error("Seleciona cluster, fase, tipo e pelo menos um ficheiro.");
       return;
     }
     setBulkUploading(true);
     setBulkProgress({ done: 0, total: bFiles.length });
     let successCount = 0;
     const errors: string[] = [];
+    const clusterSlug = bCluster.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "cluster";
     for (const f of bFiles) {
       try {
         const ext = f.name.split(".").pop() ?? "bin";
         const baseName = f.name.replace(/\.[^.]+$/, "").trim() || f.name;
-        const path = `${bProgramId}/${bPhase}/${crypto.randomUUID()}.${ext}`;
+        const path = `${clusterSlug}/${bPhase}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("resources")
           .upload(path, f, { contentType: f.type, upsert: false });
         if (upErr) throw upErr;
         const { data: urlData } = supabase.storage.from("resources").getPublicUrl(path);
         const { error: insErr } = await supabase.from("recursos" as never).insert({
-          program_id: bProgramId,
+          program_id: null,
           phase: bPhase,
           title: baseName,
           resource_type: bResourceType,
