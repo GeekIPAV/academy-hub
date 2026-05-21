@@ -461,15 +461,13 @@ function AssociacoesDialog({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const initial = useMemo(
-    () => new Set((tema?.tema_recursos ?? []).map((r) => r.recurso_id)),
-    [tema],
-  );
-  const [selected, setSelected] = useState<Set<string>>(initial);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
 
-  // Reset when tema changes
-  useMemo(() => setSelected(new Set(initial)), [initial]);
+  // Reset selection whenever the target tema changes
+  useEffect(() => {
+    setSelected(new Set((tema?.tema_recursos ?? []).map((r) => r.recurso_id)));
+  }, [tema]);
 
   const toggle = (id: string) => {
     const next = new Set(selected);
