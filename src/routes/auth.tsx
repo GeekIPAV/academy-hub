@@ -35,6 +35,18 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [bgLoaded, setBgLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = authBackground;
+    if (img.complete) {
+      setBgLoaded(true);
+    } else {
+      img.onload = () => setBgLoaded(true);
+      img.onerror = () => setBgLoaded(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,9 +88,10 @@ function AuthPage() {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${authBackground})` }}>
-      <Card className="w-full max-w-md backdrop-blur-sm bg-card/95 overflow-hidden">
-        <CardHeader className="flex items-center justify-center bg-[#183967]">
+    <div className="fixed inset-0 flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: bgLoaded ? `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${authBackground})` : undefined }}>
+      {bgLoaded && (
+        <Card className="w-full max-w-md backdrop-blur-sm bg-card/95 overflow-hidden">
+          <CardHeader className="flex items-center justify-center bg-[#183967]">
           <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-32 w-auto" />
         </CardHeader>
         <CardContent>
@@ -191,6 +204,7 @@ function AuthPage() {
 
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }
