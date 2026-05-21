@@ -247,6 +247,7 @@ function BibliotecaTab() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkTypeOpen, setBulkTypeOpen] = useState(false);
   const [bulkType, setBulkType] = useState<ResourceType>("pdf");
+  const [formOpen, setFormOpen] = useState(true);
 
   const visibleIds = useMemo(() => filteredResources.map((r) => r.id), [filteredResources]);
   const allVisibleSelected =
