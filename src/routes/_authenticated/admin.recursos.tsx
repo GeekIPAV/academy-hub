@@ -1519,7 +1519,7 @@ function AssociacoesTab() {
               </div>
             </div>
 
-            {filteredRecursos.length === 1 && (
+            {sortedRecursos.length === 0 && (
               <p className="py-6 text-center text-sm text-muted-foreground">
                 A Biblioteca está vazia.
               </p>
