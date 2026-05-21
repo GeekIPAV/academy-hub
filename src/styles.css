@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap');
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -9,17 +10,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ * Design system — Academia de Líderes Ubuntu
+ * All colors in OKLCH. Tokens defined in :root / .dark, mapped to Tailwind
+ * utilities via @theme inline.
  */
 
 @theme inline {
@@ -30,6 +23,13 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  --font-sans: "Poppins", var(--font-sans);
+
+  --color-ubuntu-orange: oklch(0.68 0.22 39.5);
+  --color-ubuntu-blue: oklch(0.35 0.11 254.2);
+  --color-ubuntu-yellow: oklch(0.81 0.18 84.3);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -67,39 +67,40 @@
 
 :root {
   --radius: 0.625rem;
-  /* Academia de Líderes Ubuntu — brand tokens */
+
+  /* Academia de Líderes Ubuntu — brand tokens (light mode) */
   --background: oklch(1 0 0);                       /* #FFFFFF */
-  --foreground: oklch(0.25 0.055 260);              /* #182B47 dark navy text */
+  --foreground: oklch(0.24 0.04 256.3);             /* #182B47 navy body text */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.25 0.055 260);
+  --card-foreground: oklch(0.24 0.04 256.3);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.25 0.055 260);
-  --primary: oklch(0.72 0.18 50);                   /* #FF8226 Ubuntu orange */
-  --primary-foreground: oklch(1 0 0);               /* white on orange */
-  --secondary: oklch(0.33 0.085 258);               /* #193B69 Ubuntu deep blue */
-  --secondary-foreground: oklch(1 0 0);             /* white on deep blue */
-  --muted: oklch(0.97 0.005 260);                   /* ultra-light gray */
-  --muted-foreground: oklch(0.45 0.04 260);         /* faded navy */
-  --accent: oklch(0.82 0.165 85);                   /* #FFB90B yellow */
-  --accent-foreground: oklch(0.25 0.055 260);
-  --destructive: oklch(0.63 0.215 20);              /* #EF4552 red accent */
+  --popover-foreground: oklch(0.24 0.04 256.3);
+  --primary: oklch(0.68 0.22 39.5);                 /* #FF8226 Ubuntu orange */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.35 0.11 254.2);              /* #193B69 Ubuntu deep blue */
+  --secondary-foreground: oklch(1 0 0);
+  --muted: oklch(0.97 0.005 256);
+  --muted-foreground: oklch(0.45 0.03 255.0);
+  --accent: oklch(0.81 0.18 84.3);                  /* #FFB90B yellow */
+  --accent-foreground: oklch(0.24 0.04 256.3);
+  --destructive: oklch(0.63 0.215 20);              /* #EF4552 */
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.92 0.012 260);
-  --input: oklch(0.92 0.012 260);
-  --ring: oklch(0.72 0.18 50);                      /* orange focus ring */
-  --chart-1: oklch(0.72 0.18 50);                   /* orange */
-  --chart-2: oklch(0.33 0.085 258);                 /* deep blue */
+  --border: oklch(0.92 0.012 256);
+  --input: oklch(0.92 0.012 256);
+  --ring: oklch(0.68 0.22 39.5);
+  --chart-1: oklch(0.68 0.22 39.5);
+  --chart-2: oklch(0.35 0.11 254.2);
   --chart-3: oklch(0.62 0.155 240);                 /* #008DD5 light blue */
-  --chart-4: oklch(0.82 0.165 85);                  /* yellow */
-  --chart-5: oklch(0.63 0.215 20);                  /* red */
-  --sidebar: oklch(0.33 0.085 258);                 /* #193B69 sidebar bg */
-  --sidebar-foreground: oklch(1 0 0);               /* white text */
-  --sidebar-primary: oklch(0.72 0.18 50);           /* orange */
+  --chart-4: oklch(0.81 0.18 84.3);
+  --chart-5: oklch(0.63 0.215 20);
+  --sidebar: oklch(0.35 0.11 254.2);
+  --sidebar-foreground: oklch(1 0 0);
+  --sidebar-primary: oklch(0.68 0.22 39.5);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.28 0.07 258);           /* slightly darker hover */
+  --sidebar-accent: oklch(0.30 0.09 254.2);
   --sidebar-accent-foreground: oklch(1 0 0);
   --sidebar-border: oklch(1 0 0 / 12%);
-  --sidebar-ring: oklch(0.72 0.18 50);
+  --sidebar-ring: oklch(0.68 0.22 39.5);
 }
 
 .dark {
@@ -109,32 +110,32 @@
   --card-foreground: oklch(0.984 0.003 247.858);
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.68 0.22 39.5);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.35 0.11 254.2);
+  --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.279 0.041 260.031);
   --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
+  --accent: oklch(0.81 0.18 84.3);
+  --accent-foreground: oklch(0.24 0.04 256.3);
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.984 0.003 247.858);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
+  --ring: oklch(0.68 0.22 39.5);
+  --chart-1: oklch(0.68 0.22 39.5);
+  --chart-2: oklch(0.35 0.11 254.2);
+  --chart-3: oklch(0.62 0.155 240);
+  --chart-4: oklch(0.81 0.18 84.3);
+  --chart-5: oklch(0.63 0.215 20);
   --sidebar: oklch(0.208 0.042 265.755);
   --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.68 0.22 39.5);
+  --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.279 0.041 260.031);
   --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  --sidebar-ring: oklch(0.68 0.22 39.5);
 }
 
 @layer base {
@@ -145,7 +146,7 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: var(--font-sans);
+    font-family: "Poppins", var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
