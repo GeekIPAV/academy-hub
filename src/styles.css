@@ -2,6 +2,10 @@
 @source "../src";
 @import "tw-animate-css";
 
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /*
@@ -63,38 +67,39 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  /* Academia de Líderes Ubuntu — brand tokens */
+  --background: oklch(1 0 0);                       /* #FFFFFF */
+  --foreground: oklch(0.25 0.055 260);              /* #182B47 dark navy text */
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: oklch(0.25 0.055 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  --popover-foreground: oklch(0.25 0.055 260);
+  --primary: oklch(0.72 0.18 50);                   /* #FF8226 Ubuntu orange */
+  --primary-foreground: oklch(1 0 0);               /* white on orange */
+  --secondary: oklch(0.33 0.085 258);               /* #193B69 Ubuntu deep blue */
+  --secondary-foreground: oklch(1 0 0);             /* white on deep blue */
+  --muted: oklch(0.97 0.005 260);                   /* ultra-light gray */
+  --muted-foreground: oklch(0.45 0.04 260);         /* faded navy */
+  --accent: oklch(0.82 0.165 85);                   /* #FFB90B yellow */
+  --accent-foreground: oklch(0.25 0.055 260);
+  --destructive: oklch(0.63 0.215 20);              /* #EF4552 red accent */
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.92 0.012 260);
+  --input: oklch(0.92 0.012 260);
+  --ring: oklch(0.72 0.18 50);                      /* orange focus ring */
+  --chart-1: oklch(0.72 0.18 50);                   /* orange */
+  --chart-2: oklch(0.33 0.085 258);                 /* deep blue */
+  --chart-3: oklch(0.62 0.155 240);                 /* #008DD5 light blue */
+  --chart-4: oklch(0.82 0.165 85);                  /* yellow */
+  --chart-5: oklch(0.63 0.215 20);                  /* red */
+  --sidebar: oklch(0.33 0.085 258);                 /* #193B69 sidebar bg */
+  --sidebar-foreground: oklch(1 0 0);               /* white text */
+  --sidebar-primary: oklch(0.72 0.18 50);           /* orange */
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.28 0.07 258);           /* slightly darker hover */
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.72 0.18 50);
 }
 
 .dark {
@@ -140,5 +145,14 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    color: var(--color-secondary);
+    letter-spacing: -0.01em;
   }
 }
