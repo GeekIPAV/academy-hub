@@ -131,7 +131,24 @@ function AppShell() {
     );
   }
 
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+  const isPublicRoute =
+    pathname === "/auth" || pathname.startsWith("/inscricao/");
+
   if (!session) {
+    if (!isPublicRoute) {
+      if (typeof window !== "undefined") {
+        const redirectTo = encodeURIComponent(
+          window.location.pathname + window.location.search,
+        );
+        window.location.replace(`/auth?redirect=${redirectTo}`);
+      }
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="text-sm text-muted-foreground">A redirecionar…</div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-muted/30">
         <Outlet />
