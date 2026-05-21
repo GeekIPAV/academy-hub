@@ -34,7 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Pencil, Plus, Trash2, Save, ListPlus } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown } from "lucide-react";
 
 type ResourceType = "pdf" | "video";
 
@@ -56,6 +56,7 @@ interface TemaRow {
   context: string | null;
   objectives: string | null;
   order_index: number;
+  bloco_order: number;
 }
 
 const BLOCO_SUGGESTIONS = ["FTC", "FTP", "SU", "SF"];
@@ -575,14 +576,81 @@ function TemasTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos" as never)
-        .select("id, cluster, bloco, title, description, context, objectives, order_index")
+        .select("id, cluster, bloco, title, description, context, objectives, order_index, bloco_order")
         .eq("cluster", activeCluster)
-        .order("order_index");
+        .order("bloco_order", { ascending: true })
+        .order("order_index", { ascending: true });
       if (error) throw error;
       return (data as unknown as TemaRow[]) ?? [];
     },
   });
   const temas = temasQuery.data ?? [];
+
+  // Agrupar temas por bloco, preservando a ordem (bloco_order) já vinda do servidor.
+  const blocoGroups = useMemo(() => {
+    const groups: Array<{ bloco: string | null; blocoOrder: number; temas: TemaRow[] }> = [];
+    const idx = new Map<string, number>();
+    for (const t of temas) {
+      const key = t.bloco ?? "__none__";
+      let pos = idx.get(key);
+      if (pos === undefined) {
+        pos = groups.length;
+        idx.set(key, pos);
+        groups.push({ bloco: t.bloco, blocoOrder: t.bloco_order ?? 0, temas: [] });
+      }
+      groups[pos].temas.push(t);
+    }
+    return groups;
+  }, [temas]);
+
+  const moveBlock = useMutation({
+    mutationFn: async ({ blocoKey, dir }: { blocoKey: string | null; dir: "up" | "down" }) => {
+      const i = blocoGroups.findIndex((g) => (g.bloco ?? null) === blocoKey);
+      const j = dir === "up" ? i - 1 : i + 1;
+      if (i < 0 || j < 0 || j >= blocoGroups.length) return;
+      const a = blocoGroups[i];
+      const b = blocoGroups[j];
+      const aIds = a.temas.map((t) => t.id);
+      const bIds = b.temas.map((t) => t.id);
+      // Trocar bloco_order entre todos os registos dos dois blocos.
+      const { error: e1 } = await supabase
+        .from("temas_momentos" as never)
+        .update({ bloco_order: b.blocoOrder } as never)
+        .in("id", aIds);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase
+        .from("temas_momentos" as never)
+        .update({ bloco_order: a.blocoOrder } as never)
+        .in("id", bIds);
+      if (e2) throw e2;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-temas", activeCluster] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const moveTheme = useMutation({
+    mutationFn: async ({ themeId, dir }: { themeId: string; dir: "up" | "down" }) => {
+      const group = blocoGroups.find((g) => g.temas.some((t) => t.id === themeId));
+      if (!group) return;
+      const i = group.temas.findIndex((t) => t.id === themeId);
+      const j = dir === "up" ? i - 1 : i + 1;
+      if (j < 0 || j >= group.temas.length) return;
+      const a = group.temas[i];
+      const b = group.temas[j];
+      const { error: e1 } = await supabase
+        .from("temas_momentos" as never)
+        .update({ order_index: b.order_index } as never)
+        .eq("id", a.id);
+      if (e1) throw e1;
+      const { error: e2 } = await supabase
+        .from("temas_momentos" as never)
+        .update({ order_index: a.order_index } as never)
+        .eq("id", b.id);
+      if (e2) throw e2;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-temas", activeCluster] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TemaRow | null>(null);
@@ -710,48 +778,110 @@ function TemasTab() {
                 Sem temas. Cria o primeiro.
               </p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-20">Bloco</TableHead>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead className="w-32 text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {temas.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell>
-                        {t.bloco ? (
-                          <Badge variant="secondary">{t.bloco}</Badge>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">{t.title}</TableCell>
-                      <TableCell className="max-w-md truncate text-muted-foreground">
-                        {t.description ?? "—"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(t)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (confirm(`Apagar tema "${t.title}"?`))
-                              deleteMutation.mutate(t.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-6">
+                {blocoGroups.map((group, gi) => {
+                  const blocoKey = group.bloco;
+                  const blocoLabel = blocoKey ?? "Sem bloco";
+                  return (
+                    <div key={blocoKey ?? "__none__"} className="space-y-2">
+                      <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">{blocoLabel}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {group.temas.length} tema(s)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={gi === 0 || moveBlock.isPending}
+                            onClick={() =>
+                              moveBlock.mutate({ blocoKey, dir: "up" })
+                            }
+                            title="Subir bloco"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={gi === blocoGroups.length - 1 || moveBlock.isPending}
+                            onClick={() =>
+                              moveBlock.mutate({ blocoKey, dir: "down" })
+                            }
+                            title="Descer bloco"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Título</TableHead>
+                            <TableHead>Descrição</TableHead>
+                            <TableHead className="w-44 text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {group.temas.map((t, ti) => (
+                            <TableRow key={t.id}>
+                              <TableCell className="font-medium">{t.title}</TableCell>
+                              <TableCell className="max-w-md truncate text-muted-foreground">
+                                {t.description ?? "—"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={ti === 0 || moveTheme.isPending}
+                                  onClick={() =>
+                                    moveTheme.mutate({ themeId: t.id, dir: "up" })
+                                  }
+                                  title="Subir tema"
+                                >
+                                  <ArrowUp className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={
+                                    ti === group.temas.length - 1 || moveTheme.isPending
+                                  }
+                                  onClick={() =>
+                                    moveTheme.mutate({ themeId: t.id, dir: "down" })
+                                  }
+                                  title="Descer tema"
+                                >
+                                  <ArrowDown className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => openEdit(t)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    if (confirm(`Apagar tema "${t.title}"?`))
+                                      deleteMutation.mutate(t.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </CardContent>
         </Card>

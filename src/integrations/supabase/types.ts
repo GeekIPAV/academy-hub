@@ -661,6 +661,7 @@ export type Database = {
       temas_momentos: {
         Row: {
           bloco: string | null
+          bloco_order: number
           cluster: string
           context: string | null
           created_at: string
@@ -673,6 +674,7 @@ export type Database = {
         }
         Insert: {
           bloco?: string | null
+          bloco_order?: number
           cluster: string
           context?: string | null
           created_at?: string
@@ -685,6 +687,7 @@ export type Database = {
         }
         Update: {
           bloco?: string | null
+          bloco_order?: number
           cluster?: string
           context?: string | null
           created_at?: string
