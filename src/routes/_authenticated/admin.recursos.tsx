@@ -319,7 +319,94 @@ function BibliotecaTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recursos carregados</CardTitle>
+          {selectedIds.length > 0 ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/50 px-3 py-2">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium">
+                  {selectedIds.length} selecionado{selectedIds.length === 1 ? "" : "s"}
+                </span>
+                <Button variant="ghost" size="sm" onClick={clearSelection}>
+                  Limpar seleção
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Dialog open={bulkTypeOpen} onOpenChange={setBulkTypeOpen}>
+                  <Button variant="outline" size="sm" onClick={() => setBulkTypeOpen(true)}>
+                    <Tag className="mr-1 h-4 w-4" /> Mudar tipo
+                  </Button>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Mudar tipo em massa</DialogTitle>
+                      <DialogDescription>
+                        Vai alterar o tipo de {selectedIds.length} recurso(s).
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                      <Label>Novo tipo</Label>
+                      <Select value={bulkType} onValueChange={(v) => setBulkType(v as ResourceType)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pdf">PDF</SelectItem>
+                          <SelectItem value="video">Vídeo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="ghost" onClick={() => setBulkTypeOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          bulkTypeMutation.mutate({ ids: selectedIds, type: bulkType })
+                        }
+                        disabled={bulkTypeMutation.isPending}
+                      >
+                        {bulkTypeMutation.isPending && (
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                        )}
+                        Aplicar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" disabled={bulkDeleteMutation.isPending}>
+                      {bulkDeleteMutation.isPending ? (
+                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="mr-1 h-4 w-4" />
+                      )}
+                      Apagar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Apagar recursos selecionados?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Vai apagar permanentemente {selectedIds.length} recurso(s). Esta ação é
+                        irreversível.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => bulkDeleteMutation.mutate(selectedIds)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Apagar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          ) : (
+            <CardTitle className="text-base">Recursos carregados</CardTitle>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
