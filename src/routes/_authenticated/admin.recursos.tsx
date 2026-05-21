@@ -91,8 +91,9 @@ function AdminResourcesPage() {
   const [eFile, setEFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Bulk upload state
-  const [bProgramId, setBProgramId] = useState<string>("");
+  // Bulk upload state (cluster-based)
+  const [clusters, setClusters] = useState<string[]>([]);
+  const [bCluster, setBCluster] = useState<string>("");
   const [bPhase, setBPhase] = useState<Phase | "">("");
   const [bResourceType, setBResourceType] = useState<ResourceType | "">("");
   const [bFiles, setBFiles] = useState<File[]>([]);
@@ -113,9 +114,15 @@ function AdminResourcesPage() {
   useEffect(() => {
     supabase
       .from("programas")
-      .select("id, title")
+      .select("id, title, cluster")
       .order("title")
-      .then(({ data }) => setPrograms((data as ProgramRow[]) ?? []));
+      .then(({ data }) => {
+        const rows = (data as Array<{ id: string; title: string | null; cluster: string | null }>) ?? [];
+        setPrograms(rows.map((r) => ({ id: r.id, title: r.title })));
+        const uniq = Array.from(new Set(rows.map((r) => r.cluster).filter((c): c is string => !!c && c.trim() !== "")));
+        uniq.sort((a, b) => a.localeCompare(b));
+        setClusters(uniq);
+      });
     loadResources();
   }, []);
 
@@ -167,26 +174,27 @@ function AdminResourcesPage() {
 
   const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bProgramId || !bPhase || !bResourceType || bFiles.length === 0) {
-      toast.error("Seleciona programa, fase, tipo e pelo menos um ficheiro.");
+    if (!bCluster || !bPhase || !bResourceType || bFiles.length === 0) {
+      toast.error("Seleciona cluster, fase, tipo e pelo menos um ficheiro.");
       return;
     }
     setBulkUploading(true);
     setBulkProgress({ done: 0, total: bFiles.length });
     let successCount = 0;
     const errors: string[] = [];
+    const clusterSlug = bCluster.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "cluster";
     for (const f of bFiles) {
       try {
         const ext = f.name.split(".").pop() ?? "bin";
         const baseName = f.name.replace(/\.[^.]+$/, "").trim() || f.name;
-        const path = `${bProgramId}/${bPhase}/${crypto.randomUUID()}.${ext}`;
+        const path = `${clusterSlug}/${bPhase}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("resources")
           .upload(path, f, { contentType: f.type, upsert: false });
         if (upErr) throw upErr;
         const { data: urlData } = supabase.storage.from("resources").getPublicUrl(path);
         const { error: insErr } = await supabase.from("recursos" as never).insert({
-          program_id: bProgramId,
+          program_id: null,
           phase: bPhase,
           title: baseName,
           resource_type: bResourceType,
@@ -429,23 +437,25 @@ function AdminResourcesPage() {
         <CardHeader>
           <CardTitle className="text-base">Carregamento em massa</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Escolhe programa, fase e tipo uma vez e seleciona vários ficheiros. O título de cada recurso será o nome do ficheiro (sem extensão).
+            Escolhe cluster, fase e tipo uma vez e seleciona vários ficheiros. O título de cada recurso será o nome do ficheiro (sem extensão).
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleBulkSubmit} className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Programa</Label>
-              <Select value={bProgramId} onValueChange={setBProgramId} disabled={bulkUploading}>
+              <Label>Cluster</Label>
+              <Select value={bCluster} onValueChange={setBCluster} disabled={bulkUploading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecionar programa" />
+                  <SelectValue placeholder="Selecionar cluster" />
                 </SelectTrigger>
                 <SelectContent>
-                  {programs.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.title ?? p.id}
-                    </SelectItem>
-                  ))}
+                  {clusters.length === 0 ? (
+                    <SelectItem value="__none__" disabled>Sem clusters definidos</SelectItem>
+                  ) : (
+                    clusters.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
