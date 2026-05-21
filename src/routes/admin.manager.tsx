@@ -184,35 +184,33 @@ function UsersManager() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Perfis adicionais (opcional)</Label>
+                  <Label>Perfis</Label>
                   <div className="flex flex-wrap gap-3">
-                    {activeRoles
-                      .filter((r) => r.name !== "Formando")
-                      .map((r) => {
-                        const checked = inviteRoles.has(r.name);
-                        return (
-                          <label
-                            key={r.id}
-                            className="flex items-center gap-1.5 text-sm cursor-pointer"
-                          >
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={(v) => {
-                                setInviteRoles((prev) => {
-                                  const next = new Set(prev);
-                                  if (v) next.add(r.name);
-                                  else next.delete(r.name);
-                                  return next;
-                                });
-                              }}
-                            />
-                            <span>{r.name}</span>
-                          </label>
-                        );
-                      })}
+                    {activeRoles.map((r) => {
+                      const checked = inviteRoles.has(r.name);
+                      return (
+                        <label
+                          key={r.id}
+                          className="flex items-center gap-1.5 text-sm cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(v) => {
+                              setInviteRoles((prev) => {
+                                const next = new Set(prev);
+                                if (v) next.add(r.name);
+                                else next.delete(r.name);
+                                return next;
+                              });
+                            }}
+                          />
+                          <span>{r.name}</span>
+                        </label>
+                      );
+                    })}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    O perfil "Formando" é atribuído automaticamente.
+                    Seleciona pelo menos um perfil para o novo utilizador.
                   </p>
                 </div>
               </div>
