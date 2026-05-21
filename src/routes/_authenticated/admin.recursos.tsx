@@ -427,6 +427,117 @@ function AdminResourcesPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-base">Carregamento em massa</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Escolhe programa, fase e tipo uma vez e seleciona vários ficheiros. O título de cada recurso será o nome do ficheiro (sem extensão).
+          </p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleBulkSubmit} className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Programa</Label>
+              <Select value={bProgramId} onValueChange={setBProgramId} disabled={bulkUploading}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar programa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {programs.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.title ?? p.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Fase</Label>
+              <Select
+                value={bPhase}
+                onValueChange={(v) => setBPhase(v as Phase)}
+                disabled={bulkUploading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar fase" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FTC">FTC — Formação Teórico-Conceptual</SelectItem>
+                  <SelectItem value="FTP">FTP — Formação Teórico-Prática</SelectItem>
+                  <SelectItem value="SU">Semana Ubuntu</SelectItem>
+                  <SelectItem value="SF">Sessão Final</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipo</Label>
+              <Select
+                value={bResourceType}
+                onValueChange={(v) => setBResourceType(v as ResourceType)}
+                disabled={bulkUploading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                  <SelectItem value="video">Vídeo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Ficheiros (vários)</Label>
+              <Input
+                type="file"
+                multiple
+                onChange={(e) => setBFiles(Array.from(e.target.files ?? []))}
+                disabled={bulkUploading}
+                accept={bResourceType === "video" ? "video/*" : ".pdf,application/pdf"}
+              />
+              {bFiles.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {bFiles.length} ficheiro(s) selecionado(s)
+                </p>
+              )}
+            </div>
+
+            {bFiles.length > 0 && (
+              <div className="sm:col-span-2 max-h-40 overflow-auto rounded border p-2 text-xs text-muted-foreground">
+                <ul className="space-y-1">
+                  {bFiles.map((f, i) => (
+                    <li key={i} className="flex justify-between gap-2">
+                      <span className="truncate">{f.name.replace(/\.[^.]+$/, "")}</span>
+                      <span className="shrink-0">{(f.size / 1024).toFixed(0)} KB</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="sm:col-span-2">
+              <Button type="submit" disabled={bulkUploading} className="w-full sm:w-auto">
+                {bulkUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    A carregar {bulkProgress.done}/{bulkProgress.total}…
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    Carregar {bFiles.length > 0 ? `${bFiles.length} ficheiro(s)` : "em massa"}
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+
+
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base">Recursos carregados</CardTitle>
         </CardHeader>
         <CardContent>
