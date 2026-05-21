@@ -34,7 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown } from "lucide-react";
 
 type ResourceType = "pdf" | "video";
 
@@ -127,6 +127,39 @@ function BibliotecaTab() {
 
   const [editing, setEditing] = useState<ResourceRow | null>(null);
 
+  const [searchTitle, setSearchTitle] = useState("");
+  const [filterType, setFilterType] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"title" | "resource_type" | "created_at">("created_at");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const filteredResources = useMemo(() => {
+    let list = [...resources];
+    if (searchTitle.trim()) {
+      const q = searchTitle.trim().toLowerCase();
+      list = list.filter((r) => r.title.toLowerCase().includes(q));
+    }
+    if (filterType !== "all") {
+      list = list.filter((r) => r.resource_type === filterType);
+    }
+    list.sort((a, b) => {
+      let cmp = 0;
+      if (sortBy === "title") cmp = a.title.localeCompare(b.title);
+      else if (sortBy === "resource_type") cmp = a.resource_type.localeCompare(b.resource_type);
+      else if (sortBy === "created_at") cmp = (a.created_at ?? "").localeCompare(b.created_at ?? "");
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+    return list;
+  }, [resources, searchTitle, filterType, sortBy, sortDir]);
+
+  const toggleSort = (col: "title" | "resource_type" | "created_at") => {
+    if (sortBy === col) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(col);
+      setSortDir("asc");
+    }
+  };
+
   const deleteMutation = useMutation({
     mutationFn: async (row: ResourceRow) => {
       const { error } = await supabase.from("recursos").delete().eq("id", row.id);
@@ -163,32 +196,75 @@ function BibliotecaTab() {
         <CardHeader>
           <CardTitle className="text-base">Recursos carregados</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1 space-y-1">
+              <Label className="text-xs text-muted-foreground">Filtrar por título</Label>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Pesquisar..."
+                  value={searchTitle}
+                  onChange={(e) => setSearchTitle(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            <div className="w-full space-y-1 sm:w-40">
+              <Label className="text-xs text-muted-foreground">Tipo</Label>
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                  <SelectItem value="video">Vídeo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
-          ) : resources.length === 0 ? (
+          ) : filteredResources.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Ainda não existem recursos.
+              Nenhum recurso corresponde aos filtros.
             </p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Título</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead>Descrição</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("title")}>
+                    <span className="flex items-center gap-1">
+                      Título
+                      {sortBy === "title" && <ArrowUpDown className="h-3 w-3" />}
+                    </span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("resource_type")}>
+                    <span className="flex items-center gap-1">
+                      Tipo
+                      {sortBy === "resource_type" && <ArrowUpDown className="h-3 w-3" />}
+                    </span>
+                  </TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("created_at")}>
+                    <span className="flex items-center gap-1">
+                      Data
+                      {sortBy === "created_at" && <ArrowUpDown className="h-3 w-3" />}
+                    </span>
+                  </TableHead>
                   <TableHead className="w-32 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {resources.map((r) => (
+                {filteredResources.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="font-medium">{r.title}</TableCell>
                     <TableCell className="uppercase">{r.resource_type}</TableCell>
-                    <TableCell className="max-w-md truncate text-muted-foreground">
-                      {r.description ?? "—"}
+                    <TableCell className="text-muted-foreground">
+                      {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
