@@ -284,7 +284,11 @@ function ResourcesPage() {
                                       const Icon =
                                         r.resource_type === "video" ? Video : FileText;
                                       return (
-                                        <Card key={r.id} className="border">
+                                        <Card
+                                          key={r.id}
+                                          className="border cursor-pointer transition hover:bg-muted/50"
+                                          onClick={() => setViewerResource(r)}
+                                        >
                                           <CardContent className="flex flex-col gap-2 p-3">
                                             <div className="flex items-start gap-2">
                                               <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
@@ -300,22 +304,20 @@ function ResourcesPage() {
                                               </div>
                                             </div>
                                             <Button
-                                              asChild
                                               size="sm"
                                               variant="outline"
                                               className="self-start"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setViewerResource(r);
+                                              }}
                                             >
-                                              <a
-                                                href={toProxyUrl(r.file_url)}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                              >
-                                                <ExternalLink className="h-3.5 w-3.5" />
-                                                Abrir
-                                              </a>
+                                              <ExternalLink className="h-3.5 w-3.5" />
+                                              Abrir
                                             </Button>
                                           </CardContent>
                                         </Card>
+
                                       );
                                     })}
                                   </div>
