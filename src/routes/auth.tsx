@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import aluLogo from "@/assets/alu-logo.svg";
 import authBackground from "@/assets/auth-background.png";
+import { LoadingU } from "@/components/LoadingU";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
@@ -87,9 +88,11 @@ function AuthPage() {
     navigate({ to: target });
   };
 
+  if (!bgLoaded) return <LoadingU />;
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: bgLoaded ? `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${authBackground})` : undefined }}>
-      {bgLoaded && (
+    <div className="fixed inset-0 flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${authBackground})` }}>
+      {true && (
         <Card className="w-full max-w-md backdrop-blur-sm bg-card/95 overflow-hidden">
           <CardHeader className="flex items-center justify-center bg-[#183967]">
           <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-32 w-auto" />

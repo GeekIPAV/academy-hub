@@ -15,6 +15,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { LoadingU } from "@/components/LoadingU";
 
 function NotFoundComponent() {
   return (
@@ -126,11 +127,7 @@ function AppShell() {
   const isRouterLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
 
   if (loading || isRouterLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-sm text-muted-foreground">A carregar…</div>
-      </div>
-    );
+    return <LoadingU />;
   }
 
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";

@@ -123,3 +123,19 @@
     letter-spacing: -0.01em;
   }
 }
+
+@keyframes loading-u-draw {
+  0% { stroke-dashoffset: 190; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes loading-u-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
+}
+.loading-u-path {
+  animation: loading-u-draw 1s linear infinite;
+}
+.loading-u-dot {
+  transform-origin: 20px 10px;
+  animation: loading-u-dot 1s ease-in-out infinite;
+}
