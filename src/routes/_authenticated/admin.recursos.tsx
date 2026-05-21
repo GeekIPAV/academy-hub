@@ -255,9 +255,22 @@ function AdminResourcesPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Gestor de Recursos</h1>
         <p className="text-sm text-muted-foreground">
-          Carregar materiais para o Centro de Recursos dos formandos.
+          Biblioteca central de recursos e organização por cluster.
         </p>
       </div>
+
+      <Tabs defaultValue="biblioteca">
+        <TabsList>
+          <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
+          <TabsTrigger value="clusters">Temas por Cluster</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="clusters" className="mt-4">
+          <ClusterTemasManager />
+        </TabsContent>
+
+        <TabsContent value="biblioteca" className="mt-4 space-y-6">
+
 
       <Card>
         <CardHeader>
