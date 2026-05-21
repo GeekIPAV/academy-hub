@@ -56,6 +56,7 @@ interface TemaRow {
   context: string | null;
   objectives: string | null;
   order_index: number;
+  bloco_order: number;
 }
 
 const BLOCO_SUGGESTIONS = ["FTC", "FTP", "SU", "SF"];
