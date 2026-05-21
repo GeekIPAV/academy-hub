@@ -25,6 +25,7 @@ A backend (Lovable Cloud) está saudável. O que falta é apenas **forçar um no
 
 ## Ficheiros tocados
 
-- `src/republish-trigger.ts` — bump da data (única alteração de código).
+- `.gitignore` — removido o ignore explícito de `.env` para permitir que o snapshot gerido do Lovable Cloud entre no build.
+- `src/republish-trigger.ts` — bump da data para forçar novo build/publish.
 
-Nenhuma alteração ao `client.ts`, ao `.env` ou a `.gitignore` (o `.env` é gerido automaticamente pelo Lovable Cloud e é injetado no build, mesmo estando no `.gitignore`).
+Nenhuma alteração ao `client.ts` nem aos valores do `.env`.
