@@ -372,6 +372,11 @@ function BibliotecaTab() {
                       {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
                     </TableCell>
                     <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" asChild title="Abrir link">
+                        <a href={r.file_url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
