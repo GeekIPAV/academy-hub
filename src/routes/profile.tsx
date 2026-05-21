@@ -137,7 +137,7 @@ function PrivacySection({ userId }: { userId: string | null }) {
                 }}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
-                {mut.isPending ? "A anonimizar..." : "Anonimizar definitivamente"}
+                {mut.isPending ? "A eliminar..." : "Eliminar definitivamente"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
