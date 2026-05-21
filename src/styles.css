@@ -109,20 +109,30 @@
     border-color: var(--color-border);
   }
 
+  html, body {
+    font-family: "Poppins", var(--font-sans);
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: "Poppins", var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
+  /* Force Poppins on form controls (they don't inherit by default) */
+  input, textarea, select, button, optgroup, option {
+    font-family: "Poppins", var(--font-sans);
+  }
+
   h1, h2, h3, h4, h5, h6 {
+    font-family: "Poppins", var(--font-sans);
     font-weight: 700;
     color: var(--color-secondary);
     letter-spacing: -0.01em;
   }
 }
+
 
 @keyframes loading-u-draw {
   0% { stroke-dashoffset: 190; }
