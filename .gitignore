@@ -1,5 +1,5 @@
-# Lovable Cloud manages the generated .env for this project.
-# Keep local override files ignored, but allow the managed .env into the build snapshot.
+# Environment variables — managed by Lovable Cloud, never commit
+.env
 .env.local
 .env.*.local
 
