@@ -126,11 +126,7 @@ function AppShell() {
   const isRouterLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
 
   if (loading || isRouterLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-sm text-muted-foreground">A carregar…</div>
-      </div>
-    );
+    return <LoadingU />;
   }
 
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
