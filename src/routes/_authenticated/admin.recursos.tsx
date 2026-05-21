@@ -34,7 +34,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag } from "lucide-react";
 
 type ResourceType = "pdf" | "video";
 
