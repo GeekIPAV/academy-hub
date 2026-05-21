@@ -136,11 +136,93 @@ function UsersManager() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Utilizadores</CardTitle>
-        <CardDescription>
-          Atribui um ou mais perfis a cada utilizador. As alterações são imediatas.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+        <div>
+          <CardTitle>Utilizadores</CardTitle>
+          <CardDescription>
+            Atribui um ou mais perfis a cada utilizador. As alterações são imediatas.
+          </CardDescription>
+        </div>
+        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <UserPlus className="mr-1 h-4 w-4" />
+              Adicionar Utilizador
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <form onSubmit={submitInvite}>
+              <DialogHeader>
+                <DialogTitle>Adicionar utilizador</DialogTitle>
+                <DialogDescription>
+                  Envia um convite por email. O utilizador define a sua própria senha ao aceitar.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invite-email">Email</Label>
+                  <Input
+                    id="invite-email"
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="nome@exemplo.pt"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invite-name">Nome (opcional)</Label>
+                  <Input
+                    id="invite-name"
+                    value={inviteName}
+                    onChange={(e) => setInviteName(e.target.value)}
+                    maxLength={120}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Perfis adicionais (opcional)</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {activeRoles
+                      .filter((r) => r.name !== "Formando")
+                      .map((r) => {
+                        const checked = inviteRoles.has(r.name);
+                        return (
+                          <label
+                            key={r.id}
+                            className="flex items-center gap-1.5 text-sm cursor-pointer"
+                          >
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                setInviteRoles((prev) => {
+                                  const next = new Set(prev);
+                                  if (v) next.add(r.name);
+                                  else next.delete(r.name);
+                                  return next;
+                                });
+                              }}
+                            />
+                            <span>{r.name}</span>
+                          </label>
+                        );
+                      })}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    O perfil "Formando" é atribuído automaticamente.
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="ghost" onClick={() => setInviteOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={inviteMut.isPending}>
+                  {inviteMut.isPending ? "A enviar..." : "Enviar convite"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent>
         {isLoading ? (
