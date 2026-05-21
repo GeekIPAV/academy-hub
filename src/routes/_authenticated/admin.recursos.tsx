@@ -494,6 +494,15 @@ function BibliotecaTab() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={
+                        allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false
+                      }
+                      onCheckedChange={(v) => toggleSelectAllVisible(v === true)}
+                      aria-label="Selecionar todos"
+                    />
+                  </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("title")}>
                     <span className="flex items-center gap-1">
                       Título
