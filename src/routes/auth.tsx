@@ -98,7 +98,7 @@ function AuthPage() {
           <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-32 w-auto" />
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login">
+          <Tabs defaultValue="login" className="mt-[15px]">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="login">Entrar</TabsTrigger>
               <TabsTrigger value="signup">Criar conta</TabsTrigger>
