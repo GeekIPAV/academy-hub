@@ -13,14 +13,24 @@ export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
 });
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Bom dia";
+  if (hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
 function DashboardPage() {
-  const { activeRoles, isComponentVisible } = useApp();
+  const { activeRoles, isComponentVisible, profile } = useApp();
   const isFormando = useIsFormando();
   const visible = (id: string) => isComponentVisible("/dashboard", id);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <ComponentAccessMatrix pagePath="/dashboard" />
+      <div className="text-lg font-medium">
+        {getGreeting()}{profile?.full_name ? `, ${profile.full_name}` : ""}
+      </div>
       {visible("header") && (
         <div className="flex items-start justify-between gap-4">
           <div>
