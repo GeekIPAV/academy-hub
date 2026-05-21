@@ -1,31 +1,23 @@
-import { useEffect, useRef, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
+import { useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Lock,
-  FileText,
-  Video,
-  Download,
-  Loader2,
-  ChevronLeft,
-  ChevronRight,
-  GraduationCap,
-  Briefcase,
-  Sparkles,
-  HeartHandshake,
-} from "lucide-react";
-import { getResourcesContext, type Phase, type ResourcesContext } from "@/lib/resources.functions";
+import { Loader2, FileText, Video, ExternalLink, Layers } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
@@ -34,12 +26,24 @@ export const Route = createFileRoute("/_authenticated/recursos")({
   component: ResourcesPage,
 });
 
-const PHASE_META: Record<Phase, { label: string; short: string; Icon: React.ComponentType<{ className?: string }> }> = {
-  FTC: { label: "Formação Teórico-Conceptual", short: "FTC", Icon: GraduationCap },
-  FTP: { label: "Formação Teórico-Prática", short: "FTP", Icon: Briefcase },
-  SU: { label: "Semana Ubuntu", short: "SU", Icon: Sparkles },
-  SF: { label: "Sessão Final", short: "SF", Icon: HeartHandshake },
-};
+interface RecursoRow {
+  id: string;
+  title: string;
+  description: string | null;
+  resource_type: string;
+  file_url: string;
+}
+
+interface TemaRow {
+  id: string;
+  cluster: string;
+  title: string;
+  description: string | null;
+  context: string | null;
+  objectives: string | null;
+  order_index: number;
+  tema_recursos: Array<{ recursos: RecursoRow | null }>;
+}
 
 function toProxyUrl(fileUrl: string): string {
   const marker = "/storage/v1/object/public/resources/";
@@ -48,265 +52,208 @@ function toProxyUrl(fileUrl: string): string {
   return `/api/public/recursos/${fileUrl.slice(idx + marker.length)}`;
 }
 
-interface ResourceRow {
-  id: string;
-  phase: Phase;
-  title: string;
-  resource_type: string;
-  file_url: string;
-  description: string | null;
-}
-
-function PdfPreview({ url }: { url: string }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [pdf, setPdf] = useState<import("pdfjs-dist").PDFDocumentProxy | null>(null);
-  const [pageNumber, setPageNumber] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(false);
-    setPdf(null);
-    setPageNumber(1);
-
-    import("pdfjs-dist").then((pdfjs) => {
-      pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-        "pdfjs-dist/build/pdf.worker.mjs",
-        import.meta.url,
-      ).toString();
-      return pdfjs.getDocument(url).promise;
-    }).then((document) => {
-      if (!cancelled) setPdf(document);
-    }).catch(() => {
-      if (!cancelled) setError(true);
-    }).finally(() => {
-      if (!cancelled) setLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [url]);
-
-  useEffect(() => {
-    if (!pdf || !canvasRef.current) return;
-    let cancelled = false;
-    pdf.getPage(pageNumber).then((page) => {
-      if (cancelled || !canvasRef.current) return;
-      const containerWidth = canvasRef.current.parentElement?.clientWidth ?? 900;
-      const baseViewport = page.getViewport({ scale: 1 });
-      const scale = Math.min(1.6, Math.max(0.8, (containerWidth - 32) / baseViewport.width));
-      const viewport = page.getViewport({ scale });
-      const canvas = canvasRef.current;
-      const context = canvas.getContext("2d");
-      if (!context) return;
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      page.render({ canvas, canvasContext: context, viewport }).promise.catch(() => setError(true));
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [pdf, pageNumber]);
-
-  if (loading) {
-    return <div className="flex h-full items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
-  }
-
-  if (error || !pdf) {
-    return <div className="flex h-full items-center justify-center text-sm text-muted-foreground">Não foi possível carregar a pré-visualização.</div>;
-  }
-
-  return (
-    <div className="grid h-full grid-rows-[1fr_auto] bg-muted/30">
-      <div className="min-h-0 overflow-auto p-4">
-        <canvas ref={canvasRef} className="mx-auto block max-w-full rounded-md bg-background shadow-sm" />
-      </div>
-      <div className="flex items-center justify-center gap-3 border-t bg-background p-3">
-        <Button variant="outline" size="sm" onClick={() => setPageNumber((p) => Math.max(1, p - 1))} disabled={pageNumber <= 1}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <span className="text-sm text-muted-foreground">Página {pageNumber} de {pdf.numPages}</span>
-        <Button variant="outline" size="sm" onClick={() => setPageNumber((p) => Math.min(pdf.numPages, p + 1))} disabled={pageNumber >= pdf.numPages}>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 function ResourcesPage() {
-  const fetchCtx = useServerFn(getResourcesContext);
-  const [ctx, setCtx] = useState<ResourcesContext | null>(null);
-  const [activePhase, setActivePhase] = useState<Phase>("FTC");
-  const [resources, setResources] = useState<ResourceRow[]>([]);
-  const [loadingRes, setLoadingRes] = useState(false);
-  const [preview, setPreview] = useState<ResourceRow | null>(null);
   const { isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/recursos", id);
+  const [selectedCluster, setSelectedCluster] = useState<string>("");
 
-  useEffect(() => {
-    let mounted = true;
-    fetchCtx()
-      .then((r: ResourcesContext) => mounted && setCtx(r))
-      .catch(() => {
-        if (mounted) {
-          setCtx({ isFormando: false, isAdmin: false, completed: { FTC: false, FTP: false, SU: false, SF: false } });
-        }
+  const clustersQuery = useQuery({
+    queryKey: ["clusters"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("programas")
+        .select("cluster")
+        .not("cluster", "is", null);
+      if (error) throw error;
+      const set = new Set<string>();
+      (data ?? []).forEach((r) => {
+        const c = (r as { cluster: string | null }).cluster;
+        if (c && c.trim()) set.add(c.trim());
       });
-    return () => {
-      mounted = false;
-    };
-  }, [fetchCtx]);
+      return Array.from(set).sort((a, b) => a.localeCompare(b, "pt"));
+    },
+  });
 
-  useEffect(() => {
-    if (!ctx?.completed[activePhase]) {
-      setResources([]);
-      return;
-    }
-    setLoadingRes(true);
-    supabase
-      .from("recursos" as never)
-      .select("id, phase, title, resource_type, file_url, description")
-      .eq("phase", activePhase)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => {
-        setResources((data as ResourceRow[]) ?? []);
-        setLoadingRes(false);
-      });
-  }, [ctx, activePhase]);
+  const clusters = clustersQuery.data ?? [];
+  const activeCluster = selectedCluster || clusters[0] || "";
 
-  if (!ctx) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  const temasQuery = useQuery({
+    queryKey: ["temas", activeCluster],
+    enabled: !!activeCluster,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("temas_momentos" as never)
+        .select("*, tema_recursos(recursos(*))")
+        .eq("cluster", activeCluster)
+        .order("order_index");
+      if (error) throw error;
+      return (data as unknown as TemaRow[]) ?? [];
+    },
+  });
 
-  if (!ctx.isFormando) {
-    return (
-      <div className="mx-auto max-w-2xl py-16 text-center">
-        <Lock className="mx-auto mb-4 h-8 w-8 text-muted-foreground" />
-        <h1 className="text-xl font-semibold">Acesso restrito</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          O Centro de Recursos é exclusivo para formandos.
-        </p>
-        <Button asChild variant="outline" className="mt-6">
-          <Link to="/dashboard">Voltar ao Dashboard</Link>
-        </Button>
-      </div>
-    );
-  }
-
-  const phases: Phase[] = ["FTC", "FTP", "SU", "SF"];
+  const temas = useMemo(() => temasQuery.data ?? [], [temasQuery.data]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <ComponentAccessMatrix pagePath="/recursos" />
+
       {visible("header") && (
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Centro de Recursos</h1>
           <p className="text-sm text-muted-foreground">
-            Materiais de apoio do teu percurso. Os recursos vão sendo desbloqueados à medida
-            que concluis cada fase.
+            Materiais pedagógicos organizados por cluster. Seleciona um cluster para
+            explorares os temas e respetivos recursos.
           </p>
         </div>
       )}
 
-      {visible("tabs") && (
-      <Tabs value={activePhase} onValueChange={(v) => setActivePhase(v as Phase)}>
-        <TabsList className="grid w-full grid-cols-4">
-          {phases.map((p) => (
-            <TabsTrigger key={p} value={p}>
-              {PHASE_META[p].short}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {phases.map((p) => {
-          const { label, Icon } = PHASE_META[p];
-          const unlocked = ctx.completed[p];
-          return (
-            <TabsContent key={p} value={p} className="mt-4">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-2">
-                    <Icon className="h-5 w-5 text-muted-foreground" />
-                    <CardTitle className="text-base">{label}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {!unlocked ? (
-                    <div className="flex flex-col items-center gap-2 py-8 text-center">
-                      <Lock className="h-6 w-6 text-muted-foreground" />
-                      <p className="max-w-sm text-sm text-muted-foreground">
-                        Estes recursos ficarão disponíveis após a conclusão da {label}.
-                      </p>
-                    </div>
-                  ) : loadingRes ? (
-                    <div className="flex justify-center py-8">
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : resources.length === 0 ? (
-                    <p className="py-8 text-center text-sm text-muted-foreground">
-                      Ainda não há recursos disponíveis para esta fase.
-                    </p>
-                  ) : (
-                    <ul className="divide-y">
-                      {resources.map((r) => {
-                        const TypeIcon = r.resource_type === "video" ? Video : FileText;
-                        return (
-                          <li key={r.id}>
-                            <button
-                              type="button"
-                              onClick={() => setPreview(r)}
-                              className="-mx-2 flex w-[calc(100%+1rem)] items-center gap-3 rounded-md px-2 py-3 text-left transition-colors hover:bg-muted/50"
-                            >
-                              <TypeIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium">{r.title}</p>
-                                {r.description && (
-                                  <p className="truncate text-xs text-muted-foreground">
-                                    {r.description}
-                                  </p>
-                                )}
-                              </div>
-                              <Download className="h-4 w-4 shrink-0 text-muted-foreground" />
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          );
-        })}
-      </Tabs>
+      {visible("cluster-selector") && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center gap-2">
+              <Layers className="h-5 w-5 text-muted-foreground" />
+              <CardTitle className="text-base">Cluster</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {clustersQuery.isLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> A carregar clusters…
+              </div>
+            ) : clusters.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Ainda não existem clusters configurados nos programas.
+              </p>
+            ) : (
+              <Select value={activeCluster} onValueChange={setSelectedCluster}>
+                <SelectTrigger className="max-w-md">
+                  <SelectValue placeholder="Selecionar cluster" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clusters.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </CardContent>
+        </Card>
       )}
 
-      <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
-        <DialogContent className="h-[88vh] max-w-5xl grid-rows-[auto_1fr] p-0">
-          <DialogHeader className="space-y-1 px-6 pt-6">
-            <DialogTitle>{preview?.title}</DialogTitle>
-            <DialogDescription>
-              {preview?.resource_type === "video" ? "Pré-visualização do vídeo" : "Pré-visualização do documento"}
-            </DialogDescription>
-          </DialogHeader>
-          {preview && (
-            preview.resource_type === "video" ? (
-              <video src={toProxyUrl(preview.file_url)} controls className="h-full w-full bg-muted" />
+      {visible("temas-list") && activeCluster && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Temas e momentos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {temasQuery.isLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            ) : temas.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Ainda não há temas configurados para este cluster.
+              </p>
             ) : (
-              <PdfPreview url={toProxyUrl(preview.file_url)} />
-            )
-          )}
-        </DialogContent>
-      </Dialog>
+              <Accordion type="multiple" className="w-full">
+                {temas.map((t) => {
+                  const recs = (t.tema_recursos ?? [])
+                    .map((tr) => tr.recursos)
+                    .filter((r): r is RecursoRow => !!r);
+                  return (
+                    <AccordionItem key={t.id} value={t.id}>
+                      <AccordionTrigger>{t.title}</AccordionTrigger>
+                      <AccordionContent className="space-y-4">
+                        {t.description && (
+                          <div>
+                            <p className="text-xs font-semibold uppercase text-muted-foreground">
+                              Descrição
+                            </p>
+                            <p className="mt-1 text-sm whitespace-pre-wrap">
+                              {t.description}
+                            </p>
+                          </div>
+                        )}
+                        {t.context && (
+                          <div>
+                            <p className="text-xs font-semibold uppercase text-muted-foreground">
+                              Contexto
+                            </p>
+                            <p className="mt-1 text-sm whitespace-pre-wrap">{t.context}</p>
+                          </div>
+                        )}
+                        {t.objectives && (
+                          <div>
+                            <p className="text-xs font-semibold uppercase text-muted-foreground">
+                              Objetivos
+                            </p>
+                            <p className="mt-1 text-sm whitespace-pre-wrap">
+                              {t.objectives}
+                            </p>
+                          </div>
+                        )}
+
+                        <div>
+                          <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                            Recursos
+                          </p>
+                          {recs.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                              Sem recursos associados.
+                            </p>
+                          ) : (
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              {recs.map((r) => {
+                                const Icon = r.resource_type === "video" ? Video : FileText;
+                                return (
+                                  <Card key={r.id} className="border">
+                                    <CardContent className="flex flex-col gap-2 p-3">
+                                      <div className="flex items-start gap-2">
+                                        <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                                        <div className="min-w-0 flex-1">
+                                          <p className="truncate text-sm font-medium">
+                                            {r.title}
+                                          </p>
+                                          {r.description && (
+                                            <p className="text-xs text-muted-foreground line-clamp-2">
+                                              {r.description}
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <Button
+                                        asChild
+                                        size="sm"
+                                        variant="outline"
+                                        className="self-start"
+                                      >
+                                        <a
+                                          href={toProxyUrl(r.file_url)}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          <ExternalLink className="h-3.5 w-3.5" />
+                                          Abrir
+                                        </a>
+                                      </Button>
+                                    </CardContent>
+                                  </Card>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
