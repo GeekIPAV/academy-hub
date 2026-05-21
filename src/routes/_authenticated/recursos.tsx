@@ -335,6 +335,41 @@ function ResourcesPage() {
           </CardContent>
         </Card>
       )}
+
+      <Dialog
+        open={!!viewerResource}
+        onOpenChange={(o) => !o && setViewerResource(null)}
+      >
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="pr-8">{viewerResource?.title}</DialogTitle>
+          </DialogHeader>
+          {viewerResource && (
+            <div className="space-y-3">
+              <Button asChild size="sm" className="w-full sm:w-auto">
+                <a
+                  href={viewerResource.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Abrir em nova aba
+                </a>
+              </Button>
+              <iframe
+                title={viewerResource.title}
+                src={getEmbedUrl(viewerResource.file_url)}
+                className="w-full h-[60vh] border-0 rounded-md bg-muted"
+                allow="autoplay; encrypted-media; fullscreen"
+              />
+              <p className="text-xs text-muted-foreground">
+                Se a pré-visualização não aparecer, usa o botão "Abrir em nova aba".
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
+
 }
