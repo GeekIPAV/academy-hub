@@ -107,7 +107,7 @@ function PrivacySection({ userId }: { userId: string | null }) {
         >
           <AlertDialogTrigger asChild>
             <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive">
-              Anonimizar Dados Pessoais (RGPD)
+              Eliminar conta e apagar Dados Pessoais
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
