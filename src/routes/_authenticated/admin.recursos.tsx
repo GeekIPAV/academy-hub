@@ -717,6 +717,20 @@ function TemasTab() {
               />
             </div>
             <div className="space-y-1">
+              <Label>Bloco (opcional)</Label>
+              <Input
+                value={form.bloco}
+                list="bloco-suggestions"
+                placeholder="Ex: FTC, FTP, SU, SF"
+                onChange={(e) => setForm({ ...form, bloco: e.target.value })}
+              />
+              <datalist id="bloco-suggestions">
+                {BLOCO_SUGGESTIONS.map((b) => (
+                  <option key={b} value={b} />
+                ))}
+              </datalist>
+            </div>
+            <div className="space-y-1">
               <Label>Descrição</Label>
               <Textarea
                 rows={3}
