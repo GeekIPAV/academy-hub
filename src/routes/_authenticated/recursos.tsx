@@ -16,12 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Video, ExternalLink, Layers } from "lucide-react";
 import { useApp } from "@/lib/app-context";
@@ -65,7 +59,7 @@ function ResourcesPage() {
   const { isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/recursos", id);
   const [selectedCluster, setSelectedCluster] = useState<string>("");
-  const [viewerResource, setViewerResource] = useState<RecursoRow | null>(null);
+  
 
 
   const clustersQuery = useQuery({
@@ -262,40 +256,39 @@ function ResourcesPage() {
                                       const Icon =
                                         r.resource_type === "video" ? Video : FileText;
                                       return (
-                                        <Card
+                                        <a
                                           key={r.id}
-                                          className="border cursor-pointer transition hover:bg-muted/50"
-                                          onClick={() => setViewerResource(r)}
+                                          href={r.file_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="block"
                                         >
-                                          <CardContent className="flex flex-col gap-2 p-3">
-                                            <div className="flex items-start gap-2">
-                                              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                                              <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium">
-                                                  {r.title}
-                                                </p>
-                                                {r.description && (
-                                                  <p className="text-xs text-muted-foreground line-clamp-2">
-                                                    {r.description}
+                                          <Card className="border cursor-pointer transition hover:bg-muted/50">
+                                            <CardContent className="flex flex-col gap-2 p-3">
+                                              <div className="flex items-start gap-2">
+                                                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                                                <div className="min-w-0 flex-1">
+                                                  <p className="truncate text-sm font-medium">
+                                                    {r.title}
                                                   </p>
-                                                )}
+                                                  {r.description && (
+                                                    <p className="text-xs text-muted-foreground line-clamp-2">
+                                                      {r.description}
+                                                    </p>
+                                                  )}
+                                                </div>
                                               </div>
-                                            </div>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              className="self-start"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                setViewerResource(r);
-                                              }}
-                                            >
-                                              <ExternalLink className="h-3.5 w-3.5" />
-                                              Abrir
-                                            </Button>
-                                          </CardContent>
-                                        </Card>
-
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="self-start pointer-events-none"
+                                              >
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                Abrir
+                                              </Button>
+                                            </CardContent>
+                                          </Card>
+                                        </a>
                                       );
                                     })}
                                   </div>
@@ -313,41 +306,6 @@ function ResourcesPage() {
           </CardContent>
         </Card>
       )}
-
-      <Dialog
-        open={!!viewerResource}
-        onOpenChange={(o) => !o && setViewerResource(null)}
-      >
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl leading-relaxed">
-              {viewerResource?.title}
-            </DialogTitle>
-          </DialogHeader>
-          {viewerResource && (
-            <div className="flex flex-col items-center space-y-6 py-2">
-              {viewerResource.description && (
-                <p className="text-center text-sm text-muted-foreground leading-relaxed max-w-md">
-                  {viewerResource.description}
-                </p>
-              )}
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <a
-                  href={viewerResource.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="h-5 w-5" />
-                  Abrir Recurso (Novo Separador)
-                </a>
-              </Button>
-              <p className="text-xs text-muted-foreground text-center max-w-sm">
-                Este recurso abrirá numa página externa da Academia para garantir que visualizas o documento com todas as permissões necessárias.
-              </p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 
