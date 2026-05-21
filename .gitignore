@@ -1,5 +1,5 @@
-# Environment files (NEVER commit secrets)
-.env
+# Lovable Cloud manages the generated .env for this project.
+# Keep local override files ignored, but allow the managed .env into the build snapshot.
 .env.local
 .env.*.local
 
