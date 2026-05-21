@@ -648,6 +648,7 @@ function TemasTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-20">Bloco</TableHead>
                     <TableHead>Título</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead className="w-32 text-right">Ações</TableHead>
@@ -656,6 +657,13 @@ function TemasTab() {
                 <TableBody>
                   {temas.map((t) => (
                     <TableRow key={t.id}>
+                      <TableCell>
+                        {t.bloco ? (
+                          <Badge variant="secondary">{t.bloco}</Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{t.title}</TableCell>
                       <TableCell className="max-w-md truncate text-muted-foreground">
                         {t.description ?? "—"}
