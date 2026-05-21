@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import aluLogo from "@/assets/alu-logo.svg";
+import authBackground from "@/assets/auth-background.png";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
@@ -75,8 +76,8 @@ function AuthPage() {
   };
 
   return (
-    <div className="mx-auto flex min-h-[60vh] max-w-md items-center">
-      <Card className="w-full">
+    <div className="fixed inset-0 flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${authBackground})` }}>
+      <Card className="w-full max-w-md backdrop-blur-sm bg-card/95">
         <CardHeader className="flex items-center justify-center">
           <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-32 w-auto" />
         </CardHeader>
