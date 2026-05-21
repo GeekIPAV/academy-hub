@@ -1,61 +1,30 @@
-# Reescrita de `admin/recursos`
+## Diagnóstico
 
-## 1. Migração de base de dados
+O erro `Missing Supabase environment variable(s): SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY` vem de `src/integrations/supabase/client.ts`, que lê:
 
-A tabela `recursos` tem hoje `phase text NOT NULL` (legado FTC/FTP/SU/SF). Como a nova Biblioteca deixa de gravar fase, esse insert falharia. Aplicar:
+- `import.meta.env.VITE_SUPABASE_URL`
+- `import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY`
 
-```sql
-ALTER TABLE public.recursos ALTER COLUMN phase DROP NOT NULL;
+Estas são substituídas pelo Vite **em build time** a partir do `.env`. O `.env` local existe e já contém:
+
+```
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_PUBLISHABLE_KEY=...
+VITE_SUPABASE_PROJECT_ID=...
+SUPABASE_URL=...
+SUPABASE_PUBLISHABLE_KEY=...
 ```
 
-`program_id` já é nullable e mantém-se assim. Não se mexe em RLS nem nas tabelas `temas_momentos` / `tema_recursos` (já existem com o schema previsto).
+A backend (Lovable Cloud) está saudável. O que falta é apenas **forçar um novo build/publish** para que a versão publicada seja regenerada com as variáveis atualizadas (após a rotação das chaves feita recentemente, o build publicado ficou com o snapshot antigo).
 
-## 2. Reescrita de `src/routes/_authenticated/admin.recursos.tsx`
+## Passos
 
-Apagar todo o conteúdo atual (Phase, program_id, bulk legado) e construir uma página única com `<Tabs>` shadcn e 3 separadores. Manter o `beforeLoad` que valida admin via `user_roles`.
-
-### Tab 1 — "Biblioteca" (CRUD recursos puro)
-
-- Card "Novo recurso" com formulário:
-  - `Input` Título (obrigatório)
-  - `Textarea` Descrição (opcional)
-  - `Select` Tipo: `pdf` | `video`
-  - `Input type="file"` (accept varia com o tipo)
-  - Botão "Carregar recurso"
-- Insert: `{ title, description, resource_type, file_url }` em `recursos`. `program_id` e `phase` ficam `NULL`. Upload para bucket `resources` em `biblioteca/<uuid>.<ext>`.
-- Card "Recursos carregados": `Table` com colunas Título, Descrição, Tipo, Ações (Editar/Apagar).
-- Dialog de edição: mesmos 4 campos; substituir ficheiro é opcional e, se substituído, apaga o antigo do storage.
-- Apagar: remove linha + ficheiro do storage. `toast.success` / `toast.error` em todos os caminhos; `loading` por ação.
-- Sem `Phase`, sem programa.
-
-### Tab 2 — "Gestão de Temas"
-
-- Topo: `Select` Cluster — valores únicos não-nulos de `programas.cluster` (`.not("cluster", "is", null)` + dedup + sort pt).
-- Quando há cluster ativo:
-  - Botão "Adicionar Tema" abre `Dialog` com `Input` Título, `Textarea` Descrição, `Textarea` Contexto, `Textarea` Objetivos.
-  - Submit faz insert em `temas_momentos` com `{ cluster, title, description, context, objectives, order_index: maxOrder+1 }`. Edição faz update.
-  - Lista (cards ou table) dos temas do cluster, ordenados por `order_index`, com botões Editar e Apagar (com confirm).
-- Dados via TanStack Query (`['admin-temas', cluster]`), invalidados após mutações.
-
-### Tab 3 — "Associações" (M:N)
-
-- Topo: `Select` Cluster, depois `Select` Tema (temas do cluster).
-- Quando há tema selecionado: lista vertical com `Checkbox` para cada recurso da Biblioteca (`recursos` ordenados por título).
-- Estado inicial dos checkboxes = `tema_recursos` atuais do tema.
-- Botão "Guardar Associações":
-  1. `delete from tema_recursos where tema_id = X` (todos os registos antigos do tema).
-  2. `insert` dos selecionados como `{ tema_id, recurso_id }`.
-  3. Toast + invalidar query `['tema-recursos', tema_id]`.
-- Mensagem clara quando não há recursos na Biblioteca ou temas no cluster.
-
-## 3. Aspetos técnicos
-
-- Imports shadcn: `Tabs, TabsList, TabsTrigger, TabsContent, Checkbox, Dialog…, Select…, Card…, Table…, Input, Textarea, Label, Button`.
-- Tipos: declarar localmente `RecursoRow`, `TemaRow` e usar `from("temas_momentos" as never)` / `from("tema_recursos" as never)` (não constam em `types.ts`).
-- `ClusterTemasManager.tsx` deixa de ser importado por esta rota (já existia mas tinha tudo num só componente); fica órfão no projeto — remover esse import e o ficheiro pode ser apagado num passo seguinte se preferires (não faz parte deste plano).
-- Sem alterações ao `recursos.tsx` (visão formando) nem a outras rotas.
+1. Atualizar o marcador `src/republish-trigger.ts` para a data atual, de modo a forçar o botão **Publish** a detectar uma alteração e gerar novo build.
+2. Pedir-te para clicar em **Publish → Update** no canto superior direito (ou no menu `...` em mobile) para republicar.
+3. Após o deploy, abrir a versão publicada e confirmar que o erro desapareceu. Se ainda persistir, recolher logs com `stack_modern--server-function-logs` no deployment `published` para confirmar que as VITE_ vars foram realmente substituídas no bundle.
 
 ## Ficheiros tocados
 
-- `supabase/migrations/<timestamp>_recursos_phase_nullable.sql` (novo).
-- `src/routes/_authenticated/admin.recursos.tsx` (reescrito).
+- `src/republish-trigger.ts` — bump da data (única alteração de código).
+
+Nenhuma alteração ao `client.ts`, ao `.env` ou a `.gitignore` (o `.env` é gerido automaticamente pelo Lovable Cloud e é injetado no build, mesmo estando no `.gitignore`).
