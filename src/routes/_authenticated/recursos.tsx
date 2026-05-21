@@ -37,6 +37,7 @@ interface RecursoRow {
 interface TemaRow {
   id: string;
   cluster: string;
+  bloco: string | null;
   title: string;
   description: string | null;
   context: string | null;
@@ -92,6 +93,34 @@ function ResourcesPage() {
   });
 
   const temas = useMemo(() => temasQuery.data ?? [], [temasQuery.data]);
+
+  const groupedTemas = useMemo(() => {
+    const hasAnyBloco = temas.some((t) => t.bloco && t.bloco.trim());
+    if (!hasAnyBloco) {
+      return [{ bloco: null as string | null, temas }];
+    }
+    const map = new Map<string, TemaRow[]>();
+    const order: string[] = [];
+    const unassigned: TemaRow[] = [];
+    for (const t of temas) {
+      const key = t.bloco?.trim();
+      if (!key) {
+        unassigned.push(t);
+        continue;
+      }
+      if (!map.has(key)) {
+        map.set(key, []);
+        order.push(key);
+      }
+      map.get(key)!.push(t);
+    }
+    const groups: Array<{ bloco: string | null; temas: TemaRow[] }> = order.map((b) => ({
+      bloco: b,
+      temas: map.get(b)!,
+    }));
+    if (unassigned.length) groups.push({ bloco: null, temas: unassigned });
+    return groups;
+  }, [temas]);
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -157,99 +186,116 @@ function ResourcesPage() {
                 Ainda não há temas configurados para este cluster.
               </p>
             ) : (
-              <Accordion type="multiple" className="w-full">
-                {temas.map((t) => {
-                  const recs = (t.tema_recursos ?? [])
-                    .map((tr) => tr.recursos)
-                    .filter((r): r is RecursoRow => !!r);
-                  return (
-                    <AccordionItem key={t.id} value={t.id}>
-                      <AccordionTrigger>{t.title}</AccordionTrigger>
-                      <AccordionContent className="space-y-4">
-                        {t.description && (
-                          <div>
-                            <p className="text-xs font-semibold uppercase text-muted-foreground">
-                              Descrição
-                            </p>
-                            <p className="mt-1 text-sm whitespace-pre-wrap">
-                              {t.description}
-                            </p>
-                          </div>
-                        )}
-                        {t.context && (
-                          <div>
-                            <p className="text-xs font-semibold uppercase text-muted-foreground">
-                              Contexto
-                            </p>
-                            <p className="mt-1 text-sm whitespace-pre-wrap">{t.context}</p>
-                          </div>
-                        )}
-                        {t.objectives && (
-                          <div>
-                            <p className="text-xs font-semibold uppercase text-muted-foreground">
-                              Objetivos
-                            </p>
-                            <p className="mt-1 text-sm whitespace-pre-wrap">
-                              {t.objectives}
-                            </p>
-                          </div>
-                        )}
+              <div className="space-y-6">
+                {groupedTemas.map((group, gi) => (
+                  <section key={group.bloco ?? `__none-${gi}`} className="space-y-2">
+                    <div className="flex items-center gap-2 border-b pb-1">
+                      <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                        {group.bloco ?? "Outros"}
+                      </h3>
+                      <span className="text-xs text-muted-foreground">
+                        ({group.temas.length})
+                      </span>
+                    </div>
+                    <Accordion type="multiple" className="w-full">
+                      {group.temas.map((t) => {
+                        const recs = (t.tema_recursos ?? [])
+                          .map((tr) => tr.recursos)
+                          .filter((r): r is RecursoRow => !!r);
+                        return (
+                          <AccordionItem key={t.id} value={t.id}>
+                            <AccordionTrigger>{t.title}</AccordionTrigger>
+                            <AccordionContent className="space-y-4">
+                              {t.description && (
+                                <div>
+                                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                    Descrição
+                                  </p>
+                                  <p className="mt-1 text-sm whitespace-pre-wrap">
+                                    {t.description}
+                                  </p>
+                                </div>
+                              )}
+                              {t.context && (
+                                <div>
+                                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                    Contexto
+                                  </p>
+                                  <p className="mt-1 text-sm whitespace-pre-wrap">
+                                    {t.context}
+                                  </p>
+                                </div>
+                              )}
+                              {t.objectives && (
+                                <div>
+                                  <p className="text-xs font-semibold uppercase text-muted-foreground">
+                                    Objetivos
+                                  </p>
+                                  <p className="mt-1 text-sm whitespace-pre-wrap">
+                                    {t.objectives}
+                                  </p>
+                                </div>
+                              )}
 
-                        <div>
-                          <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
-                            Recursos
-                          </p>
-                          {recs.length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                              Sem recursos associados.
-                            </p>
-                          ) : (
-                            <div className="grid gap-2 sm:grid-cols-2">
-                              {recs.map((r) => {
-                                const Icon = r.resource_type === "video" ? Video : FileText;
-                                return (
-                                  <Card key={r.id} className="border">
-                                    <CardContent className="flex flex-col gap-2 p-3">
-                                      <div className="flex items-start gap-2">
-                                        <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                                        <div className="min-w-0 flex-1">
-                                          <p className="truncate text-sm font-medium">
-                                            {r.title}
-                                          </p>
-                                          {r.description && (
-                                            <p className="text-xs text-muted-foreground line-clamp-2">
-                                              {r.description}
-                                            </p>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <Button
-                                        asChild
-                                        size="sm"
-                                        variant="outline"
-                                        className="self-start"
-                                      >
-                                        <a
-                                          href={toProxyUrl(r.file_url)}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          <ExternalLink className="h-3.5 w-3.5" />
-                                          Abrir
-                                        </a>
-                                      </Button>
-                                    </CardContent>
-                                  </Card>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  );
-                })}
-              </Accordion>
+                              <div>
+                                <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+                                  Recursos
+                                </p>
+                                {recs.length === 0 ? (
+                                  <p className="text-sm text-muted-foreground">
+                                    Sem recursos associados.
+                                  </p>
+                                ) : (
+                                  <div className="grid gap-2 sm:grid-cols-2">
+                                    {recs.map((r) => {
+                                      const Icon =
+                                        r.resource_type === "video" ? Video : FileText;
+                                      return (
+                                        <Card key={r.id} className="border">
+                                          <CardContent className="flex flex-col gap-2 p-3">
+                                            <div className="flex items-start gap-2">
+                                              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                                              <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-medium">
+                                                  {r.title}
+                                                </p>
+                                                {r.description && (
+                                                  <p className="text-xs text-muted-foreground line-clamp-2">
+                                                    {r.description}
+                                                  </p>
+                                                )}
+                                              </div>
+                                            </div>
+                                            <Button
+                                              asChild
+                                              size="sm"
+                                              variant="outline"
+                                              className="self-start"
+                                            >
+                                              <a
+                                                href={toProxyUrl(r.file_url)}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                              >
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                Abrir
+                                              </a>
+                                            </Button>
+                                          </CardContent>
+                                        </Card>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        );
+                      })}
+                    </Accordion>
+                  </section>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>

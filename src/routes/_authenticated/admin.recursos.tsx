@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -49,12 +50,15 @@ interface ResourceRow {
 interface TemaRow {
   id: string;
   cluster: string;
+  bloco: string | null;
   title: string;
   description: string | null;
   context: string | null;
   objectives: string | null;
   order_index: number;
 }
+
+const BLOCO_SUGGESTIONS = ["FTC", "FTP", "SU", "SF"];
 
 export const Route = createFileRoute("/_authenticated/admin/recursos")({
   beforeLoad: async () => {
@@ -484,8 +488,15 @@ interface TemaForm {
   description: string;
   context: string;
   objectives: string;
+  bloco: string;
 }
-const EMPTY_TEMA: TemaForm = { title: "", description: "", context: "", objectives: "" };
+const EMPTY_TEMA: TemaForm = {
+  title: "",
+  description: "",
+  context: "",
+  objectives: "",
+  bloco: "",
+};
 
 function TemasTab() {
   const qc = useQueryClient();
@@ -499,7 +510,7 @@ function TemasTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos" as never)
-        .select("id, cluster, title, description, context, objectives, order_index")
+        .select("id, cluster, bloco, title, description, context, objectives, order_index")
         .eq("cluster", activeCluster)
         .order("order_index");
       if (error) throw error;
@@ -524,6 +535,7 @@ function TemasTab() {
       description: t.description ?? "",
       context: t.context ?? "",
       objectives: t.objectives ?? "",
+      bloco: t.bloco ?? "",
     });
     setDialogOpen(true);
   };
@@ -540,6 +552,7 @@ function TemasTab() {
             description: form.description.trim() || null,
             context: form.context.trim() || null,
             objectives: form.objectives.trim() || null,
+            bloco: form.bloco.trim() || null,
           } as never)
           .eq("id", editing.id);
         if (error) throw error;
@@ -551,6 +564,7 @@ function TemasTab() {
           description: form.description.trim() || null,
           context: form.context.trim() || null,
           objectives: form.objectives.trim() || null,
+          bloco: form.bloco.trim() || null,
           order_index: maxOrder + 1,
         } as never);
         if (error) throw error;
@@ -634,6 +648,7 @@ function TemasTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-20">Bloco</TableHead>
                     <TableHead>Título</TableHead>
                     <TableHead>Descrição</TableHead>
                     <TableHead className="w-32 text-right">Ações</TableHead>
@@ -642,6 +657,13 @@ function TemasTab() {
                 <TableBody>
                   {temas.map((t) => (
                     <TableRow key={t.id}>
+                      <TableCell>
+                        {t.bloco ? (
+                          <Badge variant="secondary">{t.bloco}</Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="font-medium">{t.title}</TableCell>
                       <TableCell className="max-w-md truncate text-muted-foreground">
                         {t.description ?? "—"}
@@ -693,6 +715,20 @@ function TemasTab() {
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 required
               />
+            </div>
+            <div className="space-y-1">
+              <Label>Bloco (opcional)</Label>
+              <Input
+                value={form.bloco}
+                list="bloco-suggestions"
+                placeholder="Ex: FTC, FTP, SU, SF"
+                onChange={(e) => setForm({ ...form, bloco: e.target.value })}
+              />
+              <datalist id="bloco-suggestions">
+                {BLOCO_SUGGESTIONS.map((b) => (
+                  <option key={b} value={b} />
+                ))}
+              </datalist>
             </div>
             <div className="space-y-1">
               <Label>Descrição</Label>
