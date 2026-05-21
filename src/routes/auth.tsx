@@ -99,7 +99,7 @@ function AuthPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="flex h-9 w-full rounded-md border-input px-3 py-1 text-base shadow-sm transition-colors file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm bg-white border-[#193a94] border-none border">
               <TabsTrigger value="login">Entrar</TabsTrigger>
               <TabsTrigger value="signup">Criar conta</TabsTrigger>
             </TabsList>
@@ -114,6 +114,7 @@ function AuthPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Abc123"
                   />
                 </div>
                 <div className="space-y-1.5">
