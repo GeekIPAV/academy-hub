@@ -336,7 +336,7 @@ function BibliotecaTab() {
             </div>
           ) : filteredResources.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Nenhum recurso corresponde aos filtros.
+              Nenhum recurso encontrado com estes filtros.
             </p>
           ) : (
             <Table>
