@@ -778,48 +778,110 @@ function TemasTab() {
                 Sem temas. Cria o primeiro.
               </p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-20">Bloco</TableHead>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead className="w-32 text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {temas.map((t) => (
-                    <TableRow key={t.id}>
-                      <TableCell>
-                        {t.bloco ? (
-                          <Badge variant="secondary">{t.bloco}</Badge>
-                        ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">{t.title}</TableCell>
-                      <TableCell className="max-w-md truncate text-muted-foreground">
-                        {t.description ?? "—"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(t)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            if (confirm(`Apagar tema "${t.title}"?`))
-                              deleteMutation.mutate(t.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-6">
+                {blocoGroups.map((group, gi) => {
+                  const blocoKey = group.bloco;
+                  const blocoLabel = blocoKey ?? "Sem bloco";
+                  return (
+                    <div key={blocoKey ?? "__none__"} className="space-y-2">
+                      <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">{blocoLabel}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {group.temas.length} tema(s)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={gi === 0 || moveBlock.isPending}
+                            onClick={() =>
+                              moveBlock.mutate({ blocoKey, dir: "up" })
+                            }
+                            title="Subir bloco"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={gi === blocoGroups.length - 1 || moveBlock.isPending}
+                            onClick={() =>
+                              moveBlock.mutate({ blocoKey, dir: "down" })
+                            }
+                            title="Descer bloco"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Título</TableHead>
+                            <TableHead>Descrição</TableHead>
+                            <TableHead className="w-44 text-right">Ações</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {group.temas.map((t, ti) => (
+                            <TableRow key={t.id}>
+                              <TableCell className="font-medium">{t.title}</TableCell>
+                              <TableCell className="max-w-md truncate text-muted-foreground">
+                                {t.description ?? "—"}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={ti === 0 || moveTheme.isPending}
+                                  onClick={() =>
+                                    moveTheme.mutate({ themeId: t.id, dir: "up" })
+                                  }
+                                  title="Subir tema"
+                                >
+                                  <ArrowUp className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  disabled={
+                                    ti === group.temas.length - 1 || moveTheme.isPending
+                                  }
+                                  onClick={() =>
+                                    moveTheme.mutate({ themeId: t.id, dir: "down" })
+                                  }
+                                  title="Descer tema"
+                                >
+                                  <ArrowDown className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => openEdit(t)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    if (confirm(`Apagar tema "${t.title}"?`))
+                                      deleteMutation.mutate(t.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </CardContent>
         </Card>
