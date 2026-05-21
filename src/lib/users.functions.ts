@@ -108,3 +108,45 @@ export const removeRole = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+const inviteSchema = z.object({
+  email: z.string().email().max(255),
+  full_name: z.string().trim().min(1).max(120).optional(),
+  roles: z.array(z.string().min(1).max(40)).max(10).optional(),
+});
+
+export const inviteUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => inviteSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+
+    const { data: invited, error: invErr } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
+        data: data.full_name ? { full_name: data.full_name } : undefined,
+      });
+    if (invErr) throw new Error(invErr.message);
+    const newUserId = invited.user?.id;
+    if (!newUserId) throw new Error("Falha a criar o utilizador.");
+
+    if (data.full_name) {
+      await supabaseAdmin
+        .from("utilizadores")
+        .upsert({ id: newUserId, full_name: data.full_name });
+    }
+
+    const roles = (data.roles ?? []).filter((r) => r !== "Formando");
+    for (const role of roles) {
+      await ensureActiveRole(role);
+      const { error } = await supabaseAdmin.from("user_roles").insert({
+        user_id: newUserId,
+        role_name: role,
+        assigned_by: context.userId,
+      });
+      if (error && !/duplicate key/i.test(error.message)) {
+        throw new Error(error.message);
+      }
+    }
+
+    return { ok: true, userId: newUserId };
+  });

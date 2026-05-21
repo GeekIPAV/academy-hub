@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Shield, Trash2 } from "lucide-react";
+import { Plus, Shield, Trash2, UserPlus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -47,6 +47,7 @@ import { useRoles } from "@/hooks/use-roles";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
+import { inviteUser } from "@/lib/users.functions";
 
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
@@ -89,7 +90,12 @@ function AdminManagerPage() {
 function UsersManager() {
   const { users, isLoading, assign, remove } = useUsers();
   const { roles } = useRoles();
+  const qc = useQueryClient();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteRoles, setInviteRoles] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -99,13 +105,124 @@ function UsersManager() {
 
   const activeRoles = roles.filter((r) => r.is_active);
 
+  const inviteFn = useServerFn(inviteUser);
+  const inviteMut = useMutation({
+    mutationFn: (input: { email: string; full_name?: string; roles?: string[] }) =>
+      inviteFn({ data: input }),
+    onSuccess: () => {
+      toast.success("Convite enviado por email.");
+      setInviteOpen(false);
+      setInviteEmail("");
+      setInviteName("");
+      setInviteRoles(new Set());
+      qc.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const submitInvite = (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = inviteEmail.trim();
+    if (!email) {
+      toast.error("Email obrigatório");
+      return;
+    }
+    inviteMut.mutate({
+      email,
+      full_name: inviteName.trim() || undefined,
+      roles: [...inviteRoles],
+    });
+  };
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Utilizadores</CardTitle>
-        <CardDescription>
-          Atribui um ou mais perfis a cada utilizador. As alterações são imediatas.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+        <div>
+          <CardTitle>Utilizadores</CardTitle>
+          <CardDescription>
+            Atribui um ou mais perfis a cada utilizador. As alterações são imediatas.
+          </CardDescription>
+        </div>
+        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <UserPlus className="mr-1 h-4 w-4" />
+              Adicionar Utilizador
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <form onSubmit={submitInvite}>
+              <DialogHeader>
+                <DialogTitle>Adicionar utilizador</DialogTitle>
+                <DialogDescription>
+                  Envia um convite por email. O utilizador define a sua própria senha ao aceitar.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invite-email">Email</Label>
+                  <Input
+                    id="invite-email"
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="nome@exemplo.pt"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="invite-name">Nome (opcional)</Label>
+                  <Input
+                    id="invite-name"
+                    value={inviteName}
+                    onChange={(e) => setInviteName(e.target.value)}
+                    maxLength={120}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Perfis adicionais (opcional)</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {activeRoles
+                      .filter((r) => r.name !== "Formando")
+                      .map((r) => {
+                        const checked = inviteRoles.has(r.name);
+                        return (
+                          <label
+                            key={r.id}
+                            className="flex items-center gap-1.5 text-sm cursor-pointer"
+                          >
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                setInviteRoles((prev) => {
+                                  const next = new Set(prev);
+                                  if (v) next.add(r.name);
+                                  else next.delete(r.name);
+                                  return next;
+                                });
+                              }}
+                            />
+                            <span>{r.name}</span>
+                          </label>
+                        );
+                      })}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    O perfil "Formando" é atribuído automaticamente.
+                  </p>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="ghost" onClick={() => setInviteOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={inviteMut.isPending}>
+                  {inviteMut.isPending ? "A enviar..." : "Enviar convite"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent>
         {isLoading ? (
