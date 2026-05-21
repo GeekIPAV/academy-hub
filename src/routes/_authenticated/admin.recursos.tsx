@@ -49,12 +49,15 @@ interface ResourceRow {
 interface TemaRow {
   id: string;
   cluster: string;
+  bloco: string | null;
   title: string;
   description: string | null;
   context: string | null;
   objectives: string | null;
   order_index: number;
 }
+
+const BLOCO_SUGGESTIONS = ["FTC", "FTP", "SU", "SF"];
 
 export const Route = createFileRoute("/_authenticated/admin/recursos")({
   beforeLoad: async () => {
