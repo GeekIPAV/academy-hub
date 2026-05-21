@@ -1,0 +1,1 @@
+ALTER TABLE public.temas_momentos ADD COLUMN IF NOT EXISTS bloco_order integer NOT NULL DEFAULT 0;
