@@ -306,41 +306,6 @@ function ResourcesPage() {
           </CardContent>
         </Card>
       )}
-
-      <Dialog
-        open={!!viewerResource}
-        onOpenChange={(o) => !o && setViewerResource(null)}
-      >
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-center text-xl leading-relaxed">
-              {viewerResource?.title}
-            </DialogTitle>
-          </DialogHeader>
-          {viewerResource && (
-            <div className="flex flex-col items-center space-y-6 py-2">
-              {viewerResource.description && (
-                <p className="text-center text-sm text-muted-foreground leading-relaxed max-w-md">
-                  {viewerResource.description}
-                </p>
-              )}
-              <Button asChild size="lg" className="w-full sm:w-auto">
-                <a
-                  href={viewerResource.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <ExternalLink className="h-5 w-5" />
-                  Abrir Recurso (Novo Separador)
-                </a>
-              </Button>
-              <p className="text-xs text-muted-foreground text-center max-w-sm">
-                Este recurso abrirá numa página externa da Academia para garantir que visualizas o documento com todas as permissões necessárias.
-              </p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 
