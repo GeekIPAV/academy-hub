@@ -35,6 +35,18 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [bgLoaded, setBgLoaded] = useState(false);
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = authBackground;
+    if (img.complete) {
+      setBgLoaded(true);
+    } else {
+      img.onload = () => setBgLoaded(true);
+      img.onerror = () => setBgLoaded(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
