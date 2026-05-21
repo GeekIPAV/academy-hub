@@ -608,21 +608,18 @@ function TemasTab() {
       const i = blocoGroups.findIndex((g) => (g.bloco ?? null) === blocoKey);
       const j = dir === "up" ? i - 1 : i + 1;
       if (i < 0 || j < 0 || j >= blocoGroups.length) return;
-      const a = blocoGroups[i];
-      const b = blocoGroups[j];
-      const aIds = a.temas.map((t) => t.id);
-      const bIds = b.temas.map((t) => t.id);
-      // Trocar bloco_order entre todos os registos dos dois blocos.
-      const { error: e1 } = await supabase
-        .from("temas_momentos" as never)
-        .update({ bloco_order: b.blocoOrder } as never)
-        .in("id", aIds);
-      if (e1) throw e1;
-      const { error: e2 } = await supabase
-        .from("temas_momentos" as never)
-        .update({ bloco_order: a.blocoOrder } as never)
-        .in("id", bIds);
-      if (e2) throw e2;
+      // Reordenar e reatribuir bloco_order sequencial a TODOS os grupos.
+      const next = [...blocoGroups];
+      [next[i], next[j]] = [next[j], next[i]];
+      for (let k = 0; k < next.length; k++) {
+        const ids = next[k].temas.map((t) => t.id);
+        if (ids.length === 0) continue;
+        const { error } = await supabase
+          .from("temas_momentos" as never)
+          .update({ bloco_order: k } as never)
+          .in("id", ids);
+        if (error) throw error;
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-temas", activeCluster] }),
     onError: (e: Error) => toast.error(e.message),
@@ -635,18 +632,16 @@ function TemasTab() {
       const i = group.temas.findIndex((t) => t.id === themeId);
       const j = dir === "up" ? i - 1 : i + 1;
       if (j < 0 || j >= group.temas.length) return;
-      const a = group.temas[i];
-      const b = group.temas[j];
-      const { error: e1 } = await supabase
-        .from("temas_momentos" as never)
-        .update({ order_index: b.order_index } as never)
-        .eq("id", a.id);
-      if (e1) throw e1;
-      const { error: e2 } = await supabase
-        .from("temas_momentos" as never)
-        .update({ order_index: a.order_index } as never)
-        .eq("id", b.id);
-      if (e2) throw e2;
+      // Reordenar e reatribuir order_index sequencial dentro do grupo.
+      const next = [...group.temas];
+      [next[i], next[j]] = [next[j], next[i]];
+      for (let k = 0; k < next.length; k++) {
+        const { error } = await supabase
+          .from("temas_momentos" as never)
+          .update({ order_index: k } as never)
+          .eq("id", next[k].id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-temas", activeCluster] }),
     onError: (e: Error) => toast.error(e.message),
