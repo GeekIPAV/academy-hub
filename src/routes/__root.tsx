@@ -13,6 +13,7 @@ import { AppProvider } from "@/lib/app-context";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 function NotFoundComponent() {
   return (
@@ -112,24 +113,49 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppProvider>
-        <SidebarProvider>
-          <div className="flex min-h-screen w-full bg-muted/30">
-            <AppSidebar />
-            <div className="flex flex-1 flex-col">
-              <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur">
-                <SidebarTrigger />
-                <div className="text-sm font-medium text-muted-foreground">
-                  Academia de Líderes Ubuntu
-                </div>
-              </header>
-              <main className="flex-1 p-4 sm:p-6 lg:p-8">
-                <Outlet />
-              </main>
-            </div>
-          </div>
-          <Toaster />
-        </SidebarProvider>
+        <AppShell />
+        <Toaster />
       </AppProvider>
     </QueryClientProvider>
   );
 }
+
+function AppShell() {
+  const { session, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-sm text-muted-foreground">A carregar…</div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-muted/30">
+        <Outlet />
+      </div>
+    );
+  }
+
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-muted/30">
+        <AppSidebar />
+        <div className="flex flex-1 flex-col">
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur">
+            <SidebarTrigger />
+            <div className="text-sm font-medium text-muted-foreground">
+              Academia de Líderes Ubuntu
+            </div>
+          </header>
+          <main className="flex-1 p-4 sm:p-6 lg:p-8">
+            <Outlet />
+          </main>
+        </div>
+      </div>
+    </SidebarProvider>
+  );
+}
+
