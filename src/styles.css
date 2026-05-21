@@ -129,7 +129,22 @@
   0% { stroke-dashoffset: 1; }
   100% { stroke-dashoffset: 0; }
 }
-.loading-mandela-draw path {
+.loading-mandela-draw {
+  width: 160px;
+  height: 200px;
+  overflow: hidden;
+}
+.loading-mandela-draw svg {
+  width: 160px !important;
+  height: 200px !important;
+  display: block;
+}
+.loading-mandela-draw svg path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 36;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   animation: loading-mandela-draw 1.5s linear infinite;
