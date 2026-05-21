@@ -27,6 +27,7 @@ import { Route as ComunicacaoPropriedadeIntelectualRouteImport } from './routes/
 import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
+import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
 import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
@@ -126,6 +127,11 @@ const AdminManagerRoute = AdminManagerRouteImport.update({
   path: '/admin/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminGovernacaoRoute = AdminGovernacaoRouteImport.update({
+  id: '/admin/governacao',
+  path: '/admin/governacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAcoesRoute = AdminAcoesRouteImport.update({
   id: '/admin/acoes',
   path: '/admin/acoes',
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/acoes': typeof AdminAcoesRoute
+  '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/recursos': typeof AuthenticatedRecursosRoute
   '/admin/acoes': typeof AdminAcoesRoute
+  '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRoute
   '/admin/acoes': typeof AdminAcoesRoute
+  '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recursos'
     | '/admin/acoes'
+    | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
     | '/comunicacao/press-media-kit'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/recursos'
     | '/admin/acoes'
+    | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
     | '/comunicacao/press-media-kit'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/_authenticated/recursos'
     | '/admin/acoes'
+    | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
     | '/comunicacao/press-media-kit'
@@ -337,6 +349,7 @@ export interface RootRouteChildren {
   FaqsRoute: typeof FaqsRoute
   ProfileRoute: typeof ProfileRoute
   AdminAcoesRoute: typeof AdminAcoesRoute
+  AdminGovernacaoRoute: typeof AdminGovernacaoRoute
   AdminManagerRoute: typeof AdminManagerRoute
   AdminProgramasRoute: typeof AdminProgramasRoute
   ComunicacaoPressMediaKitRoute: typeof ComunicacaoPressMediaKitRoute
@@ -479,6 +492,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/governacao': {
+      id: '/admin/governacao'
+      path: '/admin/governacao'
+      fullPath: '/admin/governacao'
+      preLoaderRoute: typeof AdminGovernacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/acoes': {
       id: '/admin/acoes'
       path: '/admin/acoes'
@@ -558,6 +578,7 @@ const rootRouteChildren: RootRouteChildren = {
   FaqsRoute: FaqsRoute,
   ProfileRoute: ProfileRoute,
   AdminAcoesRoute: AdminAcoesRoute,
+  AdminGovernacaoRoute: AdminGovernacaoRoute,
   AdminManagerRoute: AdminManagerRoute,
   AdminProgramasRoute: AdminProgramasRoute,
   ComunicacaoPressMediaKitRoute: ComunicacaoPressMediaKitRoute,
