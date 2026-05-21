@@ -181,11 +181,6 @@ function AppShell() {
 }
 
 function InlineLoader() {
-  return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] flex-col items-center justify-center gap-6">
-      <div className="loading-mandela-draw text-secondary" aria-label="A carregar" />
-      <div className="text-sm text-muted-foreground">A carregar…</div>
-    </div>
-  );
+  return <LoadingUInline />;
 }
 
