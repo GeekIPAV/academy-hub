@@ -437,23 +437,25 @@ function AdminResourcesPage() {
         <CardHeader>
           <CardTitle className="text-base">Carregamento em massa</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Escolhe programa, fase e tipo uma vez e seleciona vários ficheiros. O título de cada recurso será o nome do ficheiro (sem extensão).
+            Escolhe cluster, fase e tipo uma vez e seleciona vários ficheiros. O título de cada recurso será o nome do ficheiro (sem extensão).
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleBulkSubmit} className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Programa</Label>
-              <Select value={bProgramId} onValueChange={setBProgramId} disabled={bulkUploading}>
+              <Label>Cluster</Label>
+              <Select value={bCluster} onValueChange={setBCluster} disabled={bulkUploading}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecionar programa" />
+                  <SelectValue placeholder="Selecionar cluster" />
                 </SelectTrigger>
                 <SelectContent>
-                  {programs.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.title ?? p.id}
-                    </SelectItem>
-                  ))}
+                  {clusters.length === 0 ? (
+                    <SelectItem value="__none__" disabled>Sem clusters definidos</SelectItem>
+                  ) : (
+                    clusters.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>
