@@ -37,6 +37,7 @@ interface RecursoRow {
 interface TemaRow {
   id: string;
   cluster: string;
+  bloco: string | null;
   title: string;
   description: string | null;
   context: string | null;
