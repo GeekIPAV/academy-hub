@@ -7,7 +7,7 @@
   --font-sans: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-@custom-variant dark (&:is(.dark *));
+
 
 /*
  * Design system — Academia de Líderes Ubuntu
@@ -103,40 +103,6 @@
   --sidebar-ring: oklch(0.68 0.22 39.5);
 }
 
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.68 0.22 39.5);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.35 0.11 254.2);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.81 0.18 84.3);
-  --accent-foreground: oklch(0.24 0.04 256.3);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.68 0.22 39.5);
-  --chart-1: oklch(0.68 0.22 39.5);
-  --chart-2: oklch(0.35 0.11 254.2);
-  --chart-3: oklch(0.62 0.155 240);
-  --chart-4: oklch(0.81 0.18 84.3);
-  --chart-5: oklch(0.63 0.215 20);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.68 0.22 39.5);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.68 0.22 39.5);
-}
 
 @layer base {
   * {
