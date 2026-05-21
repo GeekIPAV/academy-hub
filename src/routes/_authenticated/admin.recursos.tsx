@@ -510,7 +510,7 @@ function TemasTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos" as never)
-        .select("id, cluster, title, description, context, objectives, order_index")
+        .select("id, cluster, bloco, title, description, context, objectives, order_index")
         .eq("cluster", activeCluster)
         .order("order_index");
       if (error) throw error;
@@ -535,6 +535,7 @@ function TemasTab() {
       description: t.description ?? "",
       context: t.context ?? "",
       objectives: t.objectives ?? "",
+      bloco: t.bloco ?? "",
     });
     setDialogOpen(true);
   };
@@ -551,6 +552,7 @@ function TemasTab() {
             description: form.description.trim() || null,
             context: form.context.trim() || null,
             objectives: form.objectives.trim() || null,
+            bloco: form.bloco.trim() || null,
           } as never)
           .eq("id", editing.id);
         if (error) throw error;
@@ -562,6 +564,7 @@ function TemasTab() {
           description: form.description.trim() || null,
           context: form.context.trim() || null,
           objectives: form.objectives.trim() || null,
+          bloco: form.bloco.trim() || null,
           order_index: maxOrder + 1,
         } as never);
         if (error) throw error;
