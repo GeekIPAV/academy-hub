@@ -1,0 +1,1 @@
+ALTER TABLE public.recursos ALTER COLUMN phase DROP NOT NULL;

@@ -495,7 +495,7 @@ export type Database = {
           description: string | null
           file_url: string
           id: string
-          phase: string
+          phase: string | null
           program_id: string | null
           resource_type: string
           title: string
@@ -505,7 +505,7 @@ export type Database = {
           description?: string | null
           file_url: string
           id?: string
-          phase: string
+          phase?: string | null
           program_id?: string | null
           resource_type: string
           title: string
@@ -515,7 +515,7 @@ export type Database = {
           description?: string | null
           file_url?: string
           id?: string
-          phase?: string
+          phase?: string | null
           program_id?: string | null
           resource_type?: string
           title?: string
