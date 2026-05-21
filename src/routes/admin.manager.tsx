@@ -90,7 +90,12 @@ function AdminManagerPage() {
 function UsersManager() {
   const { users, isLoading, assign, remove } = useUsers();
   const { roles } = useRoles();
+  const qc = useQueryClient();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteRoles, setInviteRoles] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -99,6 +104,35 @@ function UsersManager() {
   }, []);
 
   const activeRoles = roles.filter((r) => r.is_active);
+
+  const inviteFn = useServerFn(inviteUser);
+  const inviteMut = useMutation({
+    mutationFn: (input: { email: string; full_name?: string; roles?: string[] }) =>
+      inviteFn({ data: input }),
+    onSuccess: () => {
+      toast.success("Convite enviado por email.");
+      setInviteOpen(false);
+      setInviteEmail("");
+      setInviteName("");
+      setInviteRoles(new Set());
+      qc.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const submitInvite = (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = inviteEmail.trim();
+    if (!email) {
+      toast.error("Email obrigatório");
+      return;
+    }
+    inviteMut.mutate({
+      email,
+      full_name: inviteName.trim() || undefined,
+      roles: [...inviteRoles],
+    });
+  };
 
   return (
     <Card>
