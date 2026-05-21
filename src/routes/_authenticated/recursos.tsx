@@ -59,7 +59,7 @@ function ResourcesPage() {
   const { isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/recursos", id);
   const [selectedCluster, setSelectedCluster] = useState<string>("");
-  const [viewerResource, setViewerResource] = useState<RecursoRow | null>(null);
+  
 
 
   const clustersQuery = useQuery({
