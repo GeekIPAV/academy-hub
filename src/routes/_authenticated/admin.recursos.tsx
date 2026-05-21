@@ -75,130 +75,16 @@ export const Route = createFileRoute("/_authenticated/admin/recursos")({
   component: AdminResourcesPage,
 });
 
-const BUCKET = "resources";
-
-function pathFromUrl(url: string): string | null {
-  const m1 = url.indexOf(`/object/public/${BUCKET}/`);
-  if (m1 >= 0) return url.slice(m1 + `/object/public/${BUCKET}/`.length);
-  const m2 = url.indexOf(`/object/sign/${BUCKET}/`);
-  if (m2 >= 0) {
-    const after = url.slice(m2 + `/object/sign/${BUCKET}/`.length);
-    return after.split("?")[0] ?? null;
-  }
-  return null;
-}
-
-function AdminResourcesPage() {
-  return (
-    <div className="container mx-auto max-w-6xl space-y-6 p-6">
-      <header>
-        <h1 className="text-2xl font-semibold">Centro de Recursos</h1>
-        <p className="text-sm text-muted-foreground">
-          Gere a Biblioteca, os Temas dos clusters e as suas associações.
-        </p>
-      </header>
-
-      <Tabs defaultValue="biblioteca" className="w-full">
-        <TabsList>
-          <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
-          <TabsTrigger value="temas">Gestão de Temas</TabsTrigger>
-          <TabsTrigger value="assoc">Associações</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="biblioteca" className="mt-4">
-          <BibliotecaTab />
-        </TabsContent>
-        <TabsContent value="temas" className="mt-4">
-          <TemasTab />
-        </TabsContent>
-        <TabsContent value="assoc" className="mt-4">
-          <AssociacoesTab />
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-}
-
-/* ───────────────────────── Tab 1 — Biblioteca ───────────────────────── */
-
-function useRecursos() {
-  return useQuery({
-    queryKey: ["recursos-all"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("recursos")
-        .select("id, title, description, resource_type, file_url, created_at")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as ResourceRow[];
-    },
-  });
-}
-
 function BibliotecaTab() {
   const qc = useQueryClient();
   const { data: resources = [], isLoading } = useRecursos();
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [resourceType, setResourceType] = useState<ResourceType>("pdf");
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-
   const [editing, setEditing] = useState<ResourceRow | null>(null);
-
-  const reset = () => {
-    setTitle("");
-    setDescription("");
-    setResourceType("pdf");
-    setFile(null);
-  };
-
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) {
-      toast.error("Indica um título.");
-      return;
-    }
-    if (!file) {
-      toast.error("Seleciona um ficheiro.");
-      return;
-    }
-    setUploading(true);
-    try {
-      const ext = file.name.split(".").pop() ?? "bin";
-      const path = `biblioteca/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from(BUCKET)
-        .upload(path, file, { upsert: false });
-      if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
-      const { error: insErr } = await supabase.from("recursos").insert({
-        title: title.trim(),
-        description: description.trim() || null,
-        resource_type: resourceType,
-        file_url: pub.publicUrl,
-      } as never);
-      if (insErr) {
-        await supabase.storage.from(BUCKET).remove([path]);
-        throw insErr;
-      }
-      toast.success("Recurso carregado.");
-      reset();
-      qc.invalidateQueries({ queryKey: ["recursos-all"] });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Erro ao carregar.");
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const deleteMutation = useMutation({
     mutationFn: async (row: ResourceRow) => {
-      const path = pathFromUrl(row.file_url);
       const { error } = await supabase.from("recursos").delete().eq("id", row.id);
       if (error) throw error;
-      if (path) await supabase.storage.from(BUCKET).remove([path]);
     },
     onSuccess: () => {
       toast.success("Recurso apagado.");
@@ -209,64 +95,23 @@ function BibliotecaTab() {
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Novo recurso</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleUpload} className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1 sm:col-span-2">
-              <Label>Título</Label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-1 sm:col-span-2">
-              <Label>Descrição</Label>
-              <Textarea
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label>Tipo</Label>
-              <Select
-                value={resourceType}
-                onValueChange={(v) => setResourceType(v as ResourceType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pdf">PDF</SelectItem>
-                  <SelectItem value="video">Vídeo</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label>Ficheiro</Label>
-              <Input
-                type="file"
-                accept={resourceType === "pdf" ? "application/pdf" : "video/*"}
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <Button type="submit" disabled={uploading}>
-                {uploading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Upload className="h-4 w-4" />
-                )}
-                Carregar recurso
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="single" className="w-full">
+        <TabsList>
+          <TabsTrigger value="single">
+            <Plus className="mr-1 h-4 w-4" /> Novo recurso
+          </TabsTrigger>
+          <TabsTrigger value="bulk">
+            <ListPlus className="mr-1 h-4 w-4" /> Adicionar em massa
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="single" className="mt-4">
+          <SingleResourceForm />
+        </TabsContent>
+        <TabsContent value="bulk" className="mt-4">
+          <BulkAddForm />
+        </TabsContent>
+      </Tabs>
 
       <Card>
         <CardHeader>
@@ -335,6 +180,195 @@ function BibliotecaTab() {
   );
 }
 
+const EMBED_HINT =
+  "Para os PDFs abrirem dentro da plataforma, gere um link de 'Incorporar/Embed' no OneDrive.";
+
+function SingleResourceForm() {
+  const qc = useQueryClient();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [resourceType, setResourceType] = useState<ResourceType>("pdf");
+  const [fileUrl, setFileUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const reset = () => {
+    setTitle("");
+    setDescription("");
+    setResourceType("pdf");
+    setFileUrl("");
+  };
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return toast.error("Indica um título.");
+    if (!fileUrl.trim()) return toast.error("Cola o link do recurso.");
+    setSaving(true);
+    try {
+      const { error } = await supabase.from("recursos").insert({
+        title: title.trim(),
+        description: description.trim() || null,
+        resource_type: resourceType,
+        file_url: fileUrl.trim(),
+      } as never);
+      if (error) throw error;
+      toast.success("Recurso adicionado.");
+      reset();
+      qc.invalidateQueries({ queryKey: ["recursos-all"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao guardar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1 sm:col-span-2">
+            <Label>Título</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
+          </div>
+          <div className="space-y-1 sm:col-span-2">
+            <Label>Descrição</Label>
+            <Textarea
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>Tipo</Label>
+            <Select
+              value={resourceType}
+              onValueChange={(v) => setResourceType(v as ResourceType)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pdf">PDF</SelectItem>
+                <SelectItem value="video">Vídeo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Link (URL)</Label>
+            <Input
+              type="url"
+              placeholder="https://..."
+              value={fileUrl}
+              onChange={(e) => setFileUrl(e.target.value)}
+              required
+            />
+            <p className="text-xs text-muted-foreground">{EMBED_HINT}</p>
+          </div>
+          <div className="sm:col-span-2">
+            <Button type="submit" disabled={saving}>
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              Guardar recurso
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
+function BulkAddForm() {
+  const qc = useQueryClient();
+  const [raw, setRaw] = useState("");
+  const [resourceType, setResourceType] = useState<ResourceType>("pdf");
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const rows = raw
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const parts = line.split("|").map((p) => p.trim());
+        const [title, url, description] = parts;
+        return { title, url, description: description || null };
+      })
+      .filter((r) => r.title && r.url);
+
+    if (rows.length === 0) {
+      toast.error("Nenhuma linha válida. Usa o formato: Título | URL | Descrição");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload = rows.map((r) => ({
+        title: r.title,
+        description: r.description,
+        resource_type: resourceType,
+        file_url: r.url,
+      }));
+      const { error } = await supabase.from("recursos").insert(payload as never);
+      if (error) throw error;
+      toast.success(`${rows.length} recurso(s) adicionado(s).`);
+      setRaw("");
+      qc.invalidateQueries({ queryKey: ["recursos-all"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao importar.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-1">
+            <Label>Tipo (aplicado a todas as linhas)</Label>
+            <Select
+              value={resourceType}
+              onValueChange={(v) => setResourceType(v as ResourceType)}
+            >
+              <SelectTrigger className="max-w-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pdf">PDF</SelectItem>
+                <SelectItem value="video">Vídeo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Linhas (uma por recurso)</Label>
+            <Textarea
+              rows={10}
+              value={raw}
+              onChange={(e) => setRaw(e.target.value)}
+              placeholder={`Manual do Formando | https://onedrive... | Versão 2025\nVídeo de Boas-vindas | https://youtube.com/watch?v=...`}
+              className="font-mono text-xs"
+            />
+            <p className="text-xs text-muted-foreground">
+              Formato por linha: <code>Título | URL | Descrição (opcional)</code>. {EMBED_HINT}
+            </p>
+          </div>
+          <Button type="submit" disabled={saving}>
+            {saving ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <ListPlus className="h-4 w-4" />
+            )}
+            Importar em massa
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 function EditRecursoDialog({
   recurso,
   onClose,
@@ -347,7 +381,7 @@ function EditRecursoDialog({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [resourceType, setResourceType] = useState<ResourceType>("pdf");
-  const [file, setFile] = useState<File | null>(null);
+  const [fileUrl, setFileUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -355,35 +389,23 @@ function EditRecursoDialog({
       setTitle(recurso.title);
       setDescription(recurso.description ?? "");
       setResourceType((recurso.resource_type as ResourceType) ?? "pdf");
-      setFile(null);
+      setFileUrl(recurso.file_url ?? "");
     }
   }, [recurso]);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!recurso) return;
+    if (!fileUrl.trim()) return toast.error("O link é obrigatório.");
     setSaving(true);
     try {
-      let file_url = recurso.file_url;
-      if (file) {
-        const ext = file.name.split(".").pop() ?? "bin";
-        const path = `biblioteca/${crypto.randomUUID()}.${ext}`;
-        const { error: upErr } = await supabase.storage
-          .from(BUCKET)
-          .upload(path, file, { upsert: false });
-        if (upErr) throw upErr;
-        const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path);
-        file_url = pub.publicUrl;
-        const oldPath = pathFromUrl(recurso.file_url);
-        if (oldPath) await supabase.storage.from(BUCKET).remove([oldPath]);
-      }
       const { error } = await supabase
         .from("recursos")
         .update({
           title: title.trim(),
           description: description.trim() || null,
           resource_type: resourceType,
-          file_url,
+          file_url: fileUrl.trim(),
         } as never)
         .eq("id", recurso.id);
       if (error) throw error;
@@ -402,18 +424,12 @@ function EditRecursoDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Editar recurso</DialogTitle>
-          <DialogDescription>
-            Atualiza os campos. Carrega um novo ficheiro só se quiseres substituir.
-          </DialogDescription>
+          <DialogDescription>Atualiza os campos do recurso.</DialogDescription>
         </DialogHeader>
         <form onSubmit={save} className="space-y-3">
           <div className="space-y-1">
             <Label>Título</Label>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
           </div>
           <div className="space-y-1">
             <Label>Descrição</Label>
@@ -439,12 +455,14 @@ function EditRecursoDialog({
             </Select>
           </div>
           <div className="space-y-1">
-            <Label>Substituir ficheiro (opcional)</Label>
+            <Label>Link (URL)</Label>
             <Input
-              type="file"
-              accept={resourceType === "pdf" ? "application/pdf" : "video/*"}
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              type="url"
+              value={fileUrl}
+              onChange={(e) => setFileUrl(e.target.value)}
+              required
             />
+            <p className="text-xs text-muted-foreground">{EMBED_HINT}</p>
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>
@@ -459,6 +477,8 @@ function EditRecursoDialog({
     </Dialog>
   );
 }
+
+
 
 /* ─────────────────────── Shared — Clusters ─────────────────────── */
 
