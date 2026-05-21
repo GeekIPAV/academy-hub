@@ -34,7 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink } from "lucide-react";
 
 type ResourceType = "pdf" | "video";
 
@@ -121,19 +121,72 @@ function useRecursos() {
   });
 }
 
+function useTemasOfCluster(cluster: string) {
+  return useQuery({
+    queryKey: ["temas-of-cluster", cluster],
+    enabled: !!cluster,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("temas_momentos" as never)
+        .select("id, title, bloco, bloco_order, order_index")
+        .eq("cluster", cluster)
+        .order("bloco_order", { ascending: true })
+        .order("order_index", { ascending: true });
+      if (error) throw error;
+      return (data as unknown as { id: string; title: string; bloco: string | null }[]) ?? [];
+    },
+  });
+}
+
+function useAllowedRecursoIds(cluster: string, temaId: string) {
+  return useQuery({
+    queryKey: ["allowed-recurso-ids", cluster, temaId],
+    enabled: !!cluster,
+    queryFn: async () => {
+      let temaIds: string[];
+      if (temaId) {
+        temaIds = [temaId];
+      } else {
+        const { data: temas, error: e1 } = await supabase
+          .from("temas_momentos" as never)
+          .select("id")
+          .eq("cluster", cluster);
+        if (e1) throw e1;
+        temaIds = ((temas ?? []) as unknown as { id: string }[]).map((t) => t.id);
+      }
+      if (temaIds.length === 0) return new Set<string>();
+      const { data, error } = await supabase
+        .from("tema_recursos" as never)
+        .select("recurso_id")
+        .in("tema_id", temaIds);
+      if (error) throw error;
+      return new Set(((data ?? []) as unknown as { recurso_id: string }[]).map((r) => r.recurso_id));
+    },
+  });
+}
+
 function BibliotecaTab() {
   const qc = useQueryClient();
   const { data: resources = [], isLoading } = useRecursos();
+  const { data: clusters = [] } = useClusters();
 
   const [editing, setEditing] = useState<ResourceRow | null>(null);
 
   const [searchTitle, setSearchTitle] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [filterCluster, setFilterCluster] = useState<string>("");
+  const [filterTema, setFilterTema] = useState<string>("");
   const [sortBy, setSortBy] = useState<"title" | "resource_type" | "created_at">("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
+  const { data: temasOfCluster = [] } = useTemasOfCluster(filterCluster);
+  const { data: allowedIds } = useAllowedRecursoIds(filterCluster, filterTema);
+
   const filteredResources = useMemo(() => {
     let list = [...resources];
+    if (filterCluster && allowedIds) {
+      list = list.filter((r) => allowedIds.has(r.id));
+    }
     if (searchTitle.trim()) {
       const q = searchTitle.trim().toLowerCase();
       list = list.filter((r) => r.title.toLowerCase().includes(q));
@@ -149,7 +202,14 @@ function BibliotecaTab() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return list;
-  }, [resources, searchTitle, filterType, sortBy, sortDir]);
+  }, [resources, searchTitle, filterType, filterCluster, allowedIds, sortBy, sortDir]);
+
+  const clearFilters = () => {
+    setSearchTitle("");
+    setFilterType("all");
+    setFilterCluster("");
+    setFilterTema("");
+  };
 
   const toggleSort = (col: "title" | "resource_type" | "created_at") => {
     if (sortBy === col) {
@@ -197,8 +257,8 @@ function BibliotecaTab() {
           <CardTitle className="text-base">Recursos carregados</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1 space-y-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+            <div className="min-w-[180px] flex-1 space-y-1">
               <Label className="text-xs text-muted-foreground">Filtrar por título</Label>
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -210,7 +270,7 @@ function BibliotecaTab() {
                 />
               </div>
             </div>
-            <div className="w-full space-y-1 sm:w-40">
+            <div className="w-full space-y-1 sm:w-36">
               <Label className="text-xs text-muted-foreground">Tipo</Label>
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger>
@@ -223,6 +283,51 @@ function BibliotecaTab() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="w-full space-y-1 sm:w-48">
+              <Label className="text-xs text-muted-foreground">Cluster</Label>
+              <Select
+                value={filterCluster}
+                onValueChange={(v) => {
+                  setFilterCluster(v);
+                  setFilterTema("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clusters.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full space-y-1 sm:w-56">
+              <Label className="text-xs text-muted-foreground">Tema</Label>
+              <Select
+                value={filterTema}
+                onValueChange={setFilterTema}
+                disabled={!filterCluster}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={filterCluster ? "Todos do cluster" : "Selecione um cluster"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {temasOfCluster.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.bloco ? `${t.bloco} — ${t.title}` : t.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(searchTitle || filterType !== "all" || filterCluster || filterTema) && (
+              <Button variant="ghost" onClick={clearFilters} className="sm:self-end">
+                Limpar filtros
+              </Button>
+            )}
           </div>
 
           {isLoading ? (
@@ -231,7 +336,7 @@ function BibliotecaTab() {
             </div>
           ) : filteredResources.length === 0 ? (
             <p className="py-8 text-center text-sm text-muted-foreground">
-              Nenhum recurso corresponde aos filtros.
+              Nenhum recurso encontrado com estes filtros.
             </p>
           ) : (
             <Table>
@@ -255,7 +360,7 @@ function BibliotecaTab() {
                       {sortBy === "created_at" && <ArrowUpDown className="h-3 w-3" />}
                     </span>
                   </TableHead>
-                  <TableHead className="w-32 text-right">Ações</TableHead>
+                  <TableHead className="w-40 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -267,6 +372,11 @@ function BibliotecaTab() {
                       {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
                     </TableCell>
                     <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" asChild title="Abrir link">
+                        <a href={r.file_url} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
