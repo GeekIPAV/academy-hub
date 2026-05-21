@@ -13,7 +13,7 @@ export function LoadingU() {
     paths.forEach((p) => {
       p.setAttribute("fill", "none");
       p.setAttribute("stroke", "currentColor");
-      p.setAttribute("stroke-width", "8");
+      p.setAttribute("stroke-width", "12");
       p.setAttribute("stroke-linecap", "round");
       p.setAttribute("stroke-linejoin", "round");
       p.setAttribute("pathLength", "1");
