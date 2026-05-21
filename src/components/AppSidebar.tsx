@@ -1,5 +1,4 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import aluLogo from "@/assets/alu-logo.svg";
 import { Eye, LogIn, LogOut } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
@@ -46,11 +45,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b">
-        <div className="flex items-center gap-2 px-2 py-1">
-          <img src={aluLogo} alt="ALU" className="h-8 w-auto" />
-        </div>
-      </SidebarHeader>
+      <SidebarHeader className="border-b" />
+
       <SidebarContent>
         {NAV_GROUPS.map((group, idx) => {
           if (group.adminOnly && !isAdmin) return null;
