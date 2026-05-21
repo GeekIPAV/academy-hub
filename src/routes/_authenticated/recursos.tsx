@@ -16,6 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Video, ExternalLink, Layers } from "lucide-react";
 import { useApp } from "@/lib/app-context";
@@ -25,6 +31,31 @@ export const Route = createFileRoute("/_authenticated/recursos")({
   head: () => ({ meta: [{ title: "Centro de Recursos — Academia Ubuntu" }] }),
   component: ResourcesPage,
 });
+
+function getEmbedUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    // YouTube
+    if (host.includes("youtube.com") && u.searchParams.get("v")) {
+      return `https://www.youtube.com/embed/${u.searchParams.get("v")}`;
+    }
+    if (host === "youtu.be") {
+      const id = u.pathname.replace(/^\//, "");
+      if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+    // Microsoft OneDrive / SharePoint
+    if (host.includes("sharepoint.com") || host.includes("onedrive.live.com")) {
+      if (!u.searchParams.has("action")) {
+        u.searchParams.set("action", "embedview");
+      }
+      return u.toString();
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}
 
 interface RecursoRow {
   id: string;
