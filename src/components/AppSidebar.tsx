@@ -140,7 +140,7 @@ export function AppSidebar() {
               title="Sair"
               onClick={async () => {
                 await signOut();
-                navigate({ to: "/" });
+                navigate({ to: "/auth" });
               }}
             >
               <LogOut className="h-4 w-4" />
