@@ -121,19 +121,72 @@ function useRecursos() {
   });
 }
 
+function useTemasOfCluster(cluster: string) {
+  return useQuery({
+    queryKey: ["temas-of-cluster", cluster],
+    enabled: !!cluster,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("temas_momentos" as never)
+        .select("id, title, bloco, bloco_order, order_index")
+        .eq("cluster", cluster)
+        .order("bloco_order", { ascending: true })
+        .order("order_index", { ascending: true });
+      if (error) throw error;
+      return (data as unknown as { id: string; title: string; bloco: string | null }[]) ?? [];
+    },
+  });
+}
+
+function useAllowedRecursoIds(cluster: string, temaId: string) {
+  return useQuery({
+    queryKey: ["allowed-recurso-ids", cluster, temaId],
+    enabled: !!cluster,
+    queryFn: async () => {
+      let temaIds: string[];
+      if (temaId) {
+        temaIds = [temaId];
+      } else {
+        const { data: temas, error: e1 } = await supabase
+          .from("temas_momentos" as never)
+          .select("id")
+          .eq("cluster", cluster);
+        if (e1) throw e1;
+        temaIds = ((temas ?? []) as unknown as { id: string }[]).map((t) => t.id);
+      }
+      if (temaIds.length === 0) return new Set<string>();
+      const { data, error } = await supabase
+        .from("tema_recursos" as never)
+        .select("recurso_id")
+        .in("tema_id", temaIds);
+      if (error) throw error;
+      return new Set(((data ?? []) as unknown as { recurso_id: string }[]).map((r) => r.recurso_id));
+    },
+  });
+}
+
 function BibliotecaTab() {
   const qc = useQueryClient();
   const { data: resources = [], isLoading } = useRecursos();
+  const { data: clusters = [] } = useClusters();
 
   const [editing, setEditing] = useState<ResourceRow | null>(null);
 
   const [searchTitle, setSearchTitle] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [filterCluster, setFilterCluster] = useState<string>("");
+  const [filterTema, setFilterTema] = useState<string>("");
   const [sortBy, setSortBy] = useState<"title" | "resource_type" | "created_at">("created_at");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
+  const { data: temasOfCluster = [] } = useTemasOfCluster(filterCluster);
+  const { data: allowedIds } = useAllowedRecursoIds(filterCluster, filterTema);
+
   const filteredResources = useMemo(() => {
     let list = [...resources];
+    if (filterCluster && allowedIds) {
+      list = list.filter((r) => allowedIds.has(r.id));
+    }
     if (searchTitle.trim()) {
       const q = searchTitle.trim().toLowerCase();
       list = list.filter((r) => r.title.toLowerCase().includes(q));
@@ -149,7 +202,14 @@ function BibliotecaTab() {
       return sortDir === "asc" ? cmp : -cmp;
     });
     return list;
-  }, [resources, searchTitle, filterType, sortBy, sortDir]);
+  }, [resources, searchTitle, filterType, filterCluster, allowedIds, sortBy, sortDir]);
+
+  const clearFilters = () => {
+    setSearchTitle("");
+    setFilterType("all");
+    setFilterCluster("");
+    setFilterTema("");
+  };
 
   const toggleSort = (col: "title" | "resource_type" | "created_at") => {
     if (sortBy === col) {
