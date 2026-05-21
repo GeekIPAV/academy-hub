@@ -267,6 +267,8 @@ function AdminResourcesPage() {
         </p>
       </div>
 
+      {/* defined later as handleBulkSubmit */}
+
       <Tabs defaultValue="biblioteca">
         <TabsList>
           <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
