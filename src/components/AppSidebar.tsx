@@ -46,20 +46,20 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b flex items-center justify-center py-3">
-        <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-14 w-auto" />
+      <SidebarHeader className="border-b flex items-center justify-center py-6">
+        <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-20 w-auto" />
       </SidebarHeader>
 
-      <SidebarContent className="gap-0">
+      <SidebarContent>
         {NAV_GROUPS.map((group, idx) => {
           if (group.adminOnly && !isAdmin) return null;
           const items = group.items.filter((it) => (it.gated ? canAccess(it.path) : true));
           if (items.length === 0) return null;
           return (
-            <SidebarGroup key={group.label ?? `g-${idx}`} className="py-0.5 px-2">
-              {group.label && <SidebarGroupLabel className="h-6 px-2">{group.label}</SidebarGroupLabel>}
+            <SidebarGroup key={group.label ?? `g-${idx}`}>
+              {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
               <SidebarGroupContent>
-                <SidebarMenu className="gap-1">
+                <SidebarMenu>
                   {items.map((it) => {
                     const Icon = it.icon;
                     const active = path === it.path || path.startsWith(it.path + "/");
