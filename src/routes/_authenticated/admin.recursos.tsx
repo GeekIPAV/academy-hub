@@ -91,6 +91,14 @@ function AdminResourcesPage() {
   const [eFile, setEFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Bulk upload state
+  const [bProgramId, setBProgramId] = useState<string>("");
+  const [bPhase, setBPhase] = useState<Phase | "">("");
+  const [bResourceType, setBResourceType] = useState<ResourceType | "">("");
+  const [bFiles, setBFiles] = useState<File[]>([]);
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+
   const loadResources = async () => {
     setLoadingList(true);
     const { data, error } = await supabase
@@ -156,6 +164,53 @@ function AdminResourcesPage() {
       setUploading(false);
     }
   };
+
+  const handleBulkSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bProgramId || !bPhase || !bResourceType || bFiles.length === 0) {
+      toast.error("Seleciona programa, fase, tipo e pelo menos um ficheiro.");
+      return;
+    }
+    setBulkUploading(true);
+    setBulkProgress({ done: 0, total: bFiles.length });
+    let successCount = 0;
+    const errors: string[] = [];
+    for (const f of bFiles) {
+      try {
+        const ext = f.name.split(".").pop() ?? "bin";
+        const baseName = f.name.replace(/\.[^.]+$/, "").trim() || f.name;
+        const path = `${bProgramId}/${bPhase}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("resources")
+          .upload(path, f, { contentType: f.type, upsert: false });
+        if (upErr) throw upErr;
+        const { data: urlData } = supabase.storage.from("resources").getPublicUrl(path);
+        const { error: insErr } = await supabase.from("recursos" as never).insert({
+          program_id: bProgramId,
+          phase: bPhase,
+          title: baseName,
+          resource_type: bResourceType,
+          file_url: urlData.publicUrl,
+        } as never);
+        if (insErr) {
+          await supabase.storage.from("resources").remove([path]);
+          throw insErr;
+        }
+        successCount += 1;
+      } catch (err) {
+        errors.push(`${f.name}: ${(err as Error).message}`);
+      } finally {
+        setBulkProgress((p) => ({ ...p, done: p.done + 1 }));
+      }
+    }
+    setBulkUploading(false);
+    if (successCount > 0) toast.success(`${successCount} recurso(s) carregado(s).`);
+    if (errors.length > 0) toast.error(`Falharam ${errors.length}: ${errors[0]}`);
+    setBFiles([]);
+    loadResources();
+  };
+
+
 
   const handleDelete = async (r: ResourceRow) => {
     if (!confirm(`Apagar "${r.title}"?`)) return;
@@ -258,6 +313,8 @@ function AdminResourcesPage() {
           Biblioteca central de recursos e organização por cluster.
         </p>
       </div>
+
+      {/* defined later as handleBulkSubmit */}
 
       <Tabs defaultValue="biblioteca">
         <TabsList>
@@ -367,6 +424,117 @@ function AdminResourcesPage() {
           </form>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Carregamento em massa</CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Escolhe programa, fase e tipo uma vez e seleciona vários ficheiros. O título de cada recurso será o nome do ficheiro (sem extensão).
+          </p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleBulkSubmit} className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label>Programa</Label>
+              <Select value={bProgramId} onValueChange={setBProgramId} disabled={bulkUploading}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar programa" />
+                </SelectTrigger>
+                <SelectContent>
+                  {programs.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.title ?? p.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Fase</Label>
+              <Select
+                value={bPhase}
+                onValueChange={(v) => setBPhase(v as Phase)}
+                disabled={bulkUploading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar fase" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="FTC">FTC — Formação Teórico-Conceptual</SelectItem>
+                  <SelectItem value="FTP">FTP — Formação Teórico-Prática</SelectItem>
+                  <SelectItem value="SU">Semana Ubuntu</SelectItem>
+                  <SelectItem value="SF">Sessão Final</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipo</Label>
+              <Select
+                value={bResourceType}
+                onValueChange={(v) => setBResourceType(v as ResourceType)}
+                disabled={bulkUploading}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                  <SelectItem value="video">Vídeo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Ficheiros (vários)</Label>
+              <Input
+                type="file"
+                multiple
+                onChange={(e) => setBFiles(Array.from(e.target.files ?? []))}
+                disabled={bulkUploading}
+                accept={bResourceType === "video" ? "video/*" : ".pdf,application/pdf"}
+              />
+              {bFiles.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  {bFiles.length} ficheiro(s) selecionado(s)
+                </p>
+              )}
+            </div>
+
+            {bFiles.length > 0 && (
+              <div className="sm:col-span-2 max-h-40 overflow-auto rounded border p-2 text-xs text-muted-foreground">
+                <ul className="space-y-1">
+                  {bFiles.map((f, i) => (
+                    <li key={i} className="flex justify-between gap-2">
+                      <span className="truncate">{f.name.replace(/\.[^.]+$/, "")}</span>
+                      <span className="shrink-0">{(f.size / 1024).toFixed(0)} KB</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="sm:col-span-2">
+              <Button type="submit" disabled={bulkUploading} className="w-full sm:w-auto">
+                {bulkUploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    A carregar {bulkProgress.done}/{bulkProgress.total}…
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4" />
+                    Carregar {bFiles.length > 0 ? `${bFiles.length} ficheiro(s)` : "em massa"}
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+
 
       <Card>
         <CardHeader>
