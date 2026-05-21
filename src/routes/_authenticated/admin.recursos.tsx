@@ -488,8 +488,15 @@ interface TemaForm {
   description: string;
   context: string;
   objectives: string;
+  bloco: string;
 }
-const EMPTY_TEMA: TemaForm = { title: "", description: "", context: "", objectives: "" };
+const EMPTY_TEMA: TemaForm = {
+  title: "",
+  description: "",
+  context: "",
+  objectives: "",
+  bloco: "",
+};
 
 function TemasTab() {
   const qc = useQueryClient();
