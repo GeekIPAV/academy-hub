@@ -23,7 +23,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
-  const target = redirect || "/";
+  const target = "/dashboard";
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
