@@ -16,6 +16,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, FileText, Video, ExternalLink, Layers } from "lucide-react";
 import { useApp } from "@/lib/app-context";
@@ -25,6 +31,31 @@ export const Route = createFileRoute("/_authenticated/recursos")({
   head: () => ({ meta: [{ title: "Centro de Recursos — Academia Ubuntu" }] }),
   component: ResourcesPage,
 });
+
+function getEmbedUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    // YouTube
+    if (host.includes("youtube.com") && u.searchParams.get("v")) {
+      return `https://www.youtube.com/embed/${u.searchParams.get("v")}`;
+    }
+    if (host === "youtu.be") {
+      const id = u.pathname.replace(/^\//, "");
+      if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+    // Microsoft OneDrive / SharePoint
+    if (host.includes("sharepoint.com") || host.includes("onedrive.live.com")) {
+      if (!u.searchParams.has("action")) {
+        u.searchParams.set("action", "embedview");
+      }
+      return u.toString();
+    }
+    return url;
+  } catch {
+    return url;
+  }
+}
 
 interface RecursoRow {
   id: string;
@@ -57,6 +88,8 @@ function ResourcesPage() {
   const { isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/recursos", id);
   const [selectedCluster, setSelectedCluster] = useState<string>("");
+  const [viewerResource, setViewerResource] = useState<RecursoRow | null>(null);
+
 
   const clustersQuery = useQuery({
     queryKey: ["clusters"],
@@ -251,7 +284,11 @@ function ResourcesPage() {
                                       const Icon =
                                         r.resource_type === "video" ? Video : FileText;
                                       return (
-                                        <Card key={r.id} className="border">
+                                        <Card
+                                          key={r.id}
+                                          className="border cursor-pointer transition hover:bg-muted/50"
+                                          onClick={() => setViewerResource(r)}
+                                        >
                                           <CardContent className="flex flex-col gap-2 p-3">
                                             <div className="flex items-start gap-2">
                                               <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
@@ -267,22 +304,20 @@ function ResourcesPage() {
                                               </div>
                                             </div>
                                             <Button
-                                              asChild
                                               size="sm"
                                               variant="outline"
                                               className="self-start"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setViewerResource(r);
+                                              }}
                                             >
-                                              <a
-                                                href={toProxyUrl(r.file_url)}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                              >
-                                                <ExternalLink className="h-3.5 w-3.5" />
-                                                Abrir
-                                              </a>
+                                              <ExternalLink className="h-3.5 w-3.5" />
+                                              Abrir
                                             </Button>
                                           </CardContent>
                                         </Card>
+
                                       );
                                     })}
                                   </div>
@@ -300,6 +335,41 @@ function ResourcesPage() {
           </CardContent>
         </Card>
       )}
+
+      <Dialog
+        open={!!viewerResource}
+        onOpenChange={(o) => !o && setViewerResource(null)}
+      >
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="pr-8">{viewerResource?.title}</DialogTitle>
+          </DialogHeader>
+          {viewerResource && (
+            <div className="space-y-3">
+              <Button asChild size="sm" className="w-full sm:w-auto">
+                <a
+                  href={viewerResource.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  Abrir em nova aba
+                </a>
+              </Button>
+              <iframe
+                title={viewerResource.title}
+                src={getEmbedUrl(viewerResource.file_url)}
+                className="w-full h-[60vh] border-0 rounded-md bg-muted"
+                allow="autoplay; encrypted-media; fullscreen"
+              />
+              <p className="text-xs text-muted-foreground">
+                Se a pré-visualização não aparecer, usa o botão "Abrir em nova aba".
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
+
 }
