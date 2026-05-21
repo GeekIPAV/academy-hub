@@ -74,6 +74,7 @@ interface TemaRow {
   context: string | null;
   objectives: string | null;
   order_index: number;
+  bloco_order: number;
   tema_recursos: Array<{ recursos: RecursoRow | null }>;
 }
 
@@ -119,7 +120,8 @@ function ResourcesPage() {
         .from("temas_momentos" as never)
         .select("*, tema_recursos(recursos(*))")
         .eq("cluster", activeCluster)
-        .order("order_index");
+        .order("bloco_order", { ascending: true })
+        .order("order_index", { ascending: true });
       if (error) throw error;
       return (data as unknown as TemaRow[]) ?? [];
     },
