@@ -34,7 +34,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown } from "lucide-react";
+import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown } from "lucide-react";
 
 type ResourceType = "pdf" | "video";
 
