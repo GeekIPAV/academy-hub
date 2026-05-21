@@ -189,11 +189,6 @@ function AuthPage() {
             Continuar com Google
           </Button>
 
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            <Link to="/" className="hover:underline">
-              ← Voltar ao início
-            </Link>
-          </p>
         </CardContent>
       </Card>
     </div>
