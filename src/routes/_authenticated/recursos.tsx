@@ -94,6 +94,34 @@ function ResourcesPage() {
 
   const temas = useMemo(() => temasQuery.data ?? [], [temasQuery.data]);
 
+  const groupedTemas = useMemo(() => {
+    const hasAnyBloco = temas.some((t) => t.bloco && t.bloco.trim());
+    if (!hasAnyBloco) {
+      return [{ bloco: null as string | null, temas }];
+    }
+    const map = new Map<string, TemaRow[]>();
+    const order: string[] = [];
+    const unassigned: TemaRow[] = [];
+    for (const t of temas) {
+      const key = t.bloco?.trim();
+      if (!key) {
+        unassigned.push(t);
+        continue;
+      }
+      if (!map.has(key)) {
+        map.set(key, []);
+        order.push(key);
+      }
+      map.get(key)!.push(t);
+    }
+    const groups: Array<{ bloco: string | null; temas: TemaRow[] }> = order.map((b) => ({
+      bloco: b,
+      temas: map.get(b)!,
+    }));
+    if (unassigned.length) groups.push({ bloco: null, temas: unassigned });
+    return groups;
+  }, [temas]);
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <ComponentAccessMatrix pagePath="/recursos" />
