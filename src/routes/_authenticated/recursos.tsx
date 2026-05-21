@@ -87,7 +87,7 @@ function ResourcesPage() {
     enabled: !!activeCluster,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("temas_momentos" as never)
+        .from("temas_momentos")
         .select("*, tema_recursos(recursos(*))")
         .eq("cluster", activeCluster)
         .order("bloco_order", { ascending: true })
