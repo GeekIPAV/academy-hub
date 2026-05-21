@@ -125,32 +125,12 @@
 }
 
 
-@keyframes loading-mandela-reveal {
-  0% { clip-path: inset(0 100% 0 0); }
-  100% { clip-path: inset(0 0 0 0); }
+@keyframes loading-mandela-draw {
+  0% { stroke-dashoffset: 1; }
+  100% { stroke-dashoffset: 0; }
 }
-@keyframes loading-mandela-line {
-  0% { left: 0; }
-  100% { left: 100%; }
-}
-.loading-mandela-wrap {
-  position: relative;
-  width: 160px;
-  height: 200px;
-}
-.loading-mandela-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  clip-path: inset(0 100% 0 0);
-  animation: loading-mandela-reveal 1s linear infinite;
-}
-.loading-mandela-line {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2px;
-  height: 100%;
-  background: var(--color-secondary);
-  animation: loading-mandela-line 1s linear infinite;
+.loading-mandela-draw path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: loading-mandela-draw 1s linear infinite;
 }
