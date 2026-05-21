@@ -110,6 +110,27 @@ export type Database = {
           },
         ]
       }
+      config_privacidade_campos: {
+        Row: {
+          classification: string
+          column_name: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          classification: string
+          column_name: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          classification?: string
+          column_name?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       entidades: {
         Row: {
           address: string | null
@@ -852,9 +873,17 @@ export type Database = {
       }
     }
     Functions: {
+      anonimizar_utilizador: { Args: { _user_id: string }; Returns: number }
       get_next_in_line: { Args: { target_action_id: string }; Returns: string }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      list_utilizadores_columns: {
+        Args: never
+        Returns: {
+          column_name: string
+          data_type: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
