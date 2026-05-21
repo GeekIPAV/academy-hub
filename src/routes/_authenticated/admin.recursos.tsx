@@ -91,8 +91,9 @@ function AdminResourcesPage() {
   const [eFile, setEFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Bulk upload state
-  const [bProgramId, setBProgramId] = useState<string>("");
+  // Bulk upload state (cluster-based)
+  const [clusters, setClusters] = useState<string[]>([]);
+  const [bCluster, setBCluster] = useState<string>("");
   const [bPhase, setBPhase] = useState<Phase | "">("");
   const [bResourceType, setBResourceType] = useState<ResourceType | "">("");
   const [bFiles, setBFiles] = useState<File[]>([]);
