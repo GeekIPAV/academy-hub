@@ -449,6 +449,7 @@ export type Database = {
       }
       programas: {
         Row: {
+          cluster: string | null
           description: string | null
           id: string
           is_active: boolean | null
@@ -461,6 +462,7 @@ export type Database = {
           title: string | null
         }
         Insert: {
+          cluster?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -473,6 +475,7 @@ export type Database = {
           title?: string | null
         }
         Update: {
+          cluster?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
