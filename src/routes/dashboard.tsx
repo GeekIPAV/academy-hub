@@ -28,7 +28,7 @@ function DashboardPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <ComponentAccessMatrix pagePath="/dashboard" />
-      <div className="text-lg font-medium">
+      <div className="text-center text-xl font-semibold py-[20px]">
         {getGreeting()}{profile?.full_name ? `, ${profile.full_name}` : ""}
       </div>
       {visible("header") && (
