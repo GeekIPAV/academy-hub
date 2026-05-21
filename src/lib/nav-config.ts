@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Library,
   ListChecks,
+  Lock,
   Megaphone,
   Newspaper,
   Shield,
