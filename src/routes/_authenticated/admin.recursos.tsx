@@ -257,8 +257,8 @@ function BibliotecaTab() {
           <CardTitle className="text-base">Recursos carregados</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-            <div className="flex-1 space-y-1">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+            <div className="min-w-[180px] flex-1 space-y-1">
               <Label className="text-xs text-muted-foreground">Filtrar por título</Label>
               <div className="relative">
                 <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -270,7 +270,7 @@ function BibliotecaTab() {
                 />
               </div>
             </div>
-            <div className="w-full space-y-1 sm:w-40">
+            <div className="w-full space-y-1 sm:w-36">
               <Label className="text-xs text-muted-foreground">Tipo</Label>
               <Select value={filterType} onValueChange={setFilterType}>
                 <SelectTrigger>
@@ -283,6 +283,51 @@ function BibliotecaTab() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="w-full space-y-1 sm:w-48">
+              <Label className="text-xs text-muted-foreground">Cluster</Label>
+              <Select
+                value={filterCluster}
+                onValueChange={(v) => {
+                  setFilterCluster(v);
+                  setFilterTema("");
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clusters.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full space-y-1 sm:w-56">
+              <Label className="text-xs text-muted-foreground">Tema</Label>
+              <Select
+                value={filterTema}
+                onValueChange={setFilterTema}
+                disabled={!filterCluster}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={filterCluster ? "Todos do cluster" : "Selecione um cluster"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {temasOfCluster.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.bloco ? `${t.bloco} — ${t.title}` : t.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(searchTitle || filterType !== "all" || filterCluster || filterTema) && (
+              <Button variant="ghost" onClick={clearFilters} className="sm:self-end">
+                Limpar filtros
+              </Button>
+            )}
           </div>
 
           {isLoading ? (
