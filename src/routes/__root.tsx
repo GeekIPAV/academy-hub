@@ -15,7 +15,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/hooks/use-auth";
-import { LoadingU } from "@/components/LoadingU";
+import { LoadingU, LoadingUInline } from "@/components/LoadingU";
 
 function NotFoundComponent() {
   return (
