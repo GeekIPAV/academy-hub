@@ -34,7 +34,18 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag } from "lucide-react";
 
 type ResourceType = "pdf" | "video";
 
@@ -232,6 +243,60 @@ function BibliotecaTab() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // ── Bulk selection ──
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkTypeOpen, setBulkTypeOpen] = useState(false);
+  const [bulkType, setBulkType] = useState<ResourceType>("pdf");
+
+  const visibleIds = useMemo(() => filteredResources.map((r) => r.id), [filteredResources]);
+  const allVisibleSelected =
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+  const someVisibleSelected =
+    !allVisibleSelected && visibleIds.some((id) => selectedIds.includes(id));
+
+  const toggleSelect = (id: string, checked: boolean) => {
+    setSelectedIds((prev) =>
+      checked ? Array.from(new Set([...prev, id])) : prev.filter((x) => x !== id),
+    );
+  };
+  const toggleSelectAllVisible = (checked: boolean) => {
+    setSelectedIds((prev) => {
+      if (checked) return Array.from(new Set([...prev, ...visibleIds]));
+      return prev.filter((id) => !visibleIds.includes(id));
+    });
+  };
+  const clearSelection = () => setSelectedIds([]);
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase.from("recursos").delete().in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, ids) => {
+      toast.success(`${ids.length} recurso(s) apagado(s).`);
+      clearSelection();
+      qc.invalidateQueries({ queryKey: ["recursos-all"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const bulkTypeMutation = useMutation({
+    mutationFn: async ({ ids, type }: { ids: string[]; type: ResourceType }) => {
+      const { error } = await supabase
+        .from("recursos")
+        .update({ resource_type: type })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      toast.success(`Tipo atualizado em ${vars.ids.length} recurso(s).`);
+      setBulkTypeOpen(false);
+      clearSelection();
+      qc.invalidateQueries({ queryKey: ["recursos-all"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="single" className="w-full">
@@ -254,7 +319,94 @@ function BibliotecaTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Recursos carregados</CardTitle>
+          {selectedIds.length > 0 ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/50 px-3 py-2">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium">
+                  {selectedIds.length} selecionado{selectedIds.length === 1 ? "" : "s"}
+                </span>
+                <Button variant="ghost" size="sm" onClick={clearSelection}>
+                  Limpar seleção
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Dialog open={bulkTypeOpen} onOpenChange={setBulkTypeOpen}>
+                  <Button variant="outline" size="sm" onClick={() => setBulkTypeOpen(true)}>
+                    <Tag className="mr-1 h-4 w-4" /> Mudar tipo
+                  </Button>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Mudar tipo em massa</DialogTitle>
+                      <DialogDescription>
+                        Vai alterar o tipo de {selectedIds.length} recurso(s).
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-2">
+                      <Label>Novo tipo</Label>
+                      <Select value={bulkType} onValueChange={(v) => setBulkType(v as ResourceType)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pdf">PDF</SelectItem>
+                          <SelectItem value="video">Vídeo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="ghost" onClick={() => setBulkTypeOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          bulkTypeMutation.mutate({ ids: selectedIds, type: bulkType })
+                        }
+                        disabled={bulkTypeMutation.isPending}
+                      >
+                        {bulkTypeMutation.isPending && (
+                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                        )}
+                        Aplicar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" disabled={bulkDeleteMutation.isPending}>
+                      {bulkDeleteMutation.isPending ? (
+                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="mr-1 h-4 w-4" />
+                      )}
+                      Apagar
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Apagar recursos selecionados?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Vai apagar permanentemente {selectedIds.length} recurso(s). Esta ação é
+                        irreversível.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => bulkDeleteMutation.mutate(selectedIds)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Apagar
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </div>
+          ) : (
+            <CardTitle className="text-base">Recursos carregados</CardTitle>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
@@ -342,6 +494,15 @@ function BibliotecaTab() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={
+                        allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false
+                      }
+                      onCheckedChange={(v) => toggleSelectAllVisible(v === true)}
+                      aria-label="Selecionar todos"
+                    />
+                  </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("title")}>
                     <span className="flex items-center gap-1">
                       Título
@@ -365,7 +526,14 @@ function BibliotecaTab() {
               </TableHeader>
               <TableBody>
                 {filteredResources.map((r) => (
-                  <TableRow key={r.id}>
+                  <TableRow key={r.id} data-state={selectedIds.includes(r.id) ? "selected" : undefined}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedIds.includes(r.id)}
+                        onCheckedChange={(v) => toggleSelect(r.id, v === true)}
+                        aria-label={`Selecionar ${r.title}`}
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{r.title}</TableCell>
                     <TableCell className="uppercase">{r.resource_type}</TableCell>
                     <TableCell className="text-muted-foreground">
