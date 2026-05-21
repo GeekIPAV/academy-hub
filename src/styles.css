@@ -2,6 +2,10 @@
 @source "../src";
 @import "tw-animate-css";
 
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /*
