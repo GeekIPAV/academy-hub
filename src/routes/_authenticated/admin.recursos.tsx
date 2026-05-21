@@ -815,7 +815,6 @@ function TemasTab() {
                         <TableHeader>
                           <TableRow>
                             <TableHead>Título</TableHead>
-                            <TableHead>Descrição</TableHead>
                             <TableHead className="w-44 text-right">Ações</TableHead>
                           </TableRow>
                         </TableHeader>
@@ -823,9 +822,6 @@ function TemasTab() {
                           {group.temas.map((t, ti) => (
                             <TableRow key={t.id}>
                               <TableCell className="font-medium">{t.title}</TableCell>
-                              <TableCell className="max-w-md truncate text-muted-foreground">
-                                {t.description ?? "—"}
-                              </TableCell>
                               <TableCell className="text-right">
                                 <Button
                                   variant="ghost"
