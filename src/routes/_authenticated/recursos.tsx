@@ -74,6 +74,7 @@ interface TemaRow {
   context: string | null;
   objectives: string | null;
   order_index: number;
+  bloco_order: number;
   tema_recursos: Array<{ recursos: RecursoRow | null }>;
 }
 
