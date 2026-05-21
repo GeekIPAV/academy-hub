@@ -1398,6 +1398,21 @@ function AssociacoesTab() {
     [recursos],
   );
 
+  const [searchTitle, setSearchTitle] = useState("");
+  const [filterType, setFilterType] = useState<string>("all");
+
+  const filteredRecursos = useMemo(() => {
+    let list = [...sortedRecursos];
+    if (searchTitle.trim()) {
+      const q = searchTitle.trim().toLowerCase();
+      list = list.filter((r) => r.title.toLowerCase().includes(q));
+    }
+    if (filterType !== "all") {
+      list = list.filter((r) => r.resource_type === filterType);
+    }
+    return list;
+  }, [sortedRecursos, searchTitle, filterType]);
+
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!temaId) throw new Error("Seleciona um tema.");
@@ -1476,13 +1491,47 @@ function AssociacoesTab() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {sortedRecursos.length === 0 ? (
+            <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+              <div className="min-w-[180px] flex-1 space-y-1">
+                <Label className="text-xs text-muted-foreground">Filtrar por nome</Label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Pesquisar..."
+                    value={searchTitle}
+                    onChange={(e) => setSearchTitle(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              <div className="w-full space-y-1 sm:w-36">
+                <Label className="text-xs text-muted-foreground">Tipo</Label>
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="pdf">PDF</SelectItem>
+                    <SelectItem value="video">Vídeo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {filteredRecursos.length === 1 && (
               <p className="py-6 text-center text-sm text-muted-foreground">
                 A Biblioteca está vazia.
               </p>
-            ) : (
+            )}
+            {filteredRecursos.length === 0 && sortedRecursos.length > 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">
+                Nenhum recurso encontrado com estes filtros.
+              </p>
+            )}
+            {filteredRecursos.length > 0 && (
               <ul className="divide-y rounded-md border">
-                {sortedRecursos.map((r) => {
+                {filteredRecursos.map((r) => {
                   const checked = selected.has(r.id);
                   return (
                     <li
