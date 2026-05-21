@@ -262,40 +262,39 @@ function ResourcesPage() {
                                       const Icon =
                                         r.resource_type === "video" ? Video : FileText;
                                       return (
-                                        <Card
+                                        <a
                                           key={r.id}
-                                          className="border cursor-pointer transition hover:bg-muted/50"
-                                          onClick={() => setViewerResource(r)}
+                                          href={r.file_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="block"
                                         >
-                                          <CardContent className="flex flex-col gap-2 p-3">
-                                            <div className="flex items-start gap-2">
-                                              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                                              <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium">
-                                                  {r.title}
-                                                </p>
-                                                {r.description && (
-                                                  <p className="text-xs text-muted-foreground line-clamp-2">
-                                                    {r.description}
+                                          <Card className="border cursor-pointer transition hover:bg-muted/50">
+                                            <CardContent className="flex flex-col gap-2 p-3">
+                                              <div className="flex items-start gap-2">
+                                                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                                                <div className="min-w-0 flex-1">
+                                                  <p className="truncate text-sm font-medium">
+                                                    {r.title}
                                                   </p>
-                                                )}
+                                                  {r.description && (
+                                                    <p className="text-xs text-muted-foreground line-clamp-2">
+                                                      {r.description}
+                                                    </p>
+                                                  )}
+                                                </div>
                                               </div>
-                                            </div>
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              className="self-start"
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                setViewerResource(r);
-                                              }}
-                                            >
-                                              <ExternalLink className="h-3.5 w-3.5" />
-                                              Abrir
-                                            </Button>
-                                          </CardContent>
-                                        </Card>
-
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="self-start pointer-events-none"
+                                              >
+                                                <ExternalLink className="h-3.5 w-3.5" />
+                                                Abrir
+                                              </Button>
+                                            </CardContent>
+                                          </Card>
+                                        </a>
                                       );
                                     })}
                                   </div>
