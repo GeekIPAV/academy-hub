@@ -110,6 +110,144 @@ export type Database = {
           },
         ]
       }
+      articles: {
+        Row: {
+          abstract_en: string
+          abstract_pt: string
+          affiliations: string[]
+          authors: string[]
+          conclusion_en: string
+          conclusion_pt: string
+          created_at: string
+          id: number
+          impact_area_en: string
+          impact_area_pt: string
+          instruments_en: string[]
+          instruments_pt: string[]
+          issue: number
+          key_findings_en: string[]
+          key_findings_pt: string[]
+          language: string
+          limitations_en: string
+          limitations_pt: string
+          main_results_en: string
+          main_results_pt: string
+          methodology_detail_en: string
+          methodology_detail_pt: string
+          methodology_en: string
+          methodology_pt: string
+          objectives_en: string[]
+          objectives_pt: string[]
+          pages: string
+          recommendations_en: string
+          recommendations_pt: string
+          references: string[]
+          result_type: string
+          sample_detail_en: string
+          sample_detail_pt: string
+          sample_type_en: string
+          sample_type_pt: string
+          subtitle_en: string
+          subtitle_pt: string
+          tags_en: string[]
+          tags_pt: string[]
+          title_en: string
+          title_pt: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          abstract_en?: string
+          abstract_pt?: string
+          affiliations?: string[]
+          authors?: string[]
+          conclusion_en?: string
+          conclusion_pt?: string
+          created_at?: string
+          id: number
+          impact_area_en?: string
+          impact_area_pt?: string
+          instruments_en?: string[]
+          instruments_pt?: string[]
+          issue: number
+          key_findings_en?: string[]
+          key_findings_pt?: string[]
+          language: string
+          limitations_en?: string
+          limitations_pt?: string
+          main_results_en?: string
+          main_results_pt?: string
+          methodology_detail_en?: string
+          methodology_detail_pt?: string
+          methodology_en?: string
+          methodology_pt?: string
+          objectives_en?: string[]
+          objectives_pt?: string[]
+          pages?: string
+          recommendations_en?: string
+          recommendations_pt?: string
+          references?: string[]
+          result_type: string
+          sample_detail_en?: string
+          sample_detail_pt?: string
+          sample_type_en?: string
+          sample_type_pt?: string
+          subtitle_en?: string
+          subtitle_pt?: string
+          tags_en?: string[]
+          tags_pt?: string[]
+          title_en?: string
+          title_pt?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          abstract_en?: string
+          abstract_pt?: string
+          affiliations?: string[]
+          authors?: string[]
+          conclusion_en?: string
+          conclusion_pt?: string
+          created_at?: string
+          id?: number
+          impact_area_en?: string
+          impact_area_pt?: string
+          instruments_en?: string[]
+          instruments_pt?: string[]
+          issue?: number
+          key_findings_en?: string[]
+          key_findings_pt?: string[]
+          language?: string
+          limitations_en?: string
+          limitations_pt?: string
+          main_results_en?: string
+          main_results_pt?: string
+          methodology_detail_en?: string
+          methodology_detail_pt?: string
+          methodology_en?: string
+          methodology_pt?: string
+          objectives_en?: string[]
+          objectives_pt?: string[]
+          pages?: string
+          recommendations_en?: string
+          recommendations_pt?: string
+          references?: string[]
+          result_type?: string
+          sample_detail_en?: string
+          sample_detail_pt?: string
+          sample_type_en?: string
+          sample_type_pt?: string
+          subtitle_en?: string
+          subtitle_pt?: string
+          tags_en?: string[]
+          tags_pt?: string[]
+          title_en?: string
+          title_pt?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       config_privacidade_campos: {
         Row: {
           classification: string
@@ -350,6 +488,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      issues_meta: {
+        Row: {
+          issn: string
+          issue: number
+          pages: number
+          total_articles: number
+          year: number
+        }
+        Insert: {
+          issn: string
+          issue: number
+          pages: number
+          total_articles: number
+          year: number
+        }
+        Update: {
+          issn?: string
+          issue?: number
+          pages?: number
+          total_articles?: number
+          year?: number
+        }
+        Relationships: []
       }
       notificacoes: {
         Row: {
