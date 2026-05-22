@@ -30,6 +30,7 @@ import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
+import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
 import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
@@ -142,6 +143,11 @@ const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
   path: '/recursos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const PublicacoesRevistasIdRoute = PublicacoesRevistasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PublicacoesRevistasRoute,
+} as any)
 const EntidadeAcoesIdRoute = EntidadeAcoesIdRouteImport.update({
   id: '/entidade/acoes/$id',
   path: '/entidade/acoes/$id',
@@ -190,10 +196,11 @@ export interface FileRoutesByFullPath {
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/ipav': typeof PublicacoesIpavRoute
-  '/publicacoes/revistas': typeof PublicacoesRevistasRoute
+  '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
+  '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
@@ -217,10 +224,11 @@ export interface FileRoutesByTo {
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/ipav': typeof PublicacoesIpavRoute
-  '/publicacoes/revistas': typeof PublicacoesRevistasRoute
+  '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
+  '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
@@ -246,10 +254,11 @@ export interface FileRoutesById {
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/ipav': typeof PublicacoesIpavRoute
-  '/publicacoes/revistas': typeof PublicacoesRevistasRoute
+  '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
+  '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/api/public/recursos/$': typeof ApiPublicRecursosSplatRoute
 }
@@ -279,6 +288,7 @@ export interface FileRouteTypes {
     | '/actions/$id'
     | '/admin/recursos'
     | '/entidade/acoes/$id'
+    | '/publicacoes/revistas/$id'
     | '/api/certificates/$actionId/$participanteId'
     | '/api/public/recursos/$'
   fileRoutesByTo: FileRoutesByTo
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/actions/$id'
     | '/admin/recursos'
     | '/entidade/acoes/$id'
+    | '/publicacoes/revistas/$id'
     | '/api/certificates/$actionId/$participanteId'
     | '/api/public/recursos/$'
   id:
@@ -334,6 +345,7 @@ export interface FileRouteTypes {
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
     | '/entidade/acoes/$id'
+    | '/publicacoes/revistas/$id'
     | '/api/certificates/$actionId/$participanteId'
     | '/api/public/recursos/$'
   fileRoutesById: FileRoutesById
@@ -358,7 +370,7 @@ export interface RootRouteChildren {
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
   PublicacoesIpavRoute: typeof PublicacoesIpavRoute
-  PublicacoesRevistasRoute: typeof PublicacoesRevistasRoute
+  PublicacoesRevistasRoute: typeof PublicacoesRevistasRouteWithChildren
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
   ApiCertificatesActionIdParticipanteIdRoute: typeof ApiCertificatesActionIdParticipanteIdRoute
   ApiPublicRecursosSplatRoute: typeof ApiPublicRecursosSplatRoute
@@ -513,6 +525,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/publicacoes/revistas/$id': {
+      id: '/publicacoes/revistas/$id'
+      path: '/$id'
+      fullPath: '/publicacoes/revistas/$id'
+      preLoaderRoute: typeof PublicacoesRevistasIdRouteImport
+      parentRoute: typeof PublicacoesRevistasRoute
+    }
     '/entidade/acoes/$id': {
       id: '/entidade/acoes/$id'
       path: '/entidade/acoes/$id'
@@ -567,6 +586,17 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface PublicacoesRevistasRouteChildren {
+  PublicacoesRevistasIdRoute: typeof PublicacoesRevistasIdRoute
+}
+
+const PublicacoesRevistasRouteChildren: PublicacoesRevistasRouteChildren = {
+  PublicacoesRevistasIdRoute: PublicacoesRevistasIdRoute,
+}
+
+const PublicacoesRevistasRouteWithChildren =
+  PublicacoesRevistasRoute._addFileChildren(PublicacoesRevistasRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -588,7 +618,7 @@ const rootRouteChildren: RootRouteChildren = {
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
   PublicacoesIpavRoute: PublicacoesIpavRoute,
-  PublicacoesRevistasRoute: PublicacoesRevistasRoute,
+  PublicacoesRevistasRoute: PublicacoesRevistasRouteWithChildren,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
   ApiCertificatesActionIdParticipanteIdRoute:
     ApiCertificatesActionIdParticipanteIdRoute,
