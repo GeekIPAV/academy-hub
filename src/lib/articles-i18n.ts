@@ -45,6 +45,9 @@ const dict: Record<string, Record<Lang, string>> = {
   "detail.viewDetails": { pt: "Ver detalhes →", en: "View details →" },
   "nav.back": { pt: "Voltar", en: "Back" },
   "nav.notFound": { pt: "Artigo não encontrado", en: "Article not found" },
+  "lang.pt": { pt: "Português", en: "Portuguese" },
+  "lang.en": { pt: "Inglês", en: "English" },
+  "filter.clearAll": { pt: "Limpar filtros", en: "Clear filters" },
 };
 
 export function tk(key: string, lang: Lang): string {
