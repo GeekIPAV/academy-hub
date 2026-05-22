@@ -149,3 +149,20 @@
   stroke-dashoffset: 1;
   animation: loading-mandela-draw 1.5s linear infinite;
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap');
+
+@layer utilities {
+  .font-display { font-family: "Newsreader", Georgia, serif; }
+  .font-mono-data { font-family: "Geist Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .text-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; color: var(--muted-foreground); }
+  .surface-elevated { background-color: var(--card); box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.03); }
+  .bg-surface-sunken { background-color: #F8FAFC; }
+  .bg-spine { background-color: var(--border); }
+  .text-metric-positive { color: oklch(0.55 0.13 145); }
+  .spine-line { border-left: 1px solid var(--border); }
+  .insight-card { background-color: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+  .insight-card:hover { outline: 2px solid var(--primary); outline-offset: -2px; transform: translateY(-2px); }
+  .metric-tag { background-color: var(--muted); color: var(--foreground); font-size: 0.75rem; padding: 0.25rem 0.5rem; border-radius: 6px; font-weight: 500; }
+  .link-underline { position: relative; }
+}
