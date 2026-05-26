@@ -136,16 +136,8 @@ export function ResourceTypesManager() {
               e.preventDefault();
               createMut.mutate();
             }}
-            className="grid gap-3 sm:grid-cols-[1fr_1fr_120px_auto] sm:items-end"
+            className="grid gap-3 sm:grid-cols-[1fr_120px_auto] sm:items-end"
           >
-            <div className="space-y-1">
-              <Label>Chave</Label>
-              <Input
-                placeholder="ex: ebook"
-                value={newKey}
-                onChange={(e) => setNewKey(e.target.value)}
-              />
-            </div>
             <div className="space-y-1">
               <Label>Etiqueta</Label>
               <Input
@@ -173,8 +165,11 @@ export function ResourceTypesManager() {
             </Button>
           </form>
           <p className="mt-2 text-xs text-muted-foreground">
-            A chave é guardada na base de dados (sem espaços). A etiqueta é o que
-            aparece aos utilizadores.
+            {generatedKey ? (
+              <>Chave gerada: <code className="font-mono text-xs">{generatedKey}</code></>
+            ) : (
+              "Escreve uma etiqueta para ver a chave gerada."
+            )}
           </p>
         </CardContent>
       </Card>
