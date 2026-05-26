@@ -308,7 +308,7 @@ function ResourcesPage() {
                                               </Button>
                                             </CardContent>
                                           </Card>
-                                        </a>
+                                        </button>
                                       );
                                     })}
                                   </div>
