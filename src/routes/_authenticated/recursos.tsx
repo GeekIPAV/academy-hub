@@ -266,6 +266,9 @@ function ResourcesPage() {
                                     {recs.map((r) => {
                                       const isVideo = r.resource_type === "video";
                                       const Icon = isVideo ? Video : FileText;
+                                      const typeMeta = typeMap.get(r.resource_type);
+                                      const label = typeMeta?.label ?? r.resource_type.toUpperCase();
+                                      const color = typeMeta?.color ?? "#64748b";
                                       return (
                                         <button
                                           key={r.id}
@@ -283,14 +286,10 @@ function ResourcesPage() {
                                                       {r.title}
                                                     </p>
                                                     <span
-                                                      className={
-                                                        "shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white " +
-                                                        (isVideo
-                                                          ? "bg-[#008DD5]"
-                                                          : "bg-destructive")
-                                                      }
+                                                      style={{ backgroundColor: color }}
+                                                      className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
                                                     >
-                                                      {isVideo ? "Vídeo" : "PDF"}
+                                                      {label}
                                                     </span>
                                                   </div>
                                                   {r.description && (
