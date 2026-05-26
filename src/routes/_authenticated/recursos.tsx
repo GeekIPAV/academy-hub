@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { getRecursoSignedUrl } from "@/lib/recursos.functions";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Accordion,
@@ -48,17 +51,23 @@ interface TemaRow {
   tema_recursos: Array<{ recursos: RecursoRow | null }>;
 }
 
-function toProxyUrl(fileUrl: string): string {
-  const marker = "/storage/v1/object/public/resources/";
-  const idx = fileUrl.indexOf(marker);
-  if (idx < 0) return fileUrl;
-  return `/api/public/recursos/${fileUrl.slice(idx + marker.length)}`;
-}
+
+
 
 function ResourcesPage() {
   const { isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/recursos", id);
   const [selectedCluster, setSelectedCluster] = useState<string>("");
+  const fetchSignedUrl = useServerFn(getRecursoSignedUrl);
+
+  const openRecurso = async (fileUrl: string) => {
+    try {
+      const { url } = await fetchSignedUrl({ data: { path: fileUrl } });
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao abrir recurso");
+    }
+  };
   
 
 
@@ -256,12 +265,11 @@ function ResourcesPage() {
                                       const isVideo = r.resource_type === "video";
                                       const Icon = isVideo ? Video : FileText;
                                       return (
-                                        <a
+                                        <button
                                           key={r.id}
-                                          href={r.file_url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="block"
+                                          type="button"
+                                          onClick={() => openRecurso(r.file_url)}
+                                          className="block w-full text-left"
                                         >
                                           <Card className="border cursor-pointer transition hover:bg-muted/50">
                                             <CardContent className="flex flex-col gap-2 p-3">
@@ -300,7 +308,7 @@ function ResourcesPage() {
                                               </Button>
                                             </CardContent>
                                           </Card>
-                                        </a>
+                                        </button>
                                       );
                                     })}
                                   </div>
