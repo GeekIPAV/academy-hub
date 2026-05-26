@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -34,6 +34,16 @@ interface Row {
   sort_order: number;
 }
 
+function slugifyLabel(label: string): string {
+  return label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_-]/g, "");
+}
+
 export function ResourceTypesManager() {
   const qc = useQueryClient();
   const { data: types = [], isLoading } = useQuery({
@@ -47,9 +57,9 @@ export function ResourceTypesManager() {
     },
   });
 
-  const [newKey, setNewKey] = useState("");
   const [newLabel, setNewLabel] = useState("");
   const [newColor, setNewColor] = useState("#64748b");
+  const generatedKey = useMemo(() => slugifyLabel(newLabel), [newLabel]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["resource-types"] });
@@ -57,11 +67,9 @@ export function ResourceTypesManager() {
 
   const createMut = useMutation({
     mutationFn: async () => {
-      const key = newKey.trim().toLowerCase();
+      const key = generatedKey;
       const label = newLabel.trim();
-      if (!key || !label) throw new Error("Chave e etiqueta são obrigatórias.");
-      if (!/^[a-z0-9_-]+$/.test(key))
-        throw new Error("Chave só pode ter letras minúsculas, números, _ ou -.");
+      if (!key || !label) throw new Error("Etiqueta é obrigatória.");
       const nextOrder = (types.at(-1)?.sort_order ?? 0) + 10;
       const { error } = await (supabase as unknown as { from: (t: string) => any }).from("resource_types")
         .insert({ key, label, color: newColor, sort_order: nextOrder });
@@ -69,7 +77,6 @@ export function ResourceTypesManager() {
     },
     onSuccess: () => {
       toast.success("Tipo adicionado.");
-      setNewKey("");
       setNewLabel("");
       setNewColor("#64748b");
       invalidate();
@@ -129,16 +136,8 @@ export function ResourceTypesManager() {
               e.preventDefault();
               createMut.mutate();
             }}
-            className="grid gap-3 sm:grid-cols-[1fr_1fr_120px_auto] sm:items-end"
+            className="grid gap-3 sm:grid-cols-[1fr_120px_auto] sm:items-end"
           >
-            <div className="space-y-1">
-              <Label>Chave</Label>
-              <Input
-                placeholder="ex: ebook"
-                value={newKey}
-                onChange={(e) => setNewKey(e.target.value)}
-              />
-            </div>
             <div className="space-y-1">
               <Label>Etiqueta</Label>
               <Input
@@ -166,8 +165,11 @@ export function ResourceTypesManager() {
             </Button>
           </form>
           <p className="mt-2 text-xs text-muted-foreground">
-            A chave é guardada na base de dados (sem espaços). A etiqueta é o que
-            aparece aos utilizadores.
+            {generatedKey ? (
+              <>Chave gerada: <code className="font-mono text-xs">{generatedKey}</code></>
+            ) : (
+              "Escreve uma etiqueta para ver a chave gerada."
+            )}
           </p>
         </CardContent>
       </Card>
