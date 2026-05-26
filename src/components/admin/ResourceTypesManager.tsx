@@ -67,11 +67,9 @@ export function ResourceTypesManager() {
 
   const createMut = useMutation({
     mutationFn: async () => {
-      const key = newKey.trim().toLowerCase();
+      const key = generatedKey;
       const label = newLabel.trim();
-      if (!key || !label) throw new Error("Chave e etiqueta são obrigatórias.");
-      if (!/^[a-z0-9_-]+$/.test(key))
-        throw new Error("Chave só pode ter letras minúsculas, números, _ ou -.");
+      if (!key || !label) throw new Error("Etiqueta é obrigatória.");
       const nextOrder = (types.at(-1)?.sort_order ?? 0) + 10;
       const { error } = await (supabase as unknown as { from: (t: string) => any }).from("resource_types")
         .insert({ key, label, color: newColor, sort_order: nextOrder });
@@ -79,7 +77,6 @@ export function ResourceTypesManager() {
     },
     onSuccess: () => {
       toast.success("Tipo adicionado.");
-      setNewKey("");
       setNewLabel("");
       setNewColor("#64748b");
       invalidate();
