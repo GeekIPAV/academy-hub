@@ -778,6 +778,30 @@ export type Database = {
         }
         Relationships: []
       }
+      resource_types: {
+        Row: {
+          color: string
+          created_at: string
+          key: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          key: string
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          key?: string
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       roles: {
         Row: {
           created_at: string
