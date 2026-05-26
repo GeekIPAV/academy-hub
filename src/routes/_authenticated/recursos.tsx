@@ -51,12 +51,8 @@ interface TemaRow {
   tema_recursos: Array<{ recursos: RecursoRow | null }>;
 }
 
-function toProxyUrl(fileUrl: string): string {
-  const marker = "/storage/v1/object/public/resources/";
-  const idx = fileUrl.indexOf(marker);
-  if (idx < 0) return fileUrl;
-  return `/api/public/recursos/${fileUrl.slice(idx + marker.length)}`;
-}
+
+
 
 function ResourcesPage() {
   const { isComponentVisible } = useApp();
