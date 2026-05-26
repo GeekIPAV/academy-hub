@@ -390,8 +390,7 @@ function BibliotecaTab() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pdf">PDF</SelectItem>
-                          <SelectItem value="video">Vídeo</SelectItem>
+                          <TypeOptions />
                         </SelectContent>
                       </Select>
                     </div>
@@ -472,8 +471,7 @@ function BibliotecaTab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="pdf">PDF</SelectItem>
-                  <SelectItem value="video">Vídeo</SelectItem>
+                  <TypeOptions />
                 </SelectContent>
               </Select>
             </div>
@@ -703,8 +701,7 @@ function SingleResourceForm() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="video">Vídeo</SelectItem>
+                <TypeOptions />
               </SelectContent>
             </Select>
           </div>
@@ -793,8 +790,7 @@ function BulkAddForm() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="video">Vídeo</SelectItem>
+                <TypeOptions />
               </SelectContent>
             </Select>
           </div>
@@ -905,8 +901,7 @@ function EditRecursoDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="video">Vídeo</SelectItem>
+                <TypeOptions />
               </SelectContent>
             </Select>
           </div>
@@ -1541,8 +1536,7 @@ function AssociacoesTab() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="video">Vídeo</SelectItem>
+                    <TypeOptions />
                   </SelectContent>
                 </Select>
               </div>
