@@ -13,8 +13,7 @@ export function useResourceTypes() {
     queryKey: ["resource-types"],
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("resource_types" as never)
+      const { data, error } = await (supabase as unknown as { from: (t: string) => any }).from("resource_types")
         .select("key, label, color, sort_order")
         .order("sort_order", { ascending: true });
       if (error) throw error;

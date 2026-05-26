@@ -39,8 +39,7 @@ export function ResourceTypesManager() {
   const { data: types = [], isLoading } = useQuery({
     queryKey: ["resource-types"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("resource_types" as never)
+      const { data, error } = await (supabase as unknown as { from: (t: string) => any }).from("resource_types")
         .select("key, label, color, sort_order")
         .order("sort_order");
       if (error) throw error;
@@ -64,8 +63,7 @@ export function ResourceTypesManager() {
       if (!/^[a-z0-9_-]+$/.test(key))
         throw new Error("Chave só pode ter letras minúsculas, números, _ ou -.");
       const nextOrder = (types.at(-1)?.sort_order ?? 0) + 10;
-      const { error } = await supabase
-        .from("resource_types" as never)
+      const { error } = await (supabase as unknown as { from: (t: string) => any }).from("resource_types")
         .insert({ key, label, color: newColor, sort_order: nextOrder });
       if (error) throw error;
     },
@@ -81,8 +79,7 @@ export function ResourceTypesManager() {
 
   const updateMut = useMutation({
     mutationFn: async (row: Row) => {
-      const { error } = await supabase
-        .from("resource_types" as never)
+      const { error } = await (supabase as unknown as { from: (t: string) => any }).from("resource_types")
         .update({ label: row.label, color: row.color, sort_order: row.sort_order })
         .eq("key", row.key);
       if (error) throw error;
@@ -106,8 +103,7 @@ export function ResourceTypesManager() {
           `Este tipo está em uso por ${count} recurso(s). Muda-os primeiro.`,
         );
       }
-      const { error } = await supabase
-        .from("resource_types" as never)
+      const { error } = await (supabase as unknown as { from: (t: string) => any }).from("resource_types")
         .delete()
         .eq("key", key);
       if (error) throw error;
