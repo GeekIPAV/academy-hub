@@ -10,21 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -45,9 +32,24 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+  Save,
+  ListPlus,
+  ArrowUp,
+  ArrowDown,
+  Search,
+  ArrowUpDown,
+  ExternalLink,
+  Tag,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
-type ResourceType = "pdf" | "video";
+type ResourceType = "pdf" | "video" | "powerpoint" | "word";
 
 interface ResourceRow {
   id: string;
@@ -76,10 +78,7 @@ export const Route = createFileRoute("/_authenticated/admin/recursos")({
   beforeLoad: async () => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) throw redirect({ to: "/auth" });
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role_name")
-      .eq("user_id", u.user.id);
+    const { data: roles } = await supabase.from("user_roles").select("role_name").eq("user_id", u.user.id);
     const isAdmin = (roles ?? []).some((r) => r.role_name === "Admin");
     if (!isAdmin) throw redirect({ to: "/dashboard" });
   },
@@ -92,9 +91,7 @@ function AdminResourcesPage() {
     <div className="container mx-auto max-w-6xl space-y-6 p-6">
       <header>
         <h1 className="text-2xl font-semibold">Centro de Recursos</h1>
-        <p className="text-sm text-muted-foreground">
-          Gere a Biblioteca, os Temas dos clusters e as suas associações.
-        </p>
+        <p className="text-sm text-muted-foreground">Gere a Biblioteca, os Temas dos clusters e as suas associações.</p>
       </header>
 
       <Tabs defaultValue="biblioteca" className="w-full">
@@ -158,18 +155,12 @@ function useAllowedRecursoIds(cluster: string, temaId: string) {
       if (temaId) {
         temaIds = [temaId];
       } else {
-        const { data: temas, error: e1 } = await supabase
-          .from("temas_momentos")
-          .select("id")
-          .eq("cluster", cluster);
+        const { data: temas, error: e1 } = await supabase.from("temas_momentos").select("id").eq("cluster", cluster);
         if (e1) throw e1;
         temaIds = ((temas ?? []) as unknown as { id: string }[]).map((t) => t.id);
       }
       if (temaIds.length === 0) return new Set<string>();
-      const { data, error } = await supabase
-        .from("tema_recursos")
-        .select("recurso_id")
-        .in("tema_id", temaIds);
+      const { data, error } = await supabase.from("tema_recursos").select("recurso_id").in("tema_id", temaIds);
       if (error) throw error;
       return new Set(((data ?? []) as unknown as { recurso_id: string }[]).map((r) => r.recurso_id));
     },
@@ -250,15 +241,11 @@ function BibliotecaTab() {
   const [formOpen, setFormOpen] = useState(false);
 
   const visibleIds = useMemo(() => filteredResources.map((r) => r.id), [filteredResources]);
-  const allVisibleSelected =
-    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
-  const someVisibleSelected =
-    !allVisibleSelected && visibleIds.some((id) => selectedIds.includes(id));
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+  const someVisibleSelected = !allVisibleSelected && visibleIds.some((id) => selectedIds.includes(id));
 
   const toggleSelect = (id: string, checked: boolean) => {
-    setSelectedIds((prev) =>
-      checked ? Array.from(new Set([...prev, id])) : prev.filter((x) => x !== id),
-    );
+    setSelectedIds((prev) => (checked ? Array.from(new Set([...prev, id])) : prev.filter((x) => x !== id)));
   };
   const toggleSelectAllVisible = (checked: boolean) => {
     setSelectedIds((prev) => {
@@ -283,10 +270,7 @@ function BibliotecaTab() {
 
   const bulkTypeMutation = useMutation({
     mutationFn: async ({ ids, type }: { ids: string[]; type: ResourceType }) => {
-      const { error } = await supabase
-        .from("recursos")
-        .update({ resource_type: type })
-        .in("id", ids);
+      const { error } = await supabase.from("recursos").update({ resource_type: type }).in("id", ids);
       if (error) throw error;
     },
     onSuccess: (_d, vars) => {
@@ -301,23 +285,14 @@ function BibliotecaTab() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader
-          className="cursor-pointer select-none"
-          onClick={() => setFormOpen((v) => !v)}
-        >
+        <CardHeader className="cursor-pointer select-none" onClick={() => setFormOpen((v) => !v)}>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Plus className="h-4 w-4" />
               Novo recurso
             </CardTitle>
             <Button variant="ghost" size="icon" asChild>
-              <span>
-                {formOpen ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </span>
+              <span>{formOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}</span>
             </Button>
           </div>
         </CardHeader>
@@ -364,9 +339,7 @@ function BibliotecaTab() {
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Mudar tipo em massa</DialogTitle>
-                      <DialogDescription>
-                        Vai alterar o tipo de {selectedIds.length} recurso(s).
-                      </DialogDescription>
+                      <DialogDescription>Vai alterar o tipo de {selectedIds.length} recurso(s).</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-2">
                       <Label>Novo tipo</Label>
@@ -385,14 +358,10 @@ function BibliotecaTab() {
                         Cancelar
                       </Button>
                       <Button
-                        onClick={() =>
-                          bulkTypeMutation.mutate({ ids: selectedIds, type: bulkType })
-                        }
+                        onClick={() => bulkTypeMutation.mutate({ ids: selectedIds, type: bulkType })}
                         disabled={bulkTypeMutation.isPending}
                       >
-                        {bulkTypeMutation.isPending && (
-                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                        )}
+                        {bulkTypeMutation.isPending && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
                         Aplicar
                       </Button>
                     </DialogFooter>
@@ -414,8 +383,7 @@ function BibliotecaTab() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Apagar recursos selecionados?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Vai apagar permanentemente {selectedIds.length} recurso(s). Esta ação é
-                        irreversível.
+                        Vai apagar permanentemente {selectedIds.length} recurso(s). Esta ação é irreversível.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -485,11 +453,7 @@ function BibliotecaTab() {
             </div>
             <div className="w-full space-y-1 sm:w-56">
               <Label className="text-xs text-muted-foreground">Tema</Label>
-              <Select
-                value={filterTema}
-                onValueChange={setFilterTema}
-                disabled={!filterCluster}
-              >
+              <Select value={filterTema} onValueChange={setFilterTema} disabled={!filterCluster}>
                 <SelectTrigger>
                   <SelectValue placeholder={filterCluster ? "Todos do cluster" : "Selecione um cluster"} />
                 </SelectTrigger>
@@ -523,9 +487,7 @@ function BibliotecaTab() {
                 <TableRow>
                   <TableHead className="w-10">
                     <Checkbox
-                      checked={
-                        allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false
-                      }
+                      checked={allVisibleSelected ? true : someVisibleSelected ? "indeterminate" : false}
                       onCheckedChange={(v) => toggleSelectAllVisible(v === true)}
                       aria-label="Selecionar todos"
                     />
@@ -572,11 +534,7 @@ function BibliotecaTab() {
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setEditing(r)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => setEditing(r)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <AlertDialog>
@@ -589,17 +547,13 @@ function BibliotecaTab() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Apagar recurso?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Tens a certeza que queres apagar <strong>{r.title}</strong>? Esta ação
-                              não pode ser revertida.
+                              Tens a certeza que queres apagar <strong>{r.title}</strong>? Esta ação não pode ser
+                              revertida.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteMutation.mutate(r)}
-                            >
-                              Apagar
-                            </AlertDialogAction>
+                            <AlertDialogAction onClick={() => deleteMutation.mutate(r)}>Apagar</AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
@@ -621,8 +575,7 @@ function BibliotecaTab() {
   );
 }
 
-const EMBED_HINT =
-  "Para os PDFs abrirem dentro da plataforma, gere um link de 'Incorporar/Embed' no OneDrive.";
+const EMBED_HINT = "Para os PDFs abrirem dentro da plataforma, gere um link de 'Incorporar/Embed' no OneDrive.";
 
 function SingleResourceForm() {
   const qc = useQueryClient();
@@ -672,18 +625,11 @@ function SingleResourceForm() {
           </div>
           <div className="space-y-1 sm:col-span-2">
             <Label>Descrição</Label>
-            <Textarea
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
           <div className="space-y-1">
             <Label>Tipo</Label>
-            <Select
-              value={resourceType}
-              onValueChange={(v) => setResourceType(v as ResourceType)}
-            >
+            <Select value={resourceType} onValueChange={(v) => setResourceType(v as ResourceType)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -706,11 +652,7 @@ function SingleResourceForm() {
           </div>
           <div className="sm:col-span-2">
             <Button type="submit" disabled={saving}>
-              {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Guardar recurso
             </Button>
           </div>
@@ -770,10 +712,7 @@ function BulkAddForm() {
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-1">
             <Label>Tipo (aplicado a todas as linhas)</Label>
-            <Select
-              value={resourceType}
-              onValueChange={(v) => setResourceType(v as ResourceType)}
-            >
+            <Select value={resourceType} onValueChange={(v) => setResourceType(v as ResourceType)}>
               <SelectTrigger className="max-w-xs">
                 <SelectValue />
               </SelectTrigger>
@@ -797,11 +736,7 @@ function BulkAddForm() {
             </p>
           </div>
           <Button type="submit" disabled={saving}>
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <ListPlus className="h-4 w-4" />
-            )}
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <ListPlus className="h-4 w-4" />}
             Importar em massa
           </Button>
         </form>
@@ -874,18 +809,11 @@ function EditRecursoDialog({
           </div>
           <div className="space-y-1">
             <Label>Descrição</Label>
-            <Textarea
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <Textarea rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
           <div className="space-y-1">
             <Label>Tipo</Label>
-            <Select
-              value={resourceType}
-              onValueChange={(v) => setResourceType(v as ResourceType)}
-            >
+            <Select value={resourceType} onValueChange={(v) => setResourceType(v as ResourceType)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -897,12 +825,7 @@ function EditRecursoDialog({
           </div>
           <div className="space-y-1">
             <Label>Link (URL)</Label>
-            <Input
-              type="url"
-              value={fileUrl}
-              onChange={(e) => setFileUrl(e.target.value)}
-              required
-            />
+            <Input type="url" value={fileUrl} onChange={(e) => setFileUrl(e.target.value)} required />
             <p className="text-xs text-muted-foreground">{EMBED_HINT}</p>
           </div>
           <DialogFooter>
@@ -919,18 +842,13 @@ function EditRecursoDialog({
   );
 }
 
-
-
 /* ─────────────────────── Shared — Clusters ─────────────────────── */
 
 function useClusters() {
   return useQuery({
     queryKey: ["clusters"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("programas")
-        .select("cluster")
-        .not("cluster", "is", null);
+      const { data, error } = await supabase.from("programas").select("cluster").not("cluster", "is", null);
       if (error) throw error;
       const set = new Set<string>();
       (data ?? []).forEach((r) => {
@@ -1009,10 +927,7 @@ function TemasTab() {
       for (let k = 0; k < next.length; k++) {
         const ids = next[k].temas.map((t) => t.id);
         if (ids.length === 0) continue;
-        const { error } = await supabase
-          .from("temas_momentos")
-          .update({ bloco_order: k })
-          .in("id", ids);
+        const { error } = await supabase.from("temas_momentos").update({ bloco_order: k }).in("id", ids);
         if (error) throw error;
       }
     },
@@ -1031,10 +946,7 @@ function TemasTab() {
       const next = [...group.temas];
       [next[i], next[j]] = [next[j], next[i]];
       for (let k = 0; k < next.length; k++) {
-        const { error } = await supabase
-          .from("temas_momentos")
-          .update({ order_index: k })
-          .eq("id", next[k].id);
+        const { error } = await supabase.from("temas_momentos").update({ order_index: k }).eq("id", next[k].id);
         if (error) throw error;
       }
     },
@@ -1105,10 +1017,7 @@ function TemasTab() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("temas_momentos")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("temas_momentos").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -1128,9 +1037,7 @@ function TemasTab() {
           {loadingClusters ? (
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           ) : clusters.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Não existem clusters definidos nos programas.
-            </p>
+            <p className="text-sm text-muted-foreground">Não existem clusters definidos nos programas.</p>
           ) : (
             <div className="flex flex-wrap items-center gap-3">
               <Select value={activeCluster} onValueChange={setCluster}>
@@ -1164,9 +1071,7 @@ function TemasTab() {
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             ) : temas.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                Sem temas. Cria o primeiro.
-              </p>
+              <p className="py-8 text-center text-sm text-muted-foreground">Sem temas. Cria o primeiro.</p>
             ) : (
               <div className="space-y-6">
                 {blocoGroups.map((group, gi) => {
@@ -1177,18 +1082,14 @@ function TemasTab() {
                       <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2">
                         <div className="flex items-center gap-2">
                           <Badge variant="secondary">{blocoLabel}</Badge>
-                          <span className="text-xs text-muted-foreground">
-                            {group.temas.length} tema(s)
-                          </span>
+                          <span className="text-xs text-muted-foreground">{group.temas.length} tema(s)</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
                             disabled={gi === 0 || moveBlock.isPending}
-                            onClick={() =>
-                              moveBlock.mutate({ blocoKey, dir: "up" })
-                            }
+                            onClick={() => moveBlock.mutate({ blocoKey, dir: "up" })}
                             title="Subir bloco"
                           >
                             <ArrowUp className="h-4 w-4" />
@@ -1197,9 +1098,7 @@ function TemasTab() {
                             variant="ghost"
                             size="icon"
                             disabled={gi === blocoGroups.length - 1 || moveBlock.isPending}
-                            onClick={() =>
-                              moveBlock.mutate({ blocoKey, dir: "down" })
-                            }
+                            onClick={() => moveBlock.mutate({ blocoKey, dir: "down" })}
                             title="Descer bloco"
                           >
                             <ArrowDown className="h-4 w-4" />
@@ -1222,9 +1121,7 @@ function TemasTab() {
                                   variant="ghost"
                                   size="icon"
                                   disabled={ti === 0 || moveTheme.isPending}
-                                  onClick={() =>
-                                    moveTheme.mutate({ themeId: t.id, dir: "up" })
-                                  }
+                                  onClick={() => moveTheme.mutate({ themeId: t.id, dir: "up" })}
                                   title="Subir tema"
                                 >
                                   <ArrowUp className="h-4 w-4" />
@@ -1232,29 +1129,20 @@ function TemasTab() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  disabled={
-                                    ti === group.temas.length - 1 || moveTheme.isPending
-                                  }
-                                  onClick={() =>
-                                    moveTheme.mutate({ themeId: t.id, dir: "down" })
-                                  }
+                                  disabled={ti === group.temas.length - 1 || moveTheme.isPending}
+                                  onClick={() => moveTheme.mutate({ themeId: t.id, dir: "down" })}
                                   title="Descer tema"
                                 >
                                   <ArrowDown className="h-4 w-4" />
                                 </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => openEdit(t)}
-                                >
+                                <Button variant="ghost" size="icon" onClick={() => openEdit(t)}>
                                   <Pencil className="h-4 w-4" />
                                 </Button>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => {
-                                    if (confirm(`Apagar tema "${t.title}"?`))
-                                      deleteMutation.mutate(t.id);
+                                    if (confirm(`Apagar tema "${t.title}"?`)) deleteMutation.mutate(t.id);
                                   }}
                                 >
                                   <Trash2 className="h-4 w-4" />
@@ -1273,10 +1161,7 @@ function TemasTab() {
         </Card>
       )}
 
-      <Dialog
-        open={dialogOpen}
-        onOpenChange={(o) => !upsertMutation.isPending && setDialogOpen(o)}
-      >
+      <Dialog open={dialogOpen} onOpenChange={(o) => !upsertMutation.isPending && setDialogOpen(o)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editing ? "Editar tema" : "Novo tema"}</DialogTitle>
@@ -1291,11 +1176,7 @@ function TemasTab() {
           >
             <div className="space-y-1">
               <Label>Título</Label>
-              <Input
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                required
-              />
+              <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required />
             </div>
             <div className="space-y-1">
               <Label>Bloco (opcional)</Label>
@@ -1321,11 +1202,7 @@ function TemasTab() {
             </div>
             <div className="space-y-1">
               <Label>Contexto</Label>
-              <Textarea
-                rows={3}
-                value={form.context}
-                onChange={(e) => setForm({ ...form, context: e.target.value })}
-              />
+              <Textarea rows={3} value={form.context} onChange={(e) => setForm({ ...form, context: e.target.value })} />
             </div>
             <div className="space-y-1">
               <Label>Objetivos</Label>
@@ -1345,11 +1222,7 @@ function TemasTab() {
                 Cancelar
               </Button>
               <Button type="submit" disabled={upsertMutation.isPending}>
-                {upsertMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  "Guardar"
-                )}
+                {upsertMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar"}
               </Button>
             </DialogFooter>
           </form>
@@ -1393,10 +1266,7 @@ function AssociacoesTab() {
     queryKey: ["tema-recursos", temaId],
     enabled: !!temaId,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tema_recursos")
-        .select("recurso_id")
-        .eq("tema_id", temaId);
+      const { data, error } = await supabase.from("tema_recursos").select("recurso_id").eq("tema_id", temaId);
       if (error) throw error;
       return ((data ?? []) as Array<{ recurso_id: string }>).map((r) => r.recurso_id);
     },
@@ -1407,10 +1277,7 @@ function AssociacoesTab() {
     setSelected(new Set(existingQuery.data ?? []));
   }, [existingQuery.data, temaId]);
 
-  const sortedRecursos = useMemo(
-    () => [...recursos].sort((a, b) => a.title.localeCompare(b.title, "pt")),
-    [recursos],
-  );
+  const sortedRecursos = useMemo(() => [...recursos].sort((a, b) => a.title.localeCompare(b.title, "pt")), [recursos]);
 
   const [searchTitle, setSearchTitle] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
@@ -1430,10 +1297,7 @@ function AssociacoesTab() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!temaId) throw new Error("Seleciona um tema.");
-      const { error: delErr } = await supabase
-        .from("tema_recursos")
-        .delete()
-        .eq("tema_id", temaId);
+      const { error: delErr } = await supabase.from("tema_recursos").delete().eq("tema_id", temaId);
       if (delErr) throw delErr;
       const ids = [...selected];
       if (ids.length > 0) {
@@ -1500,9 +1364,7 @@ function AssociacoesTab() {
       {temaId && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              Recursos associados ({selected.size})
-            </CardTitle>
+            <CardTitle className="text-base">Recursos associados ({selected.size})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
@@ -1534,9 +1396,7 @@ function AssociacoesTab() {
             </div>
 
             {sortedRecursos.length === 0 && (
-              <p className="py-6 text-center text-sm text-muted-foreground">
-                A Biblioteca está vazia.
-              </p>
+              <p className="py-6 text-center text-sm text-muted-foreground">A Biblioteca está vazia.</p>
             )}
             {filteredRecursos.length === 0 && sortedRecursos.length > 0 && (
               <p className="py-6 text-center text-sm text-muted-foreground">
@@ -1548,10 +1408,7 @@ function AssociacoesTab() {
                 {filteredRecursos.map((r) => {
                   const checked = selected.has(r.id);
                   return (
-                    <li
-                      key={r.id}
-                      className="flex items-start gap-3 px-3 py-2 hover:bg-muted/40"
-                    >
+                    <li key={r.id} className="flex items-start gap-3 px-3 py-2 hover:bg-muted/40">
                       <Checkbox
                         id={`r-${r.id}`}
                         checked={checked}
@@ -1571,13 +1428,8 @@ function AssociacoesTab() {
               </ul>
             )}
             <div className="flex justify-end">
-              <Button
-                onClick={() => saveMutation.mutate()}
-                disabled={saveMutation.isPending}
-              >
-                {saveMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : null}
+              <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Guardar Associações
               </Button>
             </div>
