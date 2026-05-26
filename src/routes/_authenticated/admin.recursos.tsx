@@ -46,7 +46,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
-import { useResourceTypes } from "@/hooks/use-resource-types";
+import { useResourceTypes, useResourceTypeMap } from "@/hooks/use-resource-types";
 import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
 
 type ResourceType = string;
