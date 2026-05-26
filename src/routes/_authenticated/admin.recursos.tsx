@@ -46,8 +46,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
+import { useResourceTypes } from "@/hooks/use-resource-types";
+import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
 
-type ResourceType = "pdf" | "video";
+type ResourceType = string;
+
+function TypeOptions() {
+  const { data: types = [] } = useResourceTypes();
+  return (
+    <>
+      {types.map((t) => (
+        <SelectItem key={t.key} value={t.key}>
+          {t.label}
+        </SelectItem>
+      ))}
+    </>
+  );
+}
 
 interface ResourceRow {
   id: string;
@@ -102,6 +117,7 @@ function AdminResourcesPage() {
           <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
           <TabsTrigger value="temas">Gestão de Temas</TabsTrigger>
           <TabsTrigger value="assoc">Associações</TabsTrigger>
+          <TabsTrigger value="tipos">Tipos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="biblioteca" className="mt-4">
@@ -112,6 +128,9 @@ function AdminResourcesPage() {
         </TabsContent>
         <TabsContent value="assoc" className="mt-4">
           <AssociacoesTab />
+        </TabsContent>
+        <TabsContent value="tipos" className="mt-4">
+          <ResourceTypesManager />
         </TabsContent>
       </Tabs>
     </div>
@@ -375,8 +394,7 @@ function BibliotecaTab() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pdf">PDF</SelectItem>
-                          <SelectItem value="video">Vídeo</SelectItem>
+                          <TypeOptions />
                         </SelectContent>
                       </Select>
                     </div>
@@ -457,8 +475,7 @@ function BibliotecaTab() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="pdf">PDF</SelectItem>
-                  <SelectItem value="video">Vídeo</SelectItem>
+                  <TypeOptions />
                 </SelectContent>
               </Select>
             </div>
@@ -688,8 +705,7 @@ function SingleResourceForm() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="video">Vídeo</SelectItem>
+                <TypeOptions />
               </SelectContent>
             </Select>
           </div>
@@ -778,8 +794,7 @@ function BulkAddForm() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="video">Vídeo</SelectItem>
+                <TypeOptions />
               </SelectContent>
             </Select>
           </div>
@@ -890,8 +905,7 @@ function EditRecursoDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="video">Vídeo</SelectItem>
+                <TypeOptions />
               </SelectContent>
             </Select>
           </div>
@@ -1526,8 +1540,7 @@ function AssociacoesTab() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="video">Vídeo</SelectItem>
+                    <TypeOptions />
                   </SelectContent>
                 </Select>
               </div>
