@@ -1380,6 +1380,7 @@ function AssociacoesTab() {
   const qc = useQueryClient();
   const { data: clusters = [] } = useClusters();
   const { data: recursos = [] } = useRecursos();
+  const { map: typeMap } = useResourceTypeMap();
 
   const [cluster, setCluster] = useState<string>("");
   const activeCluster = cluster || clusters[0] || "";
