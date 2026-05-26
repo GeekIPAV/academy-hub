@@ -34,6 +34,16 @@ interface Row {
   sort_order: number;
 }
 
+function slugifyLabel(label: string): string {
+  return label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_-]/g, "");
+}
+
 export function ResourceTypesManager() {
   const qc = useQueryClient();
   const { data: types = [], isLoading } = useQuery({
