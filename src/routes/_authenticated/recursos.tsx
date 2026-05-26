@@ -265,12 +265,11 @@ function ResourcesPage() {
                                       const isVideo = r.resource_type === "video";
                                       const Icon = isVideo ? Video : FileText;
                                       return (
-                                        <a
+                                        <button
                                           key={r.id}
-                                          href={r.file_url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="block"
+                                          type="button"
+                                          onClick={() => openRecurso(r.file_url)}
+                                          className="block w-full text-left"
                                         >
                                           <Card className="border cursor-pointer transition hover:bg-muted/50">
                                             <CardContent className="flex flex-col gap-2 p-3">
