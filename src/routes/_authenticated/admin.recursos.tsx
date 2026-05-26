@@ -46,7 +46,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
-import { useResourceTypes } from "@/hooks/use-resource-types";
+import { useResourceTypes, useResourceTypeMap } from "@/hooks/use-resource-types";
 import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
 
 type ResourceType = string;
@@ -199,6 +199,7 @@ function BibliotecaTab() {
   const qc = useQueryClient();
   const { data: resources = [], isLoading } = useRecursos();
   const { data: clusters = [] } = useClusters();
+  const { map: typeMap } = useResourceTypeMap();
 
   const [editing, setEditing] = useState<ResourceRow | null>(null);
 
@@ -579,7 +580,7 @@ function BibliotecaTab() {
                       />
                     </TableCell>
                     <TableCell className="font-medium">{r.title}</TableCell>
-                    <TableCell className="uppercase">{r.resource_type}</TableCell>
+                    <TableCell>{typeMap.get(r.resource_type)?.label ?? r.resource_type}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
                     </TableCell>
@@ -1379,6 +1380,7 @@ function AssociacoesTab() {
   const qc = useQueryClient();
   const { data: clusters = [] } = useClusters();
   const { data: recursos = [] } = useRecursos();
+  const { map: typeMap } = useResourceTypeMap();
 
   const [cluster, setCluster] = useState<string>("");
   const activeCluster = cluster || clusters[0] || "";
@@ -1573,8 +1575,8 @@ function AssociacoesTab() {
                       />
                       <label htmlFor={`r-${r.id}`} className="flex-1 cursor-pointer">
                         <div className="font-medium">{r.title}</div>
-                        <div className="text-xs uppercase text-muted-foreground">
-                          {r.resource_type}
+                        <div className="text-xs text-muted-foreground">
+                          {typeMap.get(r.resource_type)?.label ?? r.resource_type}
                           {r.description ? ` · ${r.description}` : ""}
                         </div>
                       </label>
