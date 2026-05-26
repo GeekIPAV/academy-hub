@@ -62,6 +62,16 @@ function ResourcesPage() {
   const { isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/recursos", id);
   const [selectedCluster, setSelectedCluster] = useState<string>("");
+  const fetchSignedUrl = useServerFn(getRecursoSignedUrl);
+
+  const openRecurso = async (fileUrl: string) => {
+    try {
+      const { url } = await fetchSignedUrl({ data: { path: fileUrl } });
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao abrir recurso");
+    }
+  };
   
 
 
