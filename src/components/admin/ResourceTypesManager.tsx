@@ -57,9 +57,9 @@ export function ResourceTypesManager() {
     },
   });
 
-  const [newKey, setNewKey] = useState("");
   const [newLabel, setNewLabel] = useState("");
   const [newColor, setNewColor] = useState("#64748b");
+  const generatedKey = useMemo(() => slugifyLabel(newLabel), [newLabel]);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["resource-types"] });
