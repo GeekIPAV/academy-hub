@@ -75,6 +75,17 @@ function AuthPage() {
     toast.success("Conta criada! Verifica o teu email para confirmar.");
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) return toast.error("Introduz o teu email primeiro.");
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    toast.success("Email de recuperação enviado. Verifica a tua caixa de entrada.");
+  };
+
   const handleGoogle = async () => {
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", {
@@ -129,6 +140,16 @@ function AuthPage() {
                 <Button type="submit" disabled={loading} className="w-full">
                   {loading ? "A entrar…" : "Entrar"}
                 </Button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={loading}
+                    className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+                  >
+                    Esqueci-me da password
+                  </button>
+                </div>
               </form>
             </TabsContent>
 
