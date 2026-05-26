@@ -46,8 +46,23 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
+import { useResourceTypes } from "@/hooks/use-resource-types";
+import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
 
-type ResourceType = "pdf" | "video";
+type ResourceType = string;
+
+function TypeOptions() {
+  const { data: types = [] } = useResourceTypes();
+  return (
+    <>
+      {types.map((t) => (
+        <SelectItem key={t.key} value={t.key}>
+          {t.label}
+        </SelectItem>
+      ))}
+    </>
+  );
+}
 
 interface ResourceRow {
   id: string;
