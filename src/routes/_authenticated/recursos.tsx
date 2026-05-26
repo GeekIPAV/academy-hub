@@ -60,6 +60,7 @@ function ResourcesPage() {
   const visible = (id: string) => isComponentVisible("/recursos", id);
   const [selectedCluster, setSelectedCluster] = useState<string>("");
   const fetchSignedUrl = useServerFn(getRecursoSignedUrl);
+  const { map: typeMap } = useResourceTypeMap();
 
   const openRecurso = async (fileUrl: string) => {
     try {
