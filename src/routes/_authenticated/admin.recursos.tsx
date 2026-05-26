@@ -199,6 +199,7 @@ function BibliotecaTab() {
   const qc = useQueryClient();
   const { data: resources = [], isLoading } = useRecursos();
   const { data: clusters = [] } = useClusters();
+  const { map: typeMap } = useResourceTypeMap();
 
   const [editing, setEditing] = useState<ResourceRow | null>(null);
 
