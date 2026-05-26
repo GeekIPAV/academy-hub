@@ -117,6 +117,7 @@ function AdminResourcesPage() {
           <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
           <TabsTrigger value="temas">Gestão de Temas</TabsTrigger>
           <TabsTrigger value="assoc">Associações</TabsTrigger>
+          <TabsTrigger value="tipos">Tipos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="biblioteca" className="mt-4">
@@ -127,6 +128,9 @@ function AdminResourcesPage() {
         </TabsContent>
         <TabsContent value="assoc" className="mt-4">
           <AssociacoesTab />
+        </TabsContent>
+        <TabsContent value="tipos" className="mt-4">
+          <ResourceTypesManager />
         </TabsContent>
       </Tabs>
     </div>
