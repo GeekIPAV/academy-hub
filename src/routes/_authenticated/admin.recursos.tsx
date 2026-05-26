@@ -1575,8 +1575,8 @@ function AssociacoesTab() {
                       />
                       <label htmlFor={`r-${r.id}`} className="flex-1 cursor-pointer">
                         <div className="font-medium">{r.title}</div>
-                        <div className="text-xs uppercase text-muted-foreground">
-                          {r.resource_type}
+                        <div className="text-xs text-muted-foreground">
+                          {typeMap.get(r.resource_type)?.label ?? r.resource_type}
                           {r.description ? ` · ${r.description}` : ""}
                         </div>
                       </label>
