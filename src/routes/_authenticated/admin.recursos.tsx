@@ -640,7 +640,7 @@ function BibliotecaTab() {
 }
 
 const EMBED_HINT =
-  "Para os PDFs abrirem dentro da plataforma, gere um link de 'Incorporar/Embed' no OneDrive.";
+  "O link da drive tem de estar público. Nas definições do link, seleciona essa opção.";
 
 function SingleResourceForm() {
   const qc = useQueryClient();
