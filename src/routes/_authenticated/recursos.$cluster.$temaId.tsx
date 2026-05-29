@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getRecursoSignedUrl } from "@/lib/recursos.functions";
 import { useResourceTypeMap } from "@/hooks/use-resource-types";
+import { useResourceCategoryMap } from "@/hooks/use-resource-categories";
 import { useApp } from "@/lib/app-context";
 import { toast } from "sonner";
 import {
