@@ -907,6 +907,8 @@ function EditRecursoDialog({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [resourceType, setResourceType] = useState<ResourceType>("pdf");
+  const [categoryKey, setCategoryKey] = useState<string>("");
+  const [objectives, setObjectives] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -916,6 +918,8 @@ function EditRecursoDialog({
       setTitle(recurso.title);
       setDescription(recurso.description ?? "");
       setResourceType((recurso.resource_type as ResourceType) ?? "pdf");
+      setCategoryKey(recurso.category_key ?? "");
+      setObjectives(recurso.objectives ?? "");
       setFileUrl(recurso.file_url ?? "");
       setCoverUrl(recurso.cover_url ?? null);
     }
@@ -944,8 +948,10 @@ function EditRecursoDialog({
           title: title.trim(),
           description: description.trim() || null,
           resource_type: resourceType,
+          category_key: categoryKey || null,
+          objectives: objectives.trim() || null,
           file_url: fileUrl.trim(),
-        })
+        } as never)
         .eq("id", recurso.id);
       if (error) throw error;
       toast.success("Recurso atualizado.");
