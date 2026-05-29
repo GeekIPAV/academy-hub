@@ -460,7 +460,7 @@ function PlanoSessao({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plano_sessao_blocos")
-        .select("id, tema_id, sort_order, title, description, duration_minutes, schedule, recurso_ids")
+        .select("id, tema_id, sort_order, title, description, duration_minutes, schedule, materials, recurso_ids")
         .eq("tema_id", temaId)
         .order("sort_order", { ascending: true });
       if (error) throw new Error(error.message);
