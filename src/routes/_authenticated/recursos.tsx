@@ -396,6 +396,21 @@ function RecursosList({
 
   return (
     <div className="space-y-2">
+      {dirty && (
+        <div className="flex items-center justify-end gap-2 pb-1">
+          <Button type="button" size="sm" variant="ghost" onClick={reset} disabled={saving}>
+            Cancelar
+          </Button>
+          <Button type="button" size="sm" onClick={save} disabled={saving}>
+            {saving ? (
+              <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="mr-1 h-3.5 w-3.5" />
+            )}
+            Guardar ordem
+          </Button>
+        </div>
+      )}
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={items.map((r) => r.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-1">
@@ -410,21 +425,6 @@ function RecursosList({
           </div>
         </SortableContext>
       </DndContext>
-      {dirty && (
-        <div className="flex items-center justify-end gap-2 pt-1">
-          <Button type="button" size="sm" variant="ghost" onClick={reset} disabled={saving}>
-            Cancelar
-          </Button>
-          <Button type="button" size="sm" onClick={save} disabled={saving}>
-            {saving ? (
-              <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Save className="mr-1 h-3.5 w-3.5" />
-            )}
-            Guardar ordem
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
