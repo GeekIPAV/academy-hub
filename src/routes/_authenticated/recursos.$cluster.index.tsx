@@ -211,7 +211,17 @@ function FilterChip({
   );
 }
 
-function TemaCard({ tema, clusterSlug }: { tema: TemaRow; clusterSlug: string }) {
+function TemaCard({
+  tema,
+  clusterSlug,
+  isAdmin,
+  onSetCover,
+}: {
+  tema: TemaRow;
+  clusterSlug: string;
+  isAdmin: boolean;
+  onSetCover: (url: string | null) => Promise<void>;
+}) {
   return (
     <Link
       to="/recursos/$cluster/$temaId"
@@ -230,6 +240,15 @@ function TemaCard({ tema, clusterSlug }: { tema: TemaRow; clusterSlug: string })
           <div className="flex h-full w-full items-center justify-center text-muted-foreground/40">
             <ImageIcon className="h-10 w-10" />
           </div>
+        )}
+        {isAdmin && (
+          <CoverUploader
+            folder="temas"
+            id={tema.id}
+            currentUrl={tema.cover_url}
+            onUploaded={(url) => onSetCover(url)}
+            onCleared={() => onSetCover(null)}
+          />
         )}
       </div>
       <div className="space-y-1 p-3">
