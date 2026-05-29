@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -614,7 +615,7 @@ function AcoesTab({ entityId }: { entityId?: string }) {
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9]+/g, "-");
       const matches = Array.from(userBadgeClusters).some(
-        (c) => tSlug.includes(c) || c.includes(tSlug),
+        (c: string) => tSlug.includes(c) || c.includes(tSlug),
       );
       if (matches || userBadgeClusters.size === 0) set.add(t);
     }
