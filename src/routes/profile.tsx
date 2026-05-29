@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, Award } from "lucide-react";
+import { useUserBadges } from "@/hooks/use-badges";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -62,8 +63,66 @@ function ProfilePage() {
           </CardContent>
         </Card>
       )}
+      <BadgesSection userId={profile?.id ?? null} />
       <PrivacySection userId={profile?.id ?? null} />
     </div>
+  );
+}
+
+function BadgesSection({ userId }: { userId: string | null }) {
+  const { data: badges, isLoading } = useUserBadges(userId);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Award className="h-5 w-5 text-primary" />
+          As Minhas Credenciais / Badges
+        </CardTitle>
+        <CardDescription>
+          Reconhecimentos obtidos ao longo do seu percurso na Academia.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">A carregar credenciais…</p>
+        ) : !badges || badges.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Ainda não conquistou nenhuma credencial. Conclua um programa para começar a colecionar badges.
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            {badges.map((b) => (
+              <div
+                key={b.id}
+                className="flex flex-col items-center rounded-lg border bg-card p-4 text-center transition-shadow hover:shadow-md"
+              >
+                {b.cover_url ? (
+                  <img
+                    src={b.cover_url}
+                    alt={b.title}
+                    className="mb-3 h-20 w-20 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+                    <Award className="h-10 w-10 text-primary" />
+                  </div>
+                )}
+                <p className="text-sm font-semibold leading-tight">{b.title}</p>
+                {b.cluster && (
+                  <p className="mt-1 text-xs text-muted-foreground">{b.cluster}</p>
+                )}
+                {b.granted_at && (
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    Conquistado a{" "}
+                    {new Date(b.granted_at).toLocaleDateString("pt-PT")}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
