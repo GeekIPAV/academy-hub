@@ -899,6 +899,30 @@ function EditRecursoDialog({
           <DialogDescription>Atualiza os campos do recurso.</DialogDescription>
         </DialogHeader>
         <form onSubmit={save} className="space-y-3">
+          <div className="space-y-2">
+            <Label>Imagem de capa</Label>
+            <div className="flex items-center gap-3">
+              <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-md border bg-muted">
+                {coverUrl ? (
+                  <img src={coverUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">
+                    Sem imagem
+                  </div>
+                )}
+              </div>
+              {recurso && (
+                <CoverUploader
+                  variant="inline"
+                  folder="recursos"
+                  id={recurso.id}
+                  currentUrl={coverUrl}
+                  onUploaded={(url) => persistCover(url)}
+                  onCleared={() => persistCover(null)}
+                />
+              )}
+            </div>
+          </div>
           <div className="space-y-1">
             <Label>Título</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
