@@ -5,7 +5,7 @@ import { useApp } from "@/lib/app-context";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
 import {
   Accordion,
   AccordionContent,
