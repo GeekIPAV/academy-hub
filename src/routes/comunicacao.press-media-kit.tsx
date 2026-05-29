@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
+import { RichTextEditor } from "@/components/rich-text-editor";
 
 export const Route = createFileRoute("/comunicacao/press-media-kit")({
   head: () => ({
@@ -35,11 +36,7 @@ const SLUG = "press-media-kit";
 
 const DEFAULT_CONTENT: PageContent = {
   title: "ACADEMIA DE LÍDERES UBUNTU — Press Kit",
-  body: `A Academia de Líderes Ubuntu é um projeto de educação não-formal, desenvolvido pelo Instituto Padre António Vieira (IPAV) a partir da filosofia "Ubuntu - Eu sou porque tu és" que visa o desenvolvimento de competências socioemocionais, com uma forte base experiencial e relacional.
-
-Tem como espaço privilegiado de atuação a escola e o seu universo educativo, envolvendo crianças, jovens, educadores e a comunidade educativa.
-
-Contribui para a descoberta do sentido e propósito das crianças, jovens e dos seus educadores e, por meio disso, para a capacitação de novas lideranças ao serviço da comunidade.`,
+  body: `<p>A Academia de Líderes Ubuntu é um projeto de educação não-formal, desenvolvido pelo Instituto Padre António Vieira (IPAV) a partir da filosofia <em>"Ubuntu - Eu sou porque tu és"</em> que visa o desenvolvimento de competências socioemocionais, com uma forte base experiencial e relacional.</p><p>Tem como espaço privilegiado de atuação a escola e o seu universo educativo, envolvendo crianças, jovens, educadores e a comunidade educativa.</p><p>Contribui para a descoberta do sentido e propósito das crianças, jovens e dos seus educadores e, por meio disso, para a capacitação de novas lideranças ao serviço da comunidade.</p>`,
   links: [
     { label: "Identidade Visual ALU — Manual de Normas ALU.pdf", url: "#" },
     { label: "Logos ALU", url: "#" },
@@ -126,16 +123,25 @@ function PressKitPage() {
         )}
       </div>
 
-      <div className="space-y-4 leading-relaxed">
-        {content.body
-          .split(/\n\n+/)
-          .filter((p) => p.trim().length > 0)
-          .map((para, j) => (
-            <p key={j} className="whitespace-pre-line">
-              {para}
-            </p>
-          ))}
-      </div>
+      {content.body && (
+        /<[a-z][\s\S]*>/i.test(content.body) ? (
+          <div
+            className="rich-text leading-relaxed space-y-4"
+            dangerouslySetInnerHTML={{ __html: content.body }}
+          />
+        ) : (
+          <div className="space-y-4 leading-relaxed">
+            {content.body
+              .split(/\n\n+/)
+              .filter((p) => p.trim().length > 0)
+              .map((para, j) => (
+                <p key={j} className="whitespace-pre-line">
+                  {para}
+                </p>
+              ))}
+          </div>
+        )
+      )}
 
       {content.links.length > 0 && (
         <section className="space-y-3">
@@ -174,11 +180,9 @@ function PressKitPage() {
 
             <div className="space-y-2">
               <Label>Texto de apresentação</Label>
-              <Textarea
-                rows={10}
+              <RichTextEditor
                 value={draft.body}
-                onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
-                placeholder="Use uma linha em branco para separar parágrafos"
+                onChange={(html) => setDraft((d) => ({ ...d, body: html }))}
               />
             </div>
 
