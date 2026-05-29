@@ -265,7 +265,7 @@ function ResourcesPage() {
                                     Sem recursos associados.
                                   </p>
                                 ) : (
-                                  <div className="grid gap-2 sm:grid-cols-2">
+                                  <div className="space-y-1">
                                     {recs.map((r) => {
                                       const isVideo = r.resource_type === "video";
                                       const Icon = isVideo ? Video : FileText;
@@ -277,41 +277,21 @@ function ResourcesPage() {
                                           key={r.id}
                                           type="button"
                                           onClick={() => openRecurso(r.file_url)}
-                                          className="block w-full text-left"
+                                          className="flex w-full items-center gap-3 rounded-md border px-3 py-2 text-left transition hover:bg-muted/50"
                                         >
-                                          <Card className="border cursor-pointer transition hover:bg-muted/50">
-                                            <CardContent className="flex flex-col gap-2 p-3">
-                                              <div className="flex items-start gap-2">
-                                                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                                                <div className="min-w-0 flex-1">
-                                                  <div className="flex items-center gap-2">
-                                                    <p className="truncate text-sm font-medium">
-                                                      {r.title}
-                                                    </p>
-                                                    <span
-                                                      style={{ backgroundColor: color }}
-                                                      className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
-                                                    >
-                                                      {label}
-                                                    </span>
-                                                  </div>
-                                                  {r.description && (
-                                                    <p className="text-xs text-muted-foreground line-clamp-2">
-                                                      {r.description}
-                                                    </p>
-                                                  )}
-                                                </div>
-                                              </div>
-                                              <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="self-start pointer-events-none"
-                                              >
-                                                <ExternalLink className="h-3.5 w-3.5" />
-                                                Abrir
-                                              </Button>
-                                            </CardContent>
-                                          </Card>
+                                          <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                                          <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-medium">
+                                              {r.title}
+                                            </p>
+                                          </div>
+                                          <span
+                                            style={{ backgroundColor: color }}
+                                            className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+                                          >
+                                            {label}
+                                          </span>
+                                          <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                                         </button>
                                       );
                                     })}
