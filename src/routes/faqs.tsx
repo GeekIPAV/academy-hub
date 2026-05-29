@@ -239,8 +239,8 @@ function FaqsPage() {
           {items.map((f) => (
             <AccordionItem key={f.id} value={f.id}>
               <AccordionTrigger className="text-left">{f.question}</AccordionTrigger>
-              <AccordionContent className="whitespace-pre-wrap text-muted-foreground">
-                {f.answer}
+              <AccordionContent>
+                <div className="rich-text text-muted-foreground" dangerouslySetInnerHTML={{ __html: f.answer }} />
               </AccordionContent>
             </AccordionItem>
           ))}
