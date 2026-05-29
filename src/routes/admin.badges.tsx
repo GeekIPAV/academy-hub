@@ -387,27 +387,8 @@ function BadgeFormDialog({
               onChange={(e) => setForm((f) => ({ ...f, cover_url: e.target.value }))}
             />
           </div>
-          <div className="space-y-1">
-            <Label>Programa que desbloqueia (opcional)</Label>
-            <Select
-              value={form.required_program_id ?? "none"}
-              onValueChange={(v) =>
-                setForm((f) => ({ ...f, required_program_id: v === "none" ? null : v }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Nenhum" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhum</SelectItem>
-                {(programs ?? []).map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.title ?? p.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+
+
 
           <div className="space-y-2 rounded-md border p-3">
             <Label>Validade</Label>
