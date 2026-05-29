@@ -836,16 +836,19 @@ export type Database = {
         Row: {
           created_at: string
           recurso_id: string
+          sort_order: number
           tema_id: string
         }
         Insert: {
           created_at?: string
           recurso_id: string
+          sort_order?: number
           tema_id: string
         }
         Update: {
           created_at?: string
           recurso_id?: string
+          sort_order?: number
           tema_id?: string
         }
         Relationships: [
