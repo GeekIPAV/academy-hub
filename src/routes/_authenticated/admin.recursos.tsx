@@ -144,7 +144,7 @@ function useRecursos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recursos")
-        .select("id, title, description, resource_type, file_url, created_at")
+        .select("id, title, description, resource_type, file_url, cover_url, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ResourceRow[];
