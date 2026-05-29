@@ -86,6 +86,7 @@ function TemaDetail() {
   const { cluster: clusterSlug, temaId } = Route.useParams();
   const { isAdmin } = useApp();
   const { map: typeMap } = useResourceTypeMap();
+  const { map: categoryMap } = useResourceCategoryMap();
   const fetchSignedUrl = useServerFn(getRecursoSignedUrl);
 
   const temaQuery = useQuery({
