@@ -743,33 +743,39 @@ export type Database = {
       }
       recursos: {
         Row: {
+          category_key: string | null
           cover_url: string | null
           created_at: string | null
           description: string | null
           file_url: string
           id: string
+          objectives: string | null
           phase: string | null
           program_id: string | null
           resource_type: string
           title: string
         }
         Insert: {
+          category_key?: string | null
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
           file_url: string
           id?: string
+          objectives?: string | null
           phase?: string | null
           program_id?: string | null
           resource_type: string
           title: string
         }
         Update: {
+          category_key?: string | null
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
           file_url?: string
           id?: string
+          objectives?: string | null
           phase?: string | null
           program_id?: string | null
           resource_type?: string
@@ -847,6 +853,30 @@ export type Database = {
           payload?: Json | null
           source?: string
           status?: string
+        }
+        Relationships: []
+      }
+      resource_categories: {
+        Row: {
+          color: string
+          created_at: string
+          key: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          key: string
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          key?: string
+          label?: string
+          sort_order?: number
         }
         Relationships: []
       }
