@@ -631,12 +631,14 @@ function SortableRecurso({ recurso, typeMap, categoryMap, onOpen }: RecursoItemP
 function RecursosGallery({
   items,
   typeMap,
+  categoryMap,
   onOpen,
   isAdmin,
   onSaved,
 }: {
   items: RecursoRow[];
   typeMap: Map<string, { label: string; color: string }>;
+  categoryMap: Map<string, { label: string; color: string }>;
   onOpen: (fileUrl: string) => void;
   isAdmin: boolean;
   onSaved: () => void;
