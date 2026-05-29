@@ -618,6 +618,9 @@ function BibliotecaTab() {
                     <TableCell className="font-medium">{r.title}</TableCell>
                     <TableCell>{typeMap.get(r.resource_type)?.label ?? r.resource_type}</TableCell>
                     <TableCell className="text-muted-foreground">
+                      {r.category_key ? (categoryMap.get(r.category_key)?.label ?? r.category_key) : "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
                       {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
                     </TableCell>
                     <TableCell className="text-right">
