@@ -156,7 +156,7 @@ function FaqsPage() {
       if (editing) {
         const { error } = await supabase
           .from("faqs")
-          .update({ question: form.question.trim(), answer: form.answer.trim() })
+          .update({ question: form.question.trim(), answer: form.answer })
           .eq("id", editing.id);
         if (error) throw error;
         toast.success("FAQ atualizada");
