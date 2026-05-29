@@ -447,12 +447,14 @@ function PlanoSessao({
   temaId,
   temaRecursos,
   typeMap,
+  categoryMap,
   isAdmin,
   onOpen,
 }: {
   temaId: string;
   temaRecursos: RecursoRow[];
   typeMap: Map<string, { label: string; color: string }>;
+  categoryMap: Map<string, { label: string; color: string }>;
   isAdmin: boolean;
   onOpen: (fileUrl: string) => void;
 }) {
@@ -518,6 +520,7 @@ function PlanoSessao({
               index={idx}
               temaRecursos={temaRecursos}
               typeMap={typeMap}
+              categoryMap={categoryMap}
               isAdmin={isAdmin}
               onOpen={onOpen}
               onChanged={() => blocosQuery.refetch()}
