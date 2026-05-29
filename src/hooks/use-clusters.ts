@@ -16,7 +16,8 @@ export function useClusters() {
   return useQuery<ClusterRow[]>({
     queryKey: ["clusters", "v2"],
     queryFn: () => fn() as Promise<ClusterRow[]>,
-    staleTime: 60_000,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
   });
 }
 

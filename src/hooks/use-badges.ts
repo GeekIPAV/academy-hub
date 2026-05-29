@@ -16,7 +16,8 @@ export function useAllBadges() {
   return useQuery({
     queryKey: ["badges", "all"],
     queryFn: () => fn(),
-    staleTime: 60_000,
+    staleTime: Infinity,
+    gcTime: 1000 * 60 * 60 * 24,
   });
 }
 

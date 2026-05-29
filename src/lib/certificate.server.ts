@@ -123,3 +123,22 @@ export async function uploadCertificate(
     .getPublicUrl(path);
   return data.publicUrl;
 }
+
+/**
+ * Returns the public URL if a certificate already exists in storage,
+ * or null if it has not been generated yet. Avoids re-running pdf-lib
+ * unless the caller explicitly requests regeneration.
+ */
+export async function getExistingCertificateUrl(
+  actionId: string,
+  participanteId: string,
+): Promise<string | null> {
+  const path = `${actionId}/${participanteId}.pdf`;
+  const { data, error } = await supabaseAdmin.storage
+    .from("certificados")
+    .list(actionId, { search: `${participanteId}.pdf`, limit: 1 });
+  if (error) return null;
+  const exists = (data ?? []).some((f) => f.name === `${participanteId}.pdf`);
+  if (!exists) return null;
+  return supabaseAdmin.storage.from("certificados").getPublicUrl(path).data.publicUrl;
+}

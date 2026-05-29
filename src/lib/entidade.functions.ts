@@ -498,10 +498,9 @@ export const removeParticipante = createServerFn({ method: "POST" })
 
 // ============== Certificados ==============
 
-async function buildAndUploadFor(participanteId: string) {
-  const { generateCertificatePdf, uploadCertificate } = await import(
-    "./certificate.server"
-  );
+async function buildAndUploadFor(participanteId: string, regenerate = false) {
+  const { generateCertificatePdf, uploadCertificate, getExistingCertificateUrl } =
+    await import("./certificate.server");
   const { data: p, error: pErr } = await supabaseAdmin
     .from("participantes_acoes")
     .select("id, first_name, last_name, action_id")
@@ -509,6 +508,21 @@ async function buildAndUploadFor(participanteId: string) {
     .maybeSingle();
   if (pErr) throw new Error(pErr.message);
   if (!p) throw new Error("Participante não encontrado.");
+
+  // Cache short-circuit: skip pdf-lib CPU work if the file already exists.
+  if (!regenerate) {
+    const cached = await getExistingCertificateUrl(p.action_id, p.id);
+    if (cached) {
+      await supabaseAdmin
+        .from("participantes_acoes")
+        .update({
+          certificate_url: cached,
+          certificate_sent: true,
+        })
+        .eq("id", p.id);
+      return { url: cached, action_id: p.action_id };
+    }
+  }
 
   const { data: a, error: aErr } = await supabaseAdmin
     .from("acoes")
@@ -555,7 +569,12 @@ async function buildAndUploadFor(participanteId: string) {
 export const generateCertificate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ participanteId: z.string().uuid() }).parse(input),
+    z
+      .object({
+        participanteId: z.string().uuid(),
+        regenerate: z.boolean().optional().default(false),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { data: existing, error } = await supabaseAdmin
@@ -567,7 +586,7 @@ export const generateCertificate = createServerFn({ method: "POST" })
     if (!existing) throw new Error("Participante não encontrado.");
     await assertActionBelongsToUserEntity(context.userId, existing.action_id);
 
-    const { url } = await buildAndUploadFor(data.participanteId);
+    const { url } = await buildAndUploadFor(data.participanteId, data.regenerate);
     return { url };
   });
 
