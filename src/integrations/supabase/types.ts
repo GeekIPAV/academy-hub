@@ -255,7 +255,6 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
-          required_program_id: string | null
           title: string
           validity_fixed_date: string | null
           validity_type: string
@@ -267,7 +266,6 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
-          required_program_id?: string | null
           title: string
           validity_fixed_date?: string | null
           validity_type?: string
@@ -279,7 +277,6 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
-          required_program_id?: string | null
           title?: string
           validity_fixed_date?: string | null
           validity_type?: string
@@ -291,13 +288,6 @@ export type Database = {
             columns: ["cluster_id"]
             isOneToOne: false
             referencedRelation: "clusters"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "badges_required_program_id_fkey"
-            columns: ["required_program_id"]
-            isOneToOne: false
-            referencedRelation: "programas"
             referencedColumns: ["id"]
           },
         ]
