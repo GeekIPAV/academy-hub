@@ -270,6 +270,7 @@ function TemaDetail() {
             temaId={tema.id}
             temaRecursos={recursos}
             typeMap={typeMap}
+            categoryMap={categoryMap}
             isAdmin={isAdmin}
             onOpen={openRecurso}
           />
