@@ -985,13 +985,19 @@ function RecursosList({
   );
 
   if (!isAdmin) {
+    const grouped = groupByCategory(items, categoryMap);
     return (
       <div className="space-y-3">
         <div className="flex justify-end">{Toggle}</div>
         {view === "list" ? (
-          <div className="space-y-1.5">
-            {items.map((r) => (
-              <RecursoButton key={r.id} recurso={r} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} />
+          <div className="space-y-4">
+            {grouped.map((g) => (
+              <div key={g.key} className="space-y-1.5">
+                <CategoryHeader label={g.label} color={g.color} count={g.items.length} />
+                {g.items.map((r) => (
+                  <RecursoButton key={r.id} recurso={r} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} />
+                ))}
+              </div>
             ))}
           </div>
         ) : (
