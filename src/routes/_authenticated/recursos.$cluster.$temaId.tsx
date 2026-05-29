@@ -270,6 +270,7 @@ function TemaDetail() {
             temaId={tema.id}
             temaRecursos={recursos}
             typeMap={typeMap}
+            categoryMap={categoryMap}
             isAdmin={isAdmin}
             onOpen={openRecurso}
           />
@@ -446,12 +447,14 @@ function PlanoSessao({
   temaId,
   temaRecursos,
   typeMap,
+  categoryMap,
   isAdmin,
   onOpen,
 }: {
   temaId: string;
   temaRecursos: RecursoRow[];
   typeMap: Map<string, { label: string; color: string }>;
+  categoryMap: Map<string, { label: string; color: string }>;
   isAdmin: boolean;
   onOpen: (fileUrl: string) => void;
 }) {
@@ -517,6 +520,7 @@ function PlanoSessao({
               index={idx}
               temaRecursos={temaRecursos}
               typeMap={typeMap}
+              categoryMap={categoryMap}
               isAdmin={isAdmin}
               onOpen={onOpen}
               onChanged={() => blocosQuery.refetch()}
@@ -533,6 +537,7 @@ function BlocoCard({
   index,
   temaRecursos,
   typeMap,
+  categoryMap,
   isAdmin,
   onOpen,
   onChanged,
@@ -541,6 +546,7 @@ function BlocoCard({
   index: number;
   temaRecursos: RecursoRow[];
   typeMap: Map<string, { label: string; color: string }>;
+  categoryMap: Map<string, { label: string; color: string }>;
   isAdmin: boolean;
   onOpen: (fileUrl: string) => void;
   onChanged: () => void;
@@ -678,6 +684,7 @@ function BlocoCard({
                 const Icon = r.resource_type === "video" ? Video : FileText;
                 const typeMeta = typeMap.get(r.resource_type);
                 const color = typeMeta?.color ?? "#64748b";
+                const typeLabel = typeMeta?.label ?? r.resource_type.toUpperCase();
                 return (
                   <button
                     key={r.id}
@@ -688,6 +695,13 @@ function BlocoCard({
                     <Icon className="h-3.5 w-3.5" style={{ color }} />
                     <span className="min-w-0 flex-1 truncate font-medium">
                       {r.title}
+                    </span>
+                    <CategoryBadge recurso={r} categoryMap={categoryMap} />
+                    <span
+                      style={{ backgroundColor: color }}
+                      className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+                    >
+                      {typeLabel}
                     </span>
                     <ExternalLink className="h-3 w-3 text-muted-foreground" />
                   </button>
