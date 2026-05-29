@@ -596,12 +596,6 @@ function BibliotecaTab() {
                       {sortBy === "created_at" && <ArrowUpDown className="h-3 w-3" />}
                     </span>
                   </TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("created_at")}>
-                    <span className="flex items-center gap-1">
-                      Data
-                      {sortBy === "created_at" && <ArrowUpDown className="h-3 w-3" />}
-                    </span>
-                  </TableHead>
                   <TableHead className="w-40 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -624,6 +618,7 @@ function BibliotecaTab() {
                       {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
                     </TableCell>
                     <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
                       <Button variant="ghost" size="icon" asChild title="Abrir link">
                         <a href={r.file_url} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="h-4 w-4" />
@@ -660,6 +655,7 @@ function BibliotecaTab() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
