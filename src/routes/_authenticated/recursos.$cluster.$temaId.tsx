@@ -364,6 +364,7 @@ interface RecursosListProps {
   recursos: RecursoRow[];
   isAdmin: boolean;
   typeMap: Map<string, { label: string; color: string }>;
+  categoryMap: Map<string, { label: string; color: string }>;
   onOpen: (fileUrl: string) => void;
   onSaved: () => void;
 }
@@ -375,6 +376,7 @@ function RecursosList({
   recursos,
   isAdmin,
   typeMap,
+  categoryMap,
   onOpen,
   onSaved,
 }: RecursosListProps) {
