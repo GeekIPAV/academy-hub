@@ -436,7 +436,7 @@ function RecursosList({
             ))}
           </div>
         ) : (
-          <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} />
+          <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} isAdmin={false} onSaved={onSaved} />
         )}
       </div>
     );
