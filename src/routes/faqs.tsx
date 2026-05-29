@@ -147,7 +147,7 @@ function FaqsPage() {
   };
 
   const saveFaq = async () => {
-    if (!form.question.trim() || !form.answer.trim()) {
+    if (!form.question.trim() || !stripHtml(form.answer)) {
       toast.error("Preenche pergunta e resposta");
       return;
     }
