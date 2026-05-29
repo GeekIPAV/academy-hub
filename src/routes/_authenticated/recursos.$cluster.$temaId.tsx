@@ -19,8 +19,16 @@ import {
   LayoutGrid,
   List as ListIcon,
   Pencil,
+  Eye,
+  EyeOff,
+  Plus,
+  Trash2,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CoverUploader } from "@/components/CoverUploader";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import {
@@ -77,6 +85,7 @@ interface TemaDetailRow {
   processo_u: string | null;
   context: string | null;
   objectives: string | null;
+  hidden_sections: string[] | null;
   tema_recursos: { sort_order: number; recursos: RecursoRow | null }[];
 }
 
@@ -95,7 +104,7 @@ function TemaDetail() {
       const { data, error } = await supabase
         .from("temas_momentos")
         .select(
-          "id, cluster, bloco, title, intro, description, processo_u, context, objectives, tema_recursos(sort_order, recursos(id, title, resource_type, file_url, cover_url, category_key))",
+          "id, cluster, bloco, title, intro, description, processo_u, context, objectives, hidden_sections, tema_recursos(sort_order, recursos(id, title, resource_type, file_url, cover_url, category_key))",
         )
         .eq("id", temaId)
         .maybeSingle();
@@ -138,6 +147,23 @@ function TemaDetail() {
 
   const clusterTitle = parseCluster(tema.cluster).title;
   const effectiveClusterSlug = slugifyCluster(tema.cluster) || clusterSlug;
+  const hiddenSet = new Set(tema.hidden_sections ?? []);
+
+  const toggleHidden = async (field: EditableField, hide: boolean) => {
+    const next = new Set(hiddenSet);
+    if (hide) next.add(field);
+    else next.delete(field);
+    const { error } = await supabase
+      .from("temas_momentos")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update({ hidden_sections: Array.from(next) } as any)
+      .eq("id", tema.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    temaQuery.refetch();
+  };
 
   const sections: { title: string; field: EditableField }[] = [
     { title: "Enquadramento", field: "description" },
@@ -147,7 +173,7 @@ function TemaDetail() {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-4xl space-y-6">
       <nav className="flex items-center gap-1 text-sm text-muted-foreground">
         <Link to="/recursos" className="hover:text-secondary">
           Centro de Recursos
@@ -177,44 +203,87 @@ function TemaDetail() {
         />
       </header>
 
-      <div className="space-y-4">
-        {sections.map((s) => {
-          const value = tema[s.field];
-          if (!isAdmin && !value) return null;
-          return (
-            <section
-              key={s.field}
-              className="rounded-xl border bg-card p-5 shadow-sm"
-            >
-              <h2 className="mb-2 text-lg font-semibold text-secondary">{s.title}</h2>
-              <EditableField
-                temaId={tema.id}
-                field={s.field}
-                value={value}
-                isAdmin={isAdmin}
-                placeholder={`Adicionar ${s.title.toLowerCase()}…`}
-                readClassName="text-sm leading-relaxed text-foreground/90"
-                onSaved={() => temaQuery.refetch()}
-              />
-            </section>
-          );
-        })}
-      </div>
+      <Tabs defaultValue="sobre" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="sobre">Sobre</TabsTrigger>
+          <TabsTrigger value="plano">Plano de Sessão</TabsTrigger>
+          <TabsTrigger value="recursos">Recursos</TabsTrigger>
+        </TabsList>
 
-      <section className="space-y-3 border-t pt-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-secondary">
-          Recursos
-        </h2>
-        <RecursosList
-          temaId={tema.id}
-          recursos={recursos}
-          isAdmin={isAdmin}
-          typeMap={typeMap}
-          categoryMap={categoryMap}
-          onOpen={openRecurso}
-          onSaved={() => temaQuery.refetch()}
-        />
-      </section>
+        <TabsContent value="sobre" className="space-y-4">
+          {sections.map((s) => {
+            const value = tema[s.field];
+            const hidden = hiddenSet.has(s.field);
+            if (!isAdmin && (hidden || !value)) return null;
+            return (
+              <section
+                key={s.field}
+                className={cn(
+                  "rounded-xl border bg-card p-5 shadow-sm transition",
+                  hidden && "opacity-60",
+                )}
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-secondary">
+                    {s.title}
+                    {hidden && (
+                      <span className="ml-2 text-xs font-normal text-muted-foreground">
+                        (oculto)
+                      </span>
+                    )}
+                  </h2>
+                  {isAdmin && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => toggleHidden(s.field, !hidden)}
+                      title={hidden ? "Mostrar" : "Ocultar"}
+                    >
+                      {hidden ? (
+                        <EyeOff className="h-3.5 w-3.5" />
+                      ) : (
+                        <Eye className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                  )}
+                </div>
+                <EditableField
+                  temaId={tema.id}
+                  field={s.field}
+                  value={value}
+                  isAdmin={isAdmin}
+                  placeholder={`Adicionar ${s.title.toLowerCase()}…`}
+                  readClassName="text-sm leading-relaxed text-foreground/90"
+                  onSaved={() => temaQuery.refetch()}
+                />
+              </section>
+            );
+          })}
+        </TabsContent>
+
+        <TabsContent value="plano">
+          <PlanoSessao
+            temaId={tema.id}
+            temaRecursos={recursos}
+            typeMap={typeMap}
+            isAdmin={isAdmin}
+            onOpen={openRecurso}
+          />
+        </TabsContent>
+
+        <TabsContent value="recursos" className="space-y-3">
+          <RecursosList
+            temaId={tema.id}
+            recursos={recursos}
+            isAdmin={isAdmin}
+            typeMap={typeMap}
+            categoryMap={categoryMap}
+            onOpen={openRecurso}
+            onSaved={() => temaQuery.refetch()}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
@@ -245,7 +314,6 @@ function EditableField({
   onSaved,
 }: EditableFieldProps) {
   const initial = value ?? "";
-  // Convert legacy plain text (no tags) to paragraph HTML so the editor doesn't strip line breaks
   const normalized = initial && !isHtml(initial)
     ? `<p>${initial.replace(/\n+/g, "</p><p>")}</p>`
     : initial;
@@ -352,6 +420,357 @@ function EditableField({
             Guardar
           </Button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Plano de Sessão ---
+
+interface PlanoBloco {
+  id: string;
+  tema_id: string;
+  sort_order: number;
+  title: string | null;
+  description: string | null;
+  duration_minutes: number | null;
+  schedule: string | null;
+  recurso_ids: string[];
+}
+
+function PlanoSessao({
+  temaId,
+  temaRecursos,
+  typeMap,
+  isAdmin,
+  onOpen,
+}: {
+  temaId: string;
+  temaRecursos: RecursoRow[];
+  typeMap: Map<string, { label: string; color: string }>;
+  isAdmin: boolean;
+  onOpen: (fileUrl: string) => void;
+}) {
+  const blocosQuery = useQuery({
+    queryKey: ["plano-sessao", temaId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("plano_sessao_blocos")
+        .select("id, tema_id, sort_order, title, description, duration_minutes, schedule, recurso_ids")
+        .eq("tema_id", temaId)
+        .order("sort_order", { ascending: true });
+      if (error) throw new Error(error.message);
+      return (data ?? []) as unknown as PlanoBloco[];
+    },
+  });
+
+  const addBloco = async () => {
+    const nextOrder = (blocosQuery.data?.length ?? 0) * 10;
+    const { error } = await supabase
+      .from("plano_sessao_blocos")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert({ tema_id: temaId, sort_order: nextOrder, title: "Novo bloco" } as any);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    blocosQuery.refetch();
+  };
+
+  if (blocosQuery.isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const blocos = blocosQuery.data ?? [];
+
+  return (
+    <div className="space-y-3">
+      {isAdmin && (
+        <div className="flex justify-end">
+          <Button type="button" size="sm" onClick={addBloco}>
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            Adicionar bloco
+          </Button>
+        </div>
+      )}
+
+      {blocos.length === 0 ? (
+        <p className="rounded-lg border border-dashed bg-muted/30 p-8 text-center text-sm text-muted-foreground">
+          {isAdmin
+            ? "Sem blocos. Clica em “Adicionar bloco” para começar."
+            : "Plano de sessão ainda não disponível."}
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {blocos.map((b, idx) => (
+            <BlocoCard
+              key={b.id}
+              bloco={b}
+              index={idx}
+              temaRecursos={temaRecursos}
+              typeMap={typeMap}
+              isAdmin={isAdmin}
+              onOpen={onOpen}
+              onChanged={() => blocosQuery.refetch()}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BlocoCard({
+  bloco,
+  index,
+  temaRecursos,
+  typeMap,
+  isAdmin,
+  onOpen,
+  onChanged,
+}: {
+  bloco: PlanoBloco;
+  index: number;
+  temaRecursos: RecursoRow[];
+  typeMap: Map<string, { label: string; color: string }>;
+  isAdmin: boolean;
+  onOpen: (fileUrl: string) => void;
+  onChanged: () => void;
+}) {
+  const [title, setTitle] = useState(bloco.title ?? "");
+  const [schedule, setSchedule] = useState(bloco.schedule ?? "");
+  const [duration, setDuration] = useState<string>(
+    bloco.duration_minutes != null ? String(bloco.duration_minutes) : "",
+  );
+  const [description, setDescription] = useState(bloco.description ?? "");
+  const [recursoIds, setRecursoIds] = useState<string[]>(bloco.recurso_ids ?? []);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    setTitle(bloco.title ?? "");
+    setSchedule(bloco.schedule ?? "");
+    setDuration(bloco.duration_minutes != null ? String(bloco.duration_minutes) : "");
+    setDescription(bloco.description ?? "");
+    setRecursoIds(bloco.recurso_ids ?? []);
+  }, [bloco]);
+
+  const selectedRecursos = useMemo(
+    () => temaRecursos.filter((r) => recursoIds.includes(r.id)),
+    [temaRecursos, recursoIds],
+  );
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("plano_sessao_blocos")
+        .update({
+          title: title || null,
+          schedule: schedule || null,
+          duration_minutes: duration ? Number(duration) : null,
+          description: description || null,
+          recurso_ids: recursoIds,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any)
+        .eq("id", bloco.id);
+      if (error) throw error;
+      toast.success("Bloco guardado.");
+      setEditing(false);
+      onChanged();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao guardar bloco");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const remove = async () => {
+    if (!confirm("Eliminar este bloco?")) return;
+    const { error } = await supabase
+      .from("plano_sessao_blocos")
+      .delete()
+      .eq("id", bloco.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Bloco eliminado.");
+    onChanged();
+  };
+
+  if (!isAdmin || !editing) {
+    return (
+      <div className="rounded-xl border bg-card p-5 shadow-sm">
+        <div className="mb-2 flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="rounded bg-muted px-1.5 py-0.5 font-semibold">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              {bloco.schedule && <span>{bloco.schedule}</span>}
+              {bloco.duration_minutes != null && (
+                <span className="inline-flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  {bloco.duration_minutes} min
+                </span>
+              )}
+            </div>
+            <h3 className="mt-1 text-base font-semibold text-secondary">
+              {bloco.title || "Sem título"}
+            </h3>
+          </div>
+          {isAdmin && (
+            <div className="flex gap-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => setEditing(true)}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={remove}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
+        </div>
+        {bloco.description && (
+          <div
+            className="rich-text mt-2 text-sm leading-relaxed text-foreground/90"
+            dangerouslySetInnerHTML={{ __html: bloco.description }}
+          />
+        )}
+        {selectedRecursos.length > 0 && (
+          <div className="mt-3 space-y-1.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Recursos
+            </p>
+            <div className="space-y-1">
+              {selectedRecursos.map((r) => {
+                const Icon = r.resource_type === "video" ? Video : FileText;
+                const typeMeta = typeMap.get(r.resource_type);
+                const color = typeMeta?.color ?? "#64748b";
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => onOpen(r.file_url)}
+                    className="flex w-full items-center gap-2 rounded-md border bg-background px-2.5 py-1.5 text-left text-xs transition hover:bg-muted/50"
+                  >
+                    <Icon className="h-3.5 w-3.5" style={{ color }} />
+                    <span className="min-w-0 flex-1 truncate font-medium">
+                      {r.title}
+                    </span>
+                    <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3 rounded-xl border bg-card p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Bloco {String(index + 1).padStart(2, "0")}
+        </span>
+        <Button type="button" size="sm" variant="ghost" onClick={remove}>
+          <Trash2 className="h-3.5 w-3.5" />
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_140px_120px]">
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-muted-foreground">Título</label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Título do bloco" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-muted-foreground">Horário</label>
+          <Input value={schedule} onChange={(e) => setSchedule(e.target.value)} placeholder="10:00–11:30" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-muted-foreground">Duração (min)</label>
+          <Input
+            type="number"
+            min={0}
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            placeholder="60"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-muted-foreground">Descrição</label>
+        <RichTextEditor value={description} onChange={setDescription} />
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-xs font-medium text-muted-foreground">
+          Recursos ({recursoIds.length} selecionado{recursoIds.length === 1 ? "" : "s"})
+        </label>
+        {temaRecursos.length === 0 ? (
+          <p className="text-xs italic text-muted-foreground">
+            Este tema ainda não tem recursos associados. Adiciona na tab “Recursos”.
+          </p>
+        ) : (
+          <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border bg-background p-2">
+            {temaRecursos.map((r) => {
+              const checked = recursoIds.includes(r.id);
+              return (
+                <label
+                  key={r.id}
+                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-muted/50"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(v) => {
+                      setRecursoIds((curr) =>
+                        v ? [...curr, r.id] : curr.filter((id) => id !== r.id),
+                      );
+                    }}
+                  />
+                  <span className="truncate text-sm">{r.title}</span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-end gap-1">
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => setEditing(false)}
+          disabled={saving}
+        >
+          Cancelar
+        </Button>
+        <Button type="button" size="sm" onClick={save} disabled={saving}>
+          {saving ? (
+            <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Save className="mr-1 h-3.5 w-3.5" />
+          )}
+          Guardar
+        </Button>
       </div>
     </div>
   );
