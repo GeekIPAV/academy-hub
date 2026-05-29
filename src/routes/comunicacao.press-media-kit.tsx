@@ -112,7 +112,7 @@ function PressKitPage() {
   return (
     <div className="mx-auto max-w-3xl py-4 space-y-8">
       <div className="flex items-start justify-between gap-4">
-        <h1 className="font-serif text-4xl md:text-5xl font-normal leading-tight text-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight">
           {content.title}
         </h1>
         {isAdmin && (
