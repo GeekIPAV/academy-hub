@@ -31,6 +31,7 @@ import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
+import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
 import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
 import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
 import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
@@ -150,6 +151,12 @@ const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
   path: '/recursos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedRecursosIndexRoute =
+  AuthenticatedRecursosIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedRecursosRoute,
+  } as any)
 const PublicacoesRevistasIdRoute = PublicacoesRevistasIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -217,6 +224,7 @@ export interface FileRoutesByFullPath {
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
+  '/recursos/': typeof AuthenticatedRecursosIndexRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
 }
@@ -230,7 +238,6 @@ export interface FileRoutesByTo {
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
@@ -247,6 +254,7 @@ export interface FileRoutesByTo {
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
+  '/recursos': typeof AuthenticatedRecursosIndexRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
 }
@@ -279,6 +287,7 @@ export interface FileRoutesById {
   '/_authenticated/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
+  '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
   '/_authenticated/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
 }
@@ -311,6 +320,7 @@ export interface FileRouteTypes {
     | '/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/publicacoes/revistas/$id'
+    | '/recursos/'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
   fileRoutesByTo: FileRoutesByTo
@@ -324,7 +334,6 @@ export interface FileRouteTypes {
     | '/faqs'
     | '/profile'
     | '/reset-password'
-    | '/recursos'
     | '/admin/acoes'
     | '/admin/governacao'
     | '/admin/manager'
@@ -341,6 +350,7 @@ export interface FileRouteTypes {
     | '/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/publicacoes/revistas/$id'
+    | '/recursos'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
   id:
@@ -372,6 +382,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/publicacoes/revistas/$id'
+    | '/_authenticated/recursos/'
     | '/_authenticated/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
   fileRoutesById: FileRoutesById
@@ -558,6 +569,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/recursos/': {
+      id: '/_authenticated/recursos/'
+      path: '/'
+      fullPath: '/recursos/'
+      preLoaderRoute: typeof AuthenticatedRecursosIndexRouteImport
+      parentRoute: typeof AuthenticatedRecursosRoute
+    }
     '/publicacoes/revistas/$id': {
       id: '/publicacoes/revistas/$id'
       path: '/$id'
@@ -627,11 +645,13 @@ const AuthenticatedRecursosClusterRouteWithChildren =
 
 interface AuthenticatedRecursosRouteChildren {
   AuthenticatedRecursosClusterRoute: typeof AuthenticatedRecursosClusterRouteWithChildren
+  AuthenticatedRecursosIndexRoute: typeof AuthenticatedRecursosIndexRoute
 }
 
 const AuthenticatedRecursosRouteChildren: AuthenticatedRecursosRouteChildren = {
   AuthenticatedRecursosClusterRoute:
     AuthenticatedRecursosClusterRouteWithChildren,
+  AuthenticatedRecursosIndexRoute: AuthenticatedRecursosIndexRoute,
 }
 
 const AuthenticatedRecursosRouteWithChildren =
@@ -696,3 +716,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
