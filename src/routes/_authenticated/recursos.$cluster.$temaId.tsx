@@ -737,6 +737,18 @@ function BlocoCard({
         <RichTextEditor value={description} onChange={setDescription} />
       </div>
 
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-muted-foreground">
+          Materiais necessários
+        </label>
+        <Textarea
+          value={materials}
+          onChange={(e) => setMaterials(e.target.value)}
+          placeholder="Ex.: post-its, marcadores, projetor…"
+          rows={3}
+        />
+      </div>
+
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-muted-foreground">
           Recursos ({recursoIds.length} selecionado{recursoIds.length === 1 ? "" : "s"})
@@ -746,26 +758,50 @@ function BlocoCard({
             Este tema ainda não tem recursos associados. Adiciona na tab “Recursos”.
           </p>
         ) : (
-          <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border bg-background p-2">
-            {temaRecursos.map((r) => {
-              const checked = recursoIds.includes(r.id);
-              return (
-                <label
-                  key={r.id}
-                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-muted/50"
-                >
-                  <Checkbox
-                    checked={checked}
-                    onCheckedChange={(v) => {
-                      setRecursoIds((curr) =>
-                        v ? [...curr, r.id] : curr.filter((id) => id !== r.id),
-                      );
-                    }}
-                  />
-                  <span className="truncate text-sm">{r.title}</span>
-                </label>
-              );
-            })}
+          <div className="rounded-md border bg-background">
+            <div className="relative border-b">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={recursoSearch}
+                onChange={(e) => setRecursoSearch(e.target.value)}
+                placeholder="Pesquisar recursos…"
+                className="h-8 border-0 pl-8 text-sm focus-visible:ring-0"
+              />
+            </div>
+            <div className="max-h-48 space-y-1 overflow-y-auto p-2">
+              {(() => {
+                const q = recursoSearch.trim().toLowerCase();
+                const filtered = q
+                  ? temaRecursos.filter((r) => r.title.toLowerCase().includes(q))
+                  : temaRecursos;
+                if (filtered.length === 0) {
+                  return (
+                    <p className="px-2 py-1 text-xs italic text-muted-foreground">
+                      Nenhum recurso encontrado.
+                    </p>
+                  );
+                }
+                return filtered.map((r) => {
+                  const checked = recursoIds.includes(r.id);
+                  return (
+                    <label
+                      key={r.id}
+                      className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-muted/50"
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          setRecursoIds((curr) =>
+                            v ? [...curr, r.id] : curr.filter((id) => id !== r.id),
+                          );
+                        }}
+                      />
+                      <span className="truncate text-sm">{r.title}</span>
+                    </label>
+                  );
+                });
+              })()}
+            </div>
           </div>
         )}
       </div>
