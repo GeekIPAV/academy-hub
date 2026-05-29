@@ -41,6 +41,7 @@ function ClusterTemas() {
   const { cluster: clusterSlug } = Route.useParams();
   const { isComponentVisible, isAdmin } = useApp();
   const [filter, setFilter] = useState<string>("__all");
+  const qc = useQueryClient();
 
   const clusterQuery = useQuery({
     queryKey: ["cluster-by-slug", clusterSlug],
