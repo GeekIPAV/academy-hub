@@ -350,6 +350,33 @@ export type Database = {
           },
         ]
       }
+      faqs: {
+        Row: {
+          answer: string
+          created_at: string
+          id: string
+          question: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          created_at?: string
+          id?: string
+          question: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          created_at?: string
+          id?: string
+          question?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       formadores_acoes: {
         Row: {
           action_id: string
