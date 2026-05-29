@@ -123,16 +123,25 @@ function PressKitPage() {
         )}
       </div>
 
-      <div className="space-y-4 leading-relaxed">
-        {content.body
-          .split(/\n\n+/)
-          .filter((p) => p.trim().length > 0)
-          .map((para, j) => (
-            <p key={j} className="whitespace-pre-line">
-              {para}
-            </p>
-          ))}
-      </div>
+      {content.body && (
+        /<[a-z][\s\S]*>/i.test(content.body) ? (
+          <div
+            className="rich-text leading-relaxed space-y-4"
+            dangerouslySetInnerHTML={{ __html: content.body }}
+          />
+        ) : (
+          <div className="space-y-4 leading-relaxed">
+            {content.body
+              .split(/\n\n+/)
+              .filter((p) => p.trim().length > 0)
+              .map((para, j) => (
+                <p key={j} className="whitespace-pre-line">
+                  {para}
+                </p>
+              ))}
+          </div>
+        )
+      )}
 
       {content.links.length > 0 && (
         <section className="space-y-3">
