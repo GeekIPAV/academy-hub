@@ -149,7 +149,16 @@ function AdminResourcesPage() {
           <AssociacoesTab />
         </TabsContent>
         <TabsContent value="tipos" className="mt-4">
-          <ResourceTypesManager />
+          <div className="space-y-8">
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold">Tipos</h2>
+              <ResourceTypesManager />
+            </section>
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold">Categorias</h2>
+              <ResourceCategoriesManager />
+            </section>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
