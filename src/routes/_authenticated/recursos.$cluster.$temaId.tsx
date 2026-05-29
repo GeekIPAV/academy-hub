@@ -210,6 +210,7 @@ function TemaDetail() {
           recursos={recursos}
           isAdmin={isAdmin}
           typeMap={typeMap}
+          categoryMap={categoryMap}
           onOpen={openRecurso}
           onSaved={() => temaQuery.refetch()}
         />
