@@ -343,8 +343,8 @@ function SortableFaq({
         </Button>
       </div>
       {open && (
-        <div className="px-3 pb-3 pl-10 whitespace-pre-wrap text-sm text-muted-foreground">
-          {faq.answer}
+        <div className="px-3 pb-3 pl-10 text-sm text-muted-foreground">
+          <div className="rich-text" dangerouslySetInnerHTML={{ __html: faq.answer }} />
         </div>
       )}
     </div>
