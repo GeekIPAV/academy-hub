@@ -136,18 +136,23 @@ export function CoverUploader({
         "pointer-events-none absolute inset-0 flex items-end justify-end p-2 opacity-0 transition group-hover:opacity-100",
         className,
       )}
+      onClick={(e) => e.stopPropagation()}
     >
       <input
         ref={inputRef}
         type="file"
         accept="image/*"
         className="hidden"
+        onClick={(e) => e.stopPropagation()}
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) handleFile(f);
         }}
       />
-      <div className="pointer-events-auto flex items-center gap-1.5">
+      <div
+        className="pointer-events-auto flex items-center gap-1.5"
+        onClick={(e) => e.stopPropagation()}
+      >
         {trigger(
           <>
             <Pencil className="h-3.5 w-3.5" />
