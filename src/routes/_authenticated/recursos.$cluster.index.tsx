@@ -99,6 +99,8 @@ function ClusterTemas() {
 
   const filtered = filter === "__all" ? temas : temas.filter((t) => (t.bloco ?? "") === filter);
 
+  const hasBadge = useHasBadgeForCluster(cluster?.name ?? "");
+
   if (clusterQuery.isLoading) {
     return (
       <div className="flex justify-center py-16">
@@ -108,7 +110,6 @@ function ClusterTemas() {
   }
   if (!cluster) return null;
 
-  const hasBadge = useHasBadgeForCluster(cluster.name);
 
   if (!allowed && !isAdmin) {
     return (
