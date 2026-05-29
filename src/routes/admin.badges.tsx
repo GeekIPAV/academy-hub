@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+
 import { Award, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
