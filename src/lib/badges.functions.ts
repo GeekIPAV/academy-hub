@@ -197,7 +197,7 @@ export const upsertBadge = createServerFn({ method: "POST" })
       description: data.description ?? null,
       cluster_id: data.cluster_id,
       cover_url: data.cover_url ?? null,
-      required_program_id: data.required_program_id ?? null,
+      
       validity_type: data.validity_type,
       validity_years: data.validity_type === "relative_years" ? data.validity_years ?? null : null,
       validity_fixed_date:
