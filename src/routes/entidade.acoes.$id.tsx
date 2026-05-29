@@ -864,6 +864,21 @@ function AddParticipanteDialog({
   );
 }
 
+function sanitizeName(value: string): string {
+  // Strip control chars, collapse whitespace, escape HTML-significant chars
+  // to prevent stored XSS via participant names.
+  return value
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .slice(0, 120);
+}
+
 function parseBulkNames(
   text: string,
 ): { first_name: string; last_name: string }[] {
@@ -888,7 +903,10 @@ function parseBulkNames(
         first = parts[0] ?? "";
         last = parts.slice(1).join(" ");
       }
-      return { first_name: first, last_name: last };
+      return {
+        first_name: sanitizeName(first),
+        last_name: sanitizeName(last),
+      };
     })
     .filter((p) => p.first_name && p.last_name);
 }
