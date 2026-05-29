@@ -61,6 +61,7 @@ interface FaqRow {
   question: string;
   answer: string;
   sort_order: number;
+  category: string;
 }
 
 function FaqsPage() {
@@ -70,7 +71,7 @@ function FaqsPage() {
   const [savingOrder, setSavingOrder] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<FaqRow | null>(null);
-  const [form, setForm] = useState({ question: "", answer: "" });
+  const [form, setForm] = useState({ question: "", answer: "", category: "" });
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -78,7 +79,7 @@ function FaqsPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("faqs")
-      .select("id, question, answer, sort_order")
+      .select("id, question, answer, sort_order, category")
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
     if (error) {
@@ -92,6 +93,18 @@ function FaqsPage() {
   useEffect(() => {
     load();
   }, []);
+
+  const categories = useMemo(() => {
+    const seen = new Set<string>();
+    const ordered: string[] = [];
+    for (const f of items) {
+      if (!seen.has(f.category)) {
+        seen.add(f.category);
+        ordered.push(f.category);
+      }
+    }
+    return ordered;
+  }, [items]);
 
   const originalOrder = useMemo(
     () => [...items].sort((a, b) => a.sort_order - b.sort_order).map((i) => i.id).join(","),
@@ -136,19 +149,19 @@ function FaqsPage() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ question: "", answer: "" });
+    setForm({ question: "", answer: "", category: categories[0] ?? "" });
     setEditOpen(true);
   };
 
   const openEdit = (f: FaqRow) => {
     setEditing(f);
-    setForm({ question: f.question, answer: f.answer });
+    setForm({ question: f.question, answer: f.answer, category: f.category });
     setEditOpen(true);
   };
 
   const saveFaq = async () => {
-    if (!form.question.trim() || !stripHtml(form.answer)) {
-      toast.error("Preenche pergunta e resposta");
+    if (!form.question.trim() || !stripHtml(form.answer) || !form.category.trim()) {
+      toast.error("Preenche categoria, pergunta e resposta");
       return;
     }
     setSaving(true);
@@ -156,7 +169,11 @@ function FaqsPage() {
       if (editing) {
         const { error } = await supabase
           .from("faqs")
-          .update({ question: form.question.trim(), answer: form.answer })
+          .update({
+            question: form.question.trim(),
+            answer: form.answer,
+            category: form.category.trim(),
+          })
           .eq("id", editing.id);
         if (error) throw error;
         toast.success("FAQ atualizada");
@@ -165,6 +182,7 @@ function FaqsPage() {
         const { error } = await supabase.from("faqs").insert({
           question: form.question.trim(),
           answer: form.answer,
+          category: form.category.trim(),
           sort_order: nextOrder,
         });
         if (error) throw error;
@@ -190,6 +208,13 @@ function FaqsPage() {
       await load();
     }
   };
+
+  // Numbering: global sequential across all items in display order
+  const numberById = useMemo(() => {
+    const map = new Map<string, number>();
+    items.forEach((f, idx) => map.set(f.id, idx + 1));
+    return map;
+  }, [items]);
 
   return (
     <div className="container mx-auto max-w-3xl p-6 space-y-6">
@@ -227,24 +252,58 @@ function FaqsPage() {
       ) : isAdmin ? (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-2">
-              {items.map((f) => (
-                <SortableFaq key={f.id} faq={f} onEdit={() => openEdit(f)} onDelete={() => setDeleteId(f.id)} />
+            <div className="space-y-8">
+              {categories.map((cat) => (
+                <div key={cat} className="space-y-2">
+                  <h2 className="text-lg font-semibold border-b pb-2">{cat}</h2>
+                  <div className="space-y-2">
+                    {items
+                      .filter((f) => f.category === cat)
+                      .map((f) => (
+                        <SortableFaq
+                          key={f.id}
+                          faq={f}
+                          number={numberById.get(f.id) ?? 0}
+                          onEdit={() => openEdit(f)}
+                          onDelete={() => setDeleteId(f.id)}
+                        />
+                      ))}
+                  </div>
+                </div>
               ))}
             </div>
           </SortableContext>
         </DndContext>
       ) : (
-        <Accordion type="single" collapsible className="w-full">
-          {items.map((f) => (
-            <AccordionItem key={f.id} value={f.id}>
-              <AccordionTrigger className="text-left">{f.question}</AccordionTrigger>
-              <AccordionContent>
-                <div className="rich-text text-muted-foreground" dangerouslySetInnerHTML={{ __html: f.answer }} />
-              </AccordionContent>
-            </AccordionItem>
+        <div className="space-y-8">
+          {categories.map((cat) => (
+            <section key={cat} className="space-y-2">
+              <h2 className="text-lg font-semibold border-b pb-2">{cat}</h2>
+              <Accordion type="single" collapsible className="w-full">
+                {items
+                  .filter((f) => f.category === cat)
+                  .map((f) => (
+                    <AccordionItem key={f.id} value={f.id}>
+                      <AccordionTrigger className="text-left">
+                        <span className="flex gap-2">
+                          <span className="text-muted-foreground tabular-nums">
+                            {numberById.get(f.id)}.
+                          </span>
+                          <span>{f.question}</span>
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div
+                          className="rich-text text-muted-foreground pl-6"
+                          dangerouslySetInnerHTML={{ __html: f.answer }}
+                        />
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+              </Accordion>
+            </section>
           ))}
-        </Accordion>
+        </div>
       )}
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
@@ -253,6 +312,20 @@ function FaqsPage() {
             <DialogTitle>{editing ? "Editar FAQ" : "Nova FAQ"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium">Categoria</label>
+              <Input
+                value={form.category}
+                onChange={(e) => setForm((p) => ({ ...p, category: e.target.value }))}
+                placeholder="Ex.: A. Enquadramento geral"
+                list="faq-categories"
+              />
+              <datalist id="faq-categories">
+                {categories.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </div>
             <div>
               <label className="text-sm font-medium">Pergunta</label>
               <Input
@@ -299,10 +372,12 @@ function FaqsPage() {
 
 function SortableFaq({
   faq,
+  number,
   onEdit,
   onDelete,
 }: {
   faq: FaqRow;
+  number: number;
   onEdit: () => void;
   onDelete: () => void;
 }) {
@@ -328,6 +403,7 @@ function SortableFaq({
         >
           <GripVertical className="h-4 w-4" />
         </button>
+        <span className="text-muted-foreground tabular-nums text-sm w-6">{number}.</span>
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
@@ -343,7 +419,7 @@ function SortableFaq({
         </Button>
       </div>
       {open && (
-        <div className="px-3 pb-3 pl-10 text-sm text-muted-foreground">
+        <div className="px-3 pb-3 pl-16 text-sm text-muted-foreground">
           <div className="rich-text" dangerouslySetInnerHTML={{ __html: faq.answer }} />
         </div>
       )}
