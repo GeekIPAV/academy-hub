@@ -285,7 +285,6 @@ function BadgeFormDialog({
   editing: BadgeRow | null;
 }) {
   const upsert = useUpsertBadge();
-  const { data: programs } = useProgramsList();
   const { data: clusters } = useClusters();
 
   const [form, setForm] = useState<BadgeInput>({
@@ -293,7 +292,6 @@ function BadgeFormDialog({
     description: "",
     cluster_id: "",
     cover_url: "",
-    required_program_id: null,
     validity_type: "forever",
     validity_years: null,
     validity_fixed_date: null,
@@ -307,7 +305,6 @@ function BadgeFormDialog({
         description: editing?.description ?? "",
         cluster_id: editing?.cluster_id ?? "",
         cover_url: editing?.cover_url ?? "",
-        required_program_id: editing?.required_program_id ?? null,
         validity_type: (editing?.validity_type as BadgeValidityType) ?? "forever",
         validity_years: editing?.validity_years ?? null,
         validity_fixed_date: editing?.validity_fixed_date ?? null,
@@ -333,11 +330,11 @@ function BadgeFormDialog({
         ...form,
         description: form.description?.toString().trim() || null,
         cover_url: form.cover_url?.toString().trim() || null,
-        required_program_id: form.required_program_id || null,
       },
       { onSuccess: () => onOpenChange(false) },
     );
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
