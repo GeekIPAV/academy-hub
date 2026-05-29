@@ -513,13 +513,13 @@ function RecursosList({
           <SortableContext items={items.map((r) => r.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-1.5">
               {items.map((r) => (
-                <SortableRecurso key={r.id} recurso={r} typeMap={typeMap} onOpen={onOpen} />
+                <SortableRecurso key={r.id} recurso={r} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} />
               ))}
             </div>
           </SortableContext>
         </DndContext>
       ) : (
-        <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} isAdmin={isAdmin} onSaved={onSaved} />
+        <RecursosGallery items={items} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} isAdmin={isAdmin} onSaved={onSaved} />
       )}
     </div>
   );
