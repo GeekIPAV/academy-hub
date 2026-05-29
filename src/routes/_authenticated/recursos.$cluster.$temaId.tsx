@@ -469,11 +469,11 @@ function RecursosList({
         {view === "list" ? (
           <div className="space-y-1.5">
             {items.map((r) => (
-              <RecursoButton key={r.id} recurso={r} typeMap={typeMap} onOpen={onOpen} />
+              <RecursoButton key={r.id} recurso={r} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} />
             ))}
           </div>
         ) : (
-          <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} isAdmin={false} onSaved={onSaved} />
+          <RecursosGallery items={items} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} isAdmin={false} onSaved={onSaved} />
         )}
       </div>
     );
