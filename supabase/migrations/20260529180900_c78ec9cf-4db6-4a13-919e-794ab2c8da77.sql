@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.compute_user_badge_expiry() FROM PUBLIC, anon, authenticated;

@@ -38,6 +38,7 @@ import {
   ArrowDown,
   Link2,
 } from "lucide-react";
+import { useClusters, type ClusterRow } from "@/hooks/use-clusters";
 
 interface RecursoRow {
   id: string;
@@ -75,25 +76,9 @@ export function ClusterTemasManager() {
   const [form, setForm] = useState<TemaForm>(EMPTY_FORM);
   const [assocTema, setAssocTema] = useState<TemaRow | null>(null);
 
-  // Clusters
-  const clustersQuery = useQuery({
-    queryKey: ["clusters"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("programas")
-        .select("cluster")
-        .not("cluster", "is", null);
-      if (error) throw error;
-      const set = new Set<string>();
-      (data ?? []).forEach((r) => {
-        const c = (r as { cluster: string | null }).cluster;
-        if (c && c.trim()) set.add(c.trim());
-      });
-      return Array.from(set).sort((a, b) => a.localeCompare(b, "pt"));
-    },
-  });
-
-  const clusters = clustersQuery.data ?? [];
+  // Clusters (nova tabela normalizada)
+  const clustersQuery = useClusters();
+  const clusters = (clustersQuery.data ?? []).map((c: ClusterRow) => c.name);
   const activeCluster = cluster || clusters[0] || "";
 
   // Temas
@@ -243,7 +228,7 @@ export function ClusterTemasManager() {
                   <SelectValue placeholder="Selecionar cluster" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clusters.map((c) => (
+                  {clusters.map((c: string) => (
                     <SelectItem key={c} value={c}>
                       {c}
                     </SelectItem>
