@@ -1,0 +1,394 @@
+import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { supabase } from "@/integrations/supabase/client";
+import { getRecursoSignedUrl } from "@/lib/recursos.functions";
+import { useResourceTypeMap } from "@/hooks/use-resource-types";
+import { useApp } from "@/lib/app-context";
+import { toast } from "sonner";
+import {
+  Loader2,
+  FileText,
+  Video,
+  ExternalLink,
+  GripVertical,
+  Save,
+  ChevronRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DndContext,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { parseCluster, slugifyCluster } from "@/lib/cluster-utils";
+
+export const Route = createFileRoute("/_authenticated/recursos/$cluster/$temaId")({
+  head: () => ({ meta: [{ title: "Tema — Centro de Recursos" }] }),
+  component: TemaDetail,
+  errorComponent: ({ error }) => (
+    <div className="mx-auto max-w-3xl py-16 text-center text-destructive">
+      {error.message}
+    </div>
+  ),
+  notFoundComponent: () => (
+    <div className="mx-auto max-w-3xl py-16 text-center text-muted-foreground">
+      Tema não encontrado.
+    </div>
+  ),
+});
+
+interface RecursoRow {
+  id: string;
+  title: string;
+  resource_type: string;
+  file_url: string;
+}
+
+interface TemaDetailRow {
+  id: string;
+  cluster: string;
+  bloco: string | null;
+  title: string;
+  intro: string | null;
+  description: string | null;
+  processo_u: string | null;
+  context: string | null;
+  objectives: string | null;
+  tema_recursos: { sort_order: number; recursos: RecursoRow | null }[];
+}
+
+function TemaDetail() {
+  const { cluster: clusterSlug, temaId } = Route.useParams();
+  const { isAdmin } = useApp();
+  const { map: typeMap } = useResourceTypeMap();
+  const fetchSignedUrl = useServerFn(getRecursoSignedUrl);
+
+  const temaQuery = useQuery({
+    queryKey: ["tema-detail", temaId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("temas_momentos")
+        .select(
+          "id, cluster, bloco, title, intro, description, processo_u, context, objectives, tema_recursos(sort_order, recursos(id, title, resource_type, file_url))",
+        )
+        .eq("id", temaId)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      if (!data) throw new Error("Tema não encontrado");
+      return data as unknown as TemaDetailRow;
+    },
+  });
+
+  const tema = temaQuery.data;
+
+  const recursos = useMemo(() => {
+    if (!tema) return [];
+    return (tema.tema_recursos ?? [])
+      .filter((tr) => !!tr.recursos)
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((tr) => tr.recursos as RecursoRow);
+  }, [tema]);
+
+  const openRecurso = async (fileUrl: string) => {
+    try {
+      const isExternal = /^https?:\/\//i.test(fileUrl);
+      const target = isExternal
+        ? fileUrl
+        : (await fetchSignedUrl({ data: { path: fileUrl } })).url;
+      window.open(target, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao abrir recurso");
+    }
+  };
+
+  if (temaQuery.isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+  if (!tema) return null;
+
+  const clusterTitle = parseCluster(tema.cluster).title;
+  // If the URL slug doesn't match the tema's cluster, redirect breadcrumb to canonical
+  const effectiveClusterSlug = slugifyCluster(tema.cluster) || clusterSlug;
+
+  const sections: { title: string; content: string | null }[] = [
+    { title: "Enquadramento", content: tema.description },
+    { title: "Processo U", content: tema.processo_u },
+    { title: "Contexto", content: tema.context },
+    { title: "Objetivos", content: tema.objectives },
+  ];
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-8">
+      <nav className="flex items-center gap-1 text-sm text-muted-foreground">
+        <Link to="/recursos" className="hover:text-primary">
+          Centro de Recursos
+        </Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <Link
+          to="/recursos/$cluster"
+          params={{ cluster: effectiveClusterSlug }}
+          className="hover:text-primary"
+        >
+          {tema.bloco ?? clusterTitle}
+        </Link>
+        <ChevronRight className="h-3.5 w-3.5" />
+        <span className="text-primary">{tema.title}</span>
+      </nav>
+
+      <header className="space-y-3 border-b pb-6">
+        <h1 className="text-3xl font-semibold text-primary">{tema.title}</h1>
+        {tema.intro && (
+          <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
+            {tema.intro}
+          </p>
+        )}
+      </header>
+
+      <div className="space-y-4">
+        {sections.map(
+          (s) =>
+            s.content && (
+              <section
+                key={s.title}
+                className="rounded-xl border bg-card p-5 shadow-sm"
+              >
+                <h2 className="mb-2 text-lg font-semibold text-primary">{s.title}</h2>
+                <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
+                  {s.content}
+                </p>
+              </section>
+            ),
+        )}
+      </div>
+
+      <section className="space-y-3 border-t pt-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-primary">
+          Recursos
+        </h2>
+        <RecursosList
+          temaId={tema.id}
+          recursos={recursos}
+          isAdmin={isAdmin}
+          typeMap={typeMap}
+          onOpen={openRecurso}
+          onSaved={() => temaQuery.refetch()}
+        />
+      </section>
+    </div>
+  );
+}
+
+interface RecursosListProps {
+  temaId: string;
+  recursos: RecursoRow[];
+  isAdmin: boolean;
+  typeMap: Map<string, { label: string; color: string }>;
+  onOpen: (fileUrl: string) => void;
+  onSaved: () => void;
+}
+
+function RecursosList({
+  temaId,
+  recursos,
+  isAdmin,
+  typeMap,
+  onOpen,
+  onSaved,
+}: RecursosListProps) {
+  const [items, setItems] = useState<RecursoRow[]>(recursos);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setItems(recursos);
+  }, [recursos]);
+
+  const initialIds = useMemo(() => recursos.map((r) => r.id).join("|"), [recursos]);
+  const currentIds = useMemo(() => items.map((r) => r.id).join("|"), [items]);
+  const dirty = initialIds !== currentIds;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    setItems((curr) => {
+      const oldIdx = curr.findIndex((r) => r.id === active.id);
+      const newIdx = curr.findIndex((r) => r.id === over.id);
+      if (oldIdx < 0 || newIdx < 0) return curr;
+      return arrayMove(curr, oldIdx, newIdx);
+    });
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const results = await Promise.all(
+        items.map((r, idx) =>
+          supabase
+            .from("tema_recursos")
+            .update({ sort_order: idx * 10 })
+            .eq("tema_id", temaId)
+            .eq("recurso_id", r.id),
+        ),
+      );
+      const firstErr = results.find((r) => r.error);
+      if (firstErr?.error) throw firstErr.error;
+      toast.success("Ordem guardada.");
+      onSaved();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao guardar a ordem");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (items.length === 0) {
+    return <p className="text-sm text-muted-foreground">Sem recursos associados.</p>;
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="space-y-1.5">
+        {items.map((r) => (
+          <RecursoButton key={r.id} recurso={r} typeMap={typeMap} onOpen={onOpen} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {dirty && (
+        <div className="flex items-center justify-end gap-2 pb-1">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => setItems(recursos)}
+            disabled={saving}
+          >
+            Cancelar
+          </Button>
+          <Button type="button" size="sm" onClick={save} disabled={saving}>
+            {saving ? (
+              <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="mr-1 h-3.5 w-3.5" />
+            )}
+            Guardar ordem
+          </Button>
+        </div>
+      )}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={items.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-1.5">
+            {items.map((r) => (
+              <SortableRecurso key={r.id} recurso={r} typeMap={typeMap} onOpen={onOpen} />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
+    </div>
+  );
+}
+
+interface RecursoItemProps {
+  recurso: RecursoRow;
+  typeMap: Map<string, { label: string; color: string }>;
+  onOpen: (fileUrl: string) => void;
+}
+
+function RecursoButton({ recurso, typeMap, onOpen }: RecursoItemProps) {
+  const Icon = recurso.resource_type === "video" ? Video : FileText;
+  const typeMeta = typeMap.get(recurso.resource_type);
+  const label = typeMeta?.label ?? recurso.resource_type.toUpperCase();
+  const color = typeMeta?.color ?? "#64748b";
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(recurso.file_url)}
+      className="flex w-full items-center gap-3 rounded-md border bg-card px-3 py-2.5 text-left transition hover:bg-muted/50"
+    >
+      <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium">{recurso.title}</p>
+      </div>
+      <span
+        style={{ backgroundColor: color }}
+        className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+      >
+        {label}
+      </span>
+      <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+    </button>
+  );
+}
+
+function SortableRecurso({ recurso, typeMap, onOpen }: RecursoItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: recurso.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+  const Icon = recurso.resource_type === "video" ? Video : FileText;
+  const typeMeta = typeMap.get(recurso.resource_type);
+  const label = typeMeta?.label ?? recurso.resource_type.toUpperCase();
+  const color = typeMeta?.color ?? "#64748b";
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 rounded-md border bg-card px-2 py-2"
+    >
+      <button
+        type="button"
+        className="shrink-0 cursor-grab touch-none text-muted-foreground hover:text-foreground active:cursor-grabbing"
+        aria-label="Arrastar para reordenar"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => onOpen(recurso.file_url)}
+        className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-1 text-left transition hover:bg-muted/50"
+      >
+        <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">{recurso.title}</p>
+        </div>
+        <span
+          style={{ backgroundColor: color }}
+          className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+        >
+          {label}
+        </span>
+        <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      </button>
+    </div>
+  );
+}
