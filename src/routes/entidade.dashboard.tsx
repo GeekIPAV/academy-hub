@@ -602,6 +602,25 @@ function AcoesTab({ entityId }: { entityId?: string }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  const userBadgeClusters = useUserBadgeClusterSlugs();
+  const allowedActionTypes = useMemo(() => {
+    // An action type is unlocked if the user has a badge whose cluster slug
+    // matches a token in the action type label, OR if no badge restricts it.
+    const set = new Set<string>();
+    for (const t of ACTION_TYPES) {
+      const tSlug = t
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-");
+      const matches = Array.from(userBadgeClusters).some(
+        (c) => tSlug.includes(c) || c.includes(tSlug),
+      );
+      if (matches || userBadgeClusters.size === 0) set.add(t);
+    }
+    return set;
+  }, [userBadgeClusters]);
+
   const createMut = useMutation({
     mutationFn: () =>
       createFn({
