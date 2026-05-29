@@ -64,6 +64,7 @@ interface RecursoRow {
   resource_type: string;
   file_url: string;
   cover_url: string | null;
+  category_key: string | null;
 }
 
 interface TemaDetailRow {
