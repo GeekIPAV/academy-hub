@@ -164,7 +164,20 @@ function ClusterTemas() {
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {filtered.map((t) => (
-              <TemaCard key={t.id} tema={t} clusterSlug={cluster.slug} />
+              <TemaCard
+                key={t.id}
+                tema={t}
+                clusterSlug={cluster.slug}
+                isAdmin={isAdmin}
+                onSetCover={async (url) => {
+                  const { error } = await supabase
+                    .from("temas_momentos")
+                    .update({ cover_url: url })
+                    .eq("id", t.id);
+                  if (error) throw error;
+                  qc.invalidateQueries({ queryKey: ["temas", cluster.name] });
+                }}
+              />
             ))}
           </div>
         )}
