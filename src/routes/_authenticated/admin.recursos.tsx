@@ -997,12 +997,19 @@ function EditRecursoDialog({
             <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
           </div>
           <div className="space-y-1">
-            <Label>Descrição</Label>
-            <Textarea
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+            <Label>Categoria</Label>
+            <Select
+              value={categoryKey || "__none"}
+              onValueChange={(v) => setCategoryKey(v === "__none" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sem categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">Sem categoria</SelectItem>
+                <CategoryOptions />
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1">
             <Label>Tipo</Label>
@@ -1019,19 +1026,14 @@ function EditRecursoDialog({
             </Select>
           </div>
           <div className="space-y-1">
-            <Label>Categoria</Label>
-            <Select
-              value={categoryKey || "__none"}
-              onValueChange={(v) => setCategoryKey(v === "__none" ? "" : v)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Sem categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none">Sem categoria</SelectItem>
-                <CategoryOptions />
-              </SelectContent>
-            </Select>
+            <Label>Link (URL)</Label>
+            <Input
+              type="url"
+              value={fileUrl}
+              onChange={(e) => setFileUrl(e.target.value)}
+              required
+            />
+            <p className="text-xs text-muted-foreground">{EMBED_HINT}</p>
           </div>
           <div className="space-y-1">
             <Label>Objetivos</Label>
@@ -1042,14 +1044,12 @@ function EditRecursoDialog({
             />
           </div>
           <div className="space-y-1">
-            <Label>Link (URL)</Label>
-            <Input
-              type="url"
-              value={fileUrl}
-              onChange={(e) => setFileUrl(e.target.value)}
-              required
+            <Label>Descrição</Label>
+            <Textarea
+              rows={3}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">{EMBED_HINT}</p>
           </div>
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>
