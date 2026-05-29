@@ -228,7 +228,7 @@ export function ClusterTemasManager() {
                   <SelectValue placeholder="Selecionar cluster" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clusters.map((c) => (
+                  {clusters.map((c: string) => (
                     <SelectItem key={c} value={c}>
                       {c}
                     </SelectItem>
