@@ -48,6 +48,7 @@ import {
 import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
 import { useResourceTypes, useResourceTypeMap } from "@/hooks/use-resource-types";
 import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
+import { CoverUploader } from "@/components/CoverUploader";
 
 type ResourceType = string;
 
@@ -70,6 +71,7 @@ interface ResourceRow {
   description: string | null;
   resource_type: string;
   file_url: string;
+  cover_url: string | null;
   created_at: string | null;
 }
 
@@ -143,7 +145,7 @@ function useRecursos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recursos")
-        .select("id, title, description, resource_type, file_url, created_at")
+        .select("id, title, description, resource_type, file_url, cover_url, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ResourceRow[];
@@ -839,6 +841,7 @@ function EditRecursoDialog({
   const [description, setDescription] = useState("");
   const [resourceType, setResourceType] = useState<ResourceType>("pdf");
   const [fileUrl, setFileUrl] = useState("");
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -847,8 +850,20 @@ function EditRecursoDialog({
       setDescription(recurso.description ?? "");
       setResourceType((recurso.resource_type as ResourceType) ?? "pdf");
       setFileUrl(recurso.file_url ?? "");
+      setCoverUrl(recurso.cover_url ?? null);
     }
   }, [recurso]);
+
+  const persistCover = async (url: string | null) => {
+    if (!recurso) return;
+    const { error } = await supabase
+      .from("recursos")
+      .update({ cover_url: url })
+      .eq("id", recurso.id);
+    if (error) throw error;
+    setCoverUrl(url);
+    onSaved();
+  };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -884,6 +899,30 @@ function EditRecursoDialog({
           <DialogDescription>Atualiza os campos do recurso.</DialogDescription>
         </DialogHeader>
         <form onSubmit={save} className="space-y-3">
+          <div className="space-y-2">
+            <Label>Imagem de capa</Label>
+            <div className="flex items-center gap-3">
+              <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-md border bg-muted">
+                {coverUrl ? (
+                  <img src={coverUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">
+                    Sem imagem
+                  </div>
+                )}
+              </div>
+              {recurso && (
+                <CoverUploader
+                  variant="inline"
+                  folder="recursos"
+                  id={recurso.id}
+                  currentUrl={coverUrl}
+                  onUploaded={(url) => persistCover(url)}
+                  onCleared={() => persistCover(null)}
+                />
+              )}
+            </div>
+          </div>
           <div className="space-y-1">
             <Label>Título</Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} required />
