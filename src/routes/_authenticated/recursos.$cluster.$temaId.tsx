@@ -572,11 +572,24 @@ function RecursosGallery({
   items,
   typeMap,
   onOpen,
+  isAdmin,
+  onSaved,
 }: {
   items: RecursoRow[];
   typeMap: Map<string, { label: string; color: string }>;
   onOpen: (fileUrl: string) => void;
+  isAdmin: boolean;
+  onSaved: () => void;
 }) {
+  const setCover = async (id: string, url: string | null) => {
+    const { error } = await supabase
+      .from("recursos")
+      .update({ cover_url: url })
+      .eq("id", id);
+    if (error) throw error;
+    onSaved();
+  };
+
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {items.map((r) => {
@@ -589,13 +602,31 @@ function RecursosGallery({
             key={r.id}
             type="button"
             onClick={() => onOpen(r.file_url)}
-            className="group flex flex-col overflow-hidden rounded-xl border bg-card text-left transition hover:shadow-md"
+            className="group relative flex flex-col overflow-hidden rounded-xl border bg-card text-left transition hover:shadow-md"
           >
             <div
-              className="flex aspect-[4/3] items-center justify-center"
+              className="relative flex aspect-[4/3] items-center justify-center overflow-hidden"
               style={{ backgroundColor: `${color}1A` }}
             >
-              <Icon className="h-12 w-12" style={{ color }} />
+              {r.cover_url ? (
+                <img
+                  src={r.cover_url}
+                  alt=""
+                  className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+                  loading="lazy"
+                />
+              ) : (
+                <Icon className="h-12 w-12" style={{ color }} />
+              )}
+              {isAdmin && (
+                <CoverUploader
+                  folder="recursos"
+                  id={r.id}
+                  currentUrl={r.cover_url}
+                  onUploaded={(url) => setCover(r.id, url)}
+                  onCleared={() => setCover(r.id, null)}
+                />
+              )}
             </div>
             <div className="flex flex-1 flex-col gap-1.5 p-3">
               <span
