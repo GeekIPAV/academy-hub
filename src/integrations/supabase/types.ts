@@ -250,33 +250,49 @@ export type Database = {
       }
       badges: {
         Row: {
-          cluster: string
+          cluster_id: string
           cover_url: string | null
           created_at: string | null
           description: string | null
           id: string
           required_program_id: string | null
           title: string
+          validity_fixed_date: string | null
+          validity_type: string
+          validity_years: number | null
         }
         Insert: {
-          cluster: string
+          cluster_id: string
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           required_program_id?: string | null
           title: string
+          validity_fixed_date?: string | null
+          validity_type?: string
+          validity_years?: number | null
         }
         Update: {
-          cluster?: string
+          cluster_id?: string
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           required_program_id?: string | null
           title?: string
+          validity_fixed_date?: string | null
+          validity_type?: string
+          validity_years?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "badges_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "clusters"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "badges_required_program_id_fkey"
             columns: ["required_program_id"]
@@ -304,6 +320,36 @@ export type Database = {
           cover_url?: string | null
           updated_at?: string
           updated_by?: string | null
+        }
+        Relationships: []
+      }
+      clusters: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -793,6 +839,7 @@ export type Database = {
       programas: {
         Row: {
           cluster: string | null
+          cluster_id: string | null
           description: string | null
           id: string
           is_active: boolean | null
@@ -806,6 +853,7 @@ export type Database = {
         }
         Insert: {
           cluster?: string | null
+          cluster_id?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -819,6 +867,7 @@ export type Database = {
         }
         Update: {
           cluster?: string | null
+          cluster_id?: string | null
           description?: string | null
           id?: string
           is_active?: boolean | null
@@ -830,11 +879,20 @@ export type Database = {
           sync_status?: string | null
           title?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "programas_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "clusters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       recursos: {
         Row: {
           category_key: string | null
+          cluster_id: string | null
           cover_url: string | null
           created_at: string | null
           description: string | null
@@ -848,6 +906,7 @@ export type Database = {
         }
         Insert: {
           category_key?: string | null
+          cluster_id?: string | null
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -861,6 +920,7 @@ export type Database = {
         }
         Update: {
           category_key?: string | null
+          cluster_id?: string | null
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -878,6 +938,13 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "programas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recursos_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "clusters"
             referencedColumns: ["id"]
           },
         ]
@@ -1066,6 +1133,7 @@ export type Database = {
           bloco: string | null
           bloco_order: number
           cluster: string
+          cluster_id: string | null
           context: string | null
           cover_url: string | null
           created_at: string
@@ -1083,6 +1151,7 @@ export type Database = {
           bloco?: string | null
           bloco_order?: number
           cluster: string
+          cluster_id?: string | null
           context?: string | null
           cover_url?: string | null
           created_at?: string
@@ -1100,6 +1169,7 @@ export type Database = {
           bloco?: string | null
           bloco_order?: number
           cluster?: string
+          cluster_id?: string | null
           context?: string | null
           cover_url?: string | null
           created_at?: string
@@ -1113,11 +1183,20 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "temas_momentos_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "clusters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_badges: {
         Row: {
           badge_id: string
+          expires_at: string | null
           granted_at: string | null
           granted_by: string | null
           id: string
@@ -1125,6 +1204,7 @@ export type Database = {
         }
         Insert: {
           badge_id: string
+          expires_at?: string | null
           granted_at?: string | null
           granted_by?: string | null
           id?: string
@@ -1132,6 +1212,7 @@ export type Database = {
         }
         Update: {
           badge_id?: string
+          expires_at?: string | null
           granted_at?: string | null
           granted_by?: string | null
           id?: string
