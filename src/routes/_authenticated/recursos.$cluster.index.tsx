@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-utils";
 import { Loader2, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CoverUploader } from "@/components/CoverUploader";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
   head: ({ params }) => ({
@@ -39,6 +40,7 @@ function ClusterTemas() {
   const { cluster: clusterSlug } = Route.useParams();
   const { isComponentVisible, isAdmin } = useApp();
   const [filter, setFilter] = useState<string>("__all");
+  const qc = useQueryClient();
 
   const clusterQuery = useQuery({
     queryKey: ["cluster-by-slug", clusterSlug],
@@ -161,7 +163,20 @@ function ClusterTemas() {
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {filtered.map((t) => (
-              <TemaCard key={t.id} tema={t} clusterSlug={cluster.slug} />
+              <TemaCard
+                key={t.id}
+                tema={t}
+                clusterSlug={cluster.slug}
+                isAdmin={isAdmin}
+                onSetCover={async (url) => {
+                  const { error } = await supabase
+                    .from("temas_momentos")
+                    .update({ cover_url: url })
+                    .eq("id", t.id);
+                  if (error) throw error;
+                  qc.invalidateQueries({ queryKey: ["temas", cluster.name] });
+                }}
+              />
             ))}
           </div>
         )}
@@ -195,7 +210,17 @@ function FilterChip({
   );
 }
 
-function TemaCard({ tema, clusterSlug }: { tema: TemaRow; clusterSlug: string }) {
+function TemaCard({
+  tema,
+  clusterSlug,
+  isAdmin,
+  onSetCover,
+}: {
+  tema: TemaRow;
+  clusterSlug: string;
+  isAdmin: boolean;
+  onSetCover: (url: string | null) => Promise<void>;
+}) {
   return (
     <Link
       to="/recursos/$cluster/$temaId"
@@ -214,6 +239,15 @@ function TemaCard({ tema, clusterSlug }: { tema: TemaRow; clusterSlug: string })
           <div className="flex h-full w-full items-center justify-center text-muted-foreground/40">
             <ImageIcon className="h-10 w-10" />
           </div>
+        )}
+        {isAdmin && (
+          <CoverUploader
+            folder="temas"
+            id={tema.id}
+            currentUrl={tema.cover_url}
+            onUploaded={(url) => onSetCover(url)}
+            onCleared={() => onSetCover(null)}
+          />
         )}
       </div>
       <div className="space-y-1 p-3">

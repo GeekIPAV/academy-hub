@@ -19,6 +19,7 @@ import {
   List as ListIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CoverUploader } from "@/components/CoverUploader";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import {
   DndContext,
@@ -60,6 +61,7 @@ interface RecursoRow {
   title: string;
   resource_type: string;
   file_url: string;
+  cover_url: string | null;
 }
 
 interface TemaDetailRow {
@@ -89,7 +91,7 @@ function TemaDetail() {
       const { data, error } = await supabase
         .from("temas_momentos")
         .select(
-          "id, cluster, bloco, title, intro, description, processo_u, context, objectives, tema_recursos(sort_order, recursos(id, title, resource_type, file_url))",
+          "id, cluster, bloco, title, intro, description, processo_u, context, objectives, tema_recursos(sort_order, recursos(id, title, resource_type, file_url, cover_url))",
         )
         .eq("id", temaId)
         .maybeSingle();
@@ -435,7 +437,7 @@ function RecursosList({
             ))}
           </div>
         ) : (
-          <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} />
+          <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} isAdmin={false} onSaved={onSaved} />
         )}
       </div>
     );
@@ -481,7 +483,7 @@ function RecursosList({
           </SortableContext>
         </DndContext>
       ) : (
-        <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} />
+        <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} isAdmin={isAdmin} onSaved={onSaved} />
       )}
     </div>
   );
@@ -571,11 +573,24 @@ function RecursosGallery({
   items,
   typeMap,
   onOpen,
+  isAdmin,
+  onSaved,
 }: {
   items: RecursoRow[];
   typeMap: Map<string, { label: string; color: string }>;
   onOpen: (fileUrl: string) => void;
+  isAdmin: boolean;
+  onSaved: () => void;
 }) {
+  const setCover = async (id: string, url: string | null) => {
+    const { error } = await supabase
+      .from("recursos")
+      .update({ cover_url: url })
+      .eq("id", id);
+    if (error) throw error;
+    onSaved();
+  };
+
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {items.map((r) => {
@@ -588,13 +603,31 @@ function RecursosGallery({
             key={r.id}
             type="button"
             onClick={() => onOpen(r.file_url)}
-            className="group flex flex-col overflow-hidden rounded-xl border bg-card text-left transition hover:shadow-md"
+            className="group relative flex flex-col overflow-hidden rounded-xl border bg-card text-left transition hover:shadow-md"
           >
             <div
-              className="flex aspect-[4/3] items-center justify-center"
+              className="relative flex aspect-[4/3] items-center justify-center overflow-hidden"
               style={{ backgroundColor: `${color}1A` }}
             >
-              <Icon className="h-12 w-12" style={{ color }} />
+              {r.cover_url ? (
+                <img
+                  src={r.cover_url}
+                  alt=""
+                  className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+                  loading="lazy"
+                />
+              ) : (
+                <Icon className="h-12 w-12" style={{ color }} />
+              )}
+              {isAdmin && (
+                <CoverUploader
+                  folder="recursos"
+                  id={r.id}
+                  currentUrl={r.cover_url}
+                  onUploaded={(url: string) => setCover(r.id, url)}
+                  onCleared={() => setCover(r.id, null)}
+                />
+              )}
             </div>
             <div className="flex flex-1 flex-col gap-1.5 p-3">
               <span

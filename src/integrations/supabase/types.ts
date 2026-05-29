@@ -248,6 +248,27 @@ export type Database = {
         }
         Relationships: []
       }
+      cluster_covers: {
+        Row: {
+          cluster_name: string
+          cover_url: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          cluster_name: string
+          cover_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          cluster_name?: string
+          cover_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       config_privacidade_campos: {
         Row: {
           classification: string
@@ -722,6 +743,7 @@ export type Database = {
       }
       recursos: {
         Row: {
+          cover_url: string | null
           created_at: string | null
           description: string | null
           file_url: string
@@ -732,6 +754,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          cover_url?: string | null
           created_at?: string | null
           description?: string | null
           file_url: string
@@ -742,6 +765,7 @@ export type Database = {
           title: string
         }
         Update: {
+          cover_url?: string | null
           created_at?: string | null
           description?: string | null
           file_url?: string
