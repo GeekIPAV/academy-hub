@@ -845,6 +845,42 @@ function BlocoCard({
 
 // --- Recursos list / gallery ---
 
+function groupByCategory(
+  items: RecursoRow[],
+  categoryMap: Map<string, { label: string; color: string }>,
+): { key: string; label: string; color: string; items: RecursoRow[] }[] {
+  const groups = new Map<string, { key: string; label: string; color: string; items: RecursoRow[] }>();
+  for (const r of items) {
+    const key = r.category_key ?? "__none__";
+    const meta = r.category_key ? categoryMap.get(r.category_key) : undefined;
+    const label = meta?.label ?? (r.category_key ? r.category_key : "Sem categoria");
+    const color = meta?.color ?? "#94a3b8";
+    if (!groups.has(key)) groups.set(key, { key, label, color, items: [] });
+    groups.get(key)!.items.push(r);
+  }
+  return Array.from(groups.values()).sort((a, b) => {
+    if (a.key === "__none__") return 1;
+    if (b.key === "__none__") return -1;
+    return a.label.localeCompare(b.label, "pt");
+  });
+}
+
+function CategoryHeader({ label, color, count }: { label: string; color: string; count: number }) {
+  return (
+    <div className="flex items-center gap-2 pt-1">
+      <span
+        className="inline-block h-2 w-2 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </h4>
+      <span className="text-xs text-muted-foreground">({count})</span>
+      <div className="ml-2 h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
 interface RecursosListProps {
   temaId: string;
   recursos: RecursoRow[];
@@ -949,13 +985,19 @@ function RecursosList({
   );
 
   if (!isAdmin) {
+    const grouped = groupByCategory(items, categoryMap);
     return (
       <div className="space-y-3">
         <div className="flex justify-end">{Toggle}</div>
         {view === "list" ? (
-          <div className="space-y-1.5">
-            {items.map((r) => (
-              <RecursoButton key={r.id} recurso={r} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} />
+          <div className="space-y-4">
+            {grouped.map((g) => (
+              <div key={g.key} className="space-y-1.5">
+                <CategoryHeader label={g.label} color={g.color} count={g.items.length} />
+                {g.items.map((r) => (
+                  <RecursoButton key={r.id} recurso={r} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} />
+                ))}
+              </div>
             ))}
           </div>
         ) : (
@@ -1138,70 +1180,81 @@ function RecursosGallery({
     onSaved();
   };
 
-  return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-      {items.map((r) => {
-        const Icon = r.resource_type === "video" ? Video : FileText;
-        const typeMeta = typeMap.get(r.resource_type);
-        const label = typeMeta?.label ?? r.resource_type.toUpperCase();
-        const color = typeMeta?.color ?? "#64748b";
-        return (
-          <div
-            key={r.id}
-            role="button"
-            tabIndex={0}
-            onClick={(e) => {
-              if ((e.target as HTMLElement).closest("button, input, a, label")) return;
-              onOpen(r.file_url);
-            }}
-            onKeyDown={(e) => {
-              if (e.target !== e.currentTarget) return;
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onOpen(r.file_url);
-              }
-            }}
-            className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border bg-card text-left transition hover:shadow-md"
-          >
-            <div
-              className="relative flex aspect-[4/3] items-center justify-center overflow-hidden"
-              style={{ backgroundColor: `${color}1A` }}
+  const grouped = groupByCategory(items, categoryMap);
+
+  const renderCard = (r: RecursoRow) => {
+    const Icon = r.resource_type === "video" ? Video : FileText;
+    const typeMeta = typeMap.get(r.resource_type);
+    const label = typeMeta?.label ?? r.resource_type.toUpperCase();
+    const color = typeMeta?.color ?? "#64748b";
+    return (
+      <div
+        key={r.id}
+        role="button"
+        tabIndex={0}
+        onClick={(e) => {
+          if ((e.target as HTMLElement).closest("button, input, a, label")) return;
+          onOpen(r.file_url);
+        }}
+        onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpen(r.file_url);
+          }
+        }}
+        className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border bg-card text-left transition hover:shadow-md"
+      >
+        <div
+          className="relative flex aspect-[4/3] items-center justify-center overflow-hidden"
+          style={{ backgroundColor: `${color}1A` }}
+        >
+          {r.cover_url ? (
+            <img
+              src={r.cover_url}
+              alt=""
+              className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+              loading="lazy"
+            />
+          ) : (
+            <Icon className="h-12 w-12" style={{ color }} />
+          )}
+          {isAdmin && (
+            <CoverUploader
+              folder="recursos"
+              id={r.id}
+              currentUrl={r.cover_url}
+              onUploaded={(url: string) => setCover(r.id, url)}
+              onCleared={() => setCover(r.id, null)}
+            />
+          )}
+        </div>
+        <div className="flex flex-1 flex-col gap-1.5 p-3">
+          <div className="flex flex-wrap items-center gap-1">
+            <span
+              style={{ backgroundColor: color }}
+              className="w-fit rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
             >
-              {r.cover_url ? (
-                <img
-                  src={r.cover_url}
-                  alt=""
-                  className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-                  loading="lazy"
-                />
-              ) : (
-                <Icon className="h-12 w-12" style={{ color }} />
-              )}
-              {isAdmin && (
-                <CoverUploader
-                  folder="recursos"
-                  id={r.id}
-                  currentUrl={r.cover_url}
-                  onUploaded={(url: string) => setCover(r.id, url)}
-                  onCleared={() => setCover(r.id, null)}
-                />
-              )}
-            </div>
-            <div className="flex flex-1 flex-col gap-1.5 p-3">
-              <div className="flex flex-wrap items-center gap-1">
-                <span
-                  style={{ backgroundColor: color }}
-                  className="w-fit rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
-                >
-                  {label}
-                </span>
-                <CategoryBadge recurso={r} categoryMap={categoryMap} />
-              </div>
-              <p className="line-clamp-2 text-sm font-medium">{r.title}</p>
-            </div>
+              {label}
+            </span>
+            <CategoryBadge recurso={r} categoryMap={categoryMap} />
           </div>
-        );
-      })}
+          <p className="line-clamp-2 text-sm font-medium">{r.title}</p>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-5">
+      {grouped.map((g) => (
+        <div key={g.key} className="space-y-2">
+          <CategoryHeader label={g.label} color={g.color} count={g.items.length} />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {g.items.map(renderCard)}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
