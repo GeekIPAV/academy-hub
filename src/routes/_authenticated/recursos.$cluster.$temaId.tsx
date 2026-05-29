@@ -702,12 +702,15 @@ function RecursosGallery({
               )}
             </div>
             <div className="flex flex-1 flex-col gap-1.5 p-3">
-              <span
-                style={{ backgroundColor: color }}
-                className="w-fit rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
-              >
-                {label}
-              </span>
+              <div className="flex flex-wrap items-center gap-1">
+                <span
+                  style={{ backgroundColor: color }}
+                  className="w-fit rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+                >
+                  {label}
+                </span>
+                <CategoryBadge recurso={r} categoryMap={categoryMap} />
+              </div>
               <p className="line-clamp-2 text-sm font-medium">{r.title}</p>
             </div>
           </div>
