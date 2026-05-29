@@ -19,8 +19,7 @@ export function RichTextEditor({ value, onChange, className }: Props) {
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
     editorProps: {
       attributes: {
-        class:
-          "prose prose-sm max-w-none focus:outline-none min-h-[140px] px-3 py-2 dark:prose-invert",
+        class: "rich-text focus:outline-none min-h-[140px] px-3 py-2",
       },
     },
   });
