@@ -551,7 +551,9 @@ function BlocoCard({
     bloco.duration_minutes != null ? String(bloco.duration_minutes) : "",
   );
   const [description, setDescription] = useState(bloco.description ?? "");
+  const [materials, setMaterials] = useState(bloco.materials ?? "");
   const [recursoIds, setRecursoIds] = useState<string[]>(bloco.recurso_ids ?? []);
+  const [recursoSearch, setRecursoSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
 
@@ -560,6 +562,7 @@ function BlocoCard({
     setSchedule(bloco.schedule ?? "");
     setDuration(bloco.duration_minutes != null ? String(bloco.duration_minutes) : "");
     setDescription(bloco.description ?? "");
+    setMaterials(bloco.materials ?? "");
     setRecursoIds(bloco.recurso_ids ?? []);
   }, [bloco]);
 
