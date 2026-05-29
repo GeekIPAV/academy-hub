@@ -845,6 +845,42 @@ function BlocoCard({
 
 // --- Recursos list / gallery ---
 
+function groupByCategory(
+  items: RecursoRow[],
+  categoryMap: Map<string, { label: string; color: string }>,
+): { key: string; label: string; color: string; items: RecursoRow[] }[] {
+  const groups = new Map<string, { key: string; label: string; color: string; items: RecursoRow[] }>();
+  for (const r of items) {
+    const key = r.category_key ?? "__none__";
+    const meta = r.category_key ? categoryMap.get(r.category_key) : undefined;
+    const label = meta?.label ?? (r.category_key ? r.category_key : "Sem categoria");
+    const color = meta?.color ?? "#94a3b8";
+    if (!groups.has(key)) groups.set(key, { key, label, color, items: [] });
+    groups.get(key)!.items.push(r);
+  }
+  return Array.from(groups.values()).sort((a, b) => {
+    if (a.key === "__none__") return 1;
+    if (b.key === "__none__") return -1;
+    return a.label.localeCompare(b.label, "pt");
+  });
+}
+
+function CategoryHeader({ label, color, count }: { label: string; color: string; count: number }) {
+  return (
+    <div className="flex items-center gap-2 pt-1">
+      <span
+        className="inline-block h-2 w-2 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+      <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </h4>
+      <span className="text-xs text-muted-foreground">({count})</span>
+      <div className="ml-2 h-px flex-1 bg-border" />
+    </div>
+  );
+}
+
 interface RecursosListProps {
   temaId: string;
   recursos: RecursoRow[];
