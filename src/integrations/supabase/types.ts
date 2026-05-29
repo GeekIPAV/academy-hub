@@ -248,6 +248,44 @@ export type Database = {
         }
         Relationships: []
       }
+      badges: {
+        Row: {
+          cluster: string
+          cover_url: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          required_program_id: string | null
+          title: string
+        }
+        Insert: {
+          cluster: string
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          required_program_id?: string | null
+          title: string
+        }
+        Update: {
+          cluster?: string
+          cover_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          required_program_id?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "badges_required_program_id_fkey"
+            columns: ["required_program_id"]
+            isOneToOne: false
+            referencedRelation: "programas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cluster_covers: {
         Row: {
           cluster_name: string
@@ -1076,6 +1114,52 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_id: string
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badges_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "utilizadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "utilizadores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

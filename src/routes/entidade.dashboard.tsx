@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -602,6 +603,25 @@ function AcoesTab({ entityId }: { entityId?: string }) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  const userBadgeClusters = useUserBadgeClusterSlugs();
+  const allowedActionTypes = useMemo(() => {
+    // An action type is unlocked if the user has a badge whose cluster slug
+    // matches a token in the action type label, OR if no badge restricts it.
+    const set = new Set<string>();
+    for (const t of ACTION_TYPES) {
+      const tSlug = t
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-");
+      const matches = Array.from(userBadgeClusters).some(
+        (c: string) => tSlug.includes(c) || c.includes(tSlug),
+      );
+      if (matches || userBadgeClusters.size === 0) set.add(t);
+    }
+    return set;
+  }, [userBadgeClusters]);
+
   const createMut = useMutation({
     mutationFn: () =>
       createFn({
@@ -675,11 +695,14 @@ function AcoesTab({ entityId }: { entityId?: string }) {
                       <SelectValue placeholder="Selecionar…" />
                     </SelectTrigger>
                     <SelectContent>
-                      {ACTION_TYPES.map((t) => (
-                        <SelectItem key={t} value={t}>
-                          {t}
-                        </SelectItem>
-                      ))}
+                      {ACTION_TYPES.map((t) => {
+                        const locked = !allowedActionTypes.has(t);
+                        return (
+                          <SelectItem key={t} value={t} disabled={locked}>
+                            {t}{locked ? " — 🔒 requer badge" : ""}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
