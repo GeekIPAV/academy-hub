@@ -1,0 +1,1 @@
+ALTER TABLE public.recursos DROP CONSTRAINT IF EXISTS learning_resources_resource_type_check;
