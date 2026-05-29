@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -15,8 +15,11 @@ import {
   GripVertical,
   Save,
   ChevronRight,
+  LayoutGrid,
+  List as ListIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { RichTextEditor } from "@/components/rich-text-editor";
 import {
   DndContext,
   PointerSensor,
@@ -35,6 +38,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { parseCluster, slugifyCluster } from "@/lib/cluster-utils";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/$temaId")({
   head: () => ({ meta: [{ title: "Tema — Centro de Recursos" }] }),
@@ -70,6 +74,8 @@ interface TemaDetailRow {
   objectives: string | null;
   tema_recursos: { sort_order: number; recursos: RecursoRow | null }[];
 }
+
+type EditableField = "intro" | "description" | "processo_u" | "context" | "objectives";
 
 function TemaDetail() {
   const { cluster: clusterSlug, temaId } = Route.useParams();
@@ -125,14 +131,13 @@ function TemaDetail() {
   if (!tema) return null;
 
   const clusterTitle = parseCluster(tema.cluster).title;
-  // If the URL slug doesn't match the tema's cluster, redirect breadcrumb to canonical
   const effectiveClusterSlug = slugifyCluster(tema.cluster) || clusterSlug;
 
-  const sections: { title: string; content: string | null }[] = [
-    { title: "Enquadramento", content: tema.description },
-    { title: "Processo U", content: tema.processo_u },
-    { title: "Contexto", content: tema.context },
-    { title: "Objetivos", content: tema.objectives },
+  const sections: { title: string; field: EditableField }[] = [
+    { title: "Enquadramento", field: "description" },
+    { title: "Processo U", field: "processo_u" },
+    { title: "Contexto", field: "context" },
+    { title: "Objetivos", field: "objectives" },
   ];
 
   return (
@@ -155,28 +160,39 @@ function TemaDetail() {
 
       <header className="space-y-3 border-b pb-6">
         <h1 className="text-3xl font-semibold text-primary">{tema.title}</h1>
-        {tema.intro && (
-          <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-            {tema.intro}
-          </p>
-        )}
+        <EditableField
+          temaId={tema.id}
+          field="intro"
+          value={tema.intro}
+          isAdmin={isAdmin}
+          placeholder="Introdução"
+          readClassName="text-sm leading-relaxed text-muted-foreground"
+          onSaved={() => temaQuery.refetch()}
+        />
       </header>
 
       <div className="space-y-4">
-        {sections.map(
-          (s) =>
-            s.content && (
-              <section
-                key={s.title}
-                className="rounded-xl border bg-card p-5 shadow-sm"
-              >
-                <h2 className="mb-2 text-lg font-semibold text-primary">{s.title}</h2>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
-                  {s.content}
-                </p>
-              </section>
-            ),
-        )}
+        {sections.map((s) => {
+          const value = tema[s.field];
+          if (!isAdmin && !value) return null;
+          return (
+            <section
+              key={s.field}
+              className="rounded-xl border bg-card p-5 shadow-sm"
+            >
+              <h2 className="mb-2 text-lg font-semibold text-primary">{s.title}</h2>
+              <EditableField
+                temaId={tema.id}
+                field={s.field}
+                value={value}
+                isAdmin={isAdmin}
+                placeholder={`Adicionar ${s.title.toLowerCase()}…`}
+                readClassName="text-sm leading-relaxed text-foreground/90"
+                onSaved={() => temaQuery.refetch()}
+              />
+            </section>
+          );
+        })}
       </div>
 
       <section className="space-y-3 border-t pt-6">
@@ -196,6 +212,117 @@ function TemaDetail() {
   );
 }
 
+// --- Editable field (rich text) ---
+
+interface EditableFieldProps {
+  temaId: string;
+  field: EditableField;
+  value: string | null;
+  isAdmin: boolean;
+  placeholder: string;
+  readClassName?: string;
+  onSaved: () => void;
+}
+
+function isHtml(s: string) {
+  return /<[a-z][\s\S]*>/i.test(s);
+}
+
+function EditableField({
+  temaId,
+  field,
+  value,
+  isAdmin,
+  placeholder,
+  readClassName,
+  onSaved,
+}: EditableFieldProps) {
+  const initial = value ?? "";
+  // Convert legacy plain text (no tags) to paragraph HTML so the editor doesn't strip line breaks
+  const normalized = initial && !isHtml(initial)
+    ? `<p>${initial.replace(/\n+/g, "</p><p>")}</p>`
+    : initial;
+
+  const [draft, setDraft] = useState(normalized);
+  const [saving, setSaving] = useState(false);
+  const lastSavedRef = useRef(normalized);
+
+  useEffect(() => {
+    setDraft(normalized);
+    lastSavedRef.current = normalized;
+  }, [normalized]);
+
+  if (!isAdmin) {
+    if (!initial) return null;
+    return (
+      <div
+        className={cn("rich-text", readClassName)}
+        dangerouslySetInnerHTML={{ __html: normalized }}
+      />
+    );
+  }
+
+  const dirty = draft !== lastSavedRef.current;
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const toSave = draft === "<p></p>" ? "" : draft;
+      const patch = { [field]: toSave || null } as Record<string, string | null>;
+      const { error } = await supabase
+        .from("temas_momentos")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(patch as any)
+        .eq("id", temaId);
+      if (error) throw error;
+      lastSavedRef.current = draft;
+      toast.success("Guardado.");
+      onSaved();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao guardar");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <RichTextEditor value={draft} onChange={setDraft} />
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span>{dirty ? "Alterações por guardar" : placeholder}</span>
+        <div className="flex gap-1">
+          {dirty && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setDraft(lastSavedRef.current)}
+              disabled={saving}
+            >
+              Cancelar
+            </Button>
+          )}
+          <Button
+            type="button"
+            size="sm"
+            onClick={save}
+            disabled={saving || !dirty}
+          >
+            {saving ? (
+              <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Save className="mr-1 h-3.5 w-3.5" />
+            )}
+            Guardar
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Recursos list / gallery ---
+
 interface RecursosListProps {
   temaId: string;
   recursos: RecursoRow[];
@@ -204,6 +331,8 @@ interface RecursosListProps {
   onOpen: (fileUrl: string) => void;
   onSaved: () => void;
 }
+
+type ViewMode = "list" | "gallery";
 
 function RecursosList({
   temaId,
@@ -215,6 +344,7 @@ function RecursosList({
 }: RecursosListProps) {
   const [items, setItems] = useState<RecursoRow[]>(recursos);
   const [saving, setSaving] = useState(false);
+  const [view, setView] = useState<ViewMode>("list");
 
   useEffect(() => {
     setItems(recursos);
@@ -267,48 +397,92 @@ function RecursosList({
     return <p className="text-sm text-muted-foreground">Sem recursos associados.</p>;
   }
 
+  const Toggle = (
+    <div className="flex items-center gap-1 rounded-md border bg-card p-0.5">
+      <button
+        type="button"
+        onClick={() => setView("list")}
+        className={cn(
+          "flex h-7 items-center gap-1 rounded px-2 text-xs transition",
+          view === "list" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground",
+        )}
+        aria-label="Vista de lista"
+      >
+        <ListIcon className="h-3.5 w-3.5" /> Lista
+      </button>
+      <button
+        type="button"
+        onClick={() => setView("gallery")}
+        className={cn(
+          "flex h-7 items-center gap-1 rounded px-2 text-xs transition",
+          view === "gallery" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-foreground",
+        )}
+        aria-label="Vista de galeria"
+      >
+        <LayoutGrid className="h-3.5 w-3.5" /> Galeria
+      </button>
+    </div>
+  );
+
   if (!isAdmin) {
     return (
-      <div className="space-y-1.5">
-        {items.map((r) => (
-          <RecursoButton key={r.id} recurso={r} typeMap={typeMap} onOpen={onOpen} />
-        ))}
+      <div className="space-y-3">
+        <div className="flex justify-end">{Toggle}</div>
+        {view === "list" ? (
+          <div className="space-y-1.5">
+            {items.map((r) => (
+              <RecursoButton key={r.id} recurso={r} typeMap={typeMap} onOpen={onOpen} />
+            ))}
+          </div>
+        ) : (
+          <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} />
+        )}
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
-      {dirty && (
-        <div className="flex items-center justify-end gap-2 pb-1">
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => setItems(recursos)}
-            disabled={saving}
-          >
-            Cancelar
-          </Button>
-          <Button type="button" size="sm" onClick={save} disabled={saving}>
-            {saving ? (
-              <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Save className="mr-1 h-3.5 w-3.5" />
-            )}
-            Guardar ordem
-          </Button>
-        </div>
-      )}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-        <SortableContext items={items.map((r) => r.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-1.5">
-            {items.map((r) => (
-              <SortableRecurso key={r.id} recurso={r} typeMap={typeMap} onOpen={onOpen} />
-            ))}
+    <div className="space-y-3">
+      <div className="flex items-center justify-between gap-2">
+        {dirty ? (
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setItems(recursos)}
+              disabled={saving}
+            >
+              Cancelar
+            </Button>
+            <Button type="button" size="sm" onClick={save} disabled={saving}>
+              {saving ? (
+                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Save className="mr-1 h-3.5 w-3.5" />
+              )}
+              Guardar ordem
+            </Button>
           </div>
-        </SortableContext>
-      </DndContext>
+        ) : (
+          <span />
+        )}
+        {Toggle}
+      </div>
+
+      {view === "list" ? (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={items.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-1.5">
+              {items.map((r) => (
+                <SortableRecurso key={r.id} recurso={r} typeMap={typeMap} onOpen={onOpen} />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      ) : (
+        <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} />
+      )}
     </div>
   );
 }
@@ -389,6 +563,51 @@ function SortableRecurso({ recurso, typeMap, onOpen }: RecursoItemProps) {
         </span>
         <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       </button>
+    </div>
+  );
+}
+
+function RecursosGallery({
+  items,
+  typeMap,
+  onOpen,
+}: {
+  items: RecursoRow[];
+  typeMap: Map<string, { label: string; color: string }>;
+  onOpen: (fileUrl: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      {items.map((r) => {
+        const Icon = r.resource_type === "video" ? Video : FileText;
+        const typeMeta = typeMap.get(r.resource_type);
+        const label = typeMeta?.label ?? r.resource_type.toUpperCase();
+        const color = typeMeta?.color ?? "#64748b";
+        return (
+          <button
+            key={r.id}
+            type="button"
+            onClick={() => onOpen(r.file_url)}
+            className="group flex flex-col overflow-hidden rounded-xl border bg-card text-left transition hover:shadow-md"
+          >
+            <div
+              className="flex aspect-[4/3] items-center justify-center"
+              style={{ backgroundColor: `${color}1A` }}
+            >
+              <Icon className="h-12 w-12" style={{ color }} />
+            </div>
+            <div className="flex flex-1 flex-col gap-1.5 p-3">
+              <span
+                style={{ backgroundColor: color }}
+                className="w-fit rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+              >
+                {label}
+              </span>
+              <p className="line-clamp-2 text-sm font-medium">{r.title}</p>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
