@@ -68,11 +68,20 @@ export function useRevokeBadge() {
   });
 }
 
+export interface BadgeInput {
+  id?: string;
+  title: string;
+  description?: string | null;
+  cluster: string;
+  cover_url?: string | null;
+  required_program_id?: string | null;
+}
+
 export function useUpsertBadge() {
   const qc = useQueryClient();
   const fn = useServerFn(upsertBadge);
   return useMutation({
-    mutationFn: (vars: Parameters<typeof upsertBadge>[0]["data"]) => fn({ data: vars }),
+    mutationFn: (vars: BadgeInput) => fn({ data: vars }),
     onSuccess: () => {
       toast.success("Badge guardado.");
       qc.invalidateQueries({ queryKey: ["badges"] });
