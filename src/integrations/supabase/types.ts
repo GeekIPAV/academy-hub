@@ -578,6 +578,27 @@ export type Database = {
           },
         ]
       }
+      paginas_conteudo: {
+        Row: {
+          content: Json
+          slug: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          content?: Json
+          slug: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          content?: Json
+          slug?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       participantes_acoes: {
         Row: {
           action_id: string
