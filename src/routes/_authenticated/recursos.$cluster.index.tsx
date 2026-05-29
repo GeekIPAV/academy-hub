@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-utils";
 import { Loader2, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CoverUploader } from "@/components/CoverUploader";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
   head: ({ params }) => ({
