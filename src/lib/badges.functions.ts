@@ -181,7 +181,7 @@ const upsertSchema = z.object({
   description: z.string().max(2000).nullable().optional(),
   cluster_id: z.string().uuid(),
   cover_url: z.string().max(1024).nullable().optional(),
-  required_program_id: z.string().uuid().nullable().optional(),
+  
   validity_type: z.enum(["forever", "relative_years", "fixed_date"]).default("forever"),
   validity_years: z.number().int().min(1).max(99).nullable().optional(),
   validity_fixed_date: z.string().nullable().optional(),
