@@ -922,11 +922,14 @@ export type Database = {
           bloco_order: number
           cluster: string
           context: string | null
+          cover_url: string | null
           created_at: string
           description: string | null
           id: string
+          intro: string | null
           objectives: string | null
           order_index: number
+          processo_u: string | null
           title: string
           updated_at: string
         }
@@ -935,11 +938,14 @@ export type Database = {
           bloco_order?: number
           cluster: string
           context?: string | null
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          intro?: string | null
           objectives?: string | null
           order_index?: number
+          processo_u?: string | null
           title: string
           updated_at?: string
         }
@@ -948,11 +954,14 @@ export type Database = {
           bloco_order?: number
           cluster?: string
           context?: string | null
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           id?: string
+          intro?: string | null
           objectives?: string | null
           order_index?: number
+          processo_u?: string | null
           title?: string
           updated_at?: string
         }
