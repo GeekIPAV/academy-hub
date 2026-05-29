@@ -34,6 +34,7 @@ import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
 import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
 import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
+import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 import { Route as AuthenticatedRecursosClusterIndexRouteImport } from './routes/_authenticated/recursos.$cluster.index'
@@ -167,6 +168,12 @@ const EntidadeAcoesIdRoute = EntidadeAcoesIdRouteImport.update({
   path: '/entidade/acoes/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRecursosClusterRoute =
+  AuthenticatedRecursosClusterRouteImport.update({
+    id: '/$cluster',
+    path: '/$cluster',
+    getParentRoute: () => AuthenticatedRecursosRoute,
+  } as any)
 const AuthenticatedAdminRecursosRoute =
   AuthenticatedAdminRecursosRouteImport.update({
     id: '/admin/recursos',
@@ -180,9 +187,9 @@ const AuthenticatedActionsIdRoute = AuthenticatedActionsIdRouteImport.update({
 } as any)
 const AuthenticatedRecursosClusterIndexRoute =
   AuthenticatedRecursosClusterIndexRouteImport.update({
-    id: '/$cluster/',
-    path: '/$cluster/',
-    getParentRoute: () => AuthenticatedRecursosRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedRecursosClusterRoute,
   } as any)
 const ApiCertificatesActionIdParticipanteIdRoute =
   ApiCertificatesActionIdParticipanteIdRouteImport.update({
@@ -192,9 +199,9 @@ const ApiCertificatesActionIdParticipanteIdRoute =
   } as any)
 const AuthenticatedRecursosClusterTemaIdRoute =
   AuthenticatedRecursosClusterTemaIdRouteImport.update({
-    id: '/$cluster/$temaId',
-    path: '/$cluster/$temaId',
-    getParentRoute: () => AuthenticatedRecursosRoute,
+    id: '/$temaId',
+    path: '/$temaId',
+    getParentRoute: () => AuthenticatedRecursosClusterRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -221,6 +228,7 @@ export interface FileRoutesByFullPath {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/recursos/': typeof AuthenticatedRecursosIndexRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/_authenticated/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
@@ -317,6 +326,7 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
+    | '/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/publicacoes/revistas/$id'
     | '/recursos/'
@@ -379,6 +389,7 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
+    | '/_authenticated/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/publicacoes/revistas/$id'
     | '/_authenticated/recursos/'
@@ -590,6 +601,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntidadeAcoesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/recursos/$cluster': {
+      id: '/_authenticated/recursos/$cluster'
+      path: '/$cluster'
+      fullPath: '/recursos/$cluster'
+      preLoaderRoute: typeof AuthenticatedRecursosClusterRouteImport
+      parentRoute: typeof AuthenticatedRecursosRoute
+    }
     '/_authenticated/admin/recursos': {
       id: '/_authenticated/admin/recursos'
       path: '/admin/recursos'
@@ -606,10 +624,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/recursos/$cluster/': {
       id: '/_authenticated/recursos/$cluster/'
-      path: '/$cluster'
+      path: '/'
       fullPath: '/recursos/$cluster/'
       preLoaderRoute: typeof AuthenticatedRecursosClusterIndexRouteImport
-      parentRoute: typeof AuthenticatedRecursosRoute
+      parentRoute: typeof AuthenticatedRecursosClusterRoute
     }
     '/api/certificates/$actionId/$participanteId': {
       id: '/api/certificates/$actionId/$participanteId'
@@ -620,26 +638,41 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/recursos/$cluster/$temaId': {
       id: '/_authenticated/recursos/$cluster/$temaId'
-      path: '/$cluster/$temaId'
+      path: '/$temaId'
       fullPath: '/recursos/$cluster/$temaId'
       preLoaderRoute: typeof AuthenticatedRecursosClusterTemaIdRouteImport
-      parentRoute: typeof AuthenticatedRecursosRoute
+      parentRoute: typeof AuthenticatedRecursosClusterRoute
     }
   }
 }
 
-interface AuthenticatedRecursosRouteChildren {
-  AuthenticatedRecursosIndexRoute: typeof AuthenticatedRecursosIndexRoute
+interface AuthenticatedRecursosClusterRouteChildren {
   AuthenticatedRecursosClusterTemaIdRoute: typeof AuthenticatedRecursosClusterTemaIdRoute
   AuthenticatedRecursosClusterIndexRoute: typeof AuthenticatedRecursosClusterIndexRoute
 }
 
+const AuthenticatedRecursosClusterRouteChildren: AuthenticatedRecursosClusterRouteChildren =
+  {
+    AuthenticatedRecursosClusterTemaIdRoute:
+      AuthenticatedRecursosClusterTemaIdRoute,
+    AuthenticatedRecursosClusterIndexRoute:
+      AuthenticatedRecursosClusterIndexRoute,
+  }
+
+const AuthenticatedRecursosClusterRouteWithChildren =
+  AuthenticatedRecursosClusterRoute._addFileChildren(
+    AuthenticatedRecursosClusterRouteChildren,
+  )
+
+interface AuthenticatedRecursosRouteChildren {
+  AuthenticatedRecursosClusterRoute: typeof AuthenticatedRecursosClusterRouteWithChildren
+  AuthenticatedRecursosIndexRoute: typeof AuthenticatedRecursosIndexRoute
+}
+
 const AuthenticatedRecursosRouteChildren: AuthenticatedRecursosRouteChildren = {
+  AuthenticatedRecursosClusterRoute:
+    AuthenticatedRecursosClusterRouteWithChildren,
   AuthenticatedRecursosIndexRoute: AuthenticatedRecursosIndexRoute,
-  AuthenticatedRecursosClusterTemaIdRoute:
-    AuthenticatedRecursosClusterTemaIdRoute,
-  AuthenticatedRecursosClusterIndexRoute:
-    AuthenticatedRecursosClusterIndexRoute,
 }
 
 const AuthenticatedRecursosRouteWithChildren =
