@@ -64,8 +64,11 @@ function ResourcesPage() {
 
   const openRecurso = async (fileUrl: string) => {
     try {
-      const { url } = await fetchSignedUrl({ data: { path: fileUrl } });
-      window.open(url, "_blank", "noopener,noreferrer");
+      const isExternal = /^https?:\/\//i.test(fileUrl);
+      const target = isExternal
+        ? fileUrl
+        : (await fetchSignedUrl({ data: { path: fileUrl } })).url;
+      window.open(target, "_blank", "noopener,noreferrer");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao abrir recurso");
     }
