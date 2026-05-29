@@ -655,6 +655,7 @@ function BibliotecaTab() {
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
