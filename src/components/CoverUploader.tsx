@@ -90,12 +90,16 @@ export function CoverUploader({
 
   if (variant === "inline") {
     return (
-      <div className={cn("flex items-center gap-1.5", className)}>
+      <div
+        className={cn("flex items-center gap-1.5", className)}
+        onClick={(e) => e.stopPropagation()}
+      >
         <input
           ref={inputRef}
           type="file"
           accept="image/*"
           className="hidden"
+          onClick={(e) => e.stopPropagation()}
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (f) handleFile(f);
