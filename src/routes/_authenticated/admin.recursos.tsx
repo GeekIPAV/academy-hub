@@ -136,7 +136,7 @@ function AdminResourcesPage() {
           <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
           <TabsTrigger value="temas">Gestão de Temas</TabsTrigger>
           <TabsTrigger value="assoc">Associações</TabsTrigger>
-          <TabsTrigger value="tipos">Tipos</TabsTrigger>
+          <TabsTrigger value="tipos">Tipos e Categorias</TabsTrigger>
         </TabsList>
 
         <TabsContent value="biblioteca" className="mt-4">
