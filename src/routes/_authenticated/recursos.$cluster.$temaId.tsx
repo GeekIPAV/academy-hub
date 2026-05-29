@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getRecursoSignedUrl } from "@/lib/recursos.functions";
 import { useResourceTypeMap } from "@/hooks/use-resource-types";
+import { useResourceCategoryMap } from "@/hooks/use-resource-categories";
 import { useApp } from "@/lib/app-context";
 import { toast } from "sonner";
 import {
@@ -63,6 +64,7 @@ interface RecursoRow {
   resource_type: string;
   file_url: string;
   cover_url: string | null;
+  category_key: string | null;
 }
 
 interface TemaDetailRow {
@@ -84,6 +86,7 @@ function TemaDetail() {
   const { cluster: clusterSlug, temaId } = Route.useParams();
   const { isAdmin } = useApp();
   const { map: typeMap } = useResourceTypeMap();
+  const { map: categoryMap } = useResourceCategoryMap();
   const fetchSignedUrl = useServerFn(getRecursoSignedUrl);
 
   const temaQuery = useQuery({
@@ -92,7 +95,7 @@ function TemaDetail() {
       const { data, error } = await supabase
         .from("temas_momentos")
         .select(
-          "id, cluster, bloco, title, intro, description, processo_u, context, objectives, tema_recursos(sort_order, recursos(id, title, resource_type, file_url, cover_url))",
+          "id, cluster, bloco, title, intro, description, processo_u, context, objectives, tema_recursos(sort_order, recursos(id, title, resource_type, file_url, cover_url, category_key))",
         )
         .eq("id", temaId)
         .maybeSingle();
@@ -207,6 +210,7 @@ function TemaDetail() {
           recursos={recursos}
           isAdmin={isAdmin}
           typeMap={typeMap}
+          categoryMap={categoryMap}
           onOpen={openRecurso}
           onSaved={() => temaQuery.refetch()}
         />
@@ -360,6 +364,7 @@ interface RecursosListProps {
   recursos: RecursoRow[];
   isAdmin: boolean;
   typeMap: Map<string, { label: string; color: string }>;
+  categoryMap: Map<string, { label: string; color: string }>;
   onOpen: (fileUrl: string) => void;
   onSaved: () => void;
 }
@@ -371,6 +376,7 @@ function RecursosList({
   recursos,
   isAdmin,
   typeMap,
+  categoryMap,
   onOpen,
   onSaved,
 }: RecursosListProps) {
@@ -463,11 +469,11 @@ function RecursosList({
         {view === "list" ? (
           <div className="space-y-1.5">
             {items.map((r) => (
-              <RecursoButton key={r.id} recurso={r} typeMap={typeMap} onOpen={onOpen} />
+              <RecursoButton key={r.id} recurso={r} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} />
             ))}
           </div>
         ) : (
-          <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} isAdmin={false} onSaved={onSaved} />
+          <RecursosGallery items={items} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} isAdmin={false} onSaved={onSaved} />
         )}
       </div>
     );
@@ -507,13 +513,13 @@ function RecursosList({
           <SortableContext items={items.map((r) => r.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-1.5">
               {items.map((r) => (
-                <SortableRecurso key={r.id} recurso={r} typeMap={typeMap} onOpen={onOpen} />
+                <SortableRecurso key={r.id} recurso={r} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} />
               ))}
             </div>
           </SortableContext>
         </DndContext>
       ) : (
-        <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} isAdmin={isAdmin} onSaved={onSaved} />
+        <RecursosGallery items={items} typeMap={typeMap} categoryMap={categoryMap} onOpen={onOpen} isAdmin={isAdmin} onSaved={onSaved} />
       )}
     </div>
   );
@@ -522,10 +528,31 @@ function RecursosList({
 interface RecursoItemProps {
   recurso: RecursoRow;
   typeMap: Map<string, { label: string; color: string }>;
+  categoryMap: Map<string, { label: string; color: string }>;
   onOpen: (fileUrl: string) => void;
 }
 
-function RecursoButton({ recurso, typeMap, onOpen }: RecursoItemProps) {
+function CategoryBadge({
+  recurso,
+  categoryMap,
+}: {
+  recurso: RecursoRow;
+  categoryMap: Map<string, { label: string; color: string }>;
+}) {
+  if (!recurso.category_key) return null;
+  const cat = categoryMap.get(recurso.category_key);
+  if (!cat) return null;
+  return (
+    <span
+      style={{ borderColor: cat.color, color: cat.color }}
+      className="shrink-0 rounded-md border bg-background px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+    >
+      {cat.label}
+    </span>
+  );
+}
+
+function RecursoButton({ recurso, typeMap, categoryMap, onOpen }: RecursoItemProps) {
   const Icon = recurso.resource_type === "video" ? Video : FileText;
   const typeMeta = typeMap.get(recurso.resource_type);
   const label = typeMeta?.label ?? recurso.resource_type.toUpperCase();
@@ -540,6 +567,7 @@ function RecursoButton({ recurso, typeMap, onOpen }: RecursoItemProps) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{recurso.title}</p>
       </div>
+      <CategoryBadge recurso={recurso} categoryMap={categoryMap} />
       <span
         style={{ backgroundColor: color }}
         className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
@@ -551,7 +579,7 @@ function RecursoButton({ recurso, typeMap, onOpen }: RecursoItemProps) {
   );
 }
 
-function SortableRecurso({ recurso, typeMap, onOpen }: RecursoItemProps) {
+function SortableRecurso({ recurso, typeMap, categoryMap, onOpen }: RecursoItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: recurso.id });
   const style = {
@@ -587,6 +615,7 @@ function SortableRecurso({ recurso, typeMap, onOpen }: RecursoItemProps) {
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{recurso.title}</p>
         </div>
+        <CategoryBadge recurso={recurso} categoryMap={categoryMap} />
         <span
           style={{ backgroundColor: color }}
           className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
@@ -602,12 +631,14 @@ function SortableRecurso({ recurso, typeMap, onOpen }: RecursoItemProps) {
 function RecursosGallery({
   items,
   typeMap,
+  categoryMap,
   onOpen,
   isAdmin,
   onSaved,
 }: {
   items: RecursoRow[];
   typeMap: Map<string, { label: string; color: string }>;
+  categoryMap: Map<string, { label: string; color: string }>;
   onOpen: (fileUrl: string) => void;
   isAdmin: boolean;
   onSaved: () => void;
@@ -671,12 +702,15 @@ function RecursosGallery({
               )}
             </div>
             <div className="flex flex-1 flex-col gap-1.5 p-3">
-              <span
-                style={{ backgroundColor: color }}
-                className="w-fit rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
-              >
-                {label}
-              </span>
+              <div className="flex flex-wrap items-center gap-1">
+                <span
+                  style={{ backgroundColor: color }}
+                  className="w-fit rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
+                >
+                  {label}
+                </span>
+                <CategoryBadge recurso={r} categoryMap={categoryMap} />
+              </div>
               <p className="line-clamp-2 text-sm font-medium">{r.title}</p>
             </div>
           </div>
