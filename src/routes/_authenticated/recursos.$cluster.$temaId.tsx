@@ -624,7 +624,7 @@ function RecursosGallery({
                   folder="recursos"
                   id={r.id}
                   currentUrl={r.cover_url}
-                  onUploaded={(url) => setCover(r.id, url)}
+                  onUploaded={(url: string) => setCover(r.id, url)}
                   onCleared={() => setCover(r.id, null)}
                 />
               )}
