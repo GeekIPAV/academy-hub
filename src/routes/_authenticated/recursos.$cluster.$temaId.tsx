@@ -659,6 +659,15 @@ function BlocoCard({
             dangerouslySetInnerHTML={{ __html: bloco.description }}
           />
         )}
+        {bloco.materials && (
+          <div className="mt-3 rounded-md border bg-muted/30 p-3">
+            <p className="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Package className="h-3 w-3" />
+              Materiais necessários
+            </p>
+            <p className="whitespace-pre-wrap text-sm text-foreground/90">{bloco.materials}</p>
+          </div>
+        )}
         {selectedRecursos.length > 0 && (
           <div className="mt-3 space-y-1.5">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
