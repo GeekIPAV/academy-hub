@@ -528,10 +528,31 @@ function RecursosList({
 interface RecursoItemProps {
   recurso: RecursoRow;
   typeMap: Map<string, { label: string; color: string }>;
+  categoryMap: Map<string, { label: string; color: string }>;
   onOpen: (fileUrl: string) => void;
 }
 
-function RecursoButton({ recurso, typeMap, onOpen }: RecursoItemProps) {
+function CategoryBadge({
+  recurso,
+  categoryMap,
+}: {
+  recurso: RecursoRow;
+  categoryMap: Map<string, { label: string; color: string }>;
+}) {
+  if (!recurso.category_key) return null;
+  const cat = categoryMap.get(recurso.category_key);
+  if (!cat) return null;
+  return (
+    <span
+      style={{ borderColor: cat.color, color: cat.color }}
+      className="shrink-0 rounded-md border bg-background px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+    >
+      {cat.label}
+    </span>
+  );
+}
+
+function RecursoButton({ recurso, typeMap, categoryMap, onOpen }: RecursoItemProps) {
   const Icon = recurso.resource_type === "video" ? Video : FileText;
   const typeMeta = typeMap.get(recurso.resource_type);
   const label = typeMeta?.label ?? recurso.resource_type.toUpperCase();
@@ -546,6 +567,7 @@ function RecursoButton({ recurso, typeMap, onOpen }: RecursoItemProps) {
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{recurso.title}</p>
       </div>
+      <CategoryBadge recurso={recurso} categoryMap={categoryMap} />
       <span
         style={{ backgroundColor: color }}
         className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
@@ -557,7 +579,7 @@ function RecursoButton({ recurso, typeMap, onOpen }: RecursoItemProps) {
   );
 }
 
-function SortableRecurso({ recurso, typeMap, onOpen }: RecursoItemProps) {
+function SortableRecurso({ recurso, typeMap, categoryMap, onOpen }: RecursoItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: recurso.id });
   const style = {
@@ -593,6 +615,7 @@ function SortableRecurso({ recurso, typeMap, onOpen }: RecursoItemProps) {
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{recurso.title}</p>
         </div>
+        <CategoryBadge recurso={recurso} categoryMap={categoryMap} />
         <span
           style={{ backgroundColor: color }}
           className="shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white"
