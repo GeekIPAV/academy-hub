@@ -699,6 +699,53 @@ export type Database = {
           },
         ]
       }
+      plano_sessao_blocos: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          recurso_ids: string[]
+          schedule: string | null
+          sort_order: number
+          tema_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          recurso_ids?: string[]
+          schedule?: string | null
+          sort_order?: number
+          tema_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          recurso_ids?: string[]
+          schedule?: string | null
+          sort_order?: number
+          tema_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plano_sessao_blocos_tema_id_fkey"
+            columns: ["tema_id"]
+            isOneToOne: false
+            referencedRelation: "temas_momentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programas: {
         Row: {
           cluster: string | null
@@ -979,6 +1026,7 @@ export type Database = {
           cover_url: string | null
           created_at: string
           description: string | null
+          hidden_sections: string[]
           id: string
           intro: string | null
           objectives: string | null
@@ -995,6 +1043,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          hidden_sections?: string[]
           id?: string
           intro?: string | null
           objectives?: string | null
@@ -1011,6 +1060,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          hidden_sections?: string[]
           id?: string
           intro?: string | null
           objectives?: string | null
