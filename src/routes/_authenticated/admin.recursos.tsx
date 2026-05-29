@@ -841,6 +841,7 @@ function EditRecursoDialog({
   const [description, setDescription] = useState("");
   const [resourceType, setResourceType] = useState<ResourceType>("pdf");
   const [fileUrl, setFileUrl] = useState("");
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -849,8 +850,20 @@ function EditRecursoDialog({
       setDescription(recurso.description ?? "");
       setResourceType((recurso.resource_type as ResourceType) ?? "pdf");
       setFileUrl(recurso.file_url ?? "");
+      setCoverUrl(recurso.cover_url ?? null);
     }
   }, [recurso]);
+
+  const persistCover = async (url: string | null) => {
+    if (!recurso) return;
+    const { error } = await supabase
+      .from("recursos")
+      .update({ cover_url: url })
+      .eq("id", recurso.id);
+    if (error) throw error;
+    setCoverUrl(url);
+    onSaved();
+  };
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
