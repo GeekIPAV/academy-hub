@@ -248,6 +248,7 @@ function EditableField({
 
   const [draft, setDraft] = useState(normalized);
   const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
   const lastSavedRef = useRef(normalized);
 
   useEffect(() => {
@@ -280,6 +281,7 @@ function EditableField({
       if (error) throw error;
       lastSavedRef.current = draft;
       toast.success("Guardado.");
+      setEditing(false);
       onSaved();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro ao guardar");
@@ -288,23 +290,50 @@ function EditableField({
     }
   };
 
+  if (!editing) {
+    return (
+      <div className="space-y-2">
+        {initial ? (
+          <div
+            className={cn("rich-text", readClassName)}
+            dangerouslySetInnerHTML={{ __html: normalized }}
+          />
+        ) : (
+          <p className="text-sm italic text-muted-foreground">{placeholder}</p>
+        )}
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => setEditing(true)}
+          >
+            <Pencil className="mr-1 h-3.5 w-3.5" />
+            Editar
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-2">
       <RichTextEditor value={draft} onChange={setDraft} />
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span>{dirty ? "Alterações por guardar" : placeholder}</span>
         <div className="flex gap-1">
-          {dirty && (
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => setDraft(lastSavedRef.current)}
-              disabled={saving}
-            >
-              Cancelar
-            </Button>
-          )}
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setDraft(lastSavedRef.current);
+              setEditing(false);
+            }}
+            disabled={saving}
+          >
+            Cancelar
+          </Button>
           <Button
             type="button"
             size="sm"
