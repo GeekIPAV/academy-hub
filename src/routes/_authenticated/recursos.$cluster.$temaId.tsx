@@ -537,6 +537,7 @@ function BlocoCard({
   index,
   temaRecursos,
   typeMap,
+  categoryMap,
   isAdmin,
   onOpen,
   onChanged,
@@ -545,6 +546,7 @@ function BlocoCard({
   index: number;
   temaRecursos: RecursoRow[];
   typeMap: Map<string, { label: string; color: string }>;
+  categoryMap: Map<string, { label: string; color: string }>;
   isAdmin: boolean;
   onOpen: (fileUrl: string) => void;
   onChanged: () => void;
