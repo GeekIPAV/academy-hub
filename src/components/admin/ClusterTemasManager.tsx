@@ -38,6 +38,7 @@ import {
   ArrowDown,
   Link2,
 } from "lucide-react";
+import { useClusters, type ClusterRow } from "@/hooks/use-clusters";
 
 interface RecursoRow {
   id: string;
@@ -77,7 +78,7 @@ export function ClusterTemasManager() {
 
   // Clusters (nova tabela normalizada)
   const clustersQuery = useClusters();
-  const clusters = (clustersQuery.data ?? []).map((c) => c.name);
+  const clusters = (clustersQuery.data ?? []).map((c: ClusterRow) => c.name);
   const activeCluster = cluster || clusters[0] || "";
 
   // Temas
