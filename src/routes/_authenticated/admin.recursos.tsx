@@ -1023,6 +1023,29 @@ function EditRecursoDialog({
             </Select>
           </div>
           <div className="space-y-1">
+            <Label>Categoria</Label>
+            <Select
+              value={categoryKey || "__none"}
+              onValueChange={(v) => setCategoryKey(v === "__none" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sem categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">Sem categoria</SelectItem>
+                <CategoryOptions />
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Objetivos</Label>
+            <Textarea
+              rows={3}
+              value={objectives}
+              onChange={(e) => setObjectives(e.target.value)}
+            />
+          </div>
+          <div className="space-y-1">
             <Label>Link (URL)</Label>
             <Input
               type="url"
