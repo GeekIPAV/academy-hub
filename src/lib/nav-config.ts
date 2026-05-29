@@ -11,6 +11,7 @@ import {
   Library,
   ListChecks,
   Lock,
+  Medal,
   Megaphone,
   Newspaper,
   Shield,
