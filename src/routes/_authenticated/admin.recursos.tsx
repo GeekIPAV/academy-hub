@@ -596,12 +596,6 @@ function BibliotecaTab() {
                       {sortBy === "created_at" && <ArrowUpDown className="h-3 w-3" />}
                     </span>
                   </TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("created_at")}>
-                    <span className="flex items-center gap-1">
-                      Data
-                      {sortBy === "created_at" && <ArrowUpDown className="h-3 w-3" />}
-                    </span>
-                  </TableHead>
                   <TableHead className="w-40 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
