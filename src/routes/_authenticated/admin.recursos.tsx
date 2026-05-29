@@ -802,11 +802,33 @@ function SingleResourceForm() {
   );
 }
 
+// Per-row pipe-separated fields. Add new entries here to extend bulk add.
+const BULK_ROW_FIELDS = [
+  { key: "title", label: "Título", db: "title", required: true },
+  { key: "url", label: "URL", db: "file_url", required: true },
+  { key: "description", label: "Descrição", db: "description", required: false },
+  { key: "objectives", label: "Objetivos", db: "objectives", required: false },
+] as const;
+
+// Fields applied uniformly to all rows via select inputs.
+const BULK_SHARED_FIELDS = [
+  { key: "resource_type", label: "Tipo", db: "resource_type", default: "pdf", nullable: false, Options: TypeOptions },
+  { key: "category_key", label: "Categoria", db: "category_key", default: "", nullable: true, Options: CategoryOptions },
+] as const;
+
 function BulkAddForm() {
   const qc = useQueryClient();
   const [raw, setRaw] = useState("");
-  const [resourceType, setResourceType] = useState<ResourceType>("pdf");
+  const [shared, setShared] = useState<Record<string, string>>(() =>
+    Object.fromEntries(BULK_SHARED_FIELDS.map((f) => [f.key, f.default])),
+  );
   const [saving, setSaving] = useState(false);
+
+  const formatHint = BULK_ROW_FIELDS.map((f) => f.label + (f.required ? "" : " (opcional)")).join(" | ");
+  const placeholder = [
+    "Manual do Formando | https://onedrive... | Versão 2025 | Compreender o programa",
+    "Vídeo de Boas-vindas | https://youtube.com/watch?v=... | | ",
+  ].join("\n");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -816,25 +838,31 @@ function BulkAddForm() {
       .filter(Boolean)
       .map((line) => {
         const parts = line.split("|").map((p) => p.trim());
-        const [title, url, description] = parts;
-        return { title, url, description: description || null };
+        const row: Record<string, string | null> = {};
+        BULK_ROW_FIELDS.forEach((f, i) => {
+          const v = parts[i] ?? "";
+          row[f.db] = v || (f.required ? "" : null);
+        });
+        return row;
       })
-      .filter((r) => r.title && r.url);
+      .filter((r) => BULK_ROW_FIELDS.every((f) => !f.required || (r[f.db] && String(r[f.db]).trim())));
 
     if (rows.length === 0) {
-      toast.error("Nenhuma linha válida. Usa o formato: Título | URL | Descrição");
+      toast.error(`Nenhuma linha válida. Usa o formato: ${formatHint}`);
       return;
     }
 
     setSaving(true);
     try {
-      const payload = rows.map((r) => ({
-        title: r.title,
-        description: r.description,
-        resource_type: resourceType,
-        file_url: r.url,
-      }));
-      const { error } = await supabase.from("recursos").insert(payload);
+      const payload = rows.map((r) => {
+        const out: Record<string, unknown> = { ...r };
+        BULK_SHARED_FIELDS.forEach((f) => {
+          const v = shared[f.key];
+          out[f.db] = f.nullable ? (v ? v : null) : v;
+        });
+        return out;
+      });
+      const { error } = await supabase.from("recursos").insert(payload as never);
       if (error) throw error;
       toast.success(`${rows.length} recurso(s) adicionado(s).`);
       setRaw("");
@@ -850,19 +878,30 @@ function BulkAddForm() {
     <Card>
       <CardContent className="pt-6">
         <form onSubmit={submit} className="space-y-4">
-          <div className="space-y-1">
-            <Label>Tipo (aplicado a todas as linhas)</Label>
-            <Select
-              value={resourceType}
-              onValueChange={(v) => setResourceType(v as ResourceType)}
-            >
-              <SelectTrigger className="max-w-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <TypeOptions />
-              </SelectContent>
-            </Select>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {BULK_SHARED_FIELDS.map((f) => {
+              const Options = f.Options;
+              const value = shared[f.key] || (f.nullable ? "__none" : f.default);
+              return (
+                <div key={f.key} className="space-y-1">
+                  <Label>{f.label} (aplicado a todas as linhas)</Label>
+                  <Select
+                    value={value}
+                    onValueChange={(v) =>
+                      setShared((s) => ({ ...s, [f.key]: f.nullable && v === "__none" ? "" : v }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {f.nullable && <SelectItem value="__none">— Nenhum —</SelectItem>}
+                      <Options />
+                    </SelectContent>
+                  </Select>
+                </div>
+              );
+            })}
           </div>
           <div className="space-y-1">
             <Label>Linhas (uma por recurso)</Label>
@@ -870,11 +909,11 @@ function BulkAddForm() {
               rows={10}
               value={raw}
               onChange={(e) => setRaw(e.target.value)}
-              placeholder={`Manual do Formando | https://onedrive... | Versão 2025\nVídeo de Boas-vindas | https://youtube.com/watch?v=...`}
+              placeholder={placeholder}
               className="font-mono text-xs"
             />
             <p className="text-xs text-muted-foreground">
-              Formato por linha: <code>Título | URL | Descrição (opcional)</code>. {EMBED_HINT}
+              Formato por linha: <code>{formatHint}</code>. {EMBED_HINT}
             </p>
           </div>
           <Button type="submit" disabled={saving}>
@@ -890,6 +929,7 @@ function BulkAddForm() {
     </Card>
   );
 }
+
 
 function EditRecursoDialog({
   recurso,
