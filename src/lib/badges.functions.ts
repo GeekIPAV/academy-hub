@@ -20,7 +20,7 @@ type BadgeListRow = {
   description: string | null;
   cluster_id: string;
   cover_url: string | null;
-  required_program_id: string | null;
+  
   created_at: string | null;
   validity_type: string;
   validity_years: number | null;
