@@ -435,6 +435,7 @@ interface PlanoBloco {
   description: string | null;
   duration_minutes: number | null;
   schedule: string | null;
+  materials: string | null;
   recurso_ids: string[];
 }
 
