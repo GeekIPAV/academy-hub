@@ -7,7 +7,6 @@ import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-
 import { Loader2, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
   head: ({ params }) => ({
