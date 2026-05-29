@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
+import { RichTextEditor } from "@/components/rich-text-editor";
 
 export const Route = createFileRoute("/comunicacao/press-media-kit")({
   head: () => ({
