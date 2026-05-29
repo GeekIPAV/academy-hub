@@ -69,12 +69,12 @@
   --radius: 0.625rem;
 
   /* Academia de Líderes Ubuntu — brand tokens (strict HEX) */
-  --background: #FFFFFF;
-  --foreground: #182B47;
+  --background: #F6F7F9;
+  --foreground: #2C2A2B;
   --card: #FFFFFF;
-  --card-foreground: #182B47;
+  --card-foreground: #2C2A2B;
   --popover: #FFFFFF;
-  --popover-foreground: #182B47;
+  --popover-foreground: #2C2A2B;
   --primary: #FF8226;
   --primary-foreground: #FFFFFF;
   --secondary: #193B69;
