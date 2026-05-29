@@ -482,7 +482,7 @@ function RecursosList({
           </SortableContext>
         </DndContext>
       ) : (
-        <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} />
+        <RecursosGallery items={items} typeMap={typeMap} onOpen={onOpen} isAdmin={isAdmin} onSaved={onSaved} />
       )}
     </div>
   );
