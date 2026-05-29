@@ -164,7 +164,7 @@ function FaqsPage() {
         const nextOrder = items.length ? Math.max(...items.map((i) => i.sort_order)) + 10 : 0;
         const { error } = await supabase.from("faqs").insert({
           question: form.question.trim(),
-          answer: form.answer.trim(),
+          answer: form.answer,
           sort_order: nextOrder,
         });
         if (error) throw error;
