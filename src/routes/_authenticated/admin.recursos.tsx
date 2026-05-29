@@ -686,6 +686,8 @@ function SingleResourceForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [resourceType, setResourceType] = useState<ResourceType>("pdf");
+  const [categoryKey, setCategoryKey] = useState<string>("");
+  const [objectives, setObjectives] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -693,6 +695,8 @@ function SingleResourceForm() {
     setTitle("");
     setDescription("");
     setResourceType("pdf");
+    setCategoryKey("");
+    setObjectives("");
     setFileUrl("");
   };
 
@@ -706,8 +710,10 @@ function SingleResourceForm() {
         title: title.trim(),
         description: description.trim() || null,
         resource_type: resourceType,
+        category_key: categoryKey || null,
+        objectives: objectives.trim() || null,
         file_url: fileUrl.trim(),
-      });
+      } as never);
       if (error) throw error;
       toast.success("Recurso adicionado.");
       reset();
