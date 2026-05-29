@@ -260,20 +260,6 @@ function formatValidity(
   return "Para sempre";
 }
 
-function useProgramsList() {
-  return useQuery({
-    queryKey: ["programs", "list"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("programas")
-        .select("id, title")
-        .order("title");
-      if (error) throw new Error(error.message);
-      return data ?? [];
-    },
-    staleTime: 5 * 60_000,
-  });
-}
 
 function BadgeFormDialog({
   open,
