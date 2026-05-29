@@ -47,7 +47,7 @@ export const listAllBadges = createServerFn({ method: "GET" })
         cluster_id: row.cluster_id,
         cluster_name: row.clusters?.name ?? "",
         cover_url: row.cover_url,
-        required_program_id: row.required_program_id,
+        
         created_at: row.created_at,
         validity_type: row.validity_type,
         validity_years: row.validity_years,
