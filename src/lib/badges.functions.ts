@@ -110,7 +110,7 @@ export const getUsersByBadge = createServerFn({ method: "POST" })
 
     const { data: rows, error } = await supabaseAdmin
       .from("user_badges")
-      .select("id, user_id, granted_at, expires_at, utilizadores(id, full_name)")
+      .select("id, user_id, granted_at, expires_at, utilizadores!user_badges_user_id_fkey(id, full_name)")
       .eq("badge_id", data.badgeId)
       .order("granted_at", { ascending: false });
     if (error) throw new Error(error.message);
