@@ -1,0 +1,1 @@
+ALTER TABLE public.plano_sessao_blocos ADD COLUMN IF NOT EXISTS materials text;

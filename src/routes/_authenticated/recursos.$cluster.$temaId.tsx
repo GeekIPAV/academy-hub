@@ -24,9 +24,12 @@ import {
   Plus,
   Trash2,
   Clock,
+  Search,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CoverUploader } from "@/components/CoverUploader";
@@ -435,6 +438,7 @@ interface PlanoBloco {
   description: string | null;
   duration_minutes: number | null;
   schedule: string | null;
+  materials: string | null;
   recurso_ids: string[];
 }
 
@@ -456,7 +460,7 @@ function PlanoSessao({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("plano_sessao_blocos")
-        .select("id, tema_id, sort_order, title, description, duration_minutes, schedule, recurso_ids")
+        .select("id, tema_id, sort_order, title, description, duration_minutes, schedule, materials, recurso_ids")
         .eq("tema_id", temaId)
         .order("sort_order", { ascending: true });
       if (error) throw new Error(error.message);
@@ -547,7 +551,9 @@ function BlocoCard({
     bloco.duration_minutes != null ? String(bloco.duration_minutes) : "",
   );
   const [description, setDescription] = useState(bloco.description ?? "");
+  const [materials, setMaterials] = useState(bloco.materials ?? "");
   const [recursoIds, setRecursoIds] = useState<string[]>(bloco.recurso_ids ?? []);
+  const [recursoSearch, setRecursoSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
 
@@ -556,6 +562,7 @@ function BlocoCard({
     setSchedule(bloco.schedule ?? "");
     setDuration(bloco.duration_minutes != null ? String(bloco.duration_minutes) : "");
     setDescription(bloco.description ?? "");
+    setMaterials(bloco.materials ?? "");
     setRecursoIds(bloco.recurso_ids ?? []);
   }, [bloco]);
 
@@ -574,6 +581,7 @@ function BlocoCard({
           schedule: schedule || null,
           duration_minutes: duration ? Number(duration) : null,
           description: description || null,
+          materials: materials || null,
           recurso_ids: recursoIds,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any)
@@ -651,6 +659,15 @@ function BlocoCard({
             dangerouslySetInnerHTML={{ __html: bloco.description }}
           />
         )}
+        {bloco.materials && (
+          <div className="mt-3 rounded-md border bg-muted/30 p-3">
+            <p className="mb-1 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <Package className="h-3 w-3" />
+              Materiais necessários
+            </p>
+            <p className="whitespace-pre-wrap text-sm text-foreground/90">{bloco.materials}</p>
+          </div>
+        )}
         {selectedRecursos.length > 0 && (
           <div className="mt-3 space-y-1.5">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -720,6 +737,18 @@ function BlocoCard({
         <RichTextEditor value={description} onChange={setDescription} />
       </div>
 
+      <div className="space-y-1">
+        <label className="text-xs font-medium text-muted-foreground">
+          Materiais necessários
+        </label>
+        <Textarea
+          value={materials}
+          onChange={(e) => setMaterials(e.target.value)}
+          placeholder="Ex.: post-its, marcadores, projetor…"
+          rows={3}
+        />
+      </div>
+
       <div className="space-y-1.5">
         <label className="text-xs font-medium text-muted-foreground">
           Recursos ({recursoIds.length} selecionado{recursoIds.length === 1 ? "" : "s"})
@@ -729,26 +758,50 @@ function BlocoCard({
             Este tema ainda não tem recursos associados. Adiciona na tab “Recursos”.
           </p>
         ) : (
-          <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border bg-background p-2">
-            {temaRecursos.map((r) => {
-              const checked = recursoIds.includes(r.id);
-              return (
-                <label
-                  key={r.id}
-                  className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-muted/50"
-                >
-                  <Checkbox
-                    checked={checked}
-                    onCheckedChange={(v) => {
-                      setRecursoIds((curr) =>
-                        v ? [...curr, r.id] : curr.filter((id) => id !== r.id),
-                      );
-                    }}
-                  />
-                  <span className="truncate text-sm">{r.title}</span>
-                </label>
-              );
-            })}
+          <div className="rounded-md border bg-background">
+            <div className="relative border-b">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={recursoSearch}
+                onChange={(e) => setRecursoSearch(e.target.value)}
+                placeholder="Pesquisar recursos…"
+                className="h-8 border-0 pl-8 text-sm focus-visible:ring-0"
+              />
+            </div>
+            <div className="max-h-48 space-y-1 overflow-y-auto p-2">
+              {(() => {
+                const q = recursoSearch.trim().toLowerCase();
+                const filtered = q
+                  ? temaRecursos.filter((r) => r.title.toLowerCase().includes(q))
+                  : temaRecursos;
+                if (filtered.length === 0) {
+                  return (
+                    <p className="px-2 py-1 text-xs italic text-muted-foreground">
+                      Nenhum recurso encontrado.
+                    </p>
+                  );
+                }
+                return filtered.map((r) => {
+                  const checked = recursoIds.includes(r.id);
+                  return (
+                    <label
+                      key={r.id}
+                      className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-muted/50"
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={(v) => {
+                          setRecursoIds((curr) =>
+                            v ? [...curr, r.id] : curr.filter((id) => id !== r.id),
+                          );
+                        }}
+                      />
+                      <span className="truncate text-sm">{r.title}</span>
+                    </label>
+                  );
+                });
+              })()}
+            </div>
           </div>
         )}
       </div>

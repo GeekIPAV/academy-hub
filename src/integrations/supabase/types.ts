@@ -705,6 +705,7 @@ export type Database = {
           description: string | null
           duration_minutes: number | null
           id: string
+          materials: string | null
           recurso_ids: string[]
           schedule: string | null
           sort_order: number
@@ -717,6 +718,7 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           id?: string
+          materials?: string | null
           recurso_ids?: string[]
           schedule?: string | null
           sort_order?: number
@@ -729,6 +731,7 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           id?: string
+          materials?: string | null
           recurso_ids?: string[]
           schedule?: string | null
           sort_order?: number
