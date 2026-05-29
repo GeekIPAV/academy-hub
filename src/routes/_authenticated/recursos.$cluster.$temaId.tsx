@@ -603,8 +603,12 @@ function RecursosGallery({
             key={r.id}
             role="button"
             tabIndex={0}
-            onClick={() => onOpen(r.file_url)}
+            onClick={(e) => {
+              if ((e.target as HTMLElement).closest("button, input, a, label")) return;
+              onOpen(r.file_url);
+            }}
             onKeyDown={(e) => {
+              if (e.target !== e.currentTarget) return;
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 onOpen(r.file_url);
