@@ -5,7 +5,7 @@ import { useApp } from "@/lib/app-context";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+
 import {
   Accordion,
   AccordionContent,
@@ -47,6 +47,9 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, Pencil, Trash2, Save, Loader2, X } from "lucide-react";
+import { RichTextEditor } from "@/components/rich-text-editor";
+
+const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
 
 export const Route = createFileRoute("/faqs")({
   head: () => ({ meta: [{ title: "FAQs — Academia Ubuntu" }] }),
@@ -144,7 +147,7 @@ function FaqsPage() {
   };
 
   const saveFaq = async () => {
-    if (!form.question.trim() || !form.answer.trim()) {
+    if (!form.question.trim() || !stripHtml(form.answer)) {
       toast.error("Preenche pergunta e resposta");
       return;
     }
@@ -153,7 +156,7 @@ function FaqsPage() {
       if (editing) {
         const { error } = await supabase
           .from("faqs")
-          .update({ question: form.question.trim(), answer: form.answer.trim() })
+          .update({ question: form.question.trim(), answer: form.answer })
           .eq("id", editing.id);
         if (error) throw error;
         toast.success("FAQ atualizada");
@@ -161,7 +164,7 @@ function FaqsPage() {
         const nextOrder = items.length ? Math.max(...items.map((i) => i.sort_order)) + 10 : 0;
         const { error } = await supabase.from("faqs").insert({
           question: form.question.trim(),
-          answer: form.answer.trim(),
+          answer: form.answer,
           sort_order: nextOrder,
         });
         if (error) throw error;
@@ -236,8 +239,8 @@ function FaqsPage() {
           {items.map((f) => (
             <AccordionItem key={f.id} value={f.id}>
               <AccordionTrigger className="text-left">{f.question}</AccordionTrigger>
-              <AccordionContent className="whitespace-pre-wrap text-muted-foreground">
-                {f.answer}
+              <AccordionContent>
+                <div className="rich-text text-muted-foreground" dangerouslySetInnerHTML={{ __html: f.answer }} />
               </AccordionContent>
             </AccordionItem>
           ))}
@@ -260,11 +263,9 @@ function FaqsPage() {
             </div>
             <div>
               <label className="text-sm font-medium">Resposta</label>
-              <Textarea
+              <RichTextEditor
                 value={form.answer}
-                onChange={(e) => setForm((p) => ({ ...p, answer: e.target.value }))}
-                rows={6}
-                placeholder="Resposta detalhada"
+                onChange={(html) => setForm((p) => ({ ...p, answer: html }))}
               />
             </div>
           </div>
@@ -342,8 +343,8 @@ function SortableFaq({
         </Button>
       </div>
       {open && (
-        <div className="px-3 pb-3 pl-10 whitespace-pre-wrap text-sm text-muted-foreground">
-          {faq.answer}
+        <div className="px-3 pb-3 pl-10 text-sm text-muted-foreground">
+          <div className="rich-text" dangerouslySetInnerHTML={{ __html: faq.answer }} />
         </div>
       )}
     </div>
