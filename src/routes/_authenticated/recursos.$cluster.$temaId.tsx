@@ -19,6 +19,7 @@ import {
   List as ListIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CoverUploader } from "@/components/CoverUploader";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import {
   DndContext,
