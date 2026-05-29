@@ -17,6 +17,7 @@ import {
   ChevronRight,
   LayoutGrid,
   List as ListIcon,
+  Pencil,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CoverUploader } from "@/components/CoverUploader";
