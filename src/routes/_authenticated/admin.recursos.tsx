@@ -70,6 +70,7 @@ interface ResourceRow {
   description: string | null;
   resource_type: string;
   file_url: string;
+  cover_url: string | null;
   created_at: string | null;
 }
 
