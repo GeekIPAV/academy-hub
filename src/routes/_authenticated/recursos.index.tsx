@@ -75,7 +75,7 @@ function ResourcesIndex() {
       <ComponentAccessMatrix pagePath="/recursos" />
 
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight text-primary">
+        <h1 className="text-3xl font-semibold tracking-tight text-secondary">
           Centro de Recursos
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -162,7 +162,7 @@ function ClusterCard({
         <h3
           className={cn(
             "text-base font-semibold leading-tight",
-            allowed ? "text-primary" : "text-muted-foreground",
+            allowed ? "text-secondary" : "text-muted-foreground",
           )}
         >
           {cluster.title}

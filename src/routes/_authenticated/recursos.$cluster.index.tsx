@@ -112,7 +112,7 @@ function ClusterTemas() {
       <div className="mx-auto max-w-3xl py-16 text-center">
         <h1 className="text-2xl font-semibold">{cluster.title}</h1>
         <p className="mt-4 text-muted-foreground">Não tens acesso a este cluster.</p>
-        <Link to="/recursos" className="mt-6 inline-block text-sm text-primary underline">
+        <Link to="/recursos" className="mt-6 inline-block text-sm text-secondary underline">
           Voltar
         </Link>
       </div>
@@ -122,7 +122,7 @@ function ClusterTemas() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <header className="border-b pb-6">
-        <h1 className="text-3xl font-semibold tracking-tight text-primary">
+        <h1 className="text-3xl font-semibold tracking-tight text-secondary">
           {cluster.title}
         </h1>
         {cluster.subtitle && (
@@ -201,7 +201,7 @@ function FilterChip({
       className={cn(
         "rounded-md border px-3 py-1.5 text-xs font-medium transition",
         active
-          ? "border-primary bg-primary/5 text-primary"
+          ? "border-secondary bg-secondary/5 text-secondary"
           : "border-border bg-background text-muted-foreground hover:bg-muted",
       )}
     >
@@ -252,11 +252,11 @@ function TemaCard({
       </div>
       <div className="space-y-1 p-3">
         {tema.bloco && (
-          <p className="text-[10px] font-medium uppercase tracking-wide text-primary/70">
+          <p className="text-[10px] font-medium uppercase tracking-wide text-secondary/70">
             {tema.bloco}
           </p>
         )}
-        <h3 className="text-sm font-semibold leading-tight text-primary">{tema.title}</h3>
+        <h3 className="text-sm font-semibold leading-tight text-secondary">{tema.title}</h3>
       </div>
     </Link>
   );

@@ -146,23 +146,23 @@ function TemaDetail() {
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-        <Link to="/recursos" className="hover:text-primary">
+        <Link to="/recursos" className="hover:text-secondary">
           Centro de Recursos
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
         <Link
           to="/recursos/$cluster"
           params={{ cluster: effectiveClusterSlug }}
-          className="hover:text-primary"
+          className="hover:text-secondary"
         >
           {tema.bloco ?? clusterTitle}
         </Link>
         <ChevronRight className="h-3.5 w-3.5" />
-        <span className="text-primary">{tema.title}</span>
+        <span className="text-secondary">{tema.title}</span>
       </nav>
 
       <header className="space-y-3 border-b pb-6">
-        <h1 className="text-3xl font-semibold text-primary">{tema.title}</h1>
+        <h1 className="text-3xl font-semibold text-secondary">{tema.title}</h1>
         <EditableField
           temaId={tema.id}
           field="intro"
@@ -183,7 +183,7 @@ function TemaDetail() {
               key={s.field}
               className="rounded-xl border bg-card p-5 shadow-sm"
             >
-              <h2 className="mb-2 text-lg font-semibold text-primary">{s.title}</h2>
+              <h2 className="mb-2 text-lg font-semibold text-secondary">{s.title}</h2>
               <EditableField
                 temaId={tema.id}
                 field={s.field}
@@ -199,7 +199,7 @@ function TemaDetail() {
       </div>
 
       <section className="space-y-3 border-t pt-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-primary">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-secondary">
           Recursos
         </h2>
         <RecursosList
