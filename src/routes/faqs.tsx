@@ -263,11 +263,9 @@ function FaqsPage() {
             </div>
             <div>
               <label className="text-sm font-medium">Resposta</label>
-              <Textarea
+              <RichTextEditor
                 value={form.answer}
-                onChange={(e) => setForm((p) => ({ ...p, answer: e.target.value }))}
-                rows={6}
-                placeholder="Resposta detalhada"
+                onChange={(html) => setForm((p) => ({ ...p, answer: html }))}
               />
             </div>
           </div>
