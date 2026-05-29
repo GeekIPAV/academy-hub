@@ -34,9 +34,9 @@ import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
 import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
 import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
-import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
+import { Route as AuthenticatedRecursosClusterIndexRouteImport } from './routes/_authenticated/recursos.$cluster.index'
 import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './routes/api/certificates.$actionId.$participanteId'
 import { Route as AuthenticatedRecursosClusterTemaIdRouteImport } from './routes/_authenticated/recursos.$cluster.$temaId'
 
@@ -167,12 +167,6 @@ const EntidadeAcoesIdRoute = EntidadeAcoesIdRouteImport.update({
   path: '/entidade/acoes/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRecursosClusterRoute =
-  AuthenticatedRecursosClusterRouteImport.update({
-    id: '/$cluster',
-    path: '/$cluster',
-    getParentRoute: () => AuthenticatedRecursosRoute,
-  } as any)
 const AuthenticatedAdminRecursosRoute =
   AuthenticatedAdminRecursosRouteImport.update({
     id: '/admin/recursos',
@@ -184,6 +178,12 @@ const AuthenticatedActionsIdRoute = AuthenticatedActionsIdRouteImport.update({
   path: '/actions/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedRecursosClusterIndexRoute =
+  AuthenticatedRecursosClusterIndexRouteImport.update({
+    id: '/$cluster/',
+    path: '/$cluster/',
+    getParentRoute: () => AuthenticatedRecursosRoute,
+  } as any)
 const ApiCertificatesActionIdParticipanteIdRoute =
   ApiCertificatesActionIdParticipanteIdRouteImport.update({
     id: '/api/certificates/$actionId/$participanteId',
@@ -192,9 +192,9 @@ const ApiCertificatesActionIdParticipanteIdRoute =
   } as any)
 const AuthenticatedRecursosClusterTemaIdRoute =
   AuthenticatedRecursosClusterTemaIdRouteImport.update({
-    id: '/$temaId',
-    path: '/$temaId',
-    getParentRoute: () => AuthenticatedRecursosClusterRoute,
+    id: '/$cluster/$temaId',
+    path: '/$cluster/$temaId',
+    getParentRoute: () => AuthenticatedRecursosRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -221,12 +221,12 @@ export interface FileRoutesByFullPath {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
-  '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/recursos/': typeof AuthenticatedRecursosIndexRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
+  '/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -251,12 +251,12 @@ export interface FileRoutesByTo {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
-  '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/recursos': typeof AuthenticatedRecursosIndexRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
+  '/recursos/$cluster': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -284,12 +284,12 @@ export interface FileRoutesById {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
-  '/_authenticated/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
   '/_authenticated/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
+  '/_authenticated/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -317,12 +317,12 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
-    | '/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/publicacoes/revistas/$id'
     | '/recursos/'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
+    | '/recursos/$cluster/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -347,12 +347,12 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
-    | '/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/publicacoes/revistas/$id'
     | '/recursos'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
+    | '/recursos/$cluster'
   id:
     | '__root__'
     | '/'
@@ -379,12 +379,12 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
-    | '/_authenticated/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/publicacoes/revistas/$id'
     | '/_authenticated/recursos/'
     | '/_authenticated/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
+    | '/_authenticated/recursos/$cluster/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -590,13 +590,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntidadeAcoesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/recursos/$cluster': {
-      id: '/_authenticated/recursos/$cluster'
-      path: '/$cluster'
-      fullPath: '/recursos/$cluster'
-      preLoaderRoute: typeof AuthenticatedRecursosClusterRouteImport
-      parentRoute: typeof AuthenticatedRecursosRoute
-    }
     '/_authenticated/admin/recursos': {
       id: '/_authenticated/admin/recursos'
       path: '/admin/recursos'
@@ -611,6 +604,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedActionsIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/recursos/$cluster/': {
+      id: '/_authenticated/recursos/$cluster/'
+      path: '/$cluster'
+      fullPath: '/recursos/$cluster/'
+      preLoaderRoute: typeof AuthenticatedRecursosClusterIndexRouteImport
+      parentRoute: typeof AuthenticatedRecursosRoute
+    }
     '/api/certificates/$actionId/$participanteId': {
       id: '/api/certificates/$actionId/$participanteId'
       path: '/api/certificates/$actionId/$participanteId'
@@ -620,38 +620,26 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/recursos/$cluster/$temaId': {
       id: '/_authenticated/recursos/$cluster/$temaId'
-      path: '/$temaId'
+      path: '/$cluster/$temaId'
       fullPath: '/recursos/$cluster/$temaId'
       preLoaderRoute: typeof AuthenticatedRecursosClusterTemaIdRouteImport
-      parentRoute: typeof AuthenticatedRecursosClusterRoute
+      parentRoute: typeof AuthenticatedRecursosRoute
     }
   }
 }
 
-interface AuthenticatedRecursosClusterRouteChildren {
-  AuthenticatedRecursosClusterTemaIdRoute: typeof AuthenticatedRecursosClusterTemaIdRoute
-}
-
-const AuthenticatedRecursosClusterRouteChildren: AuthenticatedRecursosClusterRouteChildren =
-  {
-    AuthenticatedRecursosClusterTemaIdRoute:
-      AuthenticatedRecursosClusterTemaIdRoute,
-  }
-
-const AuthenticatedRecursosClusterRouteWithChildren =
-  AuthenticatedRecursosClusterRoute._addFileChildren(
-    AuthenticatedRecursosClusterRouteChildren,
-  )
-
 interface AuthenticatedRecursosRouteChildren {
-  AuthenticatedRecursosClusterRoute: typeof AuthenticatedRecursosClusterRouteWithChildren
   AuthenticatedRecursosIndexRoute: typeof AuthenticatedRecursosIndexRoute
+  AuthenticatedRecursosClusterTemaIdRoute: typeof AuthenticatedRecursosClusterTemaIdRoute
+  AuthenticatedRecursosClusterIndexRoute: typeof AuthenticatedRecursosClusterIndexRoute
 }
 
 const AuthenticatedRecursosRouteChildren: AuthenticatedRecursosRouteChildren = {
-  AuthenticatedRecursosClusterRoute:
-    AuthenticatedRecursosClusterRouteWithChildren,
   AuthenticatedRecursosIndexRoute: AuthenticatedRecursosIndexRoute,
+  AuthenticatedRecursosClusterTemaIdRoute:
+    AuthenticatedRecursosClusterTemaIdRoute,
+  AuthenticatedRecursosClusterIndexRoute:
+    AuthenticatedRecursosClusterIndexRoute,
 }
 
 const AuthenticatedRecursosRouteWithChildren =

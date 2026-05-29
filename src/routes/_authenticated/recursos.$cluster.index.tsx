@@ -7,7 +7,7 @@ import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-
 import { Loader2, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/recursos/$cluster")({
+export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
   head: ({ params }) => ({
     meta: [{ title: `${params.cluster} — Centro de Recursos` }],
   }),
