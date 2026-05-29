@@ -675,11 +675,14 @@ function AcoesTab({ entityId }: { entityId?: string }) {
                       <SelectValue placeholder="Selecionar…" />
                     </SelectTrigger>
                     <SelectContent>
-                      {ACTION_TYPES.map((t) => (
-                        <SelectItem key={t} value={t}>
-                          {t}
-                        </SelectItem>
-                      ))}
+                      {ACTION_TYPES.map((t) => {
+                        const locked = !allowedActionTypes.has(t);
+                        return (
+                          <SelectItem key={t} value={t} disabled={locked}>
+                            {t}{locked ? " — 🔒 requer badge" : ""}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>

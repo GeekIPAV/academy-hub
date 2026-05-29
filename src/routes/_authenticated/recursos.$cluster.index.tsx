@@ -4,9 +4,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-utils";
-import { Loader2, ImageIcon } from "lucide-react";
+import { Loader2, ImageIcon, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
+import { useHasBadgeForCluster } from "@/hooks/use-badge-access";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
   head: ({ params }) => ({
@@ -107,6 +108,8 @@ function ClusterTemas() {
   }
   if (!cluster) return null;
 
+  const hasBadge = useHasBadgeForCluster(cluster.name);
+
   if (!allowed && !isAdmin) {
     return (
       <div className="mx-auto max-w-3xl py-16 text-center">
@@ -114,6 +117,22 @@ function ClusterTemas() {
         <p className="mt-4 text-muted-foreground">Não tens acesso a este cluster.</p>
         <Link to="/recursos" className="mt-6 inline-block text-sm text-secondary underline">
           Voltar
+        </Link>
+      </div>
+    );
+  }
+
+  if (!hasBadge && !isAdmin) {
+    return (
+      <div className="mx-auto max-w-2xl py-16 text-center">
+        <Lock className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+        <h1 className="text-2xl font-semibold">{cluster.title}</h1>
+        <p className="mt-4 text-muted-foreground">
+          Precisas de concluir a formação correspondente para aceder aos recursos
+          deste cluster. Quando obtiveres o badge, esta área será desbloqueada.
+        </p>
+        <Link to="/recursos" className="mt-6 inline-block text-sm text-secondary underline">
+          Voltar ao Centro de Recursos
         </Link>
       </div>
     );
