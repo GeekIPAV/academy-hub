@@ -47,6 +47,9 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, Pencil, Trash2, Save, Loader2, X } from "lucide-react";
+import { RichTextEditor } from "@/components/rich-text-editor";
+
+const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
 
 export const Route = createFileRoute("/faqs")({
   head: () => ({ meta: [{ title: "FAQs — Academia Ubuntu" }] }),
