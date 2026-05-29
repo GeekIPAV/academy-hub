@@ -37,6 +37,7 @@ import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id
 import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
+import { Route as AuthenticatedRecursosClusterIndexRouteImport } from './routes/_authenticated/recursos.$cluster.index'
 import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './routes/api/certificates.$actionId.$participanteId'
 import { Route as AuthenticatedRecursosClusterTemaIdRouteImport } from './routes/_authenticated/recursos.$cluster.$temaId'
 
@@ -184,6 +185,12 @@ const AuthenticatedActionsIdRoute = AuthenticatedActionsIdRouteImport.update({
   path: '/actions/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedRecursosClusterIndexRoute =
+  AuthenticatedRecursosClusterIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedRecursosClusterRoute,
+  } as any)
 const ApiCertificatesActionIdParticipanteIdRoute =
   ApiCertificatesActionIdParticipanteIdRouteImport.update({
     id: '/api/certificates/$actionId/$participanteId',
@@ -227,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/recursos/': typeof AuthenticatedRecursosIndexRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
+  '/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -251,12 +259,12 @@ export interface FileRoutesByTo {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
-  '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/recursos': typeof AuthenticatedRecursosIndexRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
+  '/recursos/$cluster': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -290,6 +298,7 @@ export interface FileRoutesById {
   '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
   '/_authenticated/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
+  '/_authenticated/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -323,6 +332,7 @@ export interface FileRouteTypes {
     | '/recursos/'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
+    | '/recursos/$cluster/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -347,12 +357,12 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
-    | '/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/publicacoes/revistas/$id'
     | '/recursos'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
+    | '/recursos/$cluster'
   id:
     | '__root__'
     | '/'
@@ -385,6 +395,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recursos/'
     | '/_authenticated/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
+    | '/_authenticated/recursos/$cluster/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -611,6 +622,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedActionsIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/recursos/$cluster/': {
+      id: '/_authenticated/recursos/$cluster/'
+      path: '/'
+      fullPath: '/recursos/$cluster/'
+      preLoaderRoute: typeof AuthenticatedRecursosClusterIndexRouteImport
+      parentRoute: typeof AuthenticatedRecursosClusterRoute
+    }
     '/api/certificates/$actionId/$participanteId': {
       id: '/api/certificates/$actionId/$participanteId'
       path: '/api/certificates/$actionId/$participanteId'
@@ -630,12 +648,15 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRecursosClusterRouteChildren {
   AuthenticatedRecursosClusterTemaIdRoute: typeof AuthenticatedRecursosClusterTemaIdRoute
+  AuthenticatedRecursosClusterIndexRoute: typeof AuthenticatedRecursosClusterIndexRoute
 }
 
 const AuthenticatedRecursosClusterRouteChildren: AuthenticatedRecursosClusterRouteChildren =
   {
     AuthenticatedRecursosClusterTemaIdRoute:
       AuthenticatedRecursosClusterTemaIdRoute,
+    AuthenticatedRecursosClusterIndexRoute:
+      AuthenticatedRecursosClusterIndexRoute,
   }
 
 const AuthenticatedRecursosClusterRouteWithChildren =
