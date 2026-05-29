@@ -180,11 +180,9 @@ function PressKitPage() {
 
             <div className="space-y-2">
               <Label>Texto de apresentação</Label>
-              <Textarea
-                rows={10}
+              <RichTextEditor
                 value={draft.body}
-                onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
-                placeholder="Use uma linha em branco para separar parágrafos"
+                onChange={(html) => setDraft((d) => ({ ...d, body: html }))}
               />
             </div>
 
