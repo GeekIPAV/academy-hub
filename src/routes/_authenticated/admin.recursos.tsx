@@ -47,10 +47,25 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
 import { useResourceTypes, useResourceTypeMap } from "@/hooks/use-resource-types";
+import { useResourceCategories, useResourceCategoryMap } from "@/hooks/use-resource-categories";
 import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
+import { ResourceCategoriesManager } from "@/components/admin/ResourceCategoriesManager";
 import { CoverUploader } from "@/components/CoverUploader";
 
 type ResourceType = string;
+
+function CategoryOptions() {
+  const { data: cats = [] } = useResourceCategories();
+  return (
+    <>
+      {cats.map((c) => (
+        <SelectItem key={c.key} value={c.key}>
+          {c.label}
+        </SelectItem>
+      ))}
+    </>
+  );
+}
 
 function TypeOptions() {
   const { data: types = [] } = useResourceTypes();
