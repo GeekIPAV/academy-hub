@@ -47,10 +47,25 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
 import { useResourceTypes, useResourceTypeMap } from "@/hooks/use-resource-types";
+import { useResourceCategories, useResourceCategoryMap } from "@/hooks/use-resource-categories";
 import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
+import { ResourceCategoriesManager } from "@/components/admin/ResourceCategoriesManager";
 import { CoverUploader } from "@/components/CoverUploader";
 
 type ResourceType = string;
+
+function CategoryOptions() {
+  const { data: cats = [] } = useResourceCategories();
+  return (
+    <>
+      {cats.map((c) => (
+        <SelectItem key={c.key} value={c.key}>
+          {c.label}
+        </SelectItem>
+      ))}
+    </>
+  );
+}
 
 function TypeOptions() {
   const { data: types = [] } = useResourceTypes();
@@ -70,6 +85,8 @@ interface ResourceRow {
   title: string;
   description: string | null;
   resource_type: string;
+  category_key: string | null;
+  objectives: string | null;
   file_url: string;
   cover_url: string | null;
   created_at: string | null;
@@ -132,7 +149,16 @@ function AdminResourcesPage() {
           <AssociacoesTab />
         </TabsContent>
         <TabsContent value="tipos" className="mt-4">
-          <ResourceTypesManager />
+          <div className="space-y-8">
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold">Tipos</h2>
+              <ResourceTypesManager />
+            </section>
+            <section className="space-y-3">
+              <h2 className="text-lg font-semibold">Categorias</h2>
+              <ResourceCategoriesManager />
+            </section>
+          </div>
         </TabsContent>
       </Tabs>
     </div>
@@ -145,7 +171,7 @@ function useRecursos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recursos")
-        .select("id, title, description, resource_type, file_url, cover_url, created_at")
+        .select("id, title, description, resource_type, category_key, objectives, file_url, cover_url, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ResourceRow[];
@@ -202,6 +228,7 @@ function BibliotecaTab() {
   const { data: resources = [], isLoading } = useRecursos();
   const { data: clusters = [] } = useClusters();
   const { map: typeMap } = useResourceTypeMap();
+  const { map: categoryMap } = useResourceCategoryMap();
 
   const [editing, setEditing] = useState<ResourceRow | null>(null);
 
@@ -562,6 +589,13 @@ function BibliotecaTab() {
                       {sortBy === "resource_type" && <ArrowUpDown className="h-3 w-3" />}
                     </span>
                   </TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("created_at")}>
+                    <span className="flex items-center gap-1">
+                      Data
+                      {sortBy === "created_at" && <ArrowUpDown className="h-3 w-3" />}
+                    </span>
+                  </TableHead>
                   <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("created_at")}>
                     <span className="flex items-center gap-1">
                       Data
@@ -583,6 +617,9 @@ function BibliotecaTab() {
                     </TableCell>
                     <TableCell className="font-medium">{r.title}</TableCell>
                     <TableCell>{typeMap.get(r.resource_type)?.label ?? r.resource_type}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {r.category_key ? (categoryMap.get(r.category_key)?.label ?? r.category_key) : "—"}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
                     </TableCell>
@@ -649,6 +686,8 @@ function SingleResourceForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [resourceType, setResourceType] = useState<ResourceType>("pdf");
+  const [categoryKey, setCategoryKey] = useState<string>("");
+  const [objectives, setObjectives] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -656,6 +695,8 @@ function SingleResourceForm() {
     setTitle("");
     setDescription("");
     setResourceType("pdf");
+    setCategoryKey("");
+    setObjectives("");
     setFileUrl("");
   };
 
@@ -669,8 +710,10 @@ function SingleResourceForm() {
         title: title.trim(),
         description: description.trim() || null,
         resource_type: resourceType,
+        category_key: categoryKey || null,
+        objectives: objectives.trim() || null,
         file_url: fileUrl.trim(),
-      });
+      } as never);
       if (error) throw error;
       toast.success("Recurso adicionado.");
       reset();
@@ -713,6 +756,30 @@ function SingleResourceForm() {
             </Select>
           </div>
           <div className="space-y-1">
+            <Label>Categoria</Label>
+            <Select
+              value={categoryKey || "__none"}
+              onValueChange={(v) => setCategoryKey(v === "__none" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sem categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">Sem categoria</SelectItem>
+                <CategoryOptions />
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1 sm:col-span-2">
+            <Label>Objetivos</Label>
+            <Textarea
+              rows={3}
+              value={objectives}
+              onChange={(e) => setObjectives(e.target.value)}
+              placeholder="O que se pretende alcançar com este recurso..."
+            />
+          </div>
+          <div className="space-y-1 sm:col-span-2">
             <Label>Link (URL)</Label>
             <Input
               type="url"
@@ -840,6 +907,8 @@ function EditRecursoDialog({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [resourceType, setResourceType] = useState<ResourceType>("pdf");
+  const [categoryKey, setCategoryKey] = useState<string>("");
+  const [objectives, setObjectives] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -849,6 +918,8 @@ function EditRecursoDialog({
       setTitle(recurso.title);
       setDescription(recurso.description ?? "");
       setResourceType((recurso.resource_type as ResourceType) ?? "pdf");
+      setCategoryKey(recurso.category_key ?? "");
+      setObjectives(recurso.objectives ?? "");
       setFileUrl(recurso.file_url ?? "");
       setCoverUrl(recurso.cover_url ?? null);
     }
@@ -877,8 +948,10 @@ function EditRecursoDialog({
           title: title.trim(),
           description: description.trim() || null,
           resource_type: resourceType,
+          category_key: categoryKey || null,
+          objectives: objectives.trim() || null,
           file_url: fileUrl.trim(),
-        })
+        } as never)
         .eq("id", recurso.id);
       if (error) throw error;
       toast.success("Recurso atualizado.");
@@ -948,6 +1021,29 @@ function EditRecursoDialog({
                 <TypeOptions />
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Categoria</Label>
+            <Select
+              value={categoryKey || "__none"}
+              onValueChange={(v) => setCategoryKey(v === "__none" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sem categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none">Sem categoria</SelectItem>
+                <CategoryOptions />
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Objetivos</Label>
+            <Textarea
+              rows={3}
+              value={objectives}
+              onChange={(e) => setObjectives(e.target.value)}
+            />
           </div>
           <div className="space-y-1">
             <Label>Link (URL)</Label>
