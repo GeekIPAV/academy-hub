@@ -68,13 +68,18 @@ export function useRevokeBadge() {
   });
 }
 
+export type BadgeValidityType = "forever" | "relative_years" | "fixed_date";
+
 export interface BadgeInput {
   id?: string;
   title: string;
   description?: string | null;
-  cluster: string;
+  cluster_id: string;
   cover_url?: string | null;
   required_program_id?: string | null;
+  validity_type: BadgeValidityType;
+  validity_years?: number | null;
+  validity_fixed_date?: string | null;
 }
 
 export function useUpsertBadge() {

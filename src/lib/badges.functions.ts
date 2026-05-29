@@ -14,16 +14,46 @@ async function assertAdmin(userId: string) {
   if (!data) throw new Error("Acesso restrito.");
 }
 
+type BadgeListRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  cluster_id: string;
+  cover_url: string | null;
+  required_program_id: string | null;
+  created_at: string | null;
+  validity_type: string;
+  validity_years: number | null;
+  validity_fixed_date: string | null;
+  clusters: { name: string } | null;
+};
+
 export const listAllBadges = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
     const { data, error } = await supabaseAdmin
       .from("badges")
-      .select("id, title, description, cluster, cover_url, required_program_id, created_at")
-      .order("cluster", { ascending: true })
+      .select(
+        "id, title, description, cluster_id, cover_url, required_program_id, created_at, validity_type, validity_years, validity_fixed_date, clusters(name)",
+      )
       .order("title", { ascending: true });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []).map((r) => {
+      const row = r as unknown as BadgeListRow;
+      return {
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        cluster_id: row.cluster_id,
+        cluster_name: row.clusters?.name ?? "",
+        cover_url: row.cover_url,
+        required_program_id: row.required_program_id,
+        created_at: row.created_at,
+        validity_type: row.validity_type,
+        validity_years: row.validity_years,
+        validity_fixed_date: row.validity_fixed_date,
+      };
+    });
   });
 
 const userIdSchema = z.object({ userId: z.string().uuid() });
@@ -36,20 +66,35 @@ export const getUserBadges = createServerFn({ method: "POST" })
 
     const { data: rows, error } = await supabaseAdmin
       .from("user_badges")
-      .select("id, granted_at, badge:badges(id, title, description, cluster, cover_url)")
+      .select(
+        "id, granted_at, expires_at, badge:badges(id, title, description, cluster_id, cover_url, clusters(name))",
+      )
       .eq("user_id", data.userId)
       .order("granted_at", { ascending: false });
     if (error) throw new Error(error.message);
 
     return (rows ?? []).map((r) => {
-      const b = (r as unknown as { badge: { id: string; title: string; description: string | null; cluster: string; cover_url: string | null } | null }).badge;
+      const b = (
+        r as unknown as {
+          badge: {
+            id: string;
+            title: string;
+            description: string | null;
+            cluster_id: string;
+            cover_url: string | null;
+            clusters: { name: string } | null;
+          } | null;
+        }
+      ).badge;
       return {
         id: r.id,
         granted_at: r.granted_at,
+        expires_at: (r as { expires_at: string | null }).expires_at ?? null,
         badge_id: b?.id ?? null,
         title: b?.title ?? "",
         description: b?.description ?? null,
-        cluster: b?.cluster ?? "",
+        cluster_id: b?.cluster_id ?? "",
+        cluster: b?.clusters?.name ?? "",
         cover_url: b?.cover_url ?? null,
       };
     });
@@ -65,7 +110,7 @@ export const getUsersByBadge = createServerFn({ method: "POST" })
 
     const { data: rows, error } = await supabaseAdmin
       .from("user_badges")
-      .select("id, user_id, granted_at, utilizadores(id, full_name)")
+      .select("id, user_id, granted_at, expires_at, utilizadores(id, full_name)")
       .eq("badge_id", data.badgeId)
       .order("granted_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -81,13 +126,16 @@ export const getUsersByBadge = createServerFn({ method: "POST" })
     }
 
     return (rows ?? []).map((r) => {
-      const u = (r as unknown as { utilizadores: { id: string; full_name: string | null } | null }).utilizadores;
+      const u = (
+        r as unknown as { utilizadores: { id: string; full_name: string | null } | null }
+      ).utilizadores;
       return {
         assignment_id: r.id,
         user_id: r.user_id as string,
         full_name: u?.full_name ?? null,
         email: emailMap.get(r.user_id as string) ?? "",
         granted_at: r.granted_at,
+        expires_at: (r as { expires_at: string | null }).expires_at ?? null,
       };
     });
   });
@@ -102,13 +150,11 @@ export const assignBadgeManual = createServerFn({ method: "POST" })
   .inputValidator((input) => mutationSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { error } = await supabaseAdmin
-      .from("user_badges")
-      .insert({
-        user_id: data.userId,
-        badge_id: data.badgeId,
-        granted_by: context.userId,
-      });
+    const { error } = await supabaseAdmin.from("user_badges").insert({
+      user_id: data.userId,
+      badge_id: data.badgeId,
+      granted_by: context.userId,
+    });
     if (error && !/duplicate key|unique/i.test(error.message)) {
       throw new Error(error.message);
     }
@@ -133,9 +179,12 @@ const upsertSchema = z.object({
   id: z.string().uuid().optional(),
   title: z.string().min(1).max(255),
   description: z.string().max(2000).nullable().optional(),
-  cluster: z.string().min(1).max(255),
-  cover_url: z.string().url().max(1024).nullable().optional(),
+  cluster_id: z.string().uuid(),
+  cover_url: z.string().max(1024).nullable().optional(),
   required_program_id: z.string().uuid().nullable().optional(),
+  validity_type: z.enum(["forever", "relative_years", "fixed_date"]).default("forever"),
+  validity_years: z.number().int().min(1).max(99).nullable().optional(),
+  validity_fixed_date: z.string().nullable().optional(),
 });
 
 export const upsertBadge = createServerFn({ method: "POST" })
@@ -143,29 +192,25 @@ export const upsertBadge = createServerFn({ method: "POST" })
   .inputValidator((input) => upsertSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
+    const payload = {
+      title: data.title,
+      description: data.description ?? null,
+      cluster_id: data.cluster_id,
+      cover_url: data.cover_url ?? null,
+      required_program_id: data.required_program_id ?? null,
+      validity_type: data.validity_type,
+      validity_years: data.validity_type === "relative_years" ? data.validity_years ?? null : null,
+      validity_fixed_date:
+        data.validity_type === "fixed_date" ? data.validity_fixed_date ?? null : null,
+    };
     if (data.id) {
-      const { error } = await supabaseAdmin
-        .from("badges")
-        .update({
-          title: data.title,
-          description: data.description ?? null,
-          cluster: data.cluster,
-          cover_url: data.cover_url ?? null,
-          required_program_id: data.required_program_id ?? null,
-        })
-        .eq("id", data.id);
+      const { error } = await supabaseAdmin.from("badges").update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
       return { ok: true, id: data.id };
     }
     const { data: row, error } = await supabaseAdmin
       .from("badges")
-      .insert({
-        title: data.title,
-        description: data.description ?? null,
-        cluster: data.cluster,
-        cover_url: data.cover_url ?? null,
-        required_program_id: data.required_program_id ?? null,
-      })
+      .insert(payload)
       .select("id")
       .single();
     if (error) throw new Error(error.message);
