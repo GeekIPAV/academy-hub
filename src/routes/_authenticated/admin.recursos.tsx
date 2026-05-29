@@ -85,6 +85,8 @@ interface ResourceRow {
   title: string;
   description: string | null;
   resource_type: string;
+  category_key: string | null;
+  objectives: string | null;
   file_url: string;
   cover_url: string | null;
   created_at: string | null;
