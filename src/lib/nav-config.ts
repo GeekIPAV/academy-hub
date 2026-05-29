@@ -60,14 +60,14 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    items: [{ path: "/faqs", label: "FAQs", icon: HelpCircle }],
+  },
+  {
     label: "Comunicação",
     items: [
       { path: "/comunicacao/press-media-kit", label: "Press Media Kit", icon: Megaphone },
       { path: "/comunicacao/propriedade-intelectual", label: "Propriedade Intelectual", icon: Copyright },
     ],
-  },
-  {
-    items: [{ path: "/faqs", label: "FAQs", icon: HelpCircle }],
   },
   {
     label: "Admin",
