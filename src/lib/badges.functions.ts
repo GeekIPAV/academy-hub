@@ -34,7 +34,7 @@ export const listAllBadges = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("badges")
       .select(
-        "id, title, description, cluster_id, cover_url, required_program_id, created_at, validity_type, validity_years, validity_fixed_date, clusters(name)",
+        "id, title, description, cluster_id, cover_url, created_at, validity_type, validity_years, validity_fixed_date, clusters(name)",
       )
       .order("title", { ascending: true });
     if (error) throw new Error(error.message);
