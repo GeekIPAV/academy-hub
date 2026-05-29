@@ -268,9 +268,11 @@ function EditableField({
     setSaving(true);
     try {
       const toSave = draft === "<p></p>" ? "" : draft;
+      const patch = { [field]: toSave || null } as Record<string, string | null>;
       const { error } = await supabase
         .from("temas_momentos")
-        .update({ [field]: toSave || null })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(patch as any)
         .eq("id", temaId);
       if (error) throw error;
       lastSavedRef.current = draft;
