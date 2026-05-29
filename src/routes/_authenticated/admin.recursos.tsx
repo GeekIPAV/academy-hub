@@ -48,6 +48,7 @@ import {
 import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
 import { useResourceTypes, useResourceTypeMap } from "@/hooks/use-resource-types";
 import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
+import { CoverUploader } from "@/components/CoverUploader";
 
 type ResourceType = string;
 
