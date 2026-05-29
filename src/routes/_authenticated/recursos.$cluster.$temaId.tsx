@@ -581,6 +581,7 @@ function BlocoCard({
           schedule: schedule || null,
           duration_minutes: duration ? Number(duration) : null,
           description: description || null,
+          materials: materials || null,
           recurso_ids: recursoIds,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any)
