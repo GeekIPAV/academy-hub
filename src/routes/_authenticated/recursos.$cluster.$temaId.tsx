@@ -599,11 +599,18 @@ function RecursosGallery({
         const label = typeMeta?.label ?? r.resource_type.toUpperCase();
         const color = typeMeta?.color ?? "#64748b";
         return (
-          <button
+          <div
             key={r.id}
-            type="button"
+            role="button"
+            tabIndex={0}
             onClick={() => onOpen(r.file_url)}
-            className="group relative flex flex-col overflow-hidden rounded-xl border bg-card text-left transition hover:shadow-md"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpen(r.file_url);
+              }
+            }}
+            className="group relative flex cursor-pointer flex-col overflow-hidden rounded-xl border bg-card text-left transition hover:shadow-md"
           >
             <div
               className="relative flex aspect-[4/3] items-center justify-center overflow-hidden"
@@ -638,7 +645,7 @@ function RecursosGallery({
               </span>
               <p className="line-clamp-2 text-sm font-medium">{r.title}</p>
             </div>
-          </button>
+          </div>
         );
       })}
     </div>
