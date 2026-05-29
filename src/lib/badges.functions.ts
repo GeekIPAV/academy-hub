@@ -20,7 +20,7 @@ type BadgeListRow = {
   description: string | null;
   cluster_id: string;
   cover_url: string | null;
-  required_program_id: string | null;
+  
   created_at: string | null;
   validity_type: string;
   validity_years: number | null;
@@ -34,7 +34,7 @@ export const listAllBadges = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("badges")
       .select(
-        "id, title, description, cluster_id, cover_url, required_program_id, created_at, validity_type, validity_years, validity_fixed_date, clusters(name)",
+        "id, title, description, cluster_id, cover_url, created_at, validity_type, validity_years, validity_fixed_date, clusters(name)",
       )
       .order("title", { ascending: true });
     if (error) throw new Error(error.message);
@@ -47,7 +47,7 @@ export const listAllBadges = createServerFn({ method: "GET" })
         cluster_id: row.cluster_id,
         cluster_name: row.clusters?.name ?? "",
         cover_url: row.cover_url,
-        required_program_id: row.required_program_id,
+        
         created_at: row.created_at,
         validity_type: row.validity_type,
         validity_years: row.validity_years,
@@ -181,7 +181,7 @@ const upsertSchema = z.object({
   description: z.string().max(2000).nullable().optional(),
   cluster_id: z.string().uuid(),
   cover_url: z.string().max(1024).nullable().optional(),
-  required_program_id: z.string().uuid().nullable().optional(),
+  
   validity_type: z.enum(["forever", "relative_years", "fixed_date"]).default("forever"),
   validity_years: z.number().int().min(1).max(99).nullable().optional(),
   validity_fixed_date: z.string().nullable().optional(),
@@ -197,7 +197,7 @@ export const upsertBadge = createServerFn({ method: "POST" })
       description: data.description ?? null,
       cluster_id: data.cluster_id,
       cover_url: data.cover_url ?? null,
-      required_program_id: data.required_program_id ?? null,
+      
       validity_type: data.validity_type,
       validity_years: data.validity_type === "relative_years" ? data.validity_years ?? null : null,
       validity_fixed_date:

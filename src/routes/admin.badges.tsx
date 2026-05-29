@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+
 import { Award, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { supabase } from "@/integrations/supabase/client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -81,7 +81,7 @@ type BadgeRow = {
   cluster_id: string;
   cluster_name: string;
   cover_url: string | null;
-  required_program_id: string | null;
+  
   validity_type: string;
   validity_years: number | null;
   validity_fixed_date: string | null;
@@ -260,20 +260,6 @@ function formatValidity(
   return "Para sempre";
 }
 
-function useProgramsList() {
-  return useQuery({
-    queryKey: ["programs", "list"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("programas")
-        .select("id, title")
-        .order("title");
-      if (error) throw new Error(error.message);
-      return data ?? [];
-    },
-    staleTime: 5 * 60_000,
-  });
-}
 
 function BadgeFormDialog({
   open,
@@ -285,7 +271,6 @@ function BadgeFormDialog({
   editing: BadgeRow | null;
 }) {
   const upsert = useUpsertBadge();
-  const { data: programs } = useProgramsList();
   const { data: clusters } = useClusters();
 
   const [form, setForm] = useState<BadgeInput>({
@@ -293,7 +278,6 @@ function BadgeFormDialog({
     description: "",
     cluster_id: "",
     cover_url: "",
-    required_program_id: null,
     validity_type: "forever",
     validity_years: null,
     validity_fixed_date: null,
@@ -307,7 +291,6 @@ function BadgeFormDialog({
         description: editing?.description ?? "",
         cluster_id: editing?.cluster_id ?? "",
         cover_url: editing?.cover_url ?? "",
-        required_program_id: editing?.required_program_id ?? null,
         validity_type: (editing?.validity_type as BadgeValidityType) ?? "forever",
         validity_years: editing?.validity_years ?? null,
         validity_fixed_date: editing?.validity_fixed_date ?? null,
@@ -333,11 +316,11 @@ function BadgeFormDialog({
         ...form,
         description: form.description?.toString().trim() || null,
         cover_url: form.cover_url?.toString().trim() || null,
-        required_program_id: form.required_program_id || null,
       },
       { onSuccess: () => onOpenChange(false) },
     );
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -390,27 +373,8 @@ function BadgeFormDialog({
               onChange={(e) => setForm((f) => ({ ...f, cover_url: e.target.value }))}
             />
           </div>
-          <div className="space-y-1">
-            <Label>Programa que desbloqueia (opcional)</Label>
-            <Select
-              value={form.required_program_id ?? "none"}
-              onValueChange={(v) =>
-                setForm((f) => ({ ...f, required_program_id: v === "none" ? null : v }))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Nenhum" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Nenhum</SelectItem>
-                {(programs ?? []).map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.title ?? p.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+
+
 
           <div className="space-y-2 rounded-md border p-3">
             <Label>Validade</Label>
