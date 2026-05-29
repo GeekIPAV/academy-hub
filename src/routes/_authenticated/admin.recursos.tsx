@@ -228,6 +228,7 @@ function BibliotecaTab() {
   const { data: resources = [], isLoading } = useRecursos();
   const { data: clusters = [] } = useClusters();
   const { map: typeMap } = useResourceTypeMap();
+  const { map: categoryMap } = useResourceCategoryMap();
 
   const [editing, setEditing] = useState<ResourceRow | null>(null);
 
