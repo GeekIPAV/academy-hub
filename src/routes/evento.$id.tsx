@@ -90,7 +90,6 @@ function PublicEventPage() {
   const [docNumber, setDocNumber] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [tshirt, setTshirt] = useState<string>("");
   const [obs, setObs] = useState("");
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [identity, setIdentity] = useState<IdentityState>({ status: "idle" });
