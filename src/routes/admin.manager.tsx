@@ -47,7 +47,8 @@ import { useRoles } from "@/hooks/use-roles";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
-import { inviteUser } from "@/lib/users.functions";
+import { createInvite, listInvites, revokeInvite } from "@/lib/invites.functions";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
@@ -81,6 +82,7 @@ function AdminManagerPage() {
         </div>
       )}
       <UsersManager />
+      <InviteLinksManager />
       <RolesManager />
       {visible("route-matrix") && <AccessTab />}
     </div>
@@ -90,13 +92,8 @@ function AdminManagerPage() {
 function UsersManager() {
   const { users, isLoading, assign, remove } = useUsers();
   const { roles } = useRoles();
-  const qc = useQueryClient();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteName, setInviteName] = useState("");
-  const [inviteRoles, setInviteRoles] = useState<Set<string>>(new Set());
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const activeRoles = roles.filter((r) => r.is_active);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -104,188 +101,14 @@ function UsersManager() {
     });
   }, []);
 
-  const activeRoles = roles.filter((r) => r.is_active);
-
-  const resetInviteForm = () => {
-    setInviteEmail("");
-    setInviteName("");
-    setInviteRoles(new Set());
-    setInviteLink(null);
-  };
-
-  const inviteFn = useServerFn(inviteUser);
-  const inviteMut = useMutation({
-    mutationFn: (input: { email: string; full_name?: string; roles?: string[] }) =>
-      inviteFn({ data: input }),
-    onSuccess: (res) => {
-      toast.success("Convite criado. Copia o link para partilhar.");
-      setInviteLink(res.inviteLink ?? null);
-      qc.invalidateQueries({ queryKey: ["users"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const copyLink = async () => {
-    if (!inviteLink) return;
-    try {
-      await navigator.clipboard.writeText(inviteLink);
-      toast.success("Link copiado.");
-    } catch {
-      toast.error("Não foi possível copiar.");
-    }
-  };
-
-  const submitInvite = (e: React.FormEvent) => {
-    e.preventDefault();
-    const email = inviteEmail.trim();
-    if (!email) {
-      toast.error("Email obrigatório");
-      return;
-    }
-    if (inviteRoles.size === 0) {
-      toast.error("Seleciona pelo menos um perfil");
-      return;
-    }
-    inviteMut.mutate({
-      email,
-      full_name: inviteName.trim() || undefined,
-      roles: [...inviteRoles],
-    });
-  };
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-        <div>
-          <CardTitle>Utilizadores</CardTitle>
-          <CardDescription>
-            Atribui um ou mais perfis a cada utilizador. As alterações são imediatas.
-          </CardDescription>
-        </div>
-        <Dialog
-          open={inviteOpen}
-          onOpenChange={(o) => {
-            setInviteOpen(o);
-            if (!o) resetInviteForm();
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <UserPlus className="mr-1 h-4 w-4" />
-              Adicionar Utilizador
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            {inviteLink ? (
-              <>
-                <DialogHeader>
-                  <DialogTitle>Convite criado</DialogTitle>
-                  <DialogDescription>
-                    Copia e partilha este link com o utilizador. Ao abri-lo, define a senha e entra na plataforma.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-3 py-4">
-                  <div className="flex gap-2">
-                    <Input readOnly value={inviteLink} className="font-mono text-xs" />
-                    <Button type="button" size="icon" variant="outline" onClick={copyLink}>
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground break-all">{inviteLink}</p>
-                </div>
-                <DialogFooter className="gap-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      resetInviteForm();
-                    }}
-                  >
-                    Criar outro
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setInviteOpen(false);
-                      resetInviteForm();
-                    }}
-                  >
-                    Concluir
-                  </Button>
-                </DialogFooter>
-              </>
-            ) : (
-              <form onSubmit={submitInvite}>
-                <DialogHeader>
-                  <DialogTitle>Adicionar utilizador</DialogTitle>
-                  <DialogDescription>
-                    Cria um convite e recebe um link para partilhar com o utilizador.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="invite-email">Email</Label>
-                    <Input
-                      id="invite-email"
-                      type="email"
-                      value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      placeholder="nome@exemplo.pt"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="invite-name">Nome (opcional)</Label>
-                    <Input
-                      id="invite-name"
-                      value={inviteName}
-                      onChange={(e) => setInviteName(e.target.value)}
-                      maxLength={120}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Perfis</Label>
-                    <div className="flex flex-wrap gap-3">
-                      {activeRoles.map((r) => {
-                        const checked = inviteRoles.has(r.name);
-                        return (
-                          <label
-                            key={r.id}
-                            className="flex items-center gap-1.5 text-sm cursor-pointer"
-                          >
-                            <Checkbox
-                              checked={checked}
-                              onCheckedChange={(v) => {
-                                setInviteRoles((prev) => {
-                                  const next = new Set(prev);
-                                  if (v) next.add(r.name);
-                                  else next.delete(r.name);
-                                  return next;
-                                });
-                              }}
-                            />
-                            <span>{r.name}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Seleciona pelo menos um perfil para o novo utilizador.
-                    </p>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="button" variant="ghost" onClick={() => setInviteOpen(false)}>
-                    Cancelar
-                  </Button>
-                  <Button type="submit" disabled={inviteMut.isPending}>
-                    {inviteMut.isPending ? "A criar..." : "Gerar link de convite"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            )}
-          </DialogContent>
-        </Dialog>
+      <CardHeader>
+        <CardTitle>Utilizadores</CardTitle>
+        <CardDescription>
+          Atribui um ou mais perfis a cada utilizador. As alterações são imediatas.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -588,6 +411,281 @@ function AccessTab() {
             ))}
           </TableBody>
         </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface InviteRow {
+  id: string;
+  token: string;
+  roles: string[];
+  label: string | null;
+  expires_at: string | null;
+  max_uses: number | null;
+  uses_count: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+function InviteLinksManager() {
+  const qc = useQueryClient();
+  const { roles } = useRoles();
+  const activeRoles = roles.filter((r) => r.is_active);
+
+  const listFn = useServerFn(listInvites);
+  const createFn = useServerFn(createInvite);
+  const revokeFn = useServerFn(revokeInvite);
+
+  const invitesQ = useQuery({
+    queryKey: ["invites"],
+    queryFn: () => listFn() as Promise<InviteRow[]>,
+  });
+
+  const [open, setOpen] = useState(false);
+  const [selRoles, setSelRoles] = useState<Set<string>>(new Set());
+  const [label, setLabel] = useState("");
+  const [expiresDays, setExpiresDays] = useState<string>("");
+  const [maxUses, setMaxUses] = useState<string>("");
+
+  const reset = () => {
+    setSelRoles(new Set());
+    setLabel("");
+    setExpiresDays("");
+    setMaxUses("");
+  };
+
+  const createMut = useMutation({
+    mutationFn: () =>
+      createFn({
+        data: {
+          roles: [...selRoles],
+          label: label.trim() || undefined,
+          expires_in_days: expiresDays ? Number(expiresDays) : undefined,
+          max_uses: maxUses ? Number(maxUses) : undefined,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Link de convite criado.");
+      reset();
+      setOpen(false);
+      qc.invalidateQueries({ queryKey: ["invites"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const revokeMut = useMutation({
+    mutationFn: (id: string) => revokeFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Convite revogado.");
+      qc.invalidateQueries({ queryKey: ["invites"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const buildUrl = (token: string) =>
+    typeof window !== "undefined"
+      ? `${window.location.origin}/convite/${token}`
+      : `/convite/${token}`;
+
+  const copy = async (token: string) => {
+    try {
+      await navigator.clipboard.writeText(buildUrl(token));
+      toast.success("Link copiado.");
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  };
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selRoles.size === 0) {
+      toast.error("Seleciona pelo menos um perfil.");
+      return;
+    }
+    createMut.mutate();
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+        <div>
+          <CardTitle>Links de Convite</CardTitle>
+          <CardDescription>
+            Gera um link partilhável com os perfis que escolheres. Quem aceder cria a própria conta.
+          </CardDescription>
+        </div>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <UserPlus className="mr-1 h-4 w-4" />
+              Novo Link
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <form onSubmit={submit}>
+              <DialogHeader>
+                <DialogTitle>Criar link de convite</DialogTitle>
+                <DialogDescription>
+                  Escolhe os perfis e (opcionalmente) limites de validade e utilizações.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>Perfis</Label>
+                  <div className="flex flex-wrap gap-3">
+                    {activeRoles.map((r) => {
+                      const checked = selRoles.has(r.name);
+                      return (
+                        <label key={r.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                          <Checkbox
+                            checked={checked}
+                            onCheckedChange={(v) => {
+                              setSelRoles((prev) => {
+                                const next = new Set(prev);
+                                if (v) next.add(r.name);
+                                else next.delete(r.name);
+                                return next;
+                              });
+                            }}
+                          />
+                          <span>{r.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="inv-label">Nota (opcional)</Label>
+                  <Input
+                    id="inv-label"
+                    value={label}
+                    onChange={(e) => setLabel(e.target.value)}
+                    placeholder="Ex: Mentores cohort 2026"
+                    maxLength={120}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="inv-exp">Validade (dias)</Label>
+                    <Input
+                      id="inv-exp"
+                      type="number"
+                      min={1}
+                      max={365}
+                      value={expiresDays}
+                      onChange={(e) => setExpiresDays(e.target.value)}
+                      placeholder="Sem limite"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="inv-max">Máx. utilizações</Label>
+                    <Input
+                      id="inv-max"
+                      type="number"
+                      min={1}
+                      max={1000}
+                      value={maxUses}
+                      onChange={(e) => setMaxUses(e.target.value)}
+                      placeholder="Ilimitado"
+                    />
+                  </div>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={createMut.isPending}>
+                  {createMut.isPending ? "A criar..." : "Criar link"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      <CardContent>
+        {invitesQ.isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ) : (invitesQ.data?.length ?? 0) === 0 ? (
+          <p className="text-sm text-muted-foreground">Ainda não criaste links.</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Perfis</TableHead>
+                <TableHead>Nota</TableHead>
+                <TableHead>Usos</TableHead>
+                <TableHead>Validade</TableHead>
+                <TableHead className="w-[180px] text-right">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invitesQ.data?.map((inv) => {
+                const expired = inv.expires_at && new Date(inv.expires_at).getTime() < Date.now();
+                const exhausted = inv.max_uses != null && inv.uses_count >= inv.max_uses;
+                const status = !inv.is_active
+                  ? "Revogado"
+                  : expired
+                  ? "Expirado"
+                  : exhausted
+                  ? "Esgotado"
+                  : "Ativo";
+                return (
+                  <TableRow key={inv.id}>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {inv.roles.map((r) => (
+                          <Badge key={r} variant="secondary" className="text-xs">{r}</Badge>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-sm">{inv.label || "—"}</TableCell>
+                    <TableCell className="text-sm">
+                      {inv.uses_count}
+                      {inv.max_uses != null ? ` / ${inv.max_uses}` : ""}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {inv.expires_at
+                        ? new Date(inv.expires_at).toLocaleDateString("pt-PT")
+                        : "Sem limite"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <Badge variant={status === "Ativo" ? "default" : "outline"} className="text-xs">
+                          {status}
+                        </Badge>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Copiar link"
+                          onClick={() => copy(inv.token)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        {inv.is_active && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            title="Revogar"
+                            onClick={() => {
+                              if (confirm("Revogar este link?")) revokeMut.mutate(inv.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   );

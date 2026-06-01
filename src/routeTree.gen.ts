@@ -24,6 +24,7 @@ import { Route as PublicacoesIpavRouteImport } from './routes/publicacoes.ipav'
 import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
+import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as ComunicacaoPropriedadeIntelectualRouteImport } from './routes/comunicacao.propriedade-intelectual'
 import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
@@ -114,6 +115,11 @@ const InscricaoTokenRoute = InscricaoTokenRouteImport.update({
 const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
   id: '/entidade/dashboard',
   path: '/entidade/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConviteTokenRoute = ConviteTokenRouteImport.update({
+  id: '/convite/$token',
+  path: '/convite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComunicacaoPropriedadeIntelectualRoute =
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/admin/programas': typeof AdminProgramasRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/admin/programas': typeof AdminProgramasRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/admin/programas': typeof AdminProgramasRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
@@ -329,6 +338,7 @@ export interface FileRouteTypes {
     | '/admin/programas'
     | '/comunicacao/press-media-kit'
     | '/comunicacao/propriedade-intelectual'
+    | '/convite/$token'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
@@ -361,6 +371,7 @@ export interface FileRouteTypes {
     | '/admin/programas'
     | '/comunicacao/press-media-kit'
     | '/comunicacao/propriedade-intelectual'
+    | '/convite/$token'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
@@ -394,6 +405,7 @@ export interface FileRouteTypes {
     | '/admin/programas'
     | '/comunicacao/press-media-kit'
     | '/comunicacao/propriedade-intelectual'
+    | '/convite/$token'
     | '/entidade/dashboard'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
@@ -428,6 +440,7 @@ export interface RootRouteChildren {
   AdminProgramasRoute: typeof AdminProgramasRoute
   ComunicacaoPressMediaKitRoute: typeof ComunicacaoPressMediaKitRoute
   ComunicacaoPropriedadeIntelectualRoute: typeof ComunicacaoPropriedadeIntelectualRoute
+  ConviteTokenRoute: typeof ConviteTokenRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
@@ -542,6 +555,13 @@ declare module '@tanstack/react-router' {
       path: '/entidade/dashboard'
       fullPath: '/entidade/dashboard'
       preLoaderRoute: typeof EntidadeDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/convite/$token': {
+      id: '/convite/$token'
+      path: '/convite/$token'
+      fullPath: '/convite/$token'
+      preLoaderRoute: typeof ConviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comunicacao/propriedade-intelectual': {
@@ -746,6 +766,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComunicacaoPressMediaKitRoute: ComunicacaoPressMediaKitRoute,
   ComunicacaoPropriedadeIntelectualRoute:
     ComunicacaoPropriedadeIntelectualRoute,
+  ConviteTokenRoute: ConviteTokenRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
