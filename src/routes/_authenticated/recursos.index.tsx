@@ -67,7 +67,11 @@ function ResourcesIndex() {
 
   const setCover = async (
     clusterName: string,
-    patch: Partial<Pick<ClusterCoverRow, "cover_url" | "cover_position" | "cover_scale">>,
+    patch: {
+      cover_url?: string | null;
+      cover_position?: string;
+      cover_scale?: number;
+    },
   ) => {
     const { error } = await supabase
       .from("cluster_covers")
