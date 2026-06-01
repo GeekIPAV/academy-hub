@@ -178,10 +178,10 @@ function ClusterCard({
           : "cursor-not-allowed border-dashed bg-muted/40",
       )}
     >
-      <div className="flex-1 space-y-1">
+      <div className="flex-1 flex flex-col justify-center space-y-1">
         <h3
           className={cn(
-            "text-xl font-bold leading-tight",
+            "font-bold leading-tight text-center text-2xl",
             allowed ? "text-secondary" : "text-muted-foreground",
           )}
         >
