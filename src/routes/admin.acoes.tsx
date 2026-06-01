@@ -302,6 +302,8 @@ function DetailsTab({
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 sm:grid-cols-2">
+        <InscriptionLinkBlock notionId={action?.notion_id ?? null} />
+
         <Field label="Data de início">
           <Input type="date" value={form.start_date} onChange={(e) => setField("start_date", e.target.value)} />
         </Field>
