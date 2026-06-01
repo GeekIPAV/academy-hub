@@ -87,24 +87,16 @@ export const verifyPublicUserIdentity = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<VerifyIdentityResult> => {
     const docColumn = data.doc_type === "nif" ? "nif" : "passport_num";
 
-    // 1. Procurar perfil pelo documento.
-    const { data: byDoc } = await supabaseAdmin
+    // Uma única query: cruza email OR documento.
+    const { data: users, error } = await supabaseAdmin
       .from("utilizadores")
-      .select("id, full_name")
-      .eq(docColumn, data.doc_number)
-      .maybeSingle();
+      .select("id, full_name, email, nif, passport_num")
+      .or(`email.eq.${data.email},${docColumn}.eq.${data.doc_number}`);
+    if (error) throw new Error(error.message);
 
-    // 2. Procurar utilizador pelo email (via auth admin).
-    const { data: emailLookup } = await supabaseAdmin.auth.admin.listUsers({
-      page: 1,
-      perPage: 200,
-    });
-    const authUser =
-      emailLookup?.users?.find(
-        (u) => (u.email ?? "").toLowerCase() === data.email,
-      ) ?? null;
+    const rows = users ?? [];
 
-    if (byDoc && authUser && byDoc.id !== authUser.id) {
+    if (rows.length > 1) {
       return {
         exists: false,
         full_name: null,
@@ -113,25 +105,38 @@ export const verifyPublicUserIdentity = createServerFn({ method: "POST" })
           "O email e o documento que indicaste já pertencem a contas diferentes. Inicia sessão na conta correta ou contacta-nos.",
       };
     }
-    if (byDoc && !authUser) {
-      return {
-        exists: false,
-        full_name: null,
-        conflict: true,
-        conflict_message:
-          "Este documento já está associado a outra conta. Usa o email correto ou faz login com Google.",
-      };
+
+    if (rows.length === 1) {
+      const u = rows[0];
+      const emailMatches =
+        (u.email ?? "").toLowerCase() === data.email;
+      const docMatches =
+        (u as Record<string, unknown>)[docColumn] === data.doc_number;
+      // Se só bate num campo e o outro está preenchido com valor diferente, é conflito.
+      if (emailMatches && !docMatches && (u as Record<string, unknown>)[docColumn]) {
+        return {
+          exists: false,
+          full_name: null,
+          conflict: true,
+          conflict_message:
+            "Este email já está associado a outro documento. Verifica os dados ou faz login.",
+        };
+      }
+      if (!emailMatches && docMatches && u.email) {
+        return {
+          exists: false,
+          full_name: null,
+          conflict: true,
+          conflict_message:
+            "Este documento já está associado a outro email. Usa o email correto ou faz login com Google.",
+        };
+      }
+      return { exists: true, full_name: u.full_name, conflict: false };
     }
-    if (byDoc && authUser && byDoc.id === authUser.id) {
-      return { exists: true, full_name: byDoc.full_name, conflict: false };
-    }
-    if (!byDoc && authUser) {
-      // Email registado mas com outro documento — tratamos como existente
-      // (faz login e completamos o perfil dentro da app).
-      return { exists: true, full_name: null, conflict: false };
-    }
+
     return { exists: false, full_name: null, conflict: false };
   });
+
 
 const enrollForUserSchema = z.object({
   identifier: z.string().trim().min(8).max(80),
@@ -172,23 +177,26 @@ export const enrollInPublicEventForUser = createServerFn({ method: "POST" })
       throw new Error("As inscrições para este evento não estão abertas.");
     }
 
+    // Garante sempre o email no perfil (pesquisa nativa por email).
+    const baseProfilePatch: Record<string, unknown> = {
+      id: data.user_id,
+      email: data.email.toLowerCase(),
+    };
     if (data.profile) {
-      const patch: Record<string, unknown> = { id: data.user_id };
-      if (data.profile.full_name) patch.full_name = data.profile.full_name;
+      if (data.profile.full_name) baseProfilePatch.full_name = data.profile.full_name;
       if (data.profile.doc_type && data.profile.doc_number) {
         if (data.profile.doc_type === "nif") {
-          patch.nif = data.profile.doc_number;
+          baseProfilePatch.nif = data.profile.doc_number;
         } else {
-          patch.passport_num = data.profile.doc_number;
-          patch.id_doc_type = "Passaporte";
+          baseProfilePatch.passport_num = data.profile.doc_number;
+          baseProfilePatch.id_doc_type = "Passaporte";
         }
       }
-      if (Object.keys(patch).length > 1) {
-        await supabaseAdmin
-          .from("utilizadores")
-          .upsert(patch as never, { onConflict: "id" });
-      }
     }
+    await supabaseAdmin
+      .from("utilizadores")
+      .upsert(baseProfilePatch as never, { onConflict: "id" });
+
 
     const { data: existing } = await supabaseAdmin
       .from("inscritos_acoes")

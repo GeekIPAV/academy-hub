@@ -1350,6 +1350,7 @@ export type Database = {
           created_at: string | null
           data_consent: boolean | null
           education_level: string | null
+          email: string | null
           entity_id: string | null
           first_names: string | null
           full_name: string | null
@@ -1377,6 +1378,7 @@ export type Database = {
           created_at?: string | null
           data_consent?: boolean | null
           education_level?: string | null
+          email?: string | null
           entity_id?: string | null
           first_names?: string | null
           full_name?: string | null
@@ -1404,6 +1406,7 @@ export type Database = {
           created_at?: string | null
           data_consent?: boolean | null
           education_level?: string | null
+          email?: string | null
           entity_id?: string | null
           first_names?: string | null
           full_name?: string | null
