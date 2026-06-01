@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Copy, Plus, Shield, Trash2, UserPlus } from "lucide-react";
+import { Copy, ExternalLink, Plus, Shield, Trash2, UserPlus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -658,6 +658,14 @@ function InviteLinksManager() {
                         <Badge variant={status === "Ativo" ? "default" : "outline"} className="text-xs">
                           {status}
                         </Badge>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Abrir página de adesão"
+                          onClick={() => window.open(buildUrl(inv.token), "_blank", "noopener,noreferrer")}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
                         <Button
                           size="icon"
                           variant="ghost"
