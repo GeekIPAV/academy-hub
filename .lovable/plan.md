@@ -1,15 +1,20 @@
 ## Objetivo
-Adicionar, no `InviteLinksManager` da Central de Comando (`/admin/manager`), uma forma rápida de pré-visualizar a página pública de adesão (`/convite/$token`).
+Na Central de Comando (`/admin/manager`), no painel **InviteLinksManager**, permitir que o Admin abra rapidamente a página pública de adesão (`/convite/$token`) para testar como ficará para o utilizador convidado.
 
-## Alterações
+## O que vai mudar
 
-**`src/routes/admin.manager.tsx`** (componente `InviteLinksManager`)
+**`src/routes/admin.manager.tsx` — componente `InviteLinksManager`**
 
-Para cada convite listado, juntar ao lado dos botões existentes (Copiar / Revogar) um novo botão **"Abrir"** que abre `/convite/{token}` numa nova aba (`window.open(url, '_blank')`).
+Para cada linha da tabela de convites ativos, adicionar um novo botão **"Abrir"** ao lado dos botões já existentes (Copiar / Revogar). Esse botão abre `/convite/{token}` numa **nova aba** do browser (`window.open(url, "_blank", "noopener")`).
 
-Isto permite testar/visualizar como ficará o formulário que os utilizadores convidados vão ver, sem precisar de colar o link no browser.
+Detalhes visuais:
+- Botão `variant="outline"` com ícone `ExternalLink` (lucide-react), no mesmo estilo dos outros botões da linha.
+- Ordem sugerida: **Abrir · Copiar · Revogar**.
+- Sem alterações em tooltips, layout da tabela, ou comportamento de criação/revogação.
 
 ## Fora de âmbito
-- Não mexer no `src/routes/convite.$token.tsx` (a página em si).
-- Não mexer em lógica de backend nem em server functions.
-- Não adicionar rotas dinâmicas ao seletor de rotas do Lovable (não é configurável).
+- Não mexer em `src/routes/convite.$token.tsx` (a página em si fica igual).
+- Sem alterações em server functions ou base de dados.
+- Sem nova entrada no seletor de rotas.
+
+Confirmas para implementar?
