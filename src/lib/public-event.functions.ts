@@ -15,7 +15,7 @@ export interface PublicEventDetails {
   action_date: string | null;
   registration_status: string | null;
   max_capacity: number | null;
-  required_fields: unknown;
+  required_fields: unknown[] | Record<string, unknown> | null;
   aceite_count: number;
 }
 
