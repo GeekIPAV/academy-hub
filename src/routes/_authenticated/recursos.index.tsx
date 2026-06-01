@@ -1,25 +1,24 @@
+import { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId } from "@/lib/cluster-utils";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
-import { Loader2, Lock, ImageIcon } from "lucide-react";
+import { Loader2, Lock, Pencil, Check, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { CoverUploader } from "@/components/CoverUploader";
-import { CoverImage } from "@/components/CoverImage";
 
 interface ClusterCoverRow {
   cluster_name: string;
-  cover_url: string | null;
-  cover_position: string | null;
-  cover_scale: number | null;
+  description: string | null;
 }
 
 export const Route = createFileRoute("/_authenticated/recursos/")({
@@ -55,7 +54,7 @@ function ResourcesIndex() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("cluster_covers")
-        .select("cluster_name, cover_url, cover_position, cover_scale");
+        .select("cluster_name, description");
       if (error) throw error;
       const map = new Map<string, ClusterCoverRow>();
       ((data ?? []) as ClusterCoverRow[]).forEach((r) => {
@@ -65,21 +64,15 @@ function ResourcesIndex() {
     },
   });
 
-  const setCover = async (
-    clusterName: string,
-    patch: {
-      cover_url?: string | null;
-      cover_position?: string;
-      cover_scale?: number;
-    },
-  ) => {
+  const setDescription = async (clusterName: string, description: string | null) => {
     const { error } = await supabase
       .from("cluster_covers")
       .upsert({
         cluster_name: clusterName,
-        ...patch,
+        description,
         updated_at: new Date().toISOString(),
-      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
     if (error) throw error;
     qc.invalidateQueries({ queryKey: ["cluster-covers"] });
   };
@@ -117,12 +110,10 @@ function ResourcesIndex() {
               <ClusterCard
                 key={c.slug}
                 cluster={c}
-                coverUrl={row?.cover_url ?? null}
-                coverPosition={row?.cover_position ?? null}
-                coverScale={row?.cover_scale ?? null}
+                description={row?.description ?? null}
                 allowed={isComponentVisible("/recursos", clusterComponentId(c.slug))}
                 isAdmin={isAdmin}
-                onSetCover={(patch) => setCover(c.name, patch)}
+                onSaveDescription={(d) => setDescription(c.name, d)}
               />
             );
           })}
@@ -134,82 +125,155 @@ function ResourcesIndex() {
 
 function ClusterCard({
   cluster,
-  coverUrl,
-  coverPosition,
-  coverScale,
+  description,
   allowed,
   isAdmin,
-  onSetCover,
+  onSaveDescription,
 }: {
   cluster: ReturnType<typeof parseCluster>;
-  coverUrl: string | null;
-  coverPosition: string | null;
-  coverScale: number | null;
+  description: string | null;
   allowed: boolean;
   isAdmin: boolean;
-  onSetCover: (
-    patch: Partial<{ cover_url: string | null; cover_position: string; cover_scale: number }>,
-  ) => Promise<void>;
+  onSaveDescription: (description: string | null) => Promise<void>;
 }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(description ?? "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setDraft(description ?? "");
+  }, [description]);
+
+  const save = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSaving(true);
+    try {
+      await onSaveDescription(draft.trim() ? draft.trim() : null);
+      setEditing(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const cancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDraft(description ?? "");
+    setEditing(false);
+  };
+
+  const startEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditing(true);
+  };
+
   const card = (
     <div
       className={cn(
-        "group relative flex aspect-[3/4] flex-col overflow-hidden rounded-xl border transition",
+        "group relative flex aspect-[3/4] flex-col rounded-xl border bg-card p-5 transition",
         allowed
-          ? "bg-card shadow-sm hover:-translate-y-0.5 hover:shadow-md"
-          : "cursor-not-allowed border-dashed bg-muted/40 text-muted-foreground",
+          ? "shadow-sm hover:-translate-y-0.5 hover:shadow-md"
+          : "cursor-not-allowed border-dashed bg-muted/40",
       )}
     >
-      <div className="relative flex-1 overflow-hidden bg-gradient-to-br from-primary/10 via-muted to-primary/5">
-        {coverUrl ? (
-          <CoverImage
-            src={coverUrl}
-            position={coverPosition}
-            scale={coverScale}
-            className={cn(
-              "transition group-hover:scale-[1.02]",
-              !allowed && "opacity-40 grayscale",
-            )}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-muted-foreground/30">
-            <ImageIcon className="h-10 w-10" />
-          </div>
-        )}
-        {isAdmin && (
-          <CoverUploader
-            folder="clusters"
-            id={cluster.slug}
-            currentUrl={coverUrl}
-            position={coverPosition}
-            scale={coverScale}
-            aspectRatio={3 / 4}
-            onUploaded={(url) => onSetCover({ cover_url: url })}
-            onCleared={() => onSetCover({ cover_url: null })}
-            onAdjusted={(p, s) => onSetCover({ cover_position: p, cover_scale: s })}
-          />
-        )}
-      </div>
-      <div className="space-y-1 p-3">
+      <div className="flex-1 space-y-1">
         <h3
           className={cn(
-            "text-base font-semibold leading-tight",
+            "text-xl font-bold leading-tight",
             allowed ? "text-secondary" : "text-muted-foreground",
           )}
         >
           {cluster.title}
         </h3>
         {cluster.subtitle && (
-          <p className="text-xs font-medium text-muted-foreground">
+          <p
+            className={cn(
+              "text-sm font-medium",
+              allowed ? "text-muted-foreground" : "text-muted-foreground/70",
+            )}
+          >
             {cluster.subtitle}
           </p>
         )}
-        {!allowed && (
-          <div className="flex items-center gap-1.5 pt-1 text-xs">
-            <Lock className="h-3.5 w-3.5" /> Bloqueado
+      </div>
+
+      <div className="mt-3 space-y-2">
+        {editing ? (
+          <div className="space-y-2">
+            <Textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onClick={(e) => e.preventDefault()}
+              placeholder="Pequena descrição visível no cartão…"
+              rows={3}
+              className="text-xs"
+              maxLength={240}
+            />
+            <div className="flex justify-end gap-1">
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={cancel}
+                disabled={saving}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={save}
+                disabled={saving}
+              >
+                {saving ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Check className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            </div>
           </div>
+        ) : (
+          <>
+            {description ? (
+              <p
+                className={cn(
+                  "text-xs leading-relaxed",
+                  allowed ? "text-foreground/80" : "text-muted-foreground/70",
+                )}
+              >
+                {description}
+              </p>
+            ) : isAdmin ? (
+              <button
+                type="button"
+                onClick={startEdit}
+                className="text-xs italic text-muted-foreground/60 hover:text-muted-foreground"
+              >
+                Adicionar descrição…
+              </button>
+            ) : null}
+            {!allowed && (
+              <div className="flex items-center gap-1.5 pt-1 text-xs text-muted-foreground">
+                <Lock className="h-3.5 w-3.5" /> Bloqueado
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      {isAdmin && !editing && description && (
+        <button
+          type="button"
+          onClick={startEdit}
+          className="absolute right-2 top-2 rounded-md bg-background/80 p-1 text-muted-foreground opacity-0 shadow-sm transition hover:text-foreground group-hover:opacity-100"
+          aria-label="Editar descrição"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
+      )}
     </div>
   );
 
@@ -228,11 +292,15 @@ function ClusterCard({
     );
   }
 
+  if (editing) {
+    return <div className="block">{card}</div>;
+  }
+
   return (
     <Link
       to="/recursos/$cluster"
       params={{ cluster: cluster.slug }}
-      className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-xl"
+      className="block rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       {card}
     </Link>

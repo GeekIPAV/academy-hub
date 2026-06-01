@@ -304,6 +304,7 @@ export type Database = {
           cover_position: string
           cover_scale: number
           cover_url: string | null
+          description: string | null
           updated_at: string
           updated_by: string | null
         }
@@ -312,6 +313,7 @@ export type Database = {
           cover_position?: string
           cover_scale?: number
           cover_url?: string | null
+          description?: string | null
           updated_at?: string
           updated_by?: string | null
         }
@@ -320,6 +322,7 @@ export type Database = {
           cover_position?: string
           cover_scale?: number
           cover_url?: string | null
+          description?: string | null
           updated_at?: string
           updated_by?: string | null
         }
