@@ -58,7 +58,9 @@ export const getPublicEventDetails = createServerFn({ method: "GET" })
       action_date: row.action_date,
       registration_status: row.registration_status,
       max_capacity: row.max_capacity,
-      required_fields: row.required_fields,
+      required_fields: Array.isArray(row.required_fields)
+        ? (row.required_fields as unknown as RequiredField[])
+        : [],
       aceite_count: count ?? 0,
     };
   });
