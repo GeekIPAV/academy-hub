@@ -381,6 +381,84 @@ function DetailsTab({
           <Input value={form.avaliacao_impacto_link} onChange={(e) => setField("avaliacao_impacto_link", e.target.value)} placeholder="https://…" />
         </Field>
 
+
+        <div className="sm:col-span-2 space-y-3 rounded-md border bg-muted/30 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-medium">Campos de Inscrição Extra</p>
+              <p className="text-xs text-muted-foreground">
+                Perguntas adicionais que o formulário público apresentará ao inscrito.
+              </p>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={addExtra}>
+              <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar Pergunta
+            </Button>
+          </div>
+
+          {extraFields.length === 0 ? (
+            <p className="text-xs text-muted-foreground">Sem perguntas extra.</p>
+          ) : (
+            <div className="space-y-3">
+              {extraFields.map((f, i) => (
+                <div
+                  key={i}
+                  className="grid gap-2 rounded-md border bg-background p-3 sm:grid-cols-[1fr_180px_auto_auto] sm:items-end"
+                >
+                  <div>
+                    <Label className="mb-1 block text-xs text-muted-foreground">
+                      Pergunta
+                    </Label>
+                    <Input
+                      value={f.label ?? ""}
+                      placeholder="Ex: Tamanho de t-shirt"
+                      onChange={(e) => updateExtra(i, { label: e.target.value })}
+                    />
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      ID: <code>{slugifyFieldName(f.label ?? "", i)}</code>
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="mb-1 block text-xs text-muted-foreground">
+                      Tipo
+                    </Label>
+                    <Select
+                      value={(f.type as string) ?? "text"}
+                      onValueChange={(v) => updateExtra(i, { type: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EXTRA_FIELD_TYPES.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>
+                            {t.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col items-start gap-1">
+                    <Label className="text-xs text-muted-foreground">Obrigatório</Label>
+                    <Switch
+                      checked={!!f.required}
+                      onCheckedChange={(v) => updateExtra(i, { required: v })}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeExtra(i)}
+                    aria-label="Remover pergunta"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="sm:col-span-2">
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
             {mut.isPending ? "A guardar…" : "Guardar alterações"}
