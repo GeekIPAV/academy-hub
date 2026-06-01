@@ -134,7 +134,11 @@ function AppShell() {
 
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
   const isPublicRoute =
-    pathname === "/auth" || pathname.startsWith("/inscricao/");
+    pathname === "/auth" ||
+    pathname === "/reset-password" ||
+    pathname.startsWith("/inscricao/") ||
+    pathname.startsWith("/evento/") ||
+    pathname.startsWith("/convite/");
 
   if (!session) {
     if (!isPublicRoute) {
