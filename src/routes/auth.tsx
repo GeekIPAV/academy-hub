@@ -24,7 +24,10 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
-  const target = "/dashboard";
+  // Only allow internal redirects (must start with a single "/").
+  const safeRedirect =
+    redirect && /^\/(?!\/)/.test(redirect) ? redirect : null;
+  const target = safeRedirect ?? "/dashboard";
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
