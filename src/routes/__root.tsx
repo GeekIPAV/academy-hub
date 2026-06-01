@@ -75,8 +75,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "Academia de Líderes Ubuntu" },
       { property: "og:description", content: "Plataforma Ubuntu" },
       { name: "twitter:description", content: "Plataforma Ubuntu" },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/928f35fa-654d-459f-9e6d-2a80e37492e5" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/928f35fa-654d-459f-9e6d-2a80e37492e5" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/0CyVmC43rsdbyq9F0rpAcHPUG632/social-images/social-1780333883974-55204926615_9d8e69c4d7_k_(2).webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/0CyVmC43rsdbyq9F0rpAcHPUG632/social-images/social-1780333883974-55204926615_9d8e69c4d7_k_(2).webp" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
@@ -134,35 +134,28 @@ function AppShell() {
 
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
   const isPublicRoute =
-    pathname === "/auth" ||
-    pathname.startsWith("/inscricao/") ||
-    pathname.startsWith("/evento/") ||
-    pathname.startsWith("/convite/") ||
-    pathname === "/reset-password";
+    pathname === "/auth" || pathname.startsWith("/inscricao/");
 
-  // Public routes always render without the authenticated shell (sidebar/header),
-  // regardless of whether the user happens to be logged in.
-  if (isPublicRoute) {
+  if (!session) {
+    if (!isPublicRoute) {
+      if (typeof window !== "undefined") {
+        const redirectTo = encodeURIComponent(
+          window.location.pathname + window.location.search,
+        );
+        window.location.replace(`/auth?redirect=${redirectTo}`);
+      }
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="text-sm text-muted-foreground">A redirecionar…</div>
+        </div>
+      );
+    }
     if (isRouterLoading) {
       return <LoadingU />;
     }
     return (
       <div className="min-h-screen bg-muted/30">
         <Outlet />
-      </div>
-    );
-  }
-
-  if (!session) {
-    if (typeof window !== "undefined") {
-      const redirectTo = encodeURIComponent(
-        window.location.pathname + window.location.search,
-      );
-      window.location.replace(`/auth?redirect=${redirectTo}`);
-    }
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="text-sm text-muted-foreground">A redirecionar…</div>
       </div>
     );
   }
