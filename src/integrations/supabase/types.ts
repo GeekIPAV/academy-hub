@@ -364,6 +364,45 @@ export type Database = {
         }
         Relationships: []
       }
+      convites: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          label: string | null
+          max_uses: number | null
+          roles: string[]
+          token: string
+          uses_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          max_uses?: number | null
+          roles: string[]
+          token?: string
+          uses_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          max_uses?: number | null
+          roles?: string[]
+          token?: string
+          uses_count?: number
+        }
+        Relationships: []
+      }
       entidades: {
         Row: {
           address: string | null
