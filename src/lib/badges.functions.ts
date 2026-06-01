@@ -195,7 +195,7 @@ export const upsertBadge = createServerFn({ method: "POST" })
   .inputValidator((input) => upsertSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const payload: Record<string, unknown> = {
+    const payload = {
       title: data.title,
       description: data.description ?? null,
       cluster_id: data.cluster_id,
@@ -204,9 +204,9 @@ export const upsertBadge = createServerFn({ method: "POST" })
       validity_years: data.validity_type === "relative_years" ? data.validity_years ?? null : null,
       validity_fixed_date:
         data.validity_type === "fixed_date" ? data.validity_fixed_date ?? null : null,
+      ...(data.cover_position !== undefined ? { cover_position: data.cover_position } : {}),
+      ...(data.cover_scale !== undefined ? { cover_scale: data.cover_scale } : {}),
     };
-    if (data.cover_position !== undefined) payload.cover_position = data.cover_position;
-    if (data.cover_scale !== undefined) payload.cover_scale = data.cover_scale;
     if (data.id) {
       const { error } = await supabaseAdmin.from("badges").update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
@@ -214,7 +214,7 @@ export const upsertBadge = createServerFn({ method: "POST" })
     }
     const { data: row, error } = await supabaseAdmin
       .from("badges")
-      .insert(payload as never)
+      .insert(payload)
       .select("id")
       .single();
     if (error) throw new Error(error.message);
