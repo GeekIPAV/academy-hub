@@ -8,6 +8,8 @@ export interface ClusterRow {
   name: string;
   description: string | null;
   cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
   sort_order: number;
 }
 
@@ -30,6 +32,8 @@ export function useUpsertCluster() {
       name: string;
       description?: string | null;
       cover_url?: string | null;
+      cover_position?: string | null;
+      cover_scale?: number | null;
       sort_order?: number;
     }) => fn({ data: vars }),
     onSuccess: () => {
