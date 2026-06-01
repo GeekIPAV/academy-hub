@@ -107,7 +107,7 @@ function ConvitePage() {
                   Foste convidado para te juntares à equipa como:
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {info.data?.roles.map((r) => (
+                  {info.data?.roles.map((r: string) => (
                     <Badge key={r} variant="secondary">
                       {r}
                     </Badge>
