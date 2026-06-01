@@ -76,7 +76,7 @@ function ClusterTemas() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos")
-        .select("id, cluster, bloco, title, description, cover_url, order_index, bloco_order")
+        .select("id, cluster, bloco, title, description, cover_url, cover_position, cover_scale, order_index, bloco_order")
         .eq("cluster", cluster!.name)
         .order("bloco_order", { ascending: true })
         .order("order_index", { ascending: true });
