@@ -142,6 +142,17 @@ const updateActionSchema = z.object({
       avaliacao_satisfacao_link: z.string().max(1000).nullable().optional(),
       avaliacao_impacto: z.number().min(0).max(10).nullable().optional(),
       avaliacao_impacto_link: z.string().max(1000).nullable().optional(),
+      required_fields: z
+        .array(
+          z.object({
+            name: z.string().min(1).max(80),
+            label: z.string().max(200).optional(),
+            type: z.string().max(40).optional(),
+            required: z.boolean().optional(),
+          }),
+        )
+        .nullable()
+        .optional(),
     })
     .strict(),
 });
