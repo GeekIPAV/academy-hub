@@ -77,7 +77,8 @@ export interface BadgeInput {
   description?: string | null;
   cluster_id: string;
   cover_url?: string | null;
-  
+  cover_position?: string;
+  cover_scale?: number;
   validity_type: BadgeValidityType;
   validity_years?: number | null;
   validity_fixed_date?: string | null;

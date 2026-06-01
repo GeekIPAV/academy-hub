@@ -51,6 +51,7 @@ import { useResourceCategories, useResourceCategoryMap } from "@/hooks/use-resou
 import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
 import { ResourceCategoriesManager } from "@/components/admin/ResourceCategoriesManager";
 import { CoverUploader } from "@/components/CoverUploader";
+import { CoverImage } from "@/components/CoverImage";
 
 type ResourceType = string;
 
@@ -89,6 +90,8 @@ interface ResourceRow {
   objectives: string | null;
   file_url: string;
   cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
   created_at: string | null;
 }
 
@@ -171,7 +174,7 @@ function useRecursos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recursos")
-        .select("id, title, description, resource_type, category_key, objectives, file_url, cover_url, created_at")
+        .select("id, title, description, resource_type, category_key, objectives, file_url, cover_url, cover_position, cover_scale, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ResourceRow[];
@@ -947,6 +950,8 @@ function EditRecursoDialog({
   const [objectives, setObjectives] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [coverPosition, setCoverPosition] = useState<string | null>(null);
+  const [coverScale, setCoverScale] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -958,17 +963,23 @@ function EditRecursoDialog({
       setObjectives(recurso.objectives ?? "");
       setFileUrl(recurso.file_url ?? "");
       setCoverUrl(recurso.cover_url ?? null);
+      setCoverPosition(recurso.cover_position ?? null);
+      setCoverScale(recurso.cover_scale ?? null);
     }
   }, [recurso]);
 
-  const persistCover = async (url: string | null) => {
+  const persistCover = async (
+    patch: { cover_url?: string | null; cover_position?: string; cover_scale?: number },
+  ) => {
     if (!recurso) return;
     const { error } = await supabase
       .from("recursos")
-      .update({ cover_url: url })
+      .update(patch)
       .eq("id", recurso.id);
     if (error) throw error;
-    setCoverUrl(url);
+    if (patch.cover_url !== undefined) setCoverUrl(patch.cover_url);
+    if (patch.cover_position !== undefined) setCoverPosition(patch.cover_position);
+    if (patch.cover_scale !== undefined) setCoverScale(patch.cover_scale);
     onSaved();
   };
 
@@ -1013,7 +1024,7 @@ function EditRecursoDialog({
             <div className="flex items-center gap-3">
               <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-md border bg-muted">
                 {coverUrl ? (
-                  <img src={coverUrl} alt="" className="h-full w-full object-cover" />
+                  <CoverImage src={coverUrl} position={coverPosition} scale={coverScale} />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">
                     Sem imagem
@@ -1026,8 +1037,12 @@ function EditRecursoDialog({
                   folder="recursos"
                   id={recurso.id}
                   currentUrl={coverUrl}
-                  onUploaded={(url) => persistCover(url)}
-                  onCleared={() => persistCover(null)}
+                  position={coverPosition}
+                  scale={coverScale}
+                  aspectRatio={4 / 3}
+                  onUploaded={(url) => persistCover({ cover_url: url })}
+                  onCleared={() => persistCover({ cover_url: null })}
+                  onAdjusted={(p, s) => persistCover({ cover_position: p, cover_scale: s })}
                 />
               )}
             </div>

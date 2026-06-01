@@ -251,6 +251,8 @@ export type Database = {
       badges: {
         Row: {
           cluster_id: string
+          cover_position: string
+          cover_scale: number
           cover_url: string | null
           created_at: string | null
           description: string | null
@@ -262,6 +264,8 @@ export type Database = {
         }
         Insert: {
           cluster_id: string
+          cover_position?: string
+          cover_scale?: number
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -273,6 +277,8 @@ export type Database = {
         }
         Update: {
           cluster_id?: string
+          cover_position?: string
+          cover_scale?: number
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -295,18 +301,24 @@ export type Database = {
       cluster_covers: {
         Row: {
           cluster_name: string
+          cover_position: string
+          cover_scale: number
           cover_url: string | null
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           cluster_name: string
+          cover_position?: string
+          cover_scale?: number
           cover_url?: string | null
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           cluster_name?: string
+          cover_position?: string
+          cover_scale?: number
           cover_url?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -315,6 +327,8 @@ export type Database = {
       }
       clusters: {
         Row: {
+          cover_position: string
+          cover_scale: number
           cover_url: string | null
           created_at: string
           description: string | null
@@ -324,6 +338,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cover_position?: string
+          cover_scale?: number
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -333,6 +349,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cover_position?: string
+          cover_scale?: number
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -922,6 +940,8 @@ export type Database = {
         Row: {
           category_key: string | null
           cluster_id: string | null
+          cover_position: string
+          cover_scale: number
           cover_url: string | null
           created_at: string | null
           description: string | null
@@ -936,6 +956,8 @@ export type Database = {
         Insert: {
           category_key?: string | null
           cluster_id?: string | null
+          cover_position?: string
+          cover_scale?: number
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -950,6 +972,8 @@ export type Database = {
         Update: {
           category_key?: string | null
           cluster_id?: string | null
+          cover_position?: string
+          cover_scale?: number
           cover_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -1164,6 +1188,8 @@ export type Database = {
           cluster: string
           cluster_id: string | null
           context: string | null
+          cover_position: string
+          cover_scale: number
           cover_url: string | null
           created_at: string
           description: string | null
@@ -1182,6 +1208,8 @@ export type Database = {
           cluster: string
           cluster_id?: string | null
           context?: string | null
+          cover_position?: string
+          cover_scale?: number
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -1200,6 +1228,8 @@ export type Database = {
           cluster?: string
           cluster_id?: string | null
           context?: string | null
+          cover_position?: string
+          cover_scale?: number
           cover_url?: string | null
           created_at?: string
           description?: string | null

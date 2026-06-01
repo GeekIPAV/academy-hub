@@ -33,6 +33,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CoverUploader } from "@/components/CoverUploader";
+import { CoverImage } from "@/components/CoverImage";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import {
   DndContext,
@@ -75,6 +76,8 @@ interface RecursoRow {
   resource_type: string;
   file_url: string;
   cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
   category_key: string | null;
 }
 
@@ -107,7 +110,7 @@ function TemaDetail() {
       const { data, error } = await supabase
         .from("temas_momentos")
         .select(
-          "id, cluster, bloco, title, intro, description, processo_u, context, objectives, hidden_sections, tema_recursos(sort_order, recursos(id, title, resource_type, file_url, cover_url, category_key))",
+          "id, cluster, bloco, title, intro, description, processo_u, context, objectives, hidden_sections, tema_recursos(sort_order, recursos(id, title, resource_type, file_url, cover_url, cover_position, cover_scale, category_key))",
         )
         .eq("id", temaId)
         .maybeSingle();
@@ -1171,10 +1174,13 @@ function RecursosGallery({
   isAdmin: boolean;
   onSaved: () => void;
 }) {
-  const setCover = async (id: string, url: string | null) => {
+  const setCover = async (
+    id: string,
+    patch: { cover_url?: string | null; cover_position?: string; cover_scale?: number },
+  ) => {
     const { error } = await supabase
       .from("recursos")
-      .update({ cover_url: url })
+      .update(patch)
       .eq("id", id);
     if (error) throw error;
     onSaved();
@@ -1210,11 +1216,11 @@ function RecursosGallery({
           style={{ backgroundColor: `${color}1A` }}
         >
           {r.cover_url ? (
-            <img
+            <CoverImage
               src={r.cover_url}
-              alt=""
-              className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-              loading="lazy"
+              position={r.cover_position}
+              scale={r.cover_scale}
+              className="transition group-hover:scale-[1.02]"
             />
           ) : (
             <Icon className="h-12 w-12" style={{ color }} />
@@ -1224,8 +1230,12 @@ function RecursosGallery({
               folder="recursos"
               id={r.id}
               currentUrl={r.cover_url}
-              onUploaded={(url: string) => setCover(r.id, url)}
-              onCleared={() => setCover(r.id, null)}
+              position={r.cover_position}
+              scale={r.cover_scale}
+              aspectRatio={4 / 3}
+              onUploaded={(url: string) => setCover(r.id, { cover_url: url })}
+              onCleared={() => setCover(r.id, { cover_url: null })}
+              onAdjusted={(p, s) => setCover(r.id, { cover_position: p, cover_scale: s })}
             />
           )}
         </div>

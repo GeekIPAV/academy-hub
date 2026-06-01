@@ -7,6 +7,7 @@ import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-
 import { Loader2, ImageIcon, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
+import { CoverImage } from "@/components/CoverImage";
 import { useHasBadgeForCluster } from "@/hooks/use-badge-access";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
@@ -33,6 +34,8 @@ interface TemaRow {
   title: string;
   description: string | null;
   cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
   order_index: number;
   bloco_order: number;
 }
@@ -73,7 +76,7 @@ function ClusterTemas() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos")
-        .select("id, cluster, bloco, title, description, cover_url, order_index, bloco_order")
+        .select("id, cluster, bloco, title, description, cover_url, cover_position, cover_scale, order_index, bloco_order")
         .eq("cluster", cluster!.name)
         .order("bloco_order", { ascending: true })
         .order("order_index", { ascending: true });
@@ -188,10 +191,10 @@ function ClusterTemas() {
                 tema={t}
                 clusterSlug={cluster.slug}
                 isAdmin={isAdmin}
-                onSetCover={async (url) => {
+                onSetCover={async (patch) => {
                   const { error } = await supabase
                     .from("temas_momentos")
-                    .update({ cover_url: url })
+                    .update(patch)
                     .eq("id", t.id);
                   if (error) throw error;
                   qc.invalidateQueries({ queryKey: ["temas", cluster.name] });
@@ -239,7 +242,9 @@ function TemaCard({
   tema: TemaRow;
   clusterSlug: string;
   isAdmin: boolean;
-  onSetCover: (url: string | null) => Promise<void>;
+  onSetCover: (
+    patch: { cover_url?: string | null; cover_position?: string; cover_scale?: number },
+  ) => Promise<void>;
 }) {
   return (
     <Link
@@ -249,11 +254,11 @@ function TemaCard({
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-primary/10 via-muted to-primary/5">
         {tema.cover_url ? (
-          <img
+          <CoverImage
             src={tema.cover_url}
-            alt=""
-            className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-            loading="lazy"
+            position={tema.cover_position}
+            scale={tema.cover_scale}
+            className="transition group-hover:scale-[1.02]"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-muted-foreground/40">
@@ -265,8 +270,12 @@ function TemaCard({
             folder="temas"
             id={tema.id}
             currentUrl={tema.cover_url}
-            onUploaded={(url) => onSetCover(url)}
-            onCleared={() => onSetCover(null)}
+            position={tema.cover_position}
+            scale={tema.cover_scale}
+            aspectRatio={4 / 3}
+            onUploaded={(url) => onSetCover({ cover_url: url })}
+            onCleared={() => onSetCover({ cover_url: null })}
+            onAdjusted={(p, s) => onSetCover({ cover_position: p, cover_scale: s })}
           />
         )}
       </div>
