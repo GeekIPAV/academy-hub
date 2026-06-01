@@ -3,190 +3,149 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { ShieldAlert, LogIn, Check, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { claimInvite, getInviteInfo, redeemInvite } from "@/lib/invites.functions";
+import {
+  validateStaffInvite,
+  consumeStaffInvite,
+} from "@/lib/invites.functions";
 
 export const Route = createFileRoute("/convite/$token")({
-  head: () => ({ meta: [{ title: "Aderir à plataforma" }] }),
+  head: () => ({ meta: [{ title: "Convite — Academia Ubuntu" }] }),
   component: ConvitePage,
 });
 
 function ConvitePage() {
   const { token } = Route.useParams();
   const navigate = useNavigate();
-  const infoFn = useServerFn(getInviteInfo);
-  const redeemFn = useServerFn(redeemInvite);
-  const claimFn = useServerFn(claimInvite);
+  const validateFn = useServerFn(validateStaffInvite);
+  const consumeFn = useServerFn(consumeStaffInvite);
 
   const info = useQuery({
     queryKey: ["invite-info", token],
-    queryFn: () => infoFn({ data: { token } }),
+    queryFn: () => validateFn({ data: { token } }),
     retry: false,
   });
 
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [password, setPassword] = useState("");
-  const [googleLoading, setGoogleLoading] = useState(false);
-  const [claiming, setClaiming] = useState(false);
+  const [authedUserId, setAuthedUserId] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
-  const redeem = useMutation({
-    mutationFn: () => redeemFn({ data: { token, email, full_name: fullName, password } }),
-    onSuccess: async () => {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        toast.success("Conta criada. Faz login para continuar.");
-        navigate({ to: "/auth" });
-      } else {
-        toast.success("Conta criada!");
-        navigate({ to: "/dashboard" });
-      }
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!mounted) return;
+      setAuthedUserId(data.user?.id ?? null);
+      setAuthChecked(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      setAuthedUserId(session?.user?.id ?? null);
+      setAuthChecked(true);
+    });
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  const accept = useMutation({
+    mutationFn: () => consumeFn({ data: { token } }),
+    onSuccess: () => {
+      toast.success("Bem-vindo à equipa!");
+      navigate({ to: "/dashboard" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !fullName.trim() || password.length < 8) {
-      toast.error("Preenche todos os campos (mínimo 8 caracteres na senha).");
-      return;
-    }
-    redeem.mutate();
-  };
-
-  // If the user comes back from Google OAuth already authenticated, claim the invite.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      if (cancelled || !data.user) return;
-      setClaiming(true);
-      try {
-        await claimFn({ data: { token } });
-        toast.success("Bem-vindo!");
-        navigate({ to: "/dashboard" });
-      } catch (e) {
-        toast.error((e as Error).message);
-        setClaiming(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [token, claimFn, navigate]);
-
-  const handleGoogle = async () => {
-    setGoogleLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.href,
-    });
-    if (result.error) {
-      setGoogleLoading(false);
-      toast.error(result.error.message);
-      return;
-    }
-    if (result.redirected) return;
+  const goToAuth = () => {
+    navigate({ to: "/auth", search: { redirect: `/convite/${token}` } });
   };
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md items-center px-4 py-12">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Aderir à plataforma</CardTitle>
+          <CardTitle>Convite para a equipa</CardTitle>
           <CardDescription>
-            Preenche os teus dados para criar a conta.
+            Aceita o convite para te juntares à plataforma.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {info.isLoading || claiming ? (
+          {info.isLoading || !authChecked ? (
             <div className="space-y-3">
-              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-6 w-2/3" />
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
             </div>
           ) : info.isError ? (
-            <p className="text-sm text-destructive">
-              {(info.error as Error)?.message ?? "Convite inválido."}
-            </p>
-          ) : (
-            <>
-              {info.data?.label && (
-                <p className="mb-3 text-sm text-muted-foreground">{info.data.label}</p>
-              )}
-              <div className="mb-4 flex flex-wrap gap-2">
-                {info.data?.roles.map((r) => (
-                  <Badge key={r} variant="secondary">
-                    {r}
-                  </Badge>
-                ))}
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full gap-2"
-                disabled={googleLoading}
-                onClick={handleGoogle}
-              >
-                <svg className="h-4 w-4" viewBox="0 0 24 24">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                </svg>
-                {googleLoading ? "A redirecionar…" : "Continuar com Google"}
+            <div className="space-y-4 text-center">
+              <ShieldAlert className="mx-auto h-10 w-10 text-destructive" />
+              <p className="font-medium">Não foi possível validar este convite</p>
+              <p className="text-sm text-muted-foreground">
+                {(info.error as Error)?.message ?? "Link inválido."}
+              </p>
+              <Button variant="outline" onClick={() => navigate({ to: "/" })}>
+                Voltar
               </Button>
-
-              <div className="my-4 flex items-center gap-2">
-                <div className="h-px flex-1 bg-border" />
-                <span className="text-xs text-muted-foreground">ou cria com email</span>
-                <div className="h-px flex-1 bg-border" />
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {info.data?.label && (
+                <p className="text-sm text-muted-foreground">{info.data.label}</p>
+              )}
+              <div>
+                <p className="text-sm">
+                  Foste convidado para te juntares à equipa como:
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {info.data?.roles.map((r) => (
+                    <Badge key={r} variant="secondary">
+                      {r}
+                    </Badge>
+                  ))}
+                </div>
               </div>
 
-              <form onSubmit={submit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome completo</Label>
-                  <Input
-                    id="name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    maxLength={120}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Senha (mín. 8 caracteres)</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    minLength={8}
-                    required
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={redeem.isPending}>
-                  {redeem.isPending ? "A criar conta..." : "Criar conta"}
+              {authedUserId ? (
+                <Button
+                  className="w-full"
+                  disabled={accept.isPending}
+                  onClick={() => accept.mutate()}
+                >
+                  {accept.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      A aceitar…
+                    </>
+                  ) : (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Aceitar Convite
+                    </>
+                  )}
                 </Button>
-              </form>
-            </>
+              ) : (
+                <div className="space-y-2">
+                  <Button className="w-full" onClick={goToAuth}>
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Fazer Login / Registar
+                  </Button>
+                  <p className="text-center text-xs text-muted-foreground">
+                    Após autenticares, voltas automaticamente a esta página para
+                    confirmar.
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </CardContent>
       </Card>
