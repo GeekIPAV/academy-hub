@@ -213,3 +213,13 @@ export const claimInvite = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+// ─── Aliases públicos (nomes consistentes com a especificação) ───────────────
+// Validação pública do token (usa supabaseAdmin para contornar RLS de leitura).
+export const validateStaffInvite = getInviteInfo;
+// Consumo do convite para o utilizador autenticado atual.
+export const consumeStaffInvite = claimInvite;
+// Geração de novo convite (apenas Admin).
+export const generateStaffInvite = createInvite;
+// Listagem dos convites ativos para o painel Admin.
+export const listActiveInvites = listInvites;
