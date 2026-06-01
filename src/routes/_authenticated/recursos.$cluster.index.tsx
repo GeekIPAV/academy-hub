@@ -7,6 +7,7 @@ import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-
 import { Loader2, ImageIcon, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
+import { CoverImage } from "@/components/CoverImage";
 import { useHasBadgeForCluster } from "@/hooks/use-badge-access";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
@@ -33,6 +34,8 @@ interface TemaRow {
   title: string;
   description: string | null;
   cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
   order_index: number;
   bloco_order: number;
 }
