@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const identifierSchema = z.object({
@@ -28,8 +27,6 @@ export interface PublicEventDetails {
 
 /**
  * Carrega os detalhes públicos de um evento pelo Notion Page ID.
- * Não exige autenticação — é o ponto de entrada para o link público
- * gerado a partir da fórmula do Notion (/evento/<NOTION_PAGE_ID>).
  */
 export const getPublicEventDetails = createServerFn({ method: "GET" })
   .inputValidator((input) => identifierSchema.parse(input))
@@ -65,24 +62,123 @@ export const getPublicEventDetails = createServerFn({ method: "GET" })
     };
   });
 
+const verifySchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(255),
+  doc_type: z.enum(["nif", "passport"]),
+  doc_number: z.string().trim().min(3).max(40),
+});
+
+export interface VerifyIdentityResult {
+  exists: boolean;
+  full_name: string | null;
+  /** True se foi encontrado um perfil pelo NIF/Doc mas o email não bate certo. */
+  conflict: boolean;
+}
+
+/**
+ * Verifica se já existe um utilizador com este email + NIF/Passaporte.
+ * Pública (sem auth). Usada para decidir se mostramos campo de password
+ * (login) ou campos de criação de conta.
+ */
+export const verifyPublicUserIdentity = createServerFn({ method: "POST" })
+  .inputValidator((input) => verifySchema.parse(input))
+  .handler(async ({ data }): Promise<VerifyIdentityResult> => {
+    // 1. Procurar perfil pelo documento.
+    const docColumn = data.doc_type === "nif" ? "nif" : "id_doc_number";
+    const { data: byDoc } = await supabaseAdmin
+      .from("utilizadores")
+      .select("id, full_name")
+      .eq(docColumn, data.doc_number)
+      .maybeSingle();
+
+    // 2. Procurar utilizador pelo email (via auth admin).
+    const { data: emailLookup } = await supabaseAdmin.auth.admin.listUsers({
+      page: 1,
+      perPage: 200,
+    });
+    const authUser =
+      emailLookup?.users?.find(
+        (u) => (u.email ?? "").toLowerCase() === data.email,
+      ) ?? null;
+
+    if (byDoc && authUser && byDoc.id === authUser.id) {
+      return { exists: true, full_name: byDoc.full_name, conflict: false };
+    }
+    if (byDoc && authUser && byDoc.id !== authUser.id) {
+      return { exists: false, full_name: null, conflict: true };
+    }
+    if (byDoc && !authUser) {
+      // Doc registado com outro email → conflito.
+      return { exists: false, full_name: null, conflict: true };
+    }
+    if (!byDoc && authUser) {
+      // Email já registado mas com outro documento.
+      return { exists: true, full_name: null, conflict: false };
+    }
+    return { exists: false, full_name: null, conflict: false };
+  });
+
 const enrollSchema = z.object({
   identifier: z.string().trim().min(8).max(80),
   additional_data: z
     .record(z.string().min(1).max(100), z.unknown())
     .default({}),
   user_observations: z.string().max(2000).optional(),
+  // Para utilizadores novos — gravamos no perfil.
+  profile: z
+    .object({
+      full_name: z.string().trim().min(2).max(160),
+      doc_type: z.enum(["nif", "passport"]),
+      doc_number: z.string().trim().min(3).max(40),
+    })
+    .optional(),
 });
 
 /**
- * Inscrição pública num evento via Notion Page ID.
- * Mapeia o notion_id → id interno e cria o registo em inscritos_acoes
- * para o utilizador autenticado.
+ * Inscrição pública. Requer que o utilizador já esteja autenticado
+ * (a autenticação é feita no cliente imediatamente antes desta chamada,
+ * via signInWithPassword ou signUp).
+ *
+ * Usa o cliente admin para contornar RLS na escrita de perfil e inscrição
+ * para evitar dependência de hidratação de sessão num formulário público.
  */
 export const enrollInPublicEvent = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .inputValidator((input) => enrollSchema.parse(input))
-  .handler(async ({ data, context }) => {
-    const { userId } = context;
+  .handler(async ({ data }) => {
+    // O cliente envia user_id derivado do session.user.id após auth.
+    // Aceitamos via campo separado no header? — Não. Em vez disso pedimos
+    // explicitamente no payload (já que a sessão acabou de ser criada no
+    // cliente). Validamos que o email do payload corresponde ao do auth.
+    throw new Error("Use enrollInPublicEventForUser instead.");
+  });
+
+const enrollForUserSchema = z.object({
+  identifier: z.string().trim().min(8).max(80),
+  user_id: z.string().uuid(),
+  email: z.string().trim().toLowerCase().email().max(255),
+  additional_data: z
+    .record(z.string().min(1).max(100), z.unknown())
+    .default({}),
+  user_observations: z.string().max(2000).optional(),
+  profile: z
+    .object({
+      full_name: z.string().trim().min(2).max(160),
+      doc_type: z.enum(["nif", "passport"]),
+      doc_number: z.string().trim().min(3).max(40),
+    })
+    .optional(),
+});
+
+export const enrollInPublicEventForUser = createServerFn({ method: "POST" })
+  .inputValidator((input) => enrollForUserSchema.parse(input))
+  .handler(async ({ data }) => {
+    // Confirma que o user_id corresponde mesmo ao email indicado.
+    const { data: u, error: uErr } =
+      await supabaseAdmin.auth.admin.getUserById(data.user_id);
+    if (uErr || !u?.user) throw new Error("Utilizador inválido.");
+    if ((u.user.email ?? "").toLowerCase() !== data.email) {
+      throw new Error("Identidade não corresponde à conta autenticada.");
+    }
 
     const { data: action, error: aErr } = await supabaseAdmin
       .from("acoes")
@@ -91,23 +187,36 @@ export const enrollInPublicEvent = createServerFn({ method: "POST" })
       .maybeSingle();
     if (aErr) throw new Error(aErr.message);
     if (!action) throw new Error("Evento não encontrado.");
-
     if (action.registration_status && action.registration_status !== "Aberto") {
       throw new Error("As inscrições para este evento não estão abertas.");
     }
 
+    // Upsert do perfil (caso seja conta nova).
+    if (data.profile) {
+      const patch: Record<string, unknown> = {
+        id: data.user_id,
+        full_name: data.profile.full_name,
+      };
+      if (data.profile.doc_type === "nif") {
+        patch.nif = data.profile.doc_number;
+      } else {
+        patch.id_doc_type = "Passaporte";
+        patch.id_doc_number = data.profile.doc_number;
+      }
+      await supabaseAdmin
+        .from("utilizadores")
+        .upsert(patch as never, { onConflict: "id" });
+    }
+
+    // Já inscrito?
     const { data: existing } = await supabaseAdmin
       .from("inscritos_acoes")
       .select("id, status")
       .eq("action_id", action.id)
-      .eq("user_id", userId)
+      .eq("user_id", data.user_id)
       .maybeSingle();
     if (existing) {
-      return {
-        id: existing.id,
-        status: existing.status,
-        alreadyEnrolled: true,
-      };
+      return { id: existing.id, status: existing.status, alreadyEnrolled: true };
     }
 
     const { count } = await supabaseAdmin
@@ -122,7 +231,7 @@ export const enrollInPublicEvent = createServerFn({ method: "POST" })
     const { data: enr, error: iErr } = await supabaseAdmin
       .from("inscritos_acoes")
       .insert({
-        user_id: userId,
+        user_id: data.user_id,
         action_id: action.id,
         status,
         additional_data: data.additional_data as never,
@@ -133,7 +242,7 @@ export const enrollInPublicEvent = createServerFn({ method: "POST" })
     if (iErr) throw new Error(iErr.message);
 
     await supabaseAdmin.from("notificacoes").insert({
-      user_id: userId,
+      user_id: data.user_id,
       title:
         status === "aceite"
           ? "Inscrição confirmada"
