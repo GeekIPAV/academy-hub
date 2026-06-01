@@ -190,7 +190,7 @@ function ClusterCard({
         {cluster.subtitle && (
           <p
             className={cn(
-              "text-sm font-medium",
+              "text-sm font-medium text-center",
               allowed ? "text-muted-foreground" : "text-muted-foreground/70",
             )}
           >
