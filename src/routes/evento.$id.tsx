@@ -514,7 +514,7 @@ function PublicEventPage() {
                               inputMode={docType === "nif" ? "numeric" : "text"}
                             />
                           </div>
-                          <TshirtField value={tshirt} onChange={setTshirt} />
+                          
                         </>
                       )}
                       <DynamicQuestions
