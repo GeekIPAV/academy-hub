@@ -670,12 +670,37 @@ function BlocoCard({
     onChanged();
   };
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: bloco.id, disabled: !isAdmin || editing });
+  const sortableStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+
   if (!isAdmin || !editing) {
     return (
-      <div className="rounded-xl border bg-card p-5 shadow-sm">
+      <div ref={setNodeRef} style={sortableStyle} className="rounded-xl border bg-card p-5 shadow-sm">
         <div className="mb-2 flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="cursor-grab touch-none rounded p-0.5 text-muted-foreground hover:bg-muted active:cursor-grabbing"
+                  aria-label="Reordenar bloco"
+                  {...attributes}
+                  {...listeners}
+                >
+                  <GripVertical className="h-3.5 w-3.5" />
+                </button>
+              )}
               <span className="rounded bg-muted px-1.5 py-0.5 font-semibold">
                 {String(index + 1).padStart(2, "0")}
               </span>
