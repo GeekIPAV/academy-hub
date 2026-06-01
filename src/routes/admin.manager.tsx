@@ -661,6 +661,14 @@ function InviteLinksManager() {
                         <Button
                           size="icon"
                           variant="ghost"
+                          title="Abrir página de adesão"
+                          onClick={() => window.open(buildUrl(inv.token), "_blank", "noopener,noreferrer")}
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
                           title="Copiar link"
                           onClick={() => copy(inv.token)}
                         >
