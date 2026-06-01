@@ -181,7 +181,7 @@ function ClusterCard({
       <div className="flex-1 space-y-1">
         <h3
           className={cn(
-            "text-xl font-bold leading-tight",
+            "font-bold leading-tight text-2xl",
             allowed ? "text-secondary" : "text-muted-foreground",
           )}
         >
