@@ -474,8 +474,19 @@ function PlanoSessao({
     },
   });
 
+  const [orderedBlocos, setOrderedBlocos] = useState<PlanoBloco[]>([]);
+
+  useEffect(() => {
+    setOrderedBlocos(blocosQuery.data ?? []);
+  }, [blocosQuery.data]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
   const addBloco = async () => {
-    const nextOrder = (blocosQuery.data?.length ?? 0) * 10;
+    const nextOrder = (orderedBlocos.length ?? 0) * 10;
     const { error } = await supabase
       .from("plano_sessao_blocos")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -487,6 +498,34 @@ function PlanoSessao({
     blocosQuery.refetch();
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = orderedBlocos.findIndex((b) => b.id === active.id);
+    const newIndex = orderedBlocos.findIndex((b) => b.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const reordered = arrayMove(orderedBlocos, oldIndex, newIndex).map((b, i) => ({
+      ...b,
+      sort_order: (i + 1) * 10,
+    }));
+    setOrderedBlocos(reordered);
+    try {
+      await Promise.all(
+        reordered.map((b) =>
+          supabase
+            .from("plano_sessao_blocos")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .update({ sort_order: b.sort_order } as any)
+            .eq("id", b.id),
+        ),
+      );
+      blocosQuery.refetch();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao reordenar blocos");
+      blocosQuery.refetch();
+    }
+  };
+
   if (blocosQuery.isLoading) {
     return (
       <div className="flex justify-center py-8">
@@ -495,7 +534,7 @@ function PlanoSessao({
     );
   }
 
-  const blocos = blocosQuery.data ?? [];
+  const blocos = orderedBlocos;
 
   return (
     <div className="space-y-3">
@@ -515,21 +554,32 @@ function PlanoSessao({
             : "Plano de sessão ainda não disponível."}
         </p>
       ) : (
-        <div className="space-y-3">
-          {blocos.map((b, idx) => (
-            <BlocoCard
-              key={b.id}
-              bloco={b}
-              index={idx}
-              temaRecursos={temaRecursos}
-              typeMap={typeMap}
-              categoryMap={categoryMap}
-              isAdmin={isAdmin}
-              onOpen={onOpen}
-              onChanged={() => blocosQuery.refetch()}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={blocos.map((b) => b.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {blocos.map((b, idx) => (
+                <BlocoCard
+                  key={b.id}
+                  bloco={b}
+                  index={idx}
+                  temaRecursos={temaRecursos}
+                  typeMap={typeMap}
+                  categoryMap={categoryMap}
+                  isAdmin={isAdmin}
+                  onOpen={onOpen}
+                  onChanged={() => blocosQuery.refetch()}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );
@@ -620,12 +670,37 @@ function BlocoCard({
     onChanged();
   };
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: bloco.id, disabled: !isAdmin || editing });
+  const sortableStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+
   if (!isAdmin || !editing) {
     return (
-      <div className="rounded-xl border bg-card p-5 shadow-sm">
+      <div ref={setNodeRef} style={sortableStyle} className="rounded-xl border bg-card p-5 shadow-sm">
         <div className="mb-2 flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="cursor-grab touch-none rounded p-0.5 text-muted-foreground hover:bg-muted active:cursor-grabbing"
+                  aria-label="Reordenar bloco"
+                  {...attributes}
+                  {...listeners}
+                >
+                  <GripVertical className="h-3.5 w-3.5" />
+                </button>
+              )}
               <span className="rounded bg-muted px-1.5 py-0.5 font-semibold">
                 {String(index + 1).padStart(2, "0")}
               </span>
