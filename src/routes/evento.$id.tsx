@@ -456,7 +456,6 @@ function PublicEventPage() {
                           onChange={(e) => setPassword(e.target.value)}
                         />
                       </div>
-                      <TshirtField value={tshirt} onChange={setTshirt} />
                       <DynamicQuestions
                         fields={fields}
                         values={answers}
