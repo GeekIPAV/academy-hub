@@ -50,7 +50,7 @@ type IdentityState =
   | { status: "conflict"; message: string }
   | { status: "google"; user_id: string; email: string; needs_doc: boolean; full_name: string | null };
 
-const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
