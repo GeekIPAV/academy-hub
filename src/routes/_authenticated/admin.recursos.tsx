@@ -1024,7 +1024,7 @@ function EditRecursoDialog({
             <div className="flex items-center gap-3">
               <div className="relative h-20 w-28 shrink-0 overflow-hidden rounded-md border bg-muted">
                 {coverUrl ? (
-                  <img src={coverUrl} alt="" className="h-full w-full object-cover" />
+                  <CoverImage src={coverUrl} position={coverPosition} scale={coverScale} />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-[10px] text-muted-foreground">
                     Sem imagem
@@ -1037,8 +1037,12 @@ function EditRecursoDialog({
                   folder="recursos"
                   id={recurso.id}
                   currentUrl={coverUrl}
-                  onUploaded={(url) => persistCover(url)}
-                  onCleared={() => persistCover(null)}
+                  position={coverPosition}
+                  scale={coverScale}
+                  aspectRatio={4 / 3}
+                  onUploaded={(url) => persistCover({ cover_url: url })}
+                  onCleared={() => persistCover({ cover_url: null })}
+                  onAdjusted={(p, s) => persistCover({ cover_position: p, cover_scale: s })}
                 />
               )}
             </div>
