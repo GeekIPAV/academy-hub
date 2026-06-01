@@ -563,31 +563,6 @@ function PublicEventPage() {
   );
 }
 
-function TshirtField({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label>Tamanho de T-shirt</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="Seleciona o tamanho" />
-        </SelectTrigger>
-        <SelectContent>
-          {TSHIRT_SIZES.map((s) => (
-            <SelectItem key={s} value={s}>
-              {s}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
 
 function DynamicQuestions({
   fields,
