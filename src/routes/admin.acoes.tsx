@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { CalendarDays, ShieldAlert, ListChecks, Users, GraduationCap, Trash2, Plus, UserSquare2 } from "lucide-react";
+import { CalendarDays, ShieldAlert, ListChecks, Users, GraduationCap, Trash2, Plus, UserSquare2, Link2, Copy, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
