@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import {
   Card,
   CardContent,
@@ -25,11 +26,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import aluLogo from "@/assets/alu-logo.svg";
 import {
   getPublicEventDetails,
   verifyPublicUserIdentity,
   enrollInPublicEventForUser,
+  getCurrentUserDocStatus,
   type RequiredField,
 } from "@/lib/public-event.functions";
 
@@ -44,7 +54,21 @@ type IdentityState =
   | { status: "checking" }
   | { status: "existing"; full_name: string | null }
   | { status: "new" }
-  | { status: "conflict"; message: string };
+  | { status: "conflict"; message: string }
+  | { status: "google"; user_id: string; email: string; needs_doc: boolean; full_name: string | null };
+
+const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+
+function GoogleIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.83z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.31 9.14 5.38 12 5.38z" fill="#EA4335"/>
+    </svg>
+  );
+}
 
 function PublicEventPage() {
   const { id } = Route.useParams();
@@ -52,6 +76,7 @@ function PublicEventPage() {
   const fetchEvent = useServerFn(getPublicEventDetails);
   const verifyFn = useServerFn(verifyPublicUserIdentity);
   const enrollFn = useServerFn(enrollInPublicEventForUser);
+  const docStatusFn = useServerFn(getCurrentUserDocStatus);
 
   const event = useQuery({
     queryKey: ["public-event", id],
@@ -65,9 +90,39 @@ function PublicEventPage() {
   const [docNumber, setDocNumber] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [tshirt, setTshirt] = useState<string>("");
   const [obs, setObs] = useState("");
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [identity, setIdentity] = useState<IdentityState>({ status: "idle" });
+
+  // ----- Pós Google OAuth: detetar sessão e perguntar o doc se faltar -----
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const sess = data.session;
+      if (!sess?.user) return;
+      try {
+        const status = await docStatusFn();
+        if (cancelled) return;
+        setEmail(sess.user.email ?? "");
+        setFullName(status.full_name ?? "");
+        setIdentity({
+          status: "google",
+          user_id: sess.user.id,
+          email: sess.user.email ?? "",
+          needs_doc: !status.has_document,
+          full_name: status.full_name,
+        });
+      } catch {
+        /* ignore */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const canVerify =
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) &&
@@ -75,6 +130,7 @@ function PublicEventPage() {
 
   const triggerVerify = async () => {
     if (!canVerify) return;
+    if (identity.status === "google") return;
     setIdentity({ status: "checking" });
     try {
       const res = await verifyFn({
@@ -88,7 +144,8 @@ function PublicEventPage() {
         setIdentity({
           status: "conflict",
           message:
-            "O email indicado não corresponde ao documento. Verifica os dados.",
+            res.conflict_message ??
+            "O email indicado não corresponde ao documento.",
         });
       } else if (res.exists) {
         setIdentity({ status: "existing", full_name: res.full_name });
@@ -103,30 +160,39 @@ function PublicEventPage() {
     }
   };
 
-  // Reset identidade se o utilizador mudar email/doc após verificação.
+  // Reset identidade se utilizador mudar email/doc (exceto se vier do Google).
   useEffect(() => {
+    if (identity.status === "google") return;
     if (identity.status !== "idle" && identity.status !== "checking") {
       setIdentity({ status: "idle" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, docType, docNumber]);
 
+  const handleGoogle = async () => {
+    try {
+      await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.href,
+      });
+    } catch (e) {
+      toast.error((e as Error).message ?? "Falha no login com Google.");
+    }
+  };
+
   const submitting = useMutation({
     mutationFn: async () => {
-      if (identity.status !== "existing" && identity.status !== "new") {
-        throw new Error("Confirma primeiro o teu email e documento.");
-      }
-
-      // 1. Auth no cliente.
       let userId: string;
-      if (identity.status === "existing") {
+
+      if (identity.status === "google") {
+        userId = identity.user_id;
+      } else if (identity.status === "existing") {
         const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim().toLowerCase(),
           password,
         });
         if (error) throw new Error(error.message);
         userId = data.user!.id;
-      } else {
+      } else if (identity.status === "new") {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim().toLowerCase(),
           password,
@@ -136,15 +202,16 @@ function PublicEventPage() {
           },
         });
         if (error) throw new Error(error.message);
-        if (!data.user) {
-          throw new Error(
-            "Não foi possível criar a conta. Tenta novamente.",
-          );
-        }
+        if (!data.user) throw new Error("Não foi possível criar a conta.");
         userId = data.user.id;
+      } else {
+        throw new Error("Confirma primeiro o teu email e documento.");
       }
 
-      // 2. Inscrição (admin no servidor — não depende de sessão hidratada).
+      const isGoogleNeedsDoc =
+        identity.status === "google" && identity.needs_doc;
+      const isNew = identity.status === "new";
+
       return enrollFn({
         data: {
           identifier: id,
@@ -152,25 +219,23 @@ function PublicEventPage() {
           email: email.trim().toLowerCase(),
           additional_data: answers,
           user_observations: obs || undefined,
+          tshirt_size: tshirt || undefined,
           profile:
-            identity.status === "new"
+            isNew || isGoogleNeedsDoc
               ? {
-                  full_name: fullName.trim(),
+                  full_name:
+                    fullName.trim() || (identity.status === "google" ? identity.full_name ?? undefined : undefined),
                   doc_type: docType,
-                  doc_number: docNumber.trim(),
+                  doc_number: docNumber.trim() || undefined,
                 }
               : undefined,
         },
       });
     },
     onSuccess: (res) => {
-      if (res.alreadyEnrolled) {
-        toast.info("Já estavas inscrito neste evento.");
-      } else if (res.status === "aceite") {
-        toast.success("Inscrição confirmada!");
-      } else {
-        toast.success("Estás em lista de espera (suplente).");
-      }
+      if (res.alreadyEnrolled) toast.info("Já estavas inscrito neste evento.");
+      else if (res.status === "aceite") toast.success("Inscrição confirmada!");
+      else toast.success("Estás em lista de espera (suplente).");
       navigate({ to: "/dashboard" });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -188,14 +253,15 @@ function PublicEventPage() {
     event.data?.max_capacity != null &&
     event.data.aceite_count >= event.data.max_capacity;
 
+  const expanded =
+    identity.status === "existing" ||
+    identity.status === "new" ||
+    identity.status === "google";
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/40 to-muted/10 px-4 py-10">
       <div className="mx-auto flex max-w-xl flex-col items-center gap-6">
-        <img
-          src={aluLogo}
-          alt="Academia de Líderes Ubuntu"
-          className="h-12 w-auto"
-        />
+        <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-12 w-auto" />
 
         {event.isLoading ? (
           <Card className="w-full shadow-lg">
@@ -212,9 +278,7 @@ function PublicEventPage() {
           <Card className="w-full shadow-lg">
             <CardContent className="space-y-3 py-10 text-center">
               <ShieldAlert className="mx-auto h-10 w-10 text-destructive" />
-              <p className="font-medium">
-                Não foi possível carregar este evento
-              </p>
+              <p className="font-medium">Não foi possível carregar este evento</p>
               <p className="text-sm text-muted-foreground">
                 {(event.error as Error)?.message ?? "Link inválido."}
               </p>
@@ -236,8 +300,7 @@ function PublicEventPage() {
                 </Badge>
                 {event.data.max_capacity != null && (
                   <Badge variant={isFull ? "secondary" : "outline"}>
-                    {event.data.aceite_count} / {event.data.max_capacity}{" "}
-                    inscritos
+                    {event.data.aceite_count} / {event.data.max_capacity} inscritos
                   </Badge>
                 )}
               </div>
@@ -262,63 +325,84 @@ function PublicEventPage() {
                     submitting.mutate();
                   }}
                 >
-                  {/* Email */}
-                  <div className="space-y-1.5">
-                    <Label htmlFor="email">E-mail</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onBlur={triggerVerify}
-                    />
-                  </div>
+                  {identity.status !== "google" && (
+                    <>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                        size="lg"
+                        onClick={handleGoogle}
+                      >
+                        <GoogleIcon className="mr-2 h-5 w-5" />
+                        Continuar com o Google
+                      </Button>
 
-                  {/* NIF / Passaporte */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="doc">
-                        {docType === "nif"
-                          ? "NIF"
-                          : "Passaporte / Documento de identificação"}
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">
-                          Não tenho NIF / Estrangeiro
+                      <div className="flex items-center gap-3">
+                        <Separator className="flex-1" />
+                        <span className="text-xs uppercase text-muted-foreground">
+                          ou
                         </span>
-                        <Switch
-                          checked={docType === "passport"}
-                          onCheckedChange={(v) =>
-                            setDocType(v ? "passport" : "nif")
-                          }
+                        <Separator className="flex-1" />
+                      </div>
+
+                      {/* Email */}
+                      <div className="space-y-1.5">
+                        <Label htmlFor="email">E-mail</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          autoComplete="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          onBlur={triggerVerify}
                         />
                       </div>
-                    </div>
-                    <Input
-                      id="doc"
-                      required
-                      value={docNumber}
-                      onChange={(e) => setDocNumber(e.target.value)}
-                      onBlur={triggerVerify}
-                      inputMode={docType === "nif" ? "numeric" : "text"}
-                    />
-                  </div>
 
-                  {identity.status === "checking" && (
-                    <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Loader2 className="h-3 w-3 animate-spin" />A verificar
-                      identidade…
-                    </p>
-                  )}
-                  {identity.status === "conflict" && (
-                    <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                      {identity.message}
-                    </p>
+                      {/* NIF / Passaporte */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <Label htmlFor="doc">
+                            {docType === "nif"
+                              ? "NIF"
+                              : "Número de Passaporte / ID"}
+                          </Label>
+                          <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                            Não tenho NIF (Sou estrangeiro)
+                            <Switch
+                              checked={docType === "passport"}
+                              onCheckedChange={(v) =>
+                                setDocType(v ? "passport" : "nif")
+                              }
+                            />
+                          </label>
+                        </div>
+                        <Input
+                          id="doc"
+                          required
+                          value={docNumber}
+                          onChange={(e) => setDocNumber(e.target.value)}
+                          onBlur={triggerVerify}
+                          inputMode={docType === "nif" ? "numeric" : "text"}
+                        />
+                      </div>
+
+                      {identity.status === "checking" && (
+                        <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          A verificar identidade…
+                        </p>
+                      )}
+                      {identity.status === "conflict" && (
+                        <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                          {identity.message}
+                        </p>
+                      )}
+                    </>
                   )}
 
-                  {/* Expansão dinâmica */}
+                  {/* Existente (email/password) */}
                   {identity.status === "existing" && (
                     <div className="space-y-5 border-t pt-5 duration-300 animate-in fade-in slide-in-from-top-2">
                       <p className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -346,6 +430,7 @@ function PublicEventPage() {
                     </div>
                   )}
 
+                  {/* Novo (email/password) */}
                   {identity.status === "new" && (
                     <div className="space-y-5 border-t pt-5 duration-300 animate-in fade-in slide-in-from-top-2">
                       <p className="text-sm text-muted-foreground">
@@ -373,6 +458,7 @@ function PublicEventPage() {
                           onChange={(e) => setPassword(e.target.value)}
                         />
                       </div>
+                      <TshirtField value={tshirt} onChange={setTshirt} />
                       <DynamicQuestions
                         fields={fields}
                         values={answers}
@@ -381,8 +467,68 @@ function PublicEventPage() {
                     </div>
                   )}
 
-                  {(identity.status === "existing" ||
-                    identity.status === "new") && (
+                  {/* Pós Google */}
+                  {identity.status === "google" && (
+                    <div className="space-y-5 duration-300 animate-in fade-in">
+                      <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Sparkles className="h-4 w-4 text-primary" />
+                        Sessão iniciada como{" "}
+                        <span className="font-medium text-foreground">
+                          {identity.email}
+                        </span>
+                        .
+                      </p>
+
+                      {identity.needs_doc && (
+                        <>
+                          {!identity.full_name && (
+                            <div className="space-y-1.5">
+                              <Label htmlFor="gname">Nome completo</Label>
+                              <Input
+                                id="gname"
+                                required
+                                value={fullName}
+                                onChange={(e) => setFullName(e.target.value)}
+                              />
+                            </div>
+                          )}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-3">
+                              <Label htmlFor="gdoc">
+                                {docType === "nif"
+                                  ? "NIF"
+                                  : "Número de Passaporte / ID"}
+                              </Label>
+                              <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                                Não tenho NIF (Sou estrangeiro)
+                                <Switch
+                                  checked={docType === "passport"}
+                                  onCheckedChange={(v) =>
+                                    setDocType(v ? "passport" : "nif")
+                                  }
+                                />
+                              </label>
+                            </div>
+                            <Input
+                              id="gdoc"
+                              required
+                              value={docNumber}
+                              onChange={(e) => setDocNumber(e.target.value)}
+                              inputMode={docType === "nif" ? "numeric" : "text"}
+                            />
+                          </div>
+                          <TshirtField value={tshirt} onChange={setTshirt} />
+                        </>
+                      )}
+                      <DynamicQuestions
+                        fields={fields}
+                        values={answers}
+                        setValues={setAnswers}
+                      />
+                    </div>
+                  )}
+
+                  {expanded && (
                     <div className="space-y-1.5">
                       <Label htmlFor="obs">Observações (opcional)</Label>
                       <Textarea
@@ -397,11 +543,7 @@ function PublicEventPage() {
                     type="submit"
                     className="w-full"
                     size="lg"
-                    disabled={
-                      submitting.isPending ||
-                      (identity.status !== "existing" &&
-                        identity.status !== "new")
-                    }
+                    disabled={submitting.isPending || !expanded}
                   >
                     {submitting.isPending ? (
                       <>
@@ -427,6 +569,32 @@ function PublicEventPage() {
           © Academia de Líderes Ubuntu
         </p>
       </div>
+    </div>
+  );
+}
+
+function TshirtField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label>Tamanho de T-shirt</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Seleciona o tamanho" />
+        </SelectTrigger>
+        <SelectContent>
+          {TSHIRT_SIZES.map((s) => (
+            <SelectItem key={s} value={s}>
+              {s}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

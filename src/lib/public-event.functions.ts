@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const identifierSchema = z.object({
   identifier: z.string().trim().min(8).max(80),
@@ -71,20 +72,22 @@ const verifySchema = z.object({
 export interface VerifyIdentityResult {
   exists: boolean;
   full_name: string | null;
-  /** True se foi encontrado um perfil pelo NIF/Doc mas o email não bate certo. */
+  /** True se o email e o documento existem mas pertencem a contas diferentes. */
   conflict: boolean;
+  conflict_message?: string;
 }
 
 /**
- * Verifica se já existe um utilizador com este email + NIF/Passaporte.
- * Pública (sem auth). Usada para decidir se mostramos campo de password
- * (login) ou campos de criação de conta.
+ * Verifica se já existe um utilizador com este email, NIF ou passaporte.
+ * Se qualquer destes existir, marcamos como utilizador existente para
+ * forçar unificação numa única conta.
  */
 export const verifyPublicUserIdentity = createServerFn({ method: "POST" })
   .inputValidator((input) => verifySchema.parse(input))
   .handler(async ({ data }): Promise<VerifyIdentityResult> => {
+    const docColumn = data.doc_type === "nif" ? "nif" : "passport_num";
+
     // 1. Procurar perfil pelo documento.
-    const docColumn = data.doc_type === "nif" ? "nif" : "id_doc_number";
     const { data: byDoc } = await supabaseAdmin
       .from("utilizadores")
       .select("id, full_name")
@@ -101,55 +104,33 @@ export const verifyPublicUserIdentity = createServerFn({ method: "POST" })
         (u) => (u.email ?? "").toLowerCase() === data.email,
       ) ?? null;
 
+    if (byDoc && authUser && byDoc.id !== authUser.id) {
+      return {
+        exists: false,
+        full_name: null,
+        conflict: true,
+        conflict_message:
+          "O email e o documento que indicaste já pertencem a contas diferentes. Inicia sessão na conta correta ou contacta-nos.",
+      };
+    }
+    if (byDoc && !authUser) {
+      return {
+        exists: false,
+        full_name: null,
+        conflict: true,
+        conflict_message:
+          "Este documento já está associado a outra conta. Usa o email correto ou faz login com Google.",
+      };
+    }
     if (byDoc && authUser && byDoc.id === authUser.id) {
       return { exists: true, full_name: byDoc.full_name, conflict: false };
     }
-    if (byDoc && authUser && byDoc.id !== authUser.id) {
-      return { exists: false, full_name: null, conflict: true };
-    }
-    if (byDoc && !authUser) {
-      // Doc registado com outro email → conflito.
-      return { exists: false, full_name: null, conflict: true };
-    }
     if (!byDoc && authUser) {
-      // Email já registado mas com outro documento.
+      // Email registado mas com outro documento — tratamos como existente
+      // (faz login e completamos o perfil dentro da app).
       return { exists: true, full_name: null, conflict: false };
     }
     return { exists: false, full_name: null, conflict: false };
-  });
-
-const enrollSchema = z.object({
-  identifier: z.string().trim().min(8).max(80),
-  additional_data: z
-    .record(z.string().min(1).max(100), z.unknown())
-    .default({}),
-  user_observations: z.string().max(2000).optional(),
-  // Para utilizadores novos — gravamos no perfil.
-  profile: z
-    .object({
-      full_name: z.string().trim().min(2).max(160),
-      doc_type: z.enum(["nif", "passport"]),
-      doc_number: z.string().trim().min(3).max(40),
-    })
-    .optional(),
-});
-
-/**
- * Inscrição pública. Requer que o utilizador já esteja autenticado
- * (a autenticação é feita no cliente imediatamente antes desta chamada,
- * via signInWithPassword ou signUp).
- *
- * Usa o cliente admin para contornar RLS na escrita de perfil e inscrição
- * para evitar dependência de hidratação de sessão num formulário público.
- */
-export const enrollInPublicEvent = createServerFn({ method: "POST" })
-  .inputValidator((input) => enrollSchema.parse(input))
-  .handler(async ({ data }) => {
-    // O cliente envia user_id derivado do session.user.id após auth.
-    // Aceitamos via campo separado no header? — Não. Em vez disso pedimos
-    // explicitamente no payload (já que a sessão acabou de ser criada no
-    // cliente). Validamos que o email do payload corresponde ao do auth.
-    throw new Error("Use enrollInPublicEventForUser instead.");
   });
 
 const enrollForUserSchema = z.object({
@@ -160,11 +141,12 @@ const enrollForUserSchema = z.object({
     .record(z.string().min(1).max(100), z.unknown())
     .default({}),
   user_observations: z.string().max(2000).optional(),
+  tshirt_size: z.string().trim().max(10).optional(),
   profile: z
     .object({
-      full_name: z.string().trim().min(2).max(160),
-      doc_type: z.enum(["nif", "passport"]),
-      doc_number: z.string().trim().min(3).max(40),
+      full_name: z.string().trim().min(2).max(160).optional(),
+      doc_type: z.enum(["nif", "passport"]).optional(),
+      doc_number: z.string().trim().min(3).max(40).optional(),
     })
     .optional(),
 });
@@ -172,7 +154,6 @@ const enrollForUserSchema = z.object({
 export const enrollInPublicEventForUser = createServerFn({ method: "POST" })
   .inputValidator((input) => enrollForUserSchema.parse(input))
   .handler(async ({ data }) => {
-    // Confirma que o user_id corresponde mesmo ao email indicado.
     const { data: u, error: uErr } =
       await supabaseAdmin.auth.admin.getUserById(data.user_id);
     if (uErr || !u?.user) throw new Error("Utilizador inválido.");
@@ -191,24 +172,24 @@ export const enrollInPublicEventForUser = createServerFn({ method: "POST" })
       throw new Error("As inscrições para este evento não estão abertas.");
     }
 
-    // Upsert do perfil (caso seja conta nova).
     if (data.profile) {
-      const patch: Record<string, unknown> = {
-        id: data.user_id,
-        full_name: data.profile.full_name,
-      };
-      if (data.profile.doc_type === "nif") {
-        patch.nif = data.profile.doc_number;
-      } else {
-        patch.id_doc_type = "Passaporte";
-        patch.id_doc_number = data.profile.doc_number;
+      const patch: Record<string, unknown> = { id: data.user_id };
+      if (data.profile.full_name) patch.full_name = data.profile.full_name;
+      if (data.profile.doc_type && data.profile.doc_number) {
+        if (data.profile.doc_type === "nif") {
+          patch.nif = data.profile.doc_number;
+        } else {
+          patch.passport_num = data.profile.doc_number;
+          patch.id_doc_type = "Passaporte";
+        }
       }
-      await supabaseAdmin
-        .from("utilizadores")
-        .upsert(patch as never, { onConflict: "id" });
+      if (Object.keys(patch).length > 1) {
+        await supabaseAdmin
+          .from("utilizadores")
+          .upsert(patch as never, { onConflict: "id" });
+      }
     }
 
-    // Já inscrito?
     const { data: existing } = await supabaseAdmin
       .from("inscritos_acoes")
       .select("id, status")
@@ -236,6 +217,7 @@ export const enrollInPublicEventForUser = createServerFn({ method: "POST" })
         status,
         additional_data: data.additional_data as never,
         user_observations: data.user_observations ?? null,
+        tshirt_size: data.tshirt_size ?? null,
       })
       .select("id, status")
       .single();
@@ -255,4 +237,24 @@ export const enrollInPublicEventForUser = createServerFn({ method: "POST" })
     });
 
     return { id: enr.id, status: enr.status, alreadyEnrolled: false };
+  });
+
+/**
+ * Para o fluxo pós-Google: verifica se o utilizador autenticado tem
+ * NIF ou passaporte preenchido. Caso não tenha, o formulário pede.
+ */
+export const getCurrentUserDocStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { data } = await supabaseAdmin
+      .from("utilizadores")
+      .select("full_name, nif, passport_num")
+      .eq("id", userId)
+      .maybeSingle();
+    return {
+      user_id: userId,
+      full_name: data?.full_name ?? null,
+      has_document: Boolean(data?.nif || data?.passport_num),
+    };
   });

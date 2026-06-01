@@ -1363,6 +1363,7 @@ export type Database = {
           nationality_country: string | null
           nif: string | null
           origin_country: string | null
+          passport_num: string | null
           residence_concelho: string | null
           role: string | null
           work_institution: string | null
@@ -1389,6 +1390,7 @@ export type Database = {
           nationality_country?: string | null
           nif?: string | null
           origin_country?: string | null
+          passport_num?: string | null
           residence_concelho?: string | null
           role?: string | null
           work_institution?: string | null
@@ -1415,6 +1417,7 @@ export type Database = {
           nationality_country?: string | null
           nif?: string | null
           origin_country?: string | null
+          passport_num?: string | null
           residence_concelho?: string | null
           role?: string | null
           work_institution?: string | null
