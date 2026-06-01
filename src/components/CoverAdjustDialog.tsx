@@ -65,26 +65,17 @@ export function CoverAdjustDialog({
   useEffect(() => {
     if (!open) return;
 
-    const stopEvent = (event: Event) => {
-      if (!draggingRef.current && !suppressNextClickRef.current) return;
+    const swallowClick = (event: MouseEvent) => {
+      if (!suppressNextClickRef.current) return;
       event.preventDefault();
       event.stopPropagation();
-      if ("stopImmediatePropagation" in event) {
-        event.stopImmediatePropagation();
-      }
-      if (event.type === "click") {
-        suppressNextClickRef.current = false;
-      }
+      event.stopImmediatePropagation();
+      suppressNextClickRef.current = false;
     };
 
-    window.addEventListener("click", stopEvent, true);
-    window.addEventListener("mouseup", stopEvent, true);
-    window.addEventListener("pointerup", stopEvent, true);
-
+    window.addEventListener("click", swallowClick, true);
     return () => {
-      window.removeEventListener("click", stopEvent, true);
-      window.removeEventListener("mouseup", stopEvent, true);
-      window.removeEventListener("pointerup", stopEvent, true);
+      window.removeEventListener("click", swallowClick, true);
     };
   }, [open]);
 
