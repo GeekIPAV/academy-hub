@@ -177,23 +177,26 @@ export const enrollInPublicEventForUser = createServerFn({ method: "POST" })
       throw new Error("As inscrições para este evento não estão abertas.");
     }
 
+    // Garante sempre o email no perfil (pesquisa nativa por email).
+    const baseProfilePatch: Record<string, unknown> = {
+      id: data.user_id,
+      email: data.email.toLowerCase(),
+    };
     if (data.profile) {
-      const patch: Record<string, unknown> = { id: data.user_id };
-      if (data.profile.full_name) patch.full_name = data.profile.full_name;
+      if (data.profile.full_name) baseProfilePatch.full_name = data.profile.full_name;
       if (data.profile.doc_type && data.profile.doc_number) {
         if (data.profile.doc_type === "nif") {
-          patch.nif = data.profile.doc_number;
+          baseProfilePatch.nif = data.profile.doc_number;
         } else {
-          patch.passport_num = data.profile.doc_number;
-          patch.id_doc_type = "Passaporte";
+          baseProfilePatch.passport_num = data.profile.doc_number;
+          baseProfilePatch.id_doc_type = "Passaporte";
         }
       }
-      if (Object.keys(patch).length > 1) {
-        await supabaseAdmin
-          .from("utilizadores")
-          .upsert(patch as never, { onConflict: "id" });
-      }
     }
+    await supabaseAdmin
+      .from("utilizadores")
+      .upsert(baseProfilePatch as never, { onConflict: "id" });
+
 
     const { data: existing } = await supabaseAdmin
       .from("inscritos_acoes")
