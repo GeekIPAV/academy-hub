@@ -31,7 +31,7 @@ function ResourcesIndex() {
   const qc = useQueryClient();
 
   const clustersQuery = useQuery({
-    queryKey: ["clusters"],
+    queryKey: ["clusters-parsed"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("programas")
