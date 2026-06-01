@@ -50,8 +50,9 @@ export function CoverAdjustDialog({
     initialScale && initialScale > 1 ? Math.min(4, initialScale) : 1,
   );
   const [saving, setSaving] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
+  const draggingRef = useRef(false);
 
   useEffect(() => {
     if (open) {
@@ -60,27 +61,41 @@ export function CoverAdjustDialog({
     }
   }, [open, initialPosition, initialScale]);
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    dragging.current = true;
-    (e.target as Element).setPointerCapture(e.pointerId);
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragging.current || !dragRef.current) return;
+  const updateFromPointer = (clientX: number, clientY: number) => {
+    if (!dragRef.current) return;
     const rect = dragRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    const x = ((clientX - rect.left) / rect.width) * 100;
+    const y = ((clientY - rect.top) / rect.height) * 100;
     setPos({
       x: Math.min(100, Math.max(0, x)),
       y: Math.min(100, Math.max(0, y)),
     });
   };
-  const onPointerUp = (e: React.PointerEvent) => {
-    dragging.current = false;
-    try {
-      (e.target as Element).releasePointerCapture(e.pointerId);
-    } catch {
-      // ignore — pointer may already be released
-    }
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    draggingRef.current = true;
+    setIsDragging(true);
+    updateFromPointer(e.clientX, e.clientY);
+
+    const handleMove = (ev: PointerEvent) => {
+      if (!draggingRef.current) return;
+      ev.preventDefault();
+      updateFromPointer(ev.clientX, ev.clientY);
+    };
+    const handleUp = (ev: PointerEvent) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      draggingRef.current = false;
+      setIsDragging(false);
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp, true);
+      window.removeEventListener("pointercancel", handleUp, true);
+    };
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp, true);
+    window.addEventListener("pointercancel", handleUp, true);
   };
 
   const handleSave = async () => {
