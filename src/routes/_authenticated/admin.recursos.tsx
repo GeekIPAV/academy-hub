@@ -45,7 +45,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Pencil, Plus, Trash2, Save, ListPlus, ArrowUp, ArrowDown, Search, ArrowUpDown, ExternalLink, Tag, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  Loader2,
+  Pencil,
+  Plus,
+  Trash2,
+  Save,
+  ListPlus,
+  ArrowUp,
+  ArrowDown,
+  Search,
+  ArrowUpDown,
+  ExternalLink,
+  Tag,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { useResourceTypes, useResourceTypeMap } from "@/hooks/use-resource-types";
 import { useResourceCategories, useResourceCategoryMap } from "@/hooks/use-resource-categories";
 import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
@@ -177,7 +192,9 @@ function useRecursos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recursos")
-        .select("id, title, description, resource_type, category_key, objectives, file_url, cover_url, cover_position, cover_scale, created_at")
+        .select(
+          "id, title, description, resource_type, category_key, objectives, file_url, cover_url, cover_position, cover_scale, created_at",
+        )
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ResourceRow[];
@@ -224,7 +241,9 @@ function useAllowedRecursoIds(cluster: string, temaId: string) {
         .select("recurso_id")
         .in("tema_id", temaIds);
       if (error) throw error;
-      return new Set(((data ?? []) as unknown as { recurso_id: string }[]).map((r) => r.recurso_id));
+      return new Set(
+        ((data ?? []) as unknown as { recurso_id: string }[]).map((r) => r.recurso_id),
+      );
     },
   });
 }
@@ -264,7 +283,8 @@ function BibliotecaTab() {
       let cmp = 0;
       if (sortBy === "title") cmp = a.title.localeCompare(b.title);
       else if (sortBy === "resource_type") cmp = a.resource_type.localeCompare(b.resource_type);
-      else if (sortBy === "created_at") cmp = (a.created_at ?? "").localeCompare(b.created_at ?? "");
+      else if (sortBy === "created_at")
+        cmp = (a.created_at ?? "").localeCompare(b.created_at ?? "");
       return sortDir === "asc" ? cmp : -cmp;
     });
     return list;
@@ -356,10 +376,7 @@ function BibliotecaTab() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader
-          className="cursor-pointer select-none"
-          onClick={() => setFormOpen((v) => !v)}
-        >
+        <CardHeader className="cursor-pointer select-none" onClick={() => setFormOpen((v) => !v)}>
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Plus className="h-4 w-4" />
@@ -367,11 +384,7 @@ function BibliotecaTab() {
             </CardTitle>
             <Button variant="ghost" size="icon" asChild>
               <span>
-                {formOpen ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
+                {formOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </span>
             </Button>
           </div>
@@ -425,7 +438,10 @@ function BibliotecaTab() {
                     </DialogHeader>
                     <div className="space-y-2">
                       <Label>Novo tipo</Label>
-                      <Select value={bulkType} onValueChange={(v) => setBulkType(v as ResourceType)}>
+                      <Select
+                        value={bulkType}
+                        onValueChange={(v) => setBulkType(v as ResourceType)}
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -538,13 +554,11 @@ function BibliotecaTab() {
             </div>
             <div className="w-full space-y-1 sm:w-56">
               <Label className="text-xs text-muted-foreground">Tema</Label>
-              <Select
-                value={filterTema}
-                onValueChange={setFilterTema}
-                disabled={!filterCluster}
-              >
+              <Select value={filterTema} onValueChange={setFilterTema} disabled={!filterCluster}>
                 <SelectTrigger>
-                  <SelectValue placeholder={filterCluster ? "Todos do cluster" : "Selecione um cluster"} />
+                  <SelectValue
+                    placeholder={filterCluster ? "Todos do cluster" : "Selecione um cluster"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {temasOfCluster.map((t) => (
@@ -583,20 +597,29 @@ function BibliotecaTab() {
                       aria-label="Selecionar todos"
                     />
                   </TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("title")}>
+                  <TableHead
+                    className="cursor-pointer select-none"
+                    onClick={() => toggleSort("title")}
+                  >
                     <span className="flex items-center gap-1">
                       Título
                       {sortBy === "title" && <ArrowUpDown className="h-3 w-3" />}
                     </span>
                   </TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("resource_type")}>
+                  <TableHead
+                    className="cursor-pointer select-none"
+                    onClick={() => toggleSort("resource_type")}
+                  >
                     <span className="flex items-center gap-1">
                       Tipo
                       {sortBy === "resource_type" && <ArrowUpDown className="h-3 w-3" />}
                     </span>
                   </TableHead>
                   <TableHead>Categoria</TableHead>
-                  <TableHead className="cursor-pointer select-none" onClick={() => toggleSort("created_at")}>
+                  <TableHead
+                    className="cursor-pointer select-none"
+                    onClick={() => toggleSort("created_at")}
+                  >
                     <span className="flex items-center gap-1">
                       Data
                       {sortBy === "created_at" && <ArrowUpDown className="h-3 w-3" />}
@@ -607,7 +630,10 @@ function BibliotecaTab() {
               </TableHeader>
               <TableBody>
                 {filteredResources.map((r) => (
-                  <TableRow key={r.id} data-state={selectedIds.includes(r.id) ? "selected" : undefined}>
+                  <TableRow
+                    key={r.id}
+                    data-state={selectedIds.includes(r.id) ? "selected" : undefined}
+                  >
                     <TableCell>
                       <Checkbox
                         checked={selectedIds.includes(r.id)}
@@ -618,49 +644,45 @@ function BibliotecaTab() {
                     <TableCell className="font-medium">{r.title}</TableCell>
                     <TableCell>{typeMap.get(r.resource_type)?.label ?? r.resource_type}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {r.category_key ? (categoryMap.get(r.category_key)?.label ?? r.category_key) : "—"}
+                      {r.category_key
+                        ? (categoryMap.get(r.category_key)?.label ?? r.category_key)
+                        : "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" asChild title="Abrir link">
-                        <a href={r.file_url} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setEditing(r)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="ghost" size="icon" title="Apagar recurso">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Apagar recurso?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tens a certeza que queres apagar <strong>{r.title}</strong>? Esta ação
-                              não pode ser revertida.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteMutation.mutate(r)}
-                            >
-                              Apagar
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                        <Button variant="ghost" size="icon" asChild title="Abrir link">
+                          <a href={r.file_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setEditing(r)}>
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" title="Apagar recurso">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Apagar recurso?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tens a certeza que queres apagar <strong>{r.title}</strong>? Esta
+                                ação não pode ser revertida.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteMutation.mutate(r)}>
+                                Apagar
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -747,10 +769,7 @@ function SingleResourceForm() {
           </div>
           <div className="space-y-1">
             <Label>Tipo</Label>
-            <Select
-              value={resourceType}
-              onValueChange={(v) => setResourceType(v as ResourceType)}
-            >
+            <Select value={resourceType} onValueChange={(v) => setResourceType(v as ResourceType)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -796,11 +815,7 @@ function SingleResourceForm() {
           </div>
           <div className="sm:col-span-2">
             <Button type="submit" disabled={saving}>
-              {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Guardar recurso
             </Button>
           </div>
@@ -820,8 +835,22 @@ const BULK_ROW_FIELDS = [
 
 // Fields applied uniformly to all rows via select inputs.
 const BULK_SHARED_FIELDS = [
-  { key: "resource_type", label: "Tipo", db: "resource_type", default: "pdf", nullable: false, Options: TypeOptions },
-  { key: "category_key", label: "Categoria", db: "category_key", default: "", nullable: true, Options: CategoryOptions },
+  {
+    key: "resource_type",
+    label: "Tipo",
+    db: "resource_type",
+    default: "pdf",
+    nullable: false,
+    Options: TypeOptions,
+  },
+  {
+    key: "category_key",
+    label: "Categoria",
+    db: "category_key",
+    default: "",
+    nullable: true,
+    Options: CategoryOptions,
+  },
 ] as const;
 
 function BulkAddForm() {
@@ -832,7 +861,9 @@ function BulkAddForm() {
   );
   const [saving, setSaving] = useState(false);
 
-  const formatHint = BULK_ROW_FIELDS.map((f) => f.label + (f.required ? "" : " (opcional)")).join(" | ");
+  const formatHint = BULK_ROW_FIELDS.map((f) => f.label + (f.required ? "" : " (opcional)")).join(
+    " | ",
+  );
   const placeholder = [
     "Manual do Formando | https://onedrive... | Versão 2025 | Compreender o programa",
     "Vídeo de Boas-vindas | https://youtube.com/watch?v=... | | ",
@@ -853,7 +884,9 @@ function BulkAddForm() {
         });
         return row;
       })
-      .filter((r) => BULK_ROW_FIELDS.every((f) => !f.required || (r[f.db] && String(r[f.db]).trim())));
+      .filter((r) =>
+        BULK_ROW_FIELDS.every((f) => !f.required || (r[f.db] && String(r[f.db]).trim())),
+      );
 
     if (rows.length === 0) {
       toast.error(`Nenhuma linha válida. Usa o formato: ${formatHint}`);
@@ -940,7 +973,6 @@ function BulkAddForm() {
   );
 }
 
-
 function EditRecursoDialog({
   recurso,
   onClose,
@@ -975,14 +1007,13 @@ function EditRecursoDialog({
     }
   }, [recurso]);
 
-  const persistCover = async (
-    patch: { cover_url?: string | null; cover_position?: string; cover_scale?: number },
-  ) => {
+  const persistCover = async (patch: {
+    cover_url?: string | null;
+    cover_position?: string;
+    cover_scale?: number;
+  }) => {
     if (!recurso) return;
-    const { error } = await supabase
-      .from("recursos")
-      .update(patch)
-      .eq("id", recurso.id);
+    const { error } = await supabase.from("recursos").update(patch).eq("id", recurso.id);
     if (error) throw error;
     if (patch.cover_url !== undefined) setCoverUrl(patch.cover_url);
     if (patch.cover_position !== undefined) setCoverPosition(patch.cover_position);
@@ -1078,10 +1109,7 @@ function EditRecursoDialog({
           </div>
           <div className="space-y-1">
             <Label>Tipo</Label>
-            <Select
-              value={resourceType}
-              onValueChange={(v) => setResourceType(v as ResourceType)}
-            >
+            <Select value={resourceType} onValueChange={(v) => setResourceType(v as ResourceType)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -1102,11 +1130,7 @@ function EditRecursoDialog({
           </div>
           <div className="space-y-1">
             <Label>Objetivos</Label>
-            <Textarea
-              rows={3}
-              value={objectives}
-              onChange={(e) => setObjectives(e.target.value)}
-            />
+            <Textarea rows={3} value={objectives} onChange={(e) => setObjectives(e.target.value)} />
           </div>
           <div className="space-y-1">
             <Label>Descrição</Label>
@@ -1129,8 +1153,6 @@ function EditRecursoDialog({
     </Dialog>
   );
 }
-
-
 
 /* ─────────────────────── Shared — Clusters ─────────────────────── */
 
@@ -1182,7 +1204,9 @@ function TemasTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos")
-        .select("id, cluster, bloco, title, description, context, objectives, cover_url, cover_position, cover_scale, order_index, bloco_order")
+        .select(
+          "id, cluster, bloco, title, description, context, objectives, cover_url, cover_position, cover_scale, order_index, bloco_order",
+        )
         .eq("cluster", activeCluster)
         .order("bloco_order", { ascending: true })
         .order("order_index", { ascending: true });
@@ -1321,10 +1345,7 @@ function TemasTab() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("temas_momentos")
-        .delete()
-        .eq("id", id);
+      const { error } = await supabase.from("temas_momentos").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -1402,9 +1423,7 @@ function TemasTab() {
                             variant="ghost"
                             size="icon"
                             disabled={gi === 0 || moveBlock.isPending}
-                            onClick={() =>
-                              moveBlock.mutate({ blocoKey, dir: "up" })
-                            }
+                            onClick={() => moveBlock.mutate({ blocoKey, dir: "up" })}
                             title="Subir bloco"
                           >
                             <ArrowUp className="h-4 w-4" />
@@ -1413,9 +1432,7 @@ function TemasTab() {
                             variant="ghost"
                             size="icon"
                             disabled={gi === blocoGroups.length - 1 || moveBlock.isPending}
-                            onClick={() =>
-                              moveBlock.mutate({ blocoKey, dir: "down" })
-                            }
+                            onClick={() => moveBlock.mutate({ blocoKey, dir: "down" })}
                             title="Descer bloco"
                           >
                             <ArrowDown className="h-4 w-4" />
@@ -1438,9 +1455,7 @@ function TemasTab() {
                                   variant="ghost"
                                   size="icon"
                                   disabled={ti === 0 || moveTheme.isPending}
-                                  onClick={() =>
-                                    moveTheme.mutate({ themeId: t.id, dir: "up" })
-                                  }
+                                  onClick={() => moveTheme.mutate({ themeId: t.id, dir: "up" })}
                                   title="Subir tema"
                                 >
                                   <ArrowUp className="h-4 w-4" />
@@ -1448,21 +1463,13 @@ function TemasTab() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  disabled={
-                                    ti === group.temas.length - 1 || moveTheme.isPending
-                                  }
-                                  onClick={() =>
-                                    moveTheme.mutate({ themeId: t.id, dir: "down" })
-                                  }
+                                  disabled={ti === group.temas.length - 1 || moveTheme.isPending}
+                                  onClick={() => moveTheme.mutate({ themeId: t.id, dir: "down" })}
                                   title="Descer tema"
                                 >
                                   <ArrowDown className="h-4 w-4" />
                                 </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => openEdit(t)}
-                                >
+                                <Button variant="ghost" size="icon" onClick={() => openEdit(t)}>
                                   <Pencil className="h-4 w-4" />
                                 </Button>
                                 <Button
@@ -1489,10 +1496,7 @@ function TemasTab() {
         </Card>
       )}
 
-      <Dialog
-        open={dialogOpen}
-        onOpenChange={(o) => !upsertMutation.isPending && setDialogOpen(o)}
-      >
+      <Dialog open={dialogOpen} onOpenChange={(o) => !upsertMutation.isPending && setDialogOpen(o)}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editing ? "Editar tema" : "Novo tema"}</DialogTitle>
@@ -1592,7 +1596,9 @@ function AssociacoesTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos")
-        .select("id, cluster, title, description, context, objectives, cover_url, cover_position, cover_scale, order_index, bloco_order")
+        .select(
+          "id, cluster, title, description, context, objectives, cover_url, cover_position, cover_scale, order_index, bloco_order",
+        )
         .eq("cluster", activeCluster)
         .order("order_index");
       if (error) throw error;
@@ -1647,10 +1653,7 @@ function AssociacoesTab() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!temaId) throw new Error("Seleciona um tema.");
-      const { error: delErr } = await supabase
-        .from("tema_recursos")
-        .delete()
-        .eq("tema_id", temaId);
+      const { error: delErr } = await supabase.from("tema_recursos").delete().eq("tema_id", temaId);
       if (delErr) throw delErr;
       const ids = [...selected];
       if (ids.length > 0) {
@@ -1717,9 +1720,7 @@ function AssociacoesTab() {
       {temaId && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
-              Recursos associados ({selected.size})
-            </CardTitle>
+            <CardTitle className="text-base">Recursos associados ({selected.size})</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
@@ -1764,10 +1765,7 @@ function AssociacoesTab() {
                 {filteredRecursos.map((r) => {
                   const checked = selected.has(r.id);
                   return (
-                    <li
-                      key={r.id}
-                      className="flex items-start gap-3 px-3 py-2 hover:bg-muted/40"
-                    >
+                    <li key={r.id} className="flex items-start gap-3 px-3 py-2 hover:bg-muted/40">
                       <Checkbox
                         id={`r-${r.id}`}
                         checked={checked}
@@ -1787,13 +1785,8 @@ function AssociacoesTab() {
               </ul>
             )}
             <div className="flex justify-end">
-              <Button
-                onClick={() => saveMutation.mutate()}
-                disabled={saveMutation.isPending}
-              >
-                {saveMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : null}
+              <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+                {saveMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Guardar Associações
               </Button>
             </div>

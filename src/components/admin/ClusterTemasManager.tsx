@@ -29,15 +29,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  Loader2,
-  Pencil,
-  Trash2,
-  Plus,
-  ArrowUp,
-  ArrowDown,
-  Link2,
-} from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, ArrowUp, ArrowDown, Link2 } from "lucide-react";
 import { useClusters, type ClusterRow } from "@/hooks/use-clusters";
 
 interface RecursoRow {
@@ -289,9 +281,7 @@ export function ClusterTemasManager() {
                             variant="ghost"
                             size="icon"
                             disabled={i === temas.length - 1 || reorderMutation.isPending}
-                            onClick={() =>
-                              reorderMutation.mutate({ id: t.id, dir: "down" })
-                            }
+                            onClick={() => reorderMutation.mutate({ id: t.id, dir: "down" })}
                             title="Descer"
                           >
                             <ArrowDown className="h-4 w-4" />
@@ -336,11 +326,7 @@ export function ClusterTemasManager() {
                           <Button size="sm" variant="outline" onClick={() => openEdit(t)}>
                             <Pencil className="h-4 w-4" /> Editar
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setAssocTema(t)}
-                          >
+                          <Button size="sm" variant="outline" onClick={() => setAssocTema(t)}>
                             <Link2 className="h-4 w-4" /> Associar recursos
                           </Button>
                           <Button
@@ -486,9 +472,9 @@ function AssociacoesDialog({
         if (error) throw error;
       }
       if (toAdd.length > 0) {
-        const { error } = await supabase.from("tema_recursos" as never).insert(
-          toAdd.map((rid) => ({ tema_id: tema.id, recurso_id: rid })) as never,
-        );
+        const { error } = await supabase
+          .from("tema_recursos" as never)
+          .insert(toAdd.map((rid) => ({ tema_id: tema.id, recurso_id: rid })) as never);
         if (error) throw error;
       }
       toast.success("Associações atualizadas.");
@@ -519,15 +505,10 @@ function AssociacoesDialog({
                 key={r.id}
                 className="flex cursor-pointer items-start gap-2 rounded-md border p-2 hover:bg-muted/40"
               >
-                <Checkbox
-                  checked={selected.has(r.id)}
-                  onCheckedChange={() => toggle(r.id)}
-                />
+                <Checkbox checked={selected.has(r.id)} onCheckedChange={() => toggle(r.id)} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{r.title}</p>
-                  <p className="text-xs uppercase text-muted-foreground">
-                    {r.resource_type}
-                  </p>
+                  <p className="text-xs uppercase text-muted-foreground">{r.resource_type}</p>
                 </div>
               </label>
             ))
