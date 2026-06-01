@@ -47,7 +47,8 @@ import { useRoles } from "@/hooks/use-roles";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
-import { inviteUser } from "@/lib/users.functions";
+import { createInvite, listInvites, revokeInvite } from "@/lib/invites.functions";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
