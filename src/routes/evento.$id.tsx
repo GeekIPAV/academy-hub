@@ -218,7 +218,6 @@ function PublicEventPage() {
           email: email.trim().toLowerCase(),
           additional_data: answers,
           user_observations: obs || undefined,
-          tshirt_size: tshirt || undefined,
           profile:
             isNew || isGoogleNeedsDoc
               ? {
