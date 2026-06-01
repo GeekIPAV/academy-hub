@@ -44,10 +44,12 @@ export const upsertCluster = createServerFn({ method: "POST" })
     const payload = {
       name: data.name.trim(),
       description: data.description ?? null,
-      cover_url: data.cover_url ?? null,
-      cover_position: data.cover_position ?? "50% 50%",
-      cover_scale: data.cover_scale ?? 1,
       sort_order: data.sort_order ?? 0,
+      ...(data.cover_url !== undefined ? { cover_url: data.cover_url } : {}),
+      ...(data.cover_position !== undefined
+        ? { cover_position: data.cover_position ?? "50% 50%" }
+        : {}),
+      ...(data.cover_scale !== undefined ? { cover_scale: data.cover_scale ?? 1 } : {}),
     };
     if (data.id) {
       const { error } = await supabaseAdmin.from("clusters").update(payload).eq("id", data.id);
