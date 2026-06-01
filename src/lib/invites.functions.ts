@@ -165,3 +165,51 @@ export const redeemInvite = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+// Claim an invite for the CURRENT authenticated user (used after Google OAuth).
+export const claimInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ token: z.string().min(8).max(80) }).parse(i))
+  .handler(async ({ data, context }) => {
+    const userId = context.userId;
+
+    const { data: inv, error: invErr } = await supabaseAdmin
+      .from("convites")
+      .select("*")
+      .eq("token", data.token)
+      .maybeSingle();
+    if (invErr) throw new Error(invErr.message);
+    if (!inv) throw new Error("Link de convite inválido.");
+    if (!inv.is_active) throw new Error("Convite revogado.");
+    if (inv.expires_at && new Date(inv.expires_at).getTime() < Date.now()) {
+      throw new Error("Convite expirado.");
+    }
+    if (inv.max_uses != null && inv.uses_count >= inv.max_uses) {
+      throw new Error("Limite de utilizações deste convite atingido.");
+    }
+
+    // Ensure a utilizadores row exists
+    await supabaseAdmin
+      .from("utilizadores")
+      .upsert({ id: userId }, { onConflict: "id", ignoreDuplicates: true });
+
+    // Replace default role(s) with invite roles
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+    for (const role of inv.roles as string[]) {
+      const { error } = await supabaseAdmin.from("user_roles").insert({
+        user_id: userId,
+        role_name: role,
+        assigned_by: inv.created_by,
+      });
+      if (error && !/duplicate key/i.test(error.message)) {
+        throw new Error(error.message);
+      }
+    }
+
+    await supabaseAdmin
+      .from("convites")
+      .update({ uses_count: (inv.uses_count ?? 0) + 1 })
+      .eq("id", inv.id);
+
+    return { ok: true };
+  });
