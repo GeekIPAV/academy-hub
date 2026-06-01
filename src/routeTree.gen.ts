@@ -23,6 +23,7 @@ import { Route as PublicacoesRevistasRouteImport } from './routes/publicacoes.re
 import { Route as PublicacoesIpavRouteImport } from './routes/publicacoes.ipav'
 import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
+import { Route as EventoIdRouteImport } from './routes/evento.$id'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as ComunicacaoPropriedadeIntelectualRouteImport } from './routes/comunicacao.propriedade-intelectual'
@@ -110,6 +111,11 @@ const PublicacoesBibliotecaRoute = PublicacoesBibliotecaRouteImport.update({
 const InscricaoTokenRoute = InscricaoTokenRouteImport.update({
   id: '/inscricao/$token',
   path: '/inscricao/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventoIdRoute = EventoIdRouteImport.update({
+  id: '/evento/$id',
+  path: '/evento/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
@@ -236,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/evento/$id': typeof EventoIdRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/ipav': typeof PublicacoesIpavRoute
@@ -269,6 +276,7 @@ export interface FileRoutesByTo {
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/evento/$id': typeof EventoIdRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/ipav': typeof PublicacoesIpavRoute
@@ -304,6 +312,7 @@ export interface FileRoutesById {
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/convite/$token': typeof ConviteTokenRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/evento/$id': typeof EventoIdRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/ipav': typeof PublicacoesIpavRoute
@@ -340,6 +349,7 @@ export interface FileRouteTypes {
     | '/comunicacao/propriedade-intelectual'
     | '/convite/$token'
     | '/entidade/dashboard'
+    | '/evento/$id'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
     | '/publicacoes/ipav'
@@ -373,6 +383,7 @@ export interface FileRouteTypes {
     | '/comunicacao/propriedade-intelectual'
     | '/convite/$token'
     | '/entidade/dashboard'
+    | '/evento/$id'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
     | '/publicacoes/ipav'
@@ -407,6 +418,7 @@ export interface FileRouteTypes {
     | '/comunicacao/propriedade-intelectual'
     | '/convite/$token'
     | '/entidade/dashboard'
+    | '/evento/$id'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
     | '/publicacoes/ipav'
@@ -442,6 +454,7 @@ export interface RootRouteChildren {
   ComunicacaoPropriedadeIntelectualRoute: typeof ComunicacaoPropriedadeIntelectualRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
+  EventoIdRoute: typeof EventoIdRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
   PublicacoesIpavRoute: typeof PublicacoesIpavRoute
@@ -548,6 +561,13 @@ declare module '@tanstack/react-router' {
       path: '/inscricao/$token'
       fullPath: '/inscricao/$token'
       preLoaderRoute: typeof InscricaoTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evento/$id': {
+      id: '/evento/$id'
+      path: '/evento/$id'
+      fullPath: '/evento/$id'
+      preLoaderRoute: typeof EventoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entidade/dashboard': {
@@ -768,6 +788,7 @@ const rootRouteChildren: RootRouteChildren = {
     ComunicacaoPropriedadeIntelectualRoute,
   ConviteTokenRoute: ConviteTokenRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
+  EventoIdRoute: EventoIdRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
   PublicacoesIpavRoute: PublicacoesIpavRoute,
