@@ -92,19 +92,15 @@ function AdminManagerPage() {
 function UsersManager() {
   const { users, isLoading, assign, remove } = useUsers();
   const { roles } = useRoles();
-  const qc = useQueryClient();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteName, setInviteName] = useState("");
-  const [inviteRoles, setInviteRoles] = useState<Set<string>>(new Set());
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const activeRoles = roles.filter((r) => r.is_active);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setCurrentUserId(data.user?.id ?? null);
     });
   }, []);
+
 
   return (
     <Card>
