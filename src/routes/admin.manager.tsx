@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Shield, Trash2, UserPlus } from "lucide-react";
+import { Copy, Plus, Shield, Trash2, UserPlus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -96,6 +96,7 @@ function UsersManager() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
   const [inviteRoles, setInviteRoles] = useState<Set<string>>(new Set());
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -105,20 +106,34 @@ function UsersManager() {
 
   const activeRoles = roles.filter((r) => r.is_active);
 
+  const resetInviteForm = () => {
+    setInviteEmail("");
+    setInviteName("");
+    setInviteRoles(new Set());
+    setInviteLink(null);
+  };
+
   const inviteFn = useServerFn(inviteUser);
   const inviteMut = useMutation({
     mutationFn: (input: { email: string; full_name?: string; roles?: string[] }) =>
       inviteFn({ data: input }),
-    onSuccess: () => {
-      toast.success("Convite enviado por email.");
-      setInviteOpen(false);
-      setInviteEmail("");
-      setInviteName("");
-      setInviteRoles(new Set());
+    onSuccess: (res) => {
+      toast.success("Convite criado. Copia o link para partilhar.");
+      setInviteLink(res.inviteLink ?? null);
       qc.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const copyLink = async () => {
+    if (!inviteLink) return;
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      toast.success("Link copiado.");
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  };
 
   const submitInvite = (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,7 +162,13 @@ function UsersManager() {
             Atribui um ou mais perfis a cada utilizador. As alterações são imediatas.
           </CardDescription>
         </div>
-        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <Dialog
+          open={inviteOpen}
+          onOpenChange={(o) => {
+            setInviteOpen(o);
+            if (!o) resetInviteForm();
+          }}
+        >
           <DialogTrigger asChild>
             <Button size="sm">
               <UserPlus className="mr-1 h-4 w-4" />
@@ -155,74 +176,114 @@ function UsersManager() {
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <form onSubmit={submitInvite}>
-              <DialogHeader>
-                <DialogTitle>Adicionar utilizador</DialogTitle>
-                <DialogDescription>
-                  Envia um convite por email. O utilizador define a sua própria senha ao aceitar.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="invite-email">Email</Label>
-                  <Input
-                    id="invite-email"
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    placeholder="nome@exemplo.pt"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="invite-name">Nome (opcional)</Label>
-                  <Input
-                    id="invite-name"
-                    value={inviteName}
-                    onChange={(e) => setInviteName(e.target.value)}
-                    maxLength={120}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Perfis</Label>
-                  <div className="flex flex-wrap gap-3">
-                    {activeRoles.map((r) => {
-                      const checked = inviteRoles.has(r.name);
-                      return (
-                        <label
-                          key={r.id}
-                          className="flex items-center gap-1.5 text-sm cursor-pointer"
-                        >
-                          <Checkbox
-                            checked={checked}
-                            onCheckedChange={(v) => {
-                              setInviteRoles((prev) => {
-                                const next = new Set(prev);
-                                if (v) next.add(r.name);
-                                else next.delete(r.name);
-                                return next;
-                              });
-                            }}
-                          />
-                          <span>{r.name}</span>
-                        </label>
-                      );
-                    })}
+            {inviteLink ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>Convite criado</DialogTitle>
+                  <DialogDescription>
+                    Copia e partilha este link com o utilizador. Ao abri-lo, define a senha e entra na plataforma.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-3 py-4">
+                  <div className="flex gap-2">
+                    <Input readOnly value={inviteLink} className="font-mono text-xs" />
+                    <Button type="button" size="icon" variant="outline" onClick={copyLink}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Seleciona pelo menos um perfil para o novo utilizador.
-                  </p>
+                  <p className="text-xs text-muted-foreground break-all">{inviteLink}</p>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="ghost" onClick={() => setInviteOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={inviteMut.isPending}>
-                  {inviteMut.isPending ? "A enviar..." : "Enviar convite"}
-                </Button>
-              </DialogFooter>
-            </form>
+                <DialogFooter className="gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => {
+                      resetInviteForm();
+                    }}
+                  >
+                    Criar outro
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setInviteOpen(false);
+                      resetInviteForm();
+                    }}
+                  >
+                    Concluir
+                  </Button>
+                </DialogFooter>
+              </>
+            ) : (
+              <form onSubmit={submitInvite}>
+                <DialogHeader>
+                  <DialogTitle>Adicionar utilizador</DialogTitle>
+                  <DialogDescription>
+                    Cria um convite e recebe um link para partilhar com o utilizador.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="invite-email">Email</Label>
+                    <Input
+                      id="invite-email"
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      placeholder="nome@exemplo.pt"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="invite-name">Nome (opcional)</Label>
+                    <Input
+                      id="invite-name"
+                      value={inviteName}
+                      onChange={(e) => setInviteName(e.target.value)}
+                      maxLength={120}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Perfis</Label>
+                    <div className="flex flex-wrap gap-3">
+                      {activeRoles.map((r) => {
+                        const checked = inviteRoles.has(r.name);
+                        return (
+                          <label
+                            key={r.id}
+                            className="flex items-center gap-1.5 text-sm cursor-pointer"
+                          >
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                setInviteRoles((prev) => {
+                                  const next = new Set(prev);
+                                  if (v) next.add(r.name);
+                                  else next.delete(r.name);
+                                  return next;
+                                });
+                              }}
+                            />
+                            <span>{r.name}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Seleciona pelo menos um perfil para o novo utilizador.
+                    </p>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="ghost" onClick={() => setInviteOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit" disabled={inviteMut.isPending}>
+                    {inviteMut.isPending ? "A criar..." : "Gerar link de convite"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            )}
           </DialogContent>
         </Dialog>
       </CardHeader>
