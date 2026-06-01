@@ -121,19 +121,28 @@ export const inviteUser = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
 
-    // Validate all selected roles before creating the user
     const selected = Array.from(new Set(data.roles));
     for (const role of selected) {
       await ensureActiveRole(role);
     }
 
-    const { data: invited, error: invErr } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, {
-        data: data.full_name ? { full_name: data.full_name } : undefined,
+    // Generate an invite link (creates the user, returns the action link
+    // without sending an email).
+    const { data: linkData, error: linkErr } =
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "invite",
+        email: data.email,
+        options: {
+          data: data.full_name ? { full_name: data.full_name } : undefined,
+        },
       });
-    if (invErr) throw new Error(invErr.message);
-    const newUserId = invited.user?.id;
-    if (!newUserId) throw new Error("Falha a criar o utilizador.");
+    if (linkErr) throw new Error(linkErr.message);
+
+    const newUserId = linkData.user?.id;
+    const actionLink = linkData.properties?.action_link;
+    if (!newUserId || !actionLink) {
+      throw new Error("Falha a criar o convite.");
+    }
 
     if (data.full_name) {
       await supabaseAdmin
@@ -160,5 +169,5 @@ export const inviteUser = createServerFn({ method: "POST" })
       }
     }
 
-    return { ok: true, userId: newUserId };
+    return { ok: true, userId: newUserId, inviteLink: actionLink };
   });
