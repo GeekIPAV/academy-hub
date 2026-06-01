@@ -474,8 +474,19 @@ function PlanoSessao({
     },
   });
 
+  const [orderedBlocos, setOrderedBlocos] = useState<PlanoBloco[]>([]);
+
+  useEffect(() => {
+    setOrderedBlocos(blocosQuery.data ?? []);
+  }, [blocosQuery.data]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
   const addBloco = async () => {
-    const nextOrder = (blocosQuery.data?.length ?? 0) * 10;
+    const nextOrder = (orderedBlocos.length ?? 0) * 10;
     const { error } = await supabase
       .from("plano_sessao_blocos")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -487,6 +498,34 @@ function PlanoSessao({
     blocosQuery.refetch();
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = orderedBlocos.findIndex((b) => b.id === active.id);
+    const newIndex = orderedBlocos.findIndex((b) => b.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const reordered = arrayMove(orderedBlocos, oldIndex, newIndex).map((b, i) => ({
+      ...b,
+      sort_order: (i + 1) * 10,
+    }));
+    setOrderedBlocos(reordered);
+    try {
+      await Promise.all(
+        reordered.map((b) =>
+          supabase
+            .from("plano_sessao_blocos")
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            .update({ sort_order: b.sort_order } as any)
+            .eq("id", b.id),
+        ),
+      );
+      blocosQuery.refetch();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao reordenar blocos");
+      blocosQuery.refetch();
+    }
+  };
+
   if (blocosQuery.isLoading) {
     return (
       <div className="flex justify-center py-8">
@@ -495,7 +534,7 @@ function PlanoSessao({
     );
   }
 
-  const blocos = blocosQuery.data ?? [];
+  const blocos = orderedBlocos;
 
   return (
     <div className="space-y-3">
@@ -515,21 +554,32 @@ function PlanoSessao({
             : "Plano de sessão ainda não disponível."}
         </p>
       ) : (
-        <div className="space-y-3">
-          {blocos.map((b, idx) => (
-            <BlocoCard
-              key={b.id}
-              bloco={b}
-              index={idx}
-              temaRecursos={temaRecursos}
-              typeMap={typeMap}
-              categoryMap={categoryMap}
-              isAdmin={isAdmin}
-              onOpen={onOpen}
-              onChanged={() => blocosQuery.refetch()}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={blocos.map((b) => b.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-3">
+              {blocos.map((b, idx) => (
+                <BlocoCard
+                  key={b.id}
+                  bloco={b}
+                  index={idx}
+                  temaRecursos={temaRecursos}
+                  typeMap={typeMap}
+                  categoryMap={categoryMap}
+                  isAdmin={isAdmin}
+                  onOpen={onOpen}
+                  onChanged={() => blocosQuery.refetch()}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );
