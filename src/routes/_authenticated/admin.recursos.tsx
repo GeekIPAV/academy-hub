@@ -103,6 +103,9 @@ interface TemaRow {
   description: string | null;
   context: string | null;
   objectives: string | null;
+  cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
   order_index: number;
   bloco_order: number;
 }
@@ -712,6 +715,8 @@ function SingleResourceForm() {
         category_key: categoryKey || null,
         objectives: objectives.trim() || null,
         file_url: fileUrl.trim(),
+        cover_position: "50% 50%",
+        cover_scale: 1,
       } as never);
       if (error) throw error;
       toast.success("Recurso adicionado.");
@@ -859,6 +864,8 @@ function BulkAddForm() {
     try {
       const payload = rows.map((r) => {
         const out: Record<string, unknown> = { ...r };
+        out.cover_position = "50% 50%";
+        out.cover_scale = 1;
         BULK_SHARED_FIELDS.forEach((f) => {
           const v = shared[f.key];
           out[f.db] = f.nullable ? (v ? v : null) : v;
