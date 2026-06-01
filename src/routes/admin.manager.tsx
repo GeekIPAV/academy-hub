@@ -96,6 +96,7 @@ function UsersManager() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteName, setInviteName] = useState("");
   const [inviteRoles, setInviteRoles] = useState<Set<string>>(new Set());
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -105,20 +106,34 @@ function UsersManager() {
 
   const activeRoles = roles.filter((r) => r.is_active);
 
+  const resetInviteForm = () => {
+    setInviteEmail("");
+    setInviteName("");
+    setInviteRoles(new Set());
+    setInviteLink(null);
+  };
+
   const inviteFn = useServerFn(inviteUser);
   const inviteMut = useMutation({
     mutationFn: (input: { email: string; full_name?: string; roles?: string[] }) =>
       inviteFn({ data: input }),
-    onSuccess: () => {
-      toast.success("Convite enviado por email.");
-      setInviteOpen(false);
-      setInviteEmail("");
-      setInviteName("");
-      setInviteRoles(new Set());
+    onSuccess: (res) => {
+      toast.success("Convite criado. Copia o link para partilhar.");
+      setInviteLink(res.inviteLink ?? null);
       qc.invalidateQueries({ queryKey: ["users"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const copyLink = async () => {
+    if (!inviteLink) return;
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+      toast.success("Link copiado.");
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  };
 
   const submitInvite = (e: React.FormEvent) => {
     e.preventDefault();
