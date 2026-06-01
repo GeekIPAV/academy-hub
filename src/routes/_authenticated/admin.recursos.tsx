@@ -1589,7 +1589,7 @@ function AssociacoesTab() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos")
-        .select("id, cluster, title, description, context, objectives, order_index")
+        .select("id, cluster, title, description, context, objectives, cover_url, cover_position, cover_scale, order_index, bloco_order")
         .eq("cluster", activeCluster)
         .order("order_index");
       if (error) throw error;
