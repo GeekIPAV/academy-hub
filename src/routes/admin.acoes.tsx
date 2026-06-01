@@ -240,6 +240,32 @@ type ActionDetails = NonNullable<
   Awaited<ReturnType<typeof getActionDetails>>
 >["action"];
 
+type ExtraFieldType = "text" | "textarea" | "number" | "date";
+interface ExtraField {
+  name: string;
+  label?: string;
+  type?: ExtraFieldType | string;
+  required?: boolean;
+}
+
+const EXTRA_FIELD_TYPES: { value: ExtraFieldType; label: string }[] = [
+  { value: "text", label: "Texto curto" },
+  { value: "textarea", label: "Parágrafo" },
+  { value: "number", label: "Número" },
+  { value: "date", label: "Data" },
+];
+
+function slugifyFieldName(input: string, fallbackIndex: number): string {
+  const slug = input
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 60);
+  return slug || `campo_${fallbackIndex + 1}`;
+}
+
 function DetailsTab({
   actionId,
   action,
