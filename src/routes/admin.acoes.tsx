@@ -240,6 +240,32 @@ type ActionDetails = NonNullable<
   Awaited<ReturnType<typeof getActionDetails>>
 >["action"];
 
+type ExtraFieldType = "text" | "textarea" | "number" | "date";
+interface ExtraField {
+  name: string;
+  label?: string;
+  type?: ExtraFieldType | string;
+  required?: boolean;
+}
+
+const EXTRA_FIELD_TYPES: { value: ExtraFieldType; label: string }[] = [
+  { value: "text", label: "Texto curto" },
+  { value: "textarea", label: "Parágrafo" },
+  { value: "number", label: "Número" },
+  { value: "date", label: "Data" },
+];
+
+function slugifyFieldName(input: string, fallbackIndex: number): string {
+  const slug = input
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 60);
+  return slug || `campo_${fallbackIndex + 1}`;
+}
+
 function DetailsTab({
   actionId,
   action,
@@ -261,6 +287,10 @@ function DetailsTab({
     avaliacao_impacto: action?.avaliacao_impacto?.toString() ?? "",
     avaliacao_impacto_link: action?.avaliacao_impacto_link ?? "",
   }));
+  const [extraFields, setExtraFields] = useState<ExtraField[]>(() => {
+    const rf = (action as { required_fields?: unknown } | null)?.required_fields;
+    return Array.isArray(rf) ? (rf as ExtraField[]) : [];
+  });
 
   const mut = useMutation({
     mutationFn: () =>
@@ -279,6 +309,14 @@ function DetailsTab({
             avaliacao_impacto:
               form.avaliacao_impacto === "" ? null : Number(form.avaliacao_impacto),
             avaliacao_impacto_link: form.avaliacao_impacto_link || null,
+            required_fields: extraFields
+              .filter((f) => (f.label ?? "").trim().length > 0)
+              .map((f, i) => ({
+                name: slugifyFieldName(f.label ?? "", i),
+                label: f.label?.trim() ?? "",
+                type: f.type ?? "text",
+                required: !!f.required,
+              })),
           },
         },
       }),
@@ -291,6 +329,13 @@ function DetailsTab({
 
   const setField = <K extends keyof typeof form>(k: K, v: string) =>
     setForm((s) => ({ ...s, [k]: v }));
+
+  const addExtra = () =>
+    setExtraFields((s) => [...s, { name: "", label: "", type: "text", required: false }]);
+  const updateExtra = (i: number, patch: Partial<ExtraField>) =>
+    setExtraFields((s) => s.map((f, idx) => (idx === i ? { ...f, ...patch } : f)));
+  const removeExtra = (i: number) =>
+    setExtraFields((s) => s.filter((_, idx) => idx !== i));
 
   return (
     <Card>
@@ -335,6 +380,84 @@ function DetailsTab({
         <Field label="Link Avaliação Impacto">
           <Input value={form.avaliacao_impacto_link} onChange={(e) => setField("avaliacao_impacto_link", e.target.value)} placeholder="https://…" />
         </Field>
+
+
+        <div className="sm:col-span-2 space-y-3 rounded-md border bg-muted/30 p-4">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-medium">Campos de Inscrição Extra</p>
+              <p className="text-xs text-muted-foreground">
+                Perguntas adicionais que o formulário público apresentará ao inscrito.
+              </p>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={addExtra}>
+              <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar Pergunta
+            </Button>
+          </div>
+
+          {extraFields.length === 0 ? (
+            <p className="text-xs text-muted-foreground">Sem perguntas extra.</p>
+          ) : (
+            <div className="space-y-3">
+              {extraFields.map((f, i) => (
+                <div
+                  key={i}
+                  className="grid gap-2 rounded-md border bg-background p-3 sm:grid-cols-[1fr_180px_auto_auto] sm:items-end"
+                >
+                  <div>
+                    <Label className="mb-1 block text-xs text-muted-foreground">
+                      Pergunta
+                    </Label>
+                    <Input
+                      value={f.label ?? ""}
+                      placeholder="Ex: Tamanho de t-shirt"
+                      onChange={(e) => updateExtra(i, { label: e.target.value })}
+                    />
+                    <p className="mt-1 text-[10px] text-muted-foreground">
+                      ID: <code>{slugifyFieldName(f.label ?? "", i)}</code>
+                    </p>
+                  </div>
+                  <div>
+                    <Label className="mb-1 block text-xs text-muted-foreground">
+                      Tipo
+                    </Label>
+                    <Select
+                      value={(f.type as string) ?? "text"}
+                      onValueChange={(v) => updateExtra(i, { type: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EXTRA_FIELD_TYPES.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>
+                            {t.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col items-start gap-1">
+                    <Label className="text-xs text-muted-foreground">Obrigatório</Label>
+                    <Switch
+                      checked={!!f.required}
+                      onCheckedChange={(v) => updateExtra(i, { required: v })}
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeExtra(i)}
+                    aria-label="Remover pergunta"
+                  >
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="sm:col-span-2">
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>

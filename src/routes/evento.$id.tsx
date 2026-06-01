@@ -26,13 +26,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import aluLogo from "@/assets/alu-logo.svg";
 import {
@@ -57,7 +50,7 @@ type IdentityState =
   | { status: "conflict"; message: string }
   | { status: "google"; user_id: string; email: string; needs_doc: boolean; full_name: string | null };
 
-const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -90,7 +83,6 @@ function PublicEventPage() {
   const [docNumber, setDocNumber] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [tshirt, setTshirt] = useState<string>("");
   const [obs, setObs] = useState("");
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [identity, setIdentity] = useState<IdentityState>({ status: "idle" });
@@ -219,7 +211,6 @@ function PublicEventPage() {
           email: email.trim().toLowerCase(),
           additional_data: answers,
           user_observations: obs || undefined,
-          tshirt_size: tshirt || undefined,
           profile:
             isNew || isGoogleNeedsDoc
               ? {
@@ -458,7 +449,6 @@ function PublicEventPage() {
                           onChange={(e) => setPassword(e.target.value)}
                         />
                       </div>
-                      <TshirtField value={tshirt} onChange={setTshirt} />
                       <DynamicQuestions
                         fields={fields}
                         values={answers}
@@ -517,7 +507,7 @@ function PublicEventPage() {
                               inputMode={docType === "nif" ? "numeric" : "text"}
                             />
                           </div>
-                          <TshirtField value={tshirt} onChange={setTshirt} />
+                          
                         </>
                       )}
                       <DynamicQuestions
@@ -573,31 +563,6 @@ function PublicEventPage() {
   );
 }
 
-function TshirtField({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label>Tamanho de T-shirt</Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger>
-          <SelectValue placeholder="Seleciona o tamanho" />
-        </SelectTrigger>
-        <SelectContent>
-          {TSHIRT_SIZES.map((s) => (
-            <SelectItem key={s} value={s}>
-              {s}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
 
 function DynamicQuestions({
   fields,

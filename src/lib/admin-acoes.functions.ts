@@ -46,7 +46,7 @@ export const getActionDetails = createServerFn({ method: "POST" })
       supabaseAdmin
         .from("acoes")
         .select(
-          "id, notion_id, title, description, category, action_date, start_date, end_date, registration_status, max_capacity, entity_id, program_id, tshirt_tracking_link, tshirt_value, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link",
+          "id, notion_id, title, description, category, action_date, start_date, end_date, registration_status, max_capacity, entity_id, program_id, required_fields, tshirt_tracking_link, tshirt_value, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link",
         )
         .eq("id", data.actionId)
         .maybeSingle(),
@@ -142,6 +142,17 @@ const updateActionSchema = z.object({
       avaliacao_satisfacao_link: z.string().max(1000).nullable().optional(),
       avaliacao_impacto: z.number().min(0).max(10).nullable().optional(),
       avaliacao_impacto_link: z.string().max(1000).nullable().optional(),
+      required_fields: z
+        .array(
+          z.object({
+            name: z.string().min(1).max(80),
+            label: z.string().max(200).optional(),
+            type: z.string().max(40).optional(),
+            required: z.boolean().optional(),
+          }),
+        )
+        .nullable()
+        .optional(),
     })
     .strict(),
 });
