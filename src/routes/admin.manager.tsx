@@ -82,6 +82,7 @@ function AdminManagerPage() {
         </div>
       )}
       <UsersManager />
+      <InviteLinksManager />
       <RolesManager />
       {visible("route-matrix") && <AccessTab />}
     </div>
