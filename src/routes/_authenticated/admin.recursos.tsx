@@ -51,6 +51,7 @@ import { useResourceCategories, useResourceCategoryMap } from "@/hooks/use-resou
 import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
 import { ResourceCategoriesManager } from "@/components/admin/ResourceCategoriesManager";
 import { CoverUploader } from "@/components/CoverUploader";
+import { CoverImage } from "@/components/CoverImage";
 
 type ResourceType = string;
 
@@ -89,6 +90,8 @@ interface ResourceRow {
   objectives: string | null;
   file_url: string;
   cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
   created_at: string | null;
 }
 
@@ -171,7 +174,7 @@ function useRecursos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("recursos")
-        .select("id, title, description, resource_type, category_key, objectives, file_url, cover_url, created_at")
+        .select("id, title, description, resource_type, category_key, objectives, file_url, cover_url, cover_position, cover_scale, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as ResourceRow[];
