@@ -7,6 +7,13 @@ const identifierSchema = z.object({
   identifier: z.string().trim().min(8).max(80),
 });
 
+export interface RequiredField {
+  name: string;
+  label?: string;
+  type?: string;
+  required?: boolean;
+}
+
 export interface PublicEventDetails {
   id: string;
   notion_id: string | null;
@@ -15,7 +22,7 @@ export interface PublicEventDetails {
   action_date: string | null;
   registration_status: string | null;
   max_capacity: number | null;
-  required_fields: unknown[] | Record<string, unknown> | null;
+  required_fields: RequiredField[];
   aceite_count: number;
 }
 
