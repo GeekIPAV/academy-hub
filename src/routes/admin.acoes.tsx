@@ -402,7 +402,7 @@ function DetailsTab({
               {extraFields.map((f, i) => (
                 <div
                   key={i}
-                  className="grid gap-2 rounded-md border bg-background p-3 sm:grid-cols-[1fr_180px_auto_auto] sm:items-end"
+                  className="grid gap-2 rounded-md border bg-background p-3 sm:grid-cols-[1fr_180px_auto_auto] sm:items-start"
                 >
                   <div>
                     <Label className="mb-1 block text-xs text-muted-foreground">
@@ -437,22 +437,32 @@ function DetailsTab({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex flex-col items-start gap-1">
-                    <Label className="text-xs text-muted-foreground">Obrigatório</Label>
-                    <Switch
-                      checked={!!f.required}
-                      onCheckedChange={(v) => updateExtra(i, { required: v })}
-                    />
+                  <div>
+                    <Label className="mb-1 block text-xs text-muted-foreground">
+                      Obrigatório
+                    </Label>
+                    <div className="flex h-10 items-center">
+                      <Switch
+                        checked={!!f.required}
+                        onCheckedChange={(v) => updateExtra(i, { required: v })}
+                      />
+                    </div>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeExtra(i)}
-                    aria-label="Remover pergunta"
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  <div>
+                    <Label className="mb-1 block text-xs text-muted-foreground">
+                      &nbsp;
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeExtra(i)}
+                      aria-label="Remover pergunta"
+                      className="h-10 w-10"
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
