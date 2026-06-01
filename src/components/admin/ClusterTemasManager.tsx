@@ -55,6 +55,9 @@ interface TemaRow {
   description: string | null;
   context: string | null;
   objectives: string | null;
+  cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
   order_index: number;
   tema_recursos: Array<{ recurso_id: string; recursos: RecursoRow | null }>;
 }
@@ -127,6 +130,9 @@ export function ClusterTemasManager() {
             description: form.description.trim() || null,
             context: form.context.trim() || null,
             objectives: form.objectives.trim() || null,
+            cover_url: editing.cover_url ?? null,
+            cover_position: editing.cover_position ?? "50% 50%",
+            cover_scale: editing.cover_scale ?? 1,
           } as never)
           .eq("id", editing.id);
         if (error) throw error;
@@ -138,6 +144,8 @@ export function ClusterTemasManager() {
           description: form.description.trim() || null,
           context: form.context.trim() || null,
           objectives: form.objectives.trim() || null,
+          cover_position: "50% 50%",
+          cover_scale: 1,
           order_index: maxOrder + 1,
         } as never);
         if (error) throw error;
