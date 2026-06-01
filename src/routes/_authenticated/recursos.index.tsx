@@ -13,6 +13,14 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
+import { CoverImage } from "@/components/CoverImage";
+
+interface ClusterCoverRow {
+  cluster_name: string;
+  cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
+}
 
 export const Route = createFileRoute("/_authenticated/recursos/")({
   head: () => ({ meta: [{ title: "Centro de Recursos — Academia Ubuntu" }] }),
@@ -45,30 +53,35 @@ function ResourcesIndex() {
   const coversQuery = useQuery({
     queryKey: ["cluster-covers"],
     queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("cluster_covers")
-        .select("cluster_name, cover_url");
+        .select("cluster_name, cover_url, cover_position, cover_scale");
       if (error) throw error;
-      const map = new Map<string, string>();
-      ((data ?? []) as { cluster_name: string; cover_url: string | null }[]).forEach((r) => {
-        if (r.cover_url) map.set(r.cluster_name, r.cover_url);
+      const map = new Map<string, ClusterCoverRow>();
+      ((data ?? []) as ClusterCoverRow[]).forEach((r) => {
+        map.set(r.cluster_name, r);
       });
       return map;
     },
   });
 
-  const setCover = async (clusterName: string, url: string | null) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error } = await (supabase as any)
+  const setCover = async (
+    clusterName: string,
+    patch: Partial<Pick<ClusterCoverRow, "cover_url" | "cover_position" | "cover_scale">>,
+  ) => {
+    const { error } = await supabase
       .from("cluster_covers")
-      .upsert({ cluster_name: clusterName, cover_url: url, updated_at: new Date().toISOString() });
+      .upsert({
+        cluster_name: clusterName,
+        ...patch,
+        updated_at: new Date().toISOString(),
+      });
     if (error) throw error;
     qc.invalidateQueries({ queryKey: ["cluster-covers"] });
   };
 
   const clusters = clustersQuery.data ?? [];
-  const covers = coversQuery.data ?? new Map<string, string>();
+  const covers = coversQuery.data ?? new Map<string, ClusterCoverRow>();
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -94,16 +107,21 @@ function ResourcesIndex() {
         </p>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-          {clusters.map((c) => (
-            <ClusterCard
-              key={c.slug}
-              cluster={c}
-              coverUrl={covers.get(c.name) ?? null}
-              allowed={isComponentVisible("/recursos", clusterComponentId(c.slug))}
-              isAdmin={isAdmin}
-              onSetCover={(url) => setCover(c.name, url)}
-            />
-          ))}
+          {clusters.map((c) => {
+            const row = covers.get(c.name);
+            return (
+              <ClusterCard
+                key={c.slug}
+                cluster={c}
+                coverUrl={row?.cover_url ?? null}
+                coverPosition={row?.cover_position ?? null}
+                coverScale={row?.cover_scale ?? null}
+                allowed={isComponentVisible("/recursos", clusterComponentId(c.slug))}
+                isAdmin={isAdmin}
+                onSetCover={(patch) => setCover(c.name, patch)}
+              />
+            );
+          })}
         </div>
       )}
     </div>
@@ -113,15 +131,21 @@ function ResourcesIndex() {
 function ClusterCard({
   cluster,
   coverUrl,
+  coverPosition,
+  coverScale,
   allowed,
   isAdmin,
   onSetCover,
 }: {
   cluster: ReturnType<typeof parseCluster>;
   coverUrl: string | null;
+  coverPosition: string | null;
+  coverScale: number | null;
   allowed: boolean;
   isAdmin: boolean;
-  onSetCover: (url: string | null) => Promise<void>;
+  onSetCover: (
+    patch: Partial<{ cover_url: string | null; cover_position: string; cover_scale: number }>,
+  ) => Promise<void>;
 }) {
   const card = (
     <div
@@ -134,14 +158,14 @@ function ClusterCard({
     >
       <div className="relative flex-1 overflow-hidden bg-gradient-to-br from-primary/10 via-muted to-primary/5">
         {coverUrl ? (
-          <img
+          <CoverImage
             src={coverUrl}
-            alt=""
+            position={coverPosition}
+            scale={coverScale}
             className={cn(
-              "h-full w-full object-cover transition group-hover:scale-[1.02]",
+              "transition group-hover:scale-[1.02]",
               !allowed && "opacity-40 grayscale",
             )}
-            loading="lazy"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-muted-foreground/30">
@@ -153,8 +177,12 @@ function ClusterCard({
             folder="clusters"
             id={cluster.slug}
             currentUrl={coverUrl}
-            onUploaded={(url) => onSetCover(url)}
-            onCleared={() => onSetCover(null)}
+            position={coverPosition}
+            scale={coverScale}
+            aspectRatio={3 / 4}
+            onUploaded={(url) => onSetCover({ cover_url: url })}
+            onCleared={() => onSetCover({ cover_url: null })}
+            onAdjusted={(p, s) => onSetCover({ cover_position: p, cover_scale: s })}
           />
         )}
       </div>
