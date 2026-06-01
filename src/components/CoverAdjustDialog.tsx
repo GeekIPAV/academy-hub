@@ -53,6 +53,7 @@ export function CoverAdjustDialog({
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
+  const suppressNextClickRef = useRef(false);
 
   useEffect(() => {
     if (open) {
@@ -60,6 +61,32 @@ export function CoverAdjustDialog({
       setScale(initialScale && initialScale > 1 ? Math.min(4, initialScale) : 1);
     }
   }, [open, initialPosition, initialScale]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const stopEvent = (event: Event) => {
+      if (!draggingRef.current && !suppressNextClickRef.current) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if ("stopImmediatePropagation" in event) {
+        event.stopImmediatePropagation();
+      }
+      if (event.type === "click") {
+        suppressNextClickRef.current = false;
+      }
+    };
+
+    window.addEventListener("click", stopEvent, true);
+    window.addEventListener("mouseup", stopEvent, true);
+    window.addEventListener("pointerup", stopEvent, true);
+
+    return () => {
+      window.removeEventListener("click", stopEvent, true);
+      window.removeEventListener("mouseup", stopEvent, true);
+      window.removeEventListener("pointerup", stopEvent, true);
+    };
+  }, [open]);
 
   const updateFromPointer = (clientX: number, clientY: number) => {
     if (!dragRef.current) return;
@@ -87,11 +114,16 @@ export function CoverAdjustDialog({
     const handleUp = (ev: PointerEvent) => {
       ev.preventDefault();
       ev.stopPropagation();
+      ev.stopImmediatePropagation();
+      suppressNextClickRef.current = true;
       draggingRef.current = false;
-      setIsDragging(false);
+      window.setTimeout(() => setIsDragging(false), 0);
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp, true);
       window.removeEventListener("pointercancel", handleUp, true);
+      window.setTimeout(() => {
+        suppressNextClickRef.current = false;
+      }, 250);
     };
     window.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerup", handleUp, true);
