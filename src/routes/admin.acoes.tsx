@@ -346,6 +346,53 @@ function DetailsTab({
   );
 }
 
+function InscriptionLinkBlock({ notionId }: { notionId: string | null }) {
+  if (!notionId) {
+    return (
+      <div className="sm:col-span-2 rounded-md border border-dashed bg-muted/30 p-3 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 font-medium text-foreground">
+          <Link2 className="h-4 w-4" /> Link de inscrição pública
+        </div>
+        <p className="mt-1 text-xs">
+          Esta ação ainda não tem <code>notion_id</code> associado. Defina o ID da página do Notion para gerar o link automaticamente.
+        </p>
+      </div>
+    );
+  }
+  const url = `${typeof window !== "undefined" ? window.location.origin : ""}/evento/${notionId}`;
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copiado.");
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  };
+  return (
+    <div className="sm:col-span-2 rounded-md border bg-muted/30 p-3">
+      <div className="mb-2 flex items-center gap-2 text-sm font-medium">
+        <Link2 className="h-4 w-4 text-primary" /> Link de inscrição pública
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <Input readOnly value={url} className="font-mono text-xs" onFocus={(e) => e.currentTarget.select()} />
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" size="sm" onClick={copy}>
+            <Copy className="mr-1 h-3.5 w-3.5" /> Copiar
+          </Button>
+          <Button type="button" variant="outline" size="sm" asChild>
+            <a href={url} target="_blank" rel="noreferrer">
+              <ExternalLink className="mr-1 h-3.5 w-3.5" /> Abrir
+            </a>
+          </Button>
+        </div>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        Partilhe este URL — qualquer pessoa com sessão iniciada pode inscrever-se nesta ação.
+      </p>
+    </div>
+  );
+}
+
 function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={className}>
