@@ -1,0 +1,1 @@
+ALTER TABLE public.cluster_covers ADD COLUMN IF NOT EXISTS description text;
