@@ -950,6 +950,8 @@ function EditRecursoDialog({
   const [objectives, setObjectives] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [coverPosition, setCoverPosition] = useState<string | null>(null);
+  const [coverScale, setCoverScale] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -961,17 +963,23 @@ function EditRecursoDialog({
       setObjectives(recurso.objectives ?? "");
       setFileUrl(recurso.file_url ?? "");
       setCoverUrl(recurso.cover_url ?? null);
+      setCoverPosition(recurso.cover_position ?? null);
+      setCoverScale(recurso.cover_scale ?? null);
     }
   }, [recurso]);
 
-  const persistCover = async (url: string | null) => {
+  const persistCover = async (
+    patch: { cover_url?: string | null; cover_position?: string; cover_scale?: number },
+  ) => {
     if (!recurso) return;
     const { error } = await supabase
       .from("recursos")
-      .update({ cover_url: url })
+      .update(patch)
       .eq("id", recurso.id);
     if (error) throw error;
-    setCoverUrl(url);
+    if (patch.cover_url !== undefined) setCoverUrl(patch.cover_url);
+    if (patch.cover_position !== undefined) setCoverPosition(patch.cover_position);
+    if (patch.cover_scale !== undefined) setCoverScale(patch.cover_scale);
     onSaved();
   };
 
