@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Award, Pencil, Plus, Trash2 } from "lucide-react";
+import { Award, Pencil, Plus, Trash2, Crop } from "lucide-react";
+import { CoverImage } from "@/components/CoverImage";
+import { CoverAdjustDialog } from "@/components/CoverAdjustDialog";
 import { toast } from "sonner";
 
 
@@ -81,7 +83,8 @@ type BadgeRow = {
   cluster_id: string;
   cluster_name: string;
   cover_url: string | null;
-  
+  cover_position: string | null;
+  cover_scale: number | null;
   validity_type: string;
   validity_years: number | null;
   validity_fixed_date: string | null;
@@ -177,11 +180,13 @@ function CatalogoTab() {
                 <TableRow key={b.id}>
                   <TableCell>
                     {b.cover_url ? (
-                      <img
-                        src={b.cover_url}
-                        alt={b.title}
-                        className="h-10 w-10 rounded-full object-cover"
-                      />
+                      <div className="h-10 w-10 overflow-hidden rounded-full">
+                        <CoverImage
+                          src={b.cover_url}
+                          position={b.cover_position}
+                          scale={b.cover_scale}
+                        />
+                      </div>
                     ) : (
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                         <Award className="h-5 w-5 text-primary" />
@@ -278,10 +283,13 @@ function BadgeFormDialog({
     description: "",
     cluster_id: "",
     cover_url: "",
+    cover_position: "50% 50%",
+    cover_scale: 1,
     validity_type: "forever",
     validity_years: null,
     validity_fixed_date: null,
   });
+  const [adjustOpen, setAdjustOpen] = useState(false);
 
   useMemo(() => {
     if (open) {
@@ -291,6 +299,8 @@ function BadgeFormDialog({
         description: editing?.description ?? "",
         cluster_id: editing?.cluster_id ?? "",
         cover_url: editing?.cover_url ?? "",
+        cover_position: editing?.cover_position ?? "50% 50%",
+        cover_scale: editing?.cover_scale ?? 1,
         validity_type: (editing?.validity_type as BadgeValidityType) ?? "forever",
         validity_years: editing?.validity_years ?? null,
         validity_fixed_date: editing?.validity_fixed_date ?? null,
@@ -372,7 +382,42 @@ function BadgeFormDialog({
               value={form.cover_url ?? ""}
               onChange={(e) => setForm((f) => ({ ...f, cover_url: e.target.value }))}
             />
+            {form.cover_url && (
+              <div className="flex items-center gap-3 pt-2">
+                <div className="h-14 w-14 overflow-hidden rounded-full border bg-muted">
+                  <CoverImage
+                    src={form.cover_url}
+                    position={form.cover_position}
+                    scale={form.cover_scale}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAdjustOpen(true)}
+                >
+                  <Crop className="mr-1.5 h-3.5 w-3.5" />
+                  Ajustar imagem
+                </Button>
+              </div>
+            )}
+            {form.cover_url && (
+              <CoverAdjustDialog
+                open={adjustOpen}
+                onOpenChange={setAdjustOpen}
+                imageUrl={form.cover_url}
+                initialPosition={form.cover_position}
+                initialScale={form.cover_scale}
+                aspectRatio={1}
+                onSave={(p, s) =>
+                  setForm((f) => ({ ...f, cover_position: p, cover_scale: s }))
+                }
+              />
+            )}
           </div>
+
+
 
 
 
