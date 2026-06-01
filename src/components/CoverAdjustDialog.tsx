@@ -124,7 +124,7 @@ export function CoverAdjustDialog({
   const handleSave = async () => {
     setSaving(true);
     try {
-      await onSave(`${pos.x.toFixed(1)}% ${pos.y.toFixed(1)}%`, Number(scale.toFixed(2)));
+      await onSave(`${pos.x}% ${pos.y}%`, scale);
       onOpenChange(false);
     } finally {
       setSaving(false);

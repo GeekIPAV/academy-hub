@@ -1005,6 +1005,9 @@ function EditRecursoDialog({
           category_key: categoryKey || null,
           objectives: objectives.trim() || null,
           file_url: fileUrl.trim(),
+          cover_url: coverUrl,
+          cover_position: coverPosition ?? "50% 50%",
+          cover_scale: coverScale ?? 1,
         } as never)
         .eq("id", recurso.id);
       if (error) throw error;
