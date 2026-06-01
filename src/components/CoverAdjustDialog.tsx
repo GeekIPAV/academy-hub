@@ -169,6 +169,7 @@ export function CoverAdjustDialog({
             <img
               src={imageUrl}
               alt=""
+              crossOrigin="anonymous"
               draggable={false}
               className="pointer-events-none h-full w-full object-cover"
               style={{

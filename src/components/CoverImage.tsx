@@ -32,6 +32,7 @@ export function CoverImage({
     <img
       src={src}
       alt={alt}
+      crossOrigin="anonymous"
       loading={loading}
       className={cn("h-full w-full object-cover", imgClassName, className)}
       style={{

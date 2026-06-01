@@ -19,7 +19,7 @@ export const listClusters = createServerFn({ method: "GET" })
   .handler(async () => {
     const { data, error } = await supabaseAdmin
       .from("clusters")
-      .select("id, name, description, cover_url, sort_order")
+      .select("id, name, description, cover_url, cover_position, cover_scale, sort_order")
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
@@ -31,6 +31,8 @@ const upsertSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().max(2000).nullable().optional(),
   cover_url: z.string().max(1024).nullable().optional(),
+  cover_position: z.string().max(32).nullable().optional(),
+  cover_scale: z.number().min(1).max(4).nullable().optional(),
   sort_order: z.number().int().min(0).max(9999).optional(),
 });
 
@@ -43,6 +45,8 @@ export const upsertCluster = createServerFn({ method: "POST" })
       name: data.name.trim(),
       description: data.description ?? null,
       cover_url: data.cover_url ?? null,
+      cover_position: data.cover_position ?? "50% 50%",
+      cover_scale: data.cover_scale ?? 1,
       sort_order: data.sort_order ?? 0,
     };
     if (data.id) {
