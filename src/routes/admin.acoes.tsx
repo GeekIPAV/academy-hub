@@ -261,6 +261,10 @@ function DetailsTab({
     avaliacao_impacto: action?.avaliacao_impacto?.toString() ?? "",
     avaliacao_impacto_link: action?.avaliacao_impacto_link ?? "",
   }));
+  const [extraFields, setExtraFields] = useState<ExtraField[]>(() => {
+    const rf = (action as { required_fields?: unknown } | null)?.required_fields;
+    return Array.isArray(rf) ? (rf as ExtraField[]) : [];
+  });
 
   const mut = useMutation({
     mutationFn: () =>
@@ -279,6 +283,14 @@ function DetailsTab({
             avaliacao_impacto:
               form.avaliacao_impacto === "" ? null : Number(form.avaliacao_impacto),
             avaliacao_impacto_link: form.avaliacao_impacto_link || null,
+            required_fields: extraFields
+              .filter((f) => (f.label ?? "").trim().length > 0)
+              .map((f, i) => ({
+                name: slugifyFieldName(f.label ?? "", i),
+                label: f.label?.trim() ?? "",
+                type: f.type ?? "text",
+                required: !!f.required,
+              })),
           },
         },
       }),
@@ -291,6 +303,13 @@ function DetailsTab({
 
   const setField = <K extends keyof typeof form>(k: K, v: string) =>
     setForm((s) => ({ ...s, [k]: v }));
+
+  const addExtra = () =>
+    setExtraFields((s) => [...s, { name: "", label: "", type: "text", required: false }]);
+  const updateExtra = (i: number, patch: Partial<ExtraField>) =>
+    setExtraFields((s) => s.map((f, idx) => (idx === i ? { ...f, ...patch } : f)));
+  const removeExtra = (i: number) =>
+    setExtraFields((s) => s.filter((_, idx) => idx !== i));
 
   return (
     <Card>
