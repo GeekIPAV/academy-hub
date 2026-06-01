@@ -20,7 +20,8 @@ type BadgeListRow = {
   description: string | null;
   cluster_id: string;
   cover_url: string | null;
-  
+  cover_position: string | null;
+  cover_scale: number | null;
   created_at: string | null;
   validity_type: string;
   validity_years: number | null;
@@ -34,7 +35,7 @@ export const listAllBadges = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("badges")
       .select(
-        "id, title, description, cluster_id, cover_url, created_at, validity_type, validity_years, validity_fixed_date, clusters(name)",
+        "id, title, description, cluster_id, cover_url, cover_position, cover_scale, created_at, validity_type, validity_years, validity_fixed_date, clusters(name)",
       )
       .order("title", { ascending: true });
     if (error) throw new Error(error.message);
@@ -47,7 +48,8 @@ export const listAllBadges = createServerFn({ method: "GET" })
         cluster_id: row.cluster_id,
         cluster_name: row.clusters?.name ?? "",
         cover_url: row.cover_url,
-        
+        cover_position: row.cover_position,
+        cover_scale: row.cover_scale,
         created_at: row.created_at,
         validity_type: row.validity_type,
         validity_years: row.validity_years,
@@ -181,7 +183,8 @@ const upsertSchema = z.object({
   description: z.string().max(2000).nullable().optional(),
   cluster_id: z.string().uuid(),
   cover_url: z.string().max(1024).nullable().optional(),
-  
+  cover_position: z.string().max(32).optional(),
+  cover_scale: z.number().min(1).max(4).optional(),
   validity_type: z.enum(["forever", "relative_years", "fixed_date"]).default("forever"),
   validity_years: z.number().int().min(1).max(99).nullable().optional(),
   validity_fixed_date: z.string().nullable().optional(),
@@ -192,17 +195,18 @@ export const upsertBadge = createServerFn({ method: "POST" })
   .inputValidator((input) => upsertSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const payload = {
+    const payload: Record<string, unknown> = {
       title: data.title,
       description: data.description ?? null,
       cluster_id: data.cluster_id,
       cover_url: data.cover_url ?? null,
-      
       validity_type: data.validity_type,
       validity_years: data.validity_type === "relative_years" ? data.validity_years ?? null : null,
       validity_fixed_date:
         data.validity_type === "fixed_date" ? data.validity_fixed_date ?? null : null,
     };
+    if (data.cover_position !== undefined) payload.cover_position = data.cover_position;
+    if (data.cover_scale !== undefined) payload.cover_scale = data.cover_scale;
     if (data.id) {
       const { error } = await supabaseAdmin.from("badges").update(payload).eq("id", data.id);
       if (error) throw new Error(error.message);
@@ -210,7 +214,7 @@ export const upsertBadge = createServerFn({ method: "POST" })
     }
     const { data: row, error } = await supabaseAdmin
       .from("badges")
-      .insert(payload)
+      .insert(payload as never)
       .select("id")
       .single();
     if (error) throw new Error(error.message);
