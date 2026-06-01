@@ -116,8 +116,16 @@ export function CoverAdjustDialog({
   const posStr = `${pos.x}% ${pos.y}%`;
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
-      <DialogContent className="sm:max-w-xl">
+    <Dialog open={open} onOpenChange={(o) => !saving && !isDragging && onOpenChange(o)}>
+      <DialogContent
+        className="sm:max-w-xl"
+        onPointerDownOutside={(e) => {
+          if (isDragging) e.preventDefault();
+        }}
+        onInteractOutside={(e) => {
+          if (isDragging) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Ajustar imagem</DialogTitle>
           <DialogDescription>
@@ -129,12 +137,9 @@ export function CoverAdjustDialog({
           <div
             ref={dragRef}
             onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
             className={cn(
               "relative w-full overflow-hidden rounded-lg border bg-muted touch-none select-none",
-              dragging.current ? "cursor-grabbing" : "cursor-grab",
+              isDragging ? "cursor-grabbing" : "cursor-grab",
             )}
             style={{ aspectRatio: String(aspectRatio) }}
           >
