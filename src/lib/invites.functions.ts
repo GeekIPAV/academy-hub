@@ -69,6 +69,50 @@ export const createInvite = createServerFn({ method: "POST" })
     return inserted;
   });
 
+const updateSchema = z.object({
+  id: z.string().uuid(),
+  roles: z.array(z.string().min(1).max(40)).min(1).max(10).optional(),
+  label: z.string().trim().max(120).nullable().optional(),
+  expires_at: z.string().datetime().nullable().optional(),
+  max_uses: z.number().int().min(1).max(1000).nullable().optional(),
+  is_active: z.boolean().optional(),
+});
+
+export const updateInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => updateSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+
+    if (data.roles) {
+      const { data: rs, error: rErr } = await supabaseAdmin
+        .from("roles")
+        .select("name, is_active")
+        .in("name", data.roles);
+      if (rErr) throw new Error(rErr.message);
+      const validNames = new Set((rs ?? []).filter((r) => r.is_active).map((r) => r.name));
+      for (const role of data.roles) {
+        if (!validNames.has(role)) throw new Error(`Perfil inválido ou inativo: ${role}`);
+      }
+    }
+
+    const patch: Record<string, unknown> = {};
+    if (data.roles !== undefined) patch.roles = data.roles;
+    if (data.label !== undefined) patch.label = data.label;
+    if (data.expires_at !== undefined) patch.expires_at = data.expires_at;
+    if (data.max_uses !== undefined) patch.max_uses = data.max_uses;
+    if (data.is_active !== undefined) patch.is_active = data.is_active;
+
+    if (Object.keys(patch).length === 0) return { ok: true };
+
+    const { error } = await supabaseAdmin
+      .from("convites")
+      .update(patch)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const revokeInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
