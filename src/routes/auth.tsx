@@ -65,7 +65,7 @@ function AuthPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -75,6 +75,12 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
+    if (data.session) {
+      // Auto-confirm ativo — já temos sessão, segue para o destino (ex: convite).
+      toast.success("Conta criada!");
+      navigate({ to: target });
+      return;
+    }
     toast.success("Conta criada! Verifica o teu email para confirmar.");
   };
 
