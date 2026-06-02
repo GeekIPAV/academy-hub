@@ -243,7 +243,7 @@ export const claimInvite = createServerFn({ method: "POST" })
       {
         _invite_token: data.token,
         _user_id: userId,
-        _assigned_by: inv.created_by,
+        _assigned_by: inv.created_by ?? undefined,
       },
     );
     if (applyErr) throw new Error(applyErr.message);
