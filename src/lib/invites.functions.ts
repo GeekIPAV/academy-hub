@@ -96,7 +96,13 @@ export const updateInvite = createServerFn({ method: "POST" })
       }
     }
 
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      roles?: string[];
+      label?: string | null;
+      expires_at?: string | null;
+      max_uses?: number | null;
+      is_active?: boolean;
+    } = {};
     if (data.roles !== undefined) patch.roles = data.roles;
     if (data.label !== undefined) patch.label = data.label;
     if (data.expires_at !== undefined) patch.expires_at = data.expires_at;
