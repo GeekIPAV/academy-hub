@@ -21,7 +21,7 @@ export const listUsers = createServerFn({ method: "GET" })
 
     const { data: profiles, error } = await supabaseAdmin
       .from("utilizadores")
-      .select("id, full_name, created_at, user_roles(role_name)")
+      .select("id, full_name, created_at, is_active, user_roles(role_name)")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
 
@@ -40,9 +40,76 @@ export const listUsers = createServerFn({ method: "GET" })
         full_name: p.full_name,
         roles: roleRows.map((r) => r.role_name).sort(),
         created_at: p.created_at,
+        is_active: (p as unknown as { is_active: boolean | null }).is_active ?? true,
         email: emailById.get(p.id) ?? "",
       };
     });
+  });
+
+const setActiveSchema = z.object({
+  userId: z.string().uuid(),
+  is_active: z.boolean(),
+});
+
+export const setUserActive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => setActiveSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    if (data.userId === context.userId) {
+      throw new Error("Não podes inativar a tua própria conta.");
+    }
+
+    // Atualiza flag no perfil
+    const { error: pErr } = await supabaseAdmin
+      .from("utilizadores")
+      .update({ is_active: data.is_active })
+      .eq("id", data.userId);
+    if (pErr) throw new Error(pErr.message);
+
+    // Bloqueia / desbloqueia login (ban_duration: "876000h" ≈ 100 anos; "none" desbloqueia)
+    const { error: bErr } = await supabaseAdmin.auth.admin.updateUserById(
+      data.userId,
+      { ban_duration: data.is_active ? "none" : "876000h" },
+    );
+    if (bErr) throw new Error(bErr.message);
+
+    return { ok: true };
+  });
+
+export const deleteUser = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ userId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    if (data.userId === context.userId) {
+      throw new Error("Não podes apagar a tua própria conta.");
+    }
+
+    // Protege o último Admin
+    const { data: targetRoles } = await supabaseAdmin
+      .from("user_roles")
+      .select("role_name")
+      .eq("user_id", data.userId);
+    const isTargetAdmin = (targetRoles ?? []).some((r) => r.role_name === "Admin");
+    if (isTargetAdmin) {
+      const { count } = await supabaseAdmin
+        .from("user_roles")
+        .select("user_id", { count: "exact", head: true })
+        .eq("role_name", "Admin");
+      if ((count ?? 0) <= 1) {
+        throw new Error("Não podes apagar o último Admin do sistema.");
+      }
+    }
+
+    // Limpa tabelas dependentes (caso não exista cascade)
+    await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId);
+    await supabaseAdmin.from("utilizadores").delete().eq("id", data.userId);
+
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
+    if (error) throw new Error(error.message);
+
+    return { ok: true };
   });
 
 const roleMutationSchema = z.object({
