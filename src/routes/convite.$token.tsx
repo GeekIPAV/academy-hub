@@ -66,6 +66,22 @@ function ConvitePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Auto-consome o convite assim que o utilizador estiver autenticado e o convite for válido.
+  useEffect(() => {
+    if (
+      authChecked &&
+      authedUserId &&
+      info.data &&
+      !accept.isPending &&
+      !accept.isSuccess &&
+      !accept.isError
+    ) {
+      accept.mutate();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authChecked, authedUserId, info.data]);
+
+
   const goToAuth = () => {
     navigate({ to: "/auth", search: { redirect: `/convite/${token}` } });
   };

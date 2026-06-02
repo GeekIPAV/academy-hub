@@ -90,7 +90,7 @@ function AdminManagerPage() {
 }
 
 function UsersManager() {
-  const { users, isLoading, assign, remove } = useUsers();
+  const { users, isLoading, assign, remove, setActive, removeUser } = useUsers();
   const { roles } = useRoles();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const activeRoles = roles.filter((r) => r.is_active);
@@ -107,7 +107,7 @@ function UsersManager() {
       <CardHeader>
         <CardTitle>Utilizadores</CardTitle>
         <CardDescription>
-          Atribui um ou mais perfis a cada utilizador. As alterações são imediatas.
+          Atribui perfis, inativa ou apaga utilizadores. Inativos não conseguem fazer login.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -126,7 +126,9 @@ function UsersManager() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Perfis de Acesso</TableHead>
-                <TableHead className="w-[140px]">Criado em</TableHead>
+                <TableHead className="w-[90px] text-center">Ativo</TableHead>
+                <TableHead className="w-[120px]">Criado em</TableHead>
+                <TableHead className="w-[60px]" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -134,7 +136,7 @@ function UsersManager() {
                 const isSelf = u.id === currentUserId;
                 const userRoles = new Set(u.roles);
                 return (
-                  <TableRow key={u.id}>
+                  <TableRow key={u.id} className={u.is_active ? undefined : "opacity-60"}>
                     <TableCell className="font-medium align-top">
                       {u.full_name || "—"}
                       {isSelf && (
@@ -172,10 +174,38 @@ function UsersManager() {
                         })}
                       </div>
                     </TableCell>
+                    <TableCell className="text-center align-top">
+                      <Switch
+                        checked={u.is_active}
+                        disabled={isSelf}
+                        onCheckedChange={(v) =>
+                          setActive.mutate({ userId: u.id, is_active: v })
+                        }
+                      />
+                    </TableCell>
                     <TableCell className="text-sm text-muted-foreground align-top">
                       {u.created_at
                         ? new Date(u.created_at).toLocaleDateString("pt-PT")
                         : "—"}
+                    </TableCell>
+                    <TableCell className="text-right align-top">
+                      {!isSelf && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Apagar utilizador definitivamente"
+                          onClick={() => {
+                            if (
+                              confirm(
+                                `Apagar "${u.full_name || u.email}" definitivamente? Esta ação não pode ser revertida.`,
+                              )
+                            )
+                              removeUser.mutate(u.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -187,6 +217,7 @@ function UsersManager() {
     </Card>
   );
 }
+
 
 function RolesManager() {
   const qc = useQueryClient();

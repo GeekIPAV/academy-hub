@@ -1,7 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { assignRole, listUsers, removeRole } from "@/lib/users.functions";
+import {
+  assignRole,
+  deleteUser,
+  listUsers,
+  removeRole,
+  setUserActive,
+} from "@/lib/users.functions";
 
 export interface UserRow {
   id: string;
@@ -9,6 +15,7 @@ export interface UserRow {
   email: string;
   roles: string[];
   created_at: string | null;
+  is_active: boolean;
 }
 
 export function useUsers() {
@@ -16,6 +23,8 @@ export function useUsers() {
   const listFn = useServerFn(listUsers);
   const assignFn = useServerFn(assignRole);
   const removeFn = useServerFn(removeRole);
+  const setActiveFn = useServerFn(setUserActive);
+  const deleteFn = useServerFn(deleteUser);
 
   const query = useQuery({
     queryKey: ["users"],
@@ -75,10 +84,33 @@ export function useUsers() {
     },
   });
 
+  const setActive = useMutation({
+    mutationFn: (vars: { userId: string; is_active: boolean }) =>
+      setActiveFn({ data: vars }),
+    onSuccess: (_d, vars) => {
+      toast.success(vars.is_active ? "Utilizador ativado." : "Utilizador inativado.");
+      qc.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Erro a atualizar estado."),
+  });
+
+  const removeUser = useMutation({
+    mutationFn: (userId: string) => deleteFn({ data: { userId } }),
+    onSuccess: () => {
+      toast.success("Utilizador apagado.");
+      qc.invalidateQueries({ queryKey: ["users"] });
+    },
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Erro a apagar utilizador."),
+  });
+
   return {
     ...query,
     users: (query.data ?? []) as UserRow[],
     assign,
     remove,
+    setActive,
+    removeUser,
   };
 }
