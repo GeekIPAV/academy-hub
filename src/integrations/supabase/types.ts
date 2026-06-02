@@ -1359,6 +1359,7 @@ export type Database = {
           id_doc_expiry: string | null
           id_doc_number: string | null
           id_doc_type: string | null
+          is_active: boolean
           job_title: string | null
           last_names: string | null
           nationality_country: string | null
@@ -1387,6 +1388,7 @@ export type Database = {
           id_doc_expiry?: string | null
           id_doc_number?: string | null
           id_doc_type?: string | null
+          is_active?: boolean
           job_title?: string | null
           last_names?: string | null
           nationality_country?: string | null
@@ -1415,6 +1417,7 @@ export type Database = {
           id_doc_expiry?: string | null
           id_doc_number?: string | null
           id_doc_type?: string | null
+          is_active?: boolean
           job_title?: string | null
           last_names?: string | null
           nationality_country?: string | null
