@@ -82,9 +82,12 @@ function ConvitePage() {
   }, [authChecked, authedUserId, info.data]);
 
 
-  const goToAuth = () => {
-    navigate({ to: "/auth", search: { redirect: `/convite/${token}` } });
-  };
+  // Redireciona automaticamente para /auth se não estiver autenticado.
+  useEffect(() => {
+    if (authChecked && !authedUserId) {
+      navigate({ to: "/auth", search: { redirect: `/convite/${token}` } });
+    }
+  }, [authChecked, authedUserId, token, navigate]);
 
   return (
     <div className="mx-auto flex min-h-screen max-w-md items-center px-4 py-12">
