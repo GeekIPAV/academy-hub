@@ -745,6 +745,14 @@ function InviteLinksManager() {
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Editar"
+                          onClick={() => openEdit(inv)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         {inv.is_active && (
                           <Button
                             size="icon"
