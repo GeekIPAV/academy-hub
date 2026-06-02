@@ -28,6 +28,7 @@ function AuthPage() {
   const safeRedirect =
     redirect && /^\/(?!\/)/.test(redirect) ? redirect : null;
   const target = safeRedirect ?? "/dashboard";
+  const inviteToken = safeRedirect?.match(/^\/convite\/([^/?#]+)/)?.[1] ?? null;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -70,7 +71,10 @@ function AuthPage() {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}${target}`,
-        data: { full_name: fullName },
+        data: {
+          full_name: fullName,
+          ...(inviteToken ? { invite_token: inviteToken } : {}),
+        },
       },
     });
     setLoading(false);
