@@ -515,6 +515,45 @@ function InviteLinksManager() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // ── Edição ───────────────────────────────────────────────────────────
+  const [editId, setEditId] = useState<string | null>(null);
+  const [eRoles, setERoles] = useState<Set<string>>(new Set());
+  const [eLabel, setELabel] = useState("");
+  const [eExpiresDate, setEExpiresDate] = useState("");
+  const [eMaxUses, setEMaxUses] = useState("");
+  const [eActive, setEActive] = useState(true);
+
+  const openEdit = (inv: InviteRow) => {
+    setEditId(inv.id);
+    setERoles(new Set(inv.roles));
+    setELabel(inv.label ?? "");
+    setEExpiresDate(inv.expires_at ? inv.expires_at.slice(0, 10) : "");
+    setEMaxUses(inv.max_uses != null ? String(inv.max_uses) : "");
+    setEActive(inv.is_active);
+  };
+
+  const updateMut = useMutation({
+    mutationFn: () =>
+      updateFn({
+        data: {
+          id: editId!,
+          roles: [...eRoles],
+          label: eLabel.trim() ? eLabel.trim() : null,
+          expires_at: eExpiresDate
+            ? new Date(`${eExpiresDate}T23:59:59Z`).toISOString()
+            : null,
+          max_uses: eMaxUses ? Number(eMaxUses) : null,
+          is_active: eActive,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Convite atualizado.");
+      setEditId(null);
+      qc.invalidateQueries({ queryKey: ["invites"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const buildUrl = (token: string) =>
     typeof window !== "undefined"
       ? `${window.location.origin}/convite/${token}`
