@@ -89,17 +89,10 @@ function ConvitePage() {
   return (
     <div className="mx-auto flex min-h-screen max-w-md items-center px-4 py-12">
       <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Convite para a equipa</CardTitle>
-          <CardDescription>
-            Aceita o convite para te juntares à plataforma.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {info.isLoading || !authChecked ? (
             <div className="space-y-3">
-              <Skeleton className="h-6 w-2/3" />
-              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-8 w-2/3 mx-auto" />
               <Skeleton className="h-10 w-full" />
             </div>
           ) : info.isError ? (
@@ -114,22 +107,10 @@ function ConvitePage() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-5">
-              {info.data?.label && (
-                <p className="text-sm text-muted-foreground">{info.data.label}</p>
-              )}
-              <div>
-                <p className="text-sm">
-                  Foste convidado para te juntares à equipa como:
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {info.data?.roles.map((r: string) => (
-                    <Badge key={r} variant="secondary">
-                      {r}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+            <div className="space-y-6">
+              <h1 className="text-center text-2xl md:text-3xl font-bold text-primary">
+                Aceita o convite para te juntares à plataforma
+              </h1>
 
               {authedUserId ? (
                 <Button
@@ -150,16 +131,10 @@ function ConvitePage() {
                   )}
                 </Button>
               ) : (
-                <div className="space-y-2">
-                  <Button className="w-full" onClick={goToAuth}>
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Fazer Login / Registar
-                  </Button>
-                  <p className="text-center text-xs text-muted-foreground">
-                    Após autenticares, voltas automaticamente a esta página para
-                    confirmar.
-                  </p>
-                </div>
+                <Button className="w-full" onClick={goToAuth}>
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Fazer Login / Registar
+                </Button>
               )}
             </div>
           )}
