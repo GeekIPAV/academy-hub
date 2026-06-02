@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap');
 @import "tailwindcss" source(none);
-@source "../src";
 @import "tw-animate-css";
+@source "../src";
 
 @theme {
   --font-sans: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
