@@ -1,7 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { assignRole, listUsers, removeRole } from "@/lib/users.functions";
+import {
+  assignRole,
+  deleteUser,
+  listUsers,
+  removeRole,
+  setUserActive,
+} from "@/lib/users.functions";
 
 export interface UserRow {
   id: string;
@@ -9,6 +15,7 @@ export interface UserRow {
   email: string;
   roles: string[];
   created_at: string | null;
+  is_active: boolean;
 }
 
 export function useUsers() {
