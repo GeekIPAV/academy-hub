@@ -193,8 +193,8 @@ export const claimInvite = createServerFn({ method: "POST" })
       .from("utilizadores")
       .upsert({ id: userId }, { onConflict: "id", ignoreDuplicates: true });
 
-    // Replace default role(s) with invite roles
-    await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
+    // Adiciona as roles do convite sem apagar as existentes (idempotente).
+    // Remove apenas o "Formando" default se passarmos a ter outra role explícita.
     for (const role of inv.roles as string[]) {
       const { error } = await supabaseAdmin.from("user_roles").insert({
         user_id: userId,
@@ -205,6 +205,15 @@ export const claimInvite = createServerFn({ method: "POST" })
         throw new Error(error.message);
       }
     }
+    const invitedRoles = inv.roles as string[];
+    if (invitedRoles.length > 0 && !invitedRoles.includes("Formando")) {
+      await supabaseAdmin
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId)
+        .eq("role_name", "Formando");
+    }
+
 
     await supabaseAdmin
       .from("convites")
