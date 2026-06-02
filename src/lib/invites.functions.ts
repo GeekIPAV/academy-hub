@@ -238,6 +238,18 @@ export const claimInvite = createServerFn({ method: "POST" })
       throw new Error("Limite de utilizações deste convite atingido.");
     }
 
+    const { data: applied, error: applyErr } = await supabaseAdmin.rpc(
+      "apply_invite_to_user",
+      {
+        _invite_token: data.token,
+        _user_id: userId,
+        _assigned_by: inv.created_by,
+      },
+    );
+    if (applyErr) throw new Error(applyErr.message);
+
+    if (applied) return { ok: true };
+
     // Ensure a utilizadores row exists
     await supabaseAdmin
       .from("utilizadores")
@@ -263,12 +275,6 @@ export const claimInvite = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .eq("role_name", "Formando");
     }
-
-
-    await supabaseAdmin
-      .from("convites")
-      .update({ uses_count: (inv.uses_count ?? 0) + 1 })
-      .eq("id", inv.id);
 
     return { ok: true };
   });
