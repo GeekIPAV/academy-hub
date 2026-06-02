@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Copy, ExternalLink, Plus, Shield, Trash2, UserPlus } from "lucide-react";
+import { Copy, ExternalLink, Pencil, Plus, Shield, Trash2, UserPlus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -47,7 +47,7 @@ import { useRoles } from "@/hooks/use-roles";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
-import { createInvite, listInvites, revokeInvite } from "@/lib/invites.functions";
+import { createInvite, listInvites, revokeInvite, updateInvite } from "@/lib/invites.functions";
 import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/admin/manager")({
@@ -467,6 +467,7 @@ function InviteLinksManager() {
   const listFn = useServerFn(listInvites);
   const createFn = useServerFn(createInvite);
   const revokeFn = useServerFn(revokeInvite);
+  const updateFn = useServerFn(updateInvite);
 
   const invitesQ = useQuery({
     queryKey: ["invites"],
@@ -509,6 +510,45 @@ function InviteLinksManager() {
     mutationFn: (id: string) => revokeFn({ data: { id } }),
     onSuccess: () => {
       toast.success("Convite revogado.");
+      qc.invalidateQueries({ queryKey: ["invites"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // ── Edição ───────────────────────────────────────────────────────────
+  const [editId, setEditId] = useState<string | null>(null);
+  const [eRoles, setERoles] = useState<Set<string>>(new Set());
+  const [eLabel, setELabel] = useState("");
+  const [eExpiresDate, setEExpiresDate] = useState("");
+  const [eMaxUses, setEMaxUses] = useState("");
+  const [eActive, setEActive] = useState(true);
+
+  const openEdit = (inv: InviteRow) => {
+    setEditId(inv.id);
+    setERoles(new Set(inv.roles));
+    setELabel(inv.label ?? "");
+    setEExpiresDate(inv.expires_at ? inv.expires_at.slice(0, 10) : "");
+    setEMaxUses(inv.max_uses != null ? String(inv.max_uses) : "");
+    setEActive(inv.is_active);
+  };
+
+  const updateMut = useMutation({
+    mutationFn: () =>
+      updateFn({
+        data: {
+          id: editId!,
+          roles: [...eRoles],
+          label: eLabel.trim() ? eLabel.trim() : null,
+          expires_at: eExpiresDate
+            ? new Date(`${eExpiresDate}T23:59:59Z`).toISOString()
+            : null,
+          max_uses: eMaxUses ? Number(eMaxUses) : null,
+          is_active: eActive,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Convite atualizado.");
+      setEditId(null);
       qc.invalidateQueries({ queryKey: ["invites"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -705,6 +745,14 @@ function InviteLinksManager() {
                         >
                           <Copy className="h-4 w-4" />
                         </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Editar"
+                          onClick={() => openEdit(inv)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
                         {inv.is_active && (
                           <Button
                             size="icon"
@@ -726,6 +774,99 @@ function InviteLinksManager() {
           </Table>
         )}
       </CardContent>
+
+      <Dialog open={editId !== null} onOpenChange={(o) => { if (!o) setEditId(null); }}>
+        <DialogContent>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (eRoles.size === 0) {
+                toast.error("Seleciona pelo menos um perfil.");
+                return;
+              }
+              updateMut.mutate();
+            }}
+          >
+            <DialogHeader>
+              <DialogTitle>Editar link de convite</DialogTitle>
+              <DialogDescription>
+                Atualiza os perfis, a nota ou os limites deste convite.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Perfis</Label>
+                <div className="flex flex-wrap gap-3">
+                  {activeRoles.map((r) => {
+                    const checked = eRoles.has(r.name);
+                    return (
+                      <label key={r.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(v) => {
+                            setERoles((prev) => {
+                              const next = new Set(prev);
+                              if (v) next.add(r.name);
+                              else next.delete(r.name);
+                              return next;
+                            });
+                          }}
+                        />
+                        <span>{r.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-label">Nota</Label>
+                <Input
+                  id="edit-label"
+                  value={eLabel}
+                  onChange={(e) => setELabel(e.target.value)}
+                  maxLength={120}
+                  placeholder="Sem nota"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-exp">Validade (data)</Label>
+                  <Input
+                    id="edit-exp"
+                    type="date"
+                    value={eExpiresDate}
+                    onChange={(e) => setEExpiresDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-max">Máx. utilizações</Label>
+                  <Input
+                    id="edit-max"
+                    type="number"
+                    min={1}
+                    max={1000}
+                    value={eMaxUses}
+                    onChange={(e) => setEMaxUses(e.target.value)}
+                    placeholder="Ilimitado"
+                  />
+                </div>
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                <Switch checked={eActive} onCheckedChange={setEActive} />
+                <span>Convite ativo</span>
+              </label>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setEditId(null)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={updateMut.isPending}>
+                {updateMut.isPending ? "A guardar..." : "Guardar alterações"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
