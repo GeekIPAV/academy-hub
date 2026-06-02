@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap');
 @import "tw-animate-css";
 @import "tailwindcss" source(none);
 @source "../src";
@@ -149,8 +150,6 @@
   stroke-dashoffset: 1;
   animation: loading-mandela-draw 1.5s linear infinite;
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap');
 
 @layer utilities {
   .font-display { font-family: "Newsreader", Georgia, serif; }
