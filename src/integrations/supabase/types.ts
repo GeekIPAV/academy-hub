@@ -385,6 +385,32 @@ export type Database = {
         }
         Relationships: []
       }
+      convite_utilizacoes: {
+        Row: {
+          invite_id: string
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          invite_id: string
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          invite_id?: string
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convite_utilizacoes_invite_id_fkey"
+            columns: ["invite_id"]
+            isOneToOne: false
+            referencedRelation: "convites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       convites: {
         Row: {
           created_at: string
@@ -1466,6 +1492,10 @@ export type Database = {
     }
     Functions: {
       anonimizar_utilizador: { Args: { _user_id: string }; Returns: number }
+      apply_invite_to_user: {
+        Args: { _assigned_by?: string; _invite_token: string; _user_id: string }
+        Returns: boolean
+      }
       get_next_in_line: { Args: { target_action_id: string }; Returns: string }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
