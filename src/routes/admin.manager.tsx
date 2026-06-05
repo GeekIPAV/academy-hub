@@ -429,7 +429,9 @@ function RolesManager() {
             </TableBody>
           </Table>
         )}
-      </CardContent>
+        </CardContent>
+      )}
+
     </Card>
   );
 }
