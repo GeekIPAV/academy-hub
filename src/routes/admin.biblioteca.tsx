@@ -43,6 +43,8 @@ import {
 import {
   approvePublicacao,
   bulkCreatePublicacoes,
+  bulkDeletePublicacoes,
+  bulkUpdatePublicacoes,
   deleteCategoria,
   deletePublicacao,
   listAllApprovedPublicacoes,
@@ -53,6 +55,7 @@ import {
   upsertPublicacao,
   type Publicacao,
 } from "@/lib/biblioteca.functions";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/admin/biblioteca")({
   head: () => ({ meta: [{ title: "Gestão da Biblioteca" }] }),
