@@ -92,6 +92,20 @@ export const deleteRole = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
+    // Lookup role name; clear any user_roles assignments first to satisfy FK.
+    const { data: roleRow, error: fetchErr } = await supabaseAdmin
+      .from("roles")
+      .select("name")
+      .eq("id", data.id)
+      .single();
+    if (fetchErr) throw new Error(fetchErr.message);
+    if (roleRow?.name) {
+      const { error: delAssignErr } = await supabaseAdmin
+        .from("user_roles")
+        .delete()
+        .eq("role_name", roleRow.name);
+      if (delAssignErr) throw new Error(delAssignErr.message);
+    }
     const { error } = await supabaseAdmin.from("roles").delete().eq("id", data.id);
     if (error) {
       if (error.message?.includes("system role"))
