@@ -76,7 +76,7 @@ export const getPublicEventDetails = createServerFn({ method: "GET" })
         : [],
       aceite_count: count ?? 0,
       conteudo_pagina_inscricao:
-        (row as { conteudo_pagina_inscricao?: unknown }).conteudo_pagina_inscricao ?? null,
+        ((row as { conteudo_pagina_inscricao?: unknown }).conteudo_pagina_inscricao ?? null) as JsonVal | null,
     };
   });
 
