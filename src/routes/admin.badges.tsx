@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Award, Pencil, Plus, Trash2, Crop } from "lucide-react";
+import { Award, Pencil, Plus, Trash2, Crop, Users } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CoverImage } from "@/components/CoverImage";
 import { CoverAdjustDialog } from "@/components/CoverAdjustDialog";
 import { toast } from "sonner";
@@ -69,6 +70,7 @@ import {
 } from "@/hooks/use-badges";
 import { useClusters } from "@/hooks/use-clusters";
 import { useUsers } from "@/hooks/use-users";
+import { useRoles } from "@/hooks/use-roles";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 export const Route = createFileRoute("/admin/badges")({
@@ -121,6 +123,7 @@ function AdminBadgesPage() {
         <TabsList>
           <TabsTrigger value="catalogo">Catálogo de Badges</TabsTrigger>
           <TabsTrigger value="utilizadores">Utilizadores Credenciados</TabsTrigger>
+          <TabsTrigger value="massa">Atribuição em Massa</TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalogo" className="mt-4">
@@ -128,6 +131,9 @@ function AdminBadgesPage() {
         </TabsContent>
         <TabsContent value="utilizadores" className="mt-4">
           <UtilizadoresTab />
+        </TabsContent>
+        <TabsContent value="massa" className="mt-4">
+          <AtribuicaoMassaTab />
         </TabsContent>
       </Tabs>
     </div>
@@ -664,5 +670,162 @@ function AssignBadgeDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ------------------------- Atribuição em Massa ------------------------- */
+
+function AtribuicaoMassaTab() {
+  const { data: badges } = useAllBadges();
+  const { users } = useUsers();
+  const { roles } = useRoles();
+  const assign = useAssignBadge();
+
+  const [badgeId, setBadgeId] = useState<string | null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set());
+  const [onlyActive, setOnlyActive] = useState(true);
+  const [running, setRunning] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const toggleRole = (name: string) => {
+    setSelectedRoles((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
+  const targetUsers = useMemo(() => {
+    if (selectedRoles.size === 0) return [];
+    return users.filter((u) => {
+      if (onlyActive && !u.is_active) return false;
+      return u.roles.some((r) => selectedRoles.has(r));
+    });
+  }, [users, selectedRoles, onlyActive]);
+
+  const selectedBadge = badges?.find((b) => b.id === badgeId);
+
+  const runBulkAssign = async () => {
+    if (!badgeId || targetUsers.length === 0) return;
+    setRunning(true);
+    let ok = 0;
+    let fail = 0;
+    for (const u of targetUsers) {
+      try {
+        await assign.mutateAsync({ userId: u.id, badgeId });
+        ok += 1;
+      } catch {
+        fail += 1;
+      }
+    }
+    setRunning(false);
+    setConfirmOpen(false);
+    toast.success(
+      `Concluído: ${ok} atribuído(s)${fail ? `, ${fail} falha(s)` : ""}.`,
+    );
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Atribuição em massa</CardTitle>
+        <CardDescription>
+          Atribua um badge a todos os utilizadores que pertencem a determinados perfis.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="space-y-1">
+          <Label>Badge</Label>
+          <Select value={badgeId ?? ""} onValueChange={(v) => setBadgeId(v || null)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Escolha um badge…" />
+            </SelectTrigger>
+            <SelectContent>
+              {(badges ?? []).map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.title}
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    · {b.cluster_name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label>Perfis (tipos de utilizador)</Label>
+          {roles.length === 0 ? (
+            <p className="text-sm text-muted-foreground">A carregar perfis…</p>
+          ) : (
+            <div className="grid grid-cols-1 gap-2 rounded-md border p-3 sm:grid-cols-2">
+              {roles
+                .filter((r) => r.is_active)
+                .map((r) => (
+                  <label
+                    key={r.id}
+                    className="flex cursor-pointer items-center gap-2 text-sm"
+                  >
+                    <Checkbox
+                      checked={selectedRoles.has(r.name)}
+                      onCheckedChange={() => toggleRole(r.name)}
+                    />
+                    <span>{r.name}</span>
+                  </label>
+                ))}
+            </div>
+          )}
+        </div>
+
+        <label className="flex cursor-pointer items-center gap-2 text-sm">
+          <Checkbox
+            checked={onlyActive}
+            onCheckedChange={(v) => setOnlyActive(v === true)}
+          />
+          <span>Apenas utilizadores ativos</span>
+        </label>
+
+        <div className="flex items-center justify-between rounded-md border bg-muted/30 p-3">
+          <div className="flex items-center gap-2 text-sm">
+            <Users className="h-4 w-4 text-muted-foreground" />
+            <span>
+              <strong>{targetUsers.length}</strong> utilizador(es) correspondem aos critérios.
+            </span>
+          </div>
+          <Button
+            disabled={!badgeId || targetUsers.length === 0 || running}
+            onClick={() => setConfirmOpen(true)}
+          >
+            Atribuir badge
+          </Button>
+        </div>
+      </CardContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar atribuição em massa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O badge <strong>{selectedBadge?.title}</strong> será atribuído a{" "}
+              <strong>{targetUsers.length}</strong> utilizador(es). Utilizadores que já
+              tenham este badge são ignorados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={running}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={running}
+              onClick={(e) => {
+                e.preventDefault();
+                runBulkAssign();
+              }}
+            >
+              {running ? "A atribuir…" : "Confirmar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
   );
 }
