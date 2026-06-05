@@ -54,6 +54,8 @@ const listSchema = z.object({
   categoriaId: z.string().uuid().nullable().optional(),
   year: z.number().int().min(1800).max(3000).nullable().optional(),
   search: z.string().max(200).optional(),
+  sortBy: z.enum(["title", "author", "year"]).optional().default("title"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
 });
 
 export const listPublicacoes = createServerFn({ method: "POST" })
@@ -63,14 +65,21 @@ export const listPublicacoes = createServerFn({ method: "POST" })
     let q = supabaseAdmin
       .from("publicacoes")
       .select("*, categoria:biblioteca_categorias(id, name)")
-      .eq("status", "aprovado")
-      .order("title");
+      .eq("status", "aprovado");
     if (data.tab) q = q.eq("is_ipav", data.tab === "ipav");
     if (data.categoriaId) q = q.eq("categoria_id", data.categoriaId);
     if (data.year) q = q.eq("year", data.year);
     if (data.search && data.search.trim()) {
       const s = data.search.trim().replace(/[%_]/g, "");
       q = q.or(`title.ilike.%${s}%,author.ilike.%${s}%`);
+    }
+    const ascending = data.sortOrder === "asc";
+    if (data.sortBy === "year") {
+      q = q.order("year", { ascending, nullsFirst: false });
+    } else if (data.sortBy === "author") {
+      q = q.order("author", { ascending, nullsFirst: true });
+    } else {
+      q = q.order("title", { ascending, nullsFirst: true });
     }
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
