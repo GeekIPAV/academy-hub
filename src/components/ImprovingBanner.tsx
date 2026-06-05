@@ -27,37 +27,30 @@ export function ImprovingBanner() {
 function ArchBridge({ className }: { className?: string }) {
   const W = 400;
   const H = 100;
-  // Apoios do tabuleiro (mais baixos) e pico do arco do tabuleiro (mais alto)
   const DECK_EDGE_Y = 70;
   const DECK_PEAK_Y = 42;
-  // Arco superior (estrutura)
   const ARCH_PEAK_Y = 8;
   const ARCH_LEFT = 30;
   const ARCH_RIGHT = 370;
 
-  // Curva parabólica do tabuleiro (arco para cima)
   const deckY = (x: number) => {
     const t = (x - ARCH_LEFT) / (ARCH_RIGHT - ARCH_LEFT);
     const tt = Math.max(0, Math.min(1, t));
     return DECK_EDGE_Y + (DECK_PEAK_Y - DECK_EDGE_Y) * (4 * tt * (1 - tt));
   };
 
-  // Curva do arco superior
   const archY = (x: number) => {
     const t = (x - ARCH_LEFT) / (ARCH_RIGHT - ARCH_LEFT);
     const tt = Math.max(0, Math.min(1, t));
     return DECK_EDGE_Y + (ARCH_PEAK_Y - DECK_EDGE_Y) * (4 * tt * (1 - tt));
   };
 
-  // Path do tabuleiro (uma curva única, suave)
   const deckPath = `M ${ARCH_LEFT} ${DECK_EDGE_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * DECK_PEAK_Y - DECK_EDGE_Y} ${ARCH_RIGHT} ${DECK_EDGE_Y}`;
   const deckPath2 = `M ${ARCH_LEFT} ${DECK_EDGE_Y + 3.5} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * (DECK_PEAK_Y + 3.5) - (DECK_EDGE_Y + 3.5)} ${ARCH_RIGHT} ${DECK_EDGE_Y + 3.5}`;
 
-  // Suspensores ao longo do tabuleiro
   const hangerXs: number[] = [];
   for (let x = ARCH_LEFT + 18; x < ARCH_RIGHT; x += 22) hangerXs.push(x);
 
-  // Posições dos trabalhadores parados (sobre o tabuleiro curvo)
   const h1x = 130;
   const h2x = 285;
 
@@ -101,21 +94,14 @@ function ArchBridge({ className }: { className?: string }) {
       <line x1="0" y1={H - 4} x2={W} y2={H - 4} opacity="0.25" strokeDasharray="6 4" />
       <line x1="0" y1={H - 1} x2={W} y2={H - 1} opacity="0.18" strokeDasharray="3 5" />
 
-      {/* Arco principal (estrutura superior) — incompleto à direita */}
+      {/* Arco principal (estrutura superior) — completo */}
       <path
-        d={`M ${ARCH_LEFT} ${DECK_EDGE_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * ARCH_PEAK_Y - DECK_EDGE_Y} ${ARCH_RIGHT - 60} ${archY(ARCH_RIGHT - 60)}`}
+        d={`M ${ARCH_LEFT} ${DECK_EDGE_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * ARCH_PEAK_Y - DECK_EDGE_Y} ${ARCH_RIGHT} ${DECK_EDGE_Y}`}
         strokeWidth="2.2"
       />
-      {/* Pedaço solto do arco (peça por colocar) */}
-      <path
-        d={`M ${ARCH_RIGHT - 35} ${archY(ARCH_RIGHT - 35) - 6} Q ${ARCH_RIGHT - 18} ${archY(ARCH_RIGHT - 18) - 4} ${ARCH_RIGHT - 2} ${DECK_EDGE_Y - 4}`}
-        opacity="0.45"
-        strokeDasharray="3 3"
-      />
 
-      {/* Suspensores (verticais entre arco e tabuleiro) — alguns em falta */}
-      {hangerXs.map((x, i) => {
-        if (i === 3 || i === 7 || i > hangerXs.length - 3) return null;
+      {/* Suspensores completos */}
+      {hangerXs.map((x) => {
         const ay = archY(x);
         const dy = deckY(x);
         if (ay >= dy - 2) return null;
@@ -126,18 +112,18 @@ function ArchBridge({ className }: { className?: string }) {
       <path d={deckPath} strokeWidth="2" />
       <path d={deckPath2} opacity="0.5" />
 
-      {/* Treliça por baixo do tabuleiro (X's seguindo a curva) — com falhas */}
+      {/* Treliça completa por baixo do tabuleiro */}
       {Array.from({ length: 18 }).map((_, i) => {
         const step = (ARCH_RIGHT - ARCH_LEFT) / 18;
         const x1 = ARCH_LEFT + i * step;
         const x2 = x1 + step;
         if (x2 > ARCH_RIGHT) return null;
-        // buracos na construção
-        if (i === 5 || i === 12 || i === 15) return null;
+
         const y1 = deckY(x1) + 4;
         const y2 = deckY(x2) + 4;
         const yb1 = y1 + 7;
         const yb2 = y2 + 7;
+
         return (
           <g key={`tru-${i}`} opacity="0.35">
             <line x1={x1} y1={y1} x2={x2} y2={yb2} />
@@ -147,40 +133,13 @@ function ArchBridge({ className }: { className?: string }) {
         );
       })}
 
-      {/* Secção do tabuleiro em falta (lacuna) */}
-      <g opacity="0.55">
-        <line
-          x1={ARCH_RIGHT - 55}
-          y1={deckY(ARCH_RIGHT - 55) - 3}
-          x2={ARCH_RIGHT - 55}
-          y2={deckY(ARCH_RIGHT - 55) + 6}
-          strokeDasharray="2 2"
-        />
-        <line
-          x1={ARCH_RIGHT - 35}
-          y1={deckY(ARCH_RIGHT - 35) - 3}
-          x2={ARCH_RIGHT - 35}
-          y2={deckY(ARCH_RIGHT - 35) + 6}
-          strokeDasharray="2 2"
-        />
-      </g>
-
-      {/* Andaime / estrutura temporária junto à zona incompleta */}
-      <g opacity="0.5">
-        <line x1={ARCH_RIGHT - 50} y1={deckY(ARCH_RIGHT - 50)} x2={ARCH_RIGHT - 50} y2={DECK_EDGE_Y + 10} />
-        <line x1={ARCH_RIGHT - 30} y1={deckY(ARCH_RIGHT - 30)} x2={ARCH_RIGHT - 30} y2={DECK_EDGE_Y + 10} />
-        <line x1={ARCH_RIGHT - 50} y1={DECK_EDGE_Y + 4} x2={ARCH_RIGHT - 30} y2={DECK_EDGE_Y + 4} />
-        <line x1={ARCH_RIGHT - 50} y1={DECK_EDGE_Y + 10} x2={ARCH_RIGHT - 30} y2={DECK_EDGE_Y + 10} />
-        <line x1={ARCH_RIGHT - 50} y1={DECK_EDGE_Y + 4} x2={ARCH_RIGHT - 30} y2={DECK_EDGE_Y + 10} />
-      </g>
-
       {/* Pilha de materiais no tabuleiro (à esquerda) */}
       <g opacity="0.55">
         <rect x={60} y={deckY(60) - 3} width="10" height="3" fill="currentColor" stroke="none" />
         <rect x={62} y={deckY(62) - 6} width="6" height="3" fill="currentColor" stroke="none" />
       </g>
 
-      {/* 2 trabalhadores parados a martelar (em cima do tabuleiro curvo) */}
+      {/* 2 trabalhadores parados a martelar */}
       <g transform={`translate(${h1x} ${deckY(h1x)})`}>
         <Hammerer delay={0} />
       </g>
@@ -188,7 +147,7 @@ function ArchBridge({ className }: { className?: string }) {
         <Hammerer delay={0.25} flip />
       </g>
 
-      {/* 3 trabalhadores a correr ao longo da curva */}
+      {/* 3 trabalhadores a correr */}
       <g style={{ animation: "run-right 6s linear infinite" }}>
         <Runner deckY={deckY} delay={0} />
       </g>
@@ -200,7 +159,6 @@ function ArchBridge({ className }: { className?: string }) {
       </g>
 
       <style>{`
-        /* Runners ficam confinados ao tabuleiro (x: 35 → 365) e seguem a curva */
         @keyframes run-right {
           0%   { transform: translate(35px, 28px); }
           25%  { transform: translate(117px, 7px); }
