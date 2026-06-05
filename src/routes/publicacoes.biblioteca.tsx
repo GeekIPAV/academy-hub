@@ -136,6 +136,7 @@ function BibliotecaPage() {
               variant={view === "gallery" ? "default" : "outline"}
               size="sm"
               onClick={() => setView("gallery")}
+              className={view === "gallery" ? "bg-secondary text-secondary-foreground hover:bg-secondary/90" : ""}
             >
               <LayoutGrid className="h-4 w-4" />
               Galeria
@@ -144,6 +145,7 @@ function BibliotecaPage() {
               variant={view === "list" ? "default" : "outline"}
               size="sm"
               onClick={() => setView("list")}
+              className={view === "list" ? "bg-secondary text-secondary-foreground hover:bg-secondary/90" : ""}
             >
               <ListIcon className="h-4 w-4" />
               Lista
@@ -196,7 +198,7 @@ function BibliotecaPage() {
             onClick={() => setCategoriaId("all")}
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
               categoriaId === "all"
-                ? "bg-primary text-primary-foreground"
+                ? "bg-secondary text-secondary-foreground"
                 : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
             }`}
           >
@@ -209,7 +211,7 @@ function BibliotecaPage() {
               onClick={() => setCategoriaId(c.id)}
               className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                 categoriaId === c.id
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-secondary text-secondary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
               }`}
             >
@@ -453,7 +455,7 @@ function SugerirPublicacaoDialog({ categorias }: { categorias: { id: string; nam
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button size="sm" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
           <Plus className="h-4 w-4" />
           Sugerir Publicação
         </Button>
