@@ -37,19 +37,14 @@ function DashboardPage() {
       <div className="text-center text-xl font-semibold py-[20px]">
         {getGreeting()}{profile?.full_name ? `, ${profile.full_name}!` : ""}
       </div>
-      {visible("header") && (
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          </div>
-          {visible("profile-button") && (
-            <Button asChild variant="outline">
-              <Link to="/profile">
-                <User className="h-4 w-4" />
-                Perfil
-              </Link>
-            </Button>
-          )}
+      {visible("profile-button") && (
+        <div className="flex justify-end">
+          <Button asChild variant="outline">
+            <Link to="/profile">
+              <User className="h-4 w-4" />
+              Perfil
+            </Link>
+          </Button>
         </div>
       )}
       {visible("recursos-button") && (
