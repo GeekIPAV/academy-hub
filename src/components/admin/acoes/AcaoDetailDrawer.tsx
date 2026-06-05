@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Copy, Check, ExternalLink, LinkIcon } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -278,8 +279,61 @@ function PaginaTab({ acao }: { acao: AcaoRow }) {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao guardar"),
   });
 
+  const publicUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/evento/${acao.id}`
+      : `/evento/${acao.id}`;
+
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setCopied(true);
+      toast.success("Link copiado.");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Não foi possível copiar o link.");
+    }
+  };
+
   return (
     <div className="space-y-4">
+      <div className="rounded-md border bg-muted/40 p-3">
+        <div className="mb-2 flex items-center gap-2 text-xs font-medium text-muted-foreground">
+          <LinkIcon className="h-3.5 w-3.5" /> Link de inscrição na ação
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            readOnly
+            value={publicUrl}
+            className="h-9 flex-1 font-mono text-xs"
+            onFocus={(e) => e.currentTarget.select()}
+          />
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={handleCopy}
+            className="shrink-0"
+          >
+            {copied ? (
+              <>
+                <Check className="mr-1 h-4 w-4" /> Copiado
+              </>
+            ) : (
+              <>
+                <Copy className="mr-1 h-4 w-4" /> Copiar
+              </>
+            )}
+          </Button>
+          <Button type="button" size="sm" variant="outline" asChild className="shrink-0">
+            <a href={publicUrl} target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="mr-1 h-4 w-4" /> Abrir
+            </a>
+          </Button>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           Constrói a página pública que os inscritos vão ver. Arrasta blocos para reordenar.
