@@ -137,7 +137,7 @@ function PressKitPage() {
         /<[a-z][\s\S]*>/i.test(content.body) ? (
           <div
             className="rich-text leading-relaxed space-y-4"
-            dangerouslySetInnerHTML={{ __html: content.body }}
+            dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(content.body) }}
           />
         ) : (
           <div className="space-y-4 leading-relaxed">
