@@ -172,11 +172,17 @@ export const enrollInPublicEventForUser = createServerFn({ method: "POST" })
       throw new Error("Identidade não corresponde à conta autenticada.");
     }
 
-    const { data: action, error: aErr } = await supabaseAdmin
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        data.identifier,
+      );
+    const actionQuery = supabaseAdmin
       .from("acoes")
-      .select("id, max_capacity, title, registration_status")
-      .eq("notion_id", data.identifier)
-      .maybeSingle();
+      .select("id, max_capacity, title, registration_status");
+    const { data: action, error: aErr } = await (isUuid
+      ? actionQuery.eq("id", data.identifier)
+      : actionQuery.eq("notion_id", data.identifier)
+    ).maybeSingle();
     if (aErr) throw new Error(aErr.message);
     if (!action) throw new Error("Evento não encontrado.");
     if (action.registration_status && action.registration_status !== "Aberto") {
