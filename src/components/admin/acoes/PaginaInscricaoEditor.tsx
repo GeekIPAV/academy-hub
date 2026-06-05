@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
@@ -16,10 +16,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Bold, GripVertical, ImagePlus, Italic, List, ListOrdered, Trash2 } from "lucide-react";
+import { Bold, GripVertical, ImagePlus, Italic, List, ListOrdered, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 import type { JsonValue } from "@/lib/admin-acoes-gestao.functions";
+import { toast } from "sonner";
 
 export interface PageBlock {
   id: string;
@@ -66,9 +68,10 @@ interface Props {
   value: PageDoc;
   onChange: (v: PageDoc) => void;
   defaultTitle?: string;
+  acaoId: string;
 }
 
-export function PaginaInscricaoEditor({ value, onChange, defaultTitle }: Props) {
+export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }: Props) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const background: PageBackground = value.background ?? { type: "color", value: "#ffffff" };
@@ -96,10 +99,40 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle }: Props) 
     ]);
   }
 
+  const bgFileRef = useRef<HTMLInputElement>(null);
+  const blockFileRef = useRef<HTMLInputElement>(null);
+
+  async function uploadFile(file: File): Promise<string | null> {
+    const path = `pagina-inscricao/${acaoId}/${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage.from("covers").upload(path, file, { upsert: true });
+    if (error) {
+      toast.error(error.message);
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from("covers").getPublicUrl(data.path);
+    return urlData.publicUrl;
+  }
+
   function addImage() {
-    const url = window.prompt("URL da imagem:");
+    blockFileRef.current?.click();
+  }
+
+  async function handleBlockFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = await uploadFile(file);
     if (!url) return;
     update([...value.blocks, { id: cryptoRandom(), type: "image", url, alt: "" }]);
+    e.target.value = "";
+  }
+
+  async function handleBgFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = await uploadFile(file);
+    if (!url) return;
+    setBackground({ type: "image", value: url });
+    e.target.value = "";
   }
 
   function removeBlock(id: string) {
@@ -181,11 +214,26 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle }: Props) 
               />
             </div>
           ) : (
-            <Input
-              value={background.value}
-              onChange={(e) => setBackground({ type: "image", value: e.target.value })}
-              placeholder="URL da imagem de fundo"
-            />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Button type="button" size="sm" variant="outline" onClick={() => bgFileRef.current?.click()}>
+                  <Upload className="mr-1 h-3.5 w-3.5" /> Carregar
+                </Button>
+                <span className="text-xs text-muted-foreground">ou</span>
+              </div>
+              <Input
+                value={background.value}
+                onChange={(e) => setBackground({ type: "image", value: e.target.value })}
+                placeholder="URL da imagem de fundo"
+              />
+              <input
+                ref={bgFileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleBgFile}
+              />
+            </div>
           )}
         </div>
 
@@ -200,6 +248,13 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle }: Props) 
         </div>
       </div>
 
+      <input
+        ref={blockFileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleBlockFile}
+      />
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm" onClick={addRichtext}>
           + Parágrafo

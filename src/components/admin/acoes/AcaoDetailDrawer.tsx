@@ -288,7 +288,7 @@ function PaginaTab({ acao }: { acao: AcaoRow }) {
           {mut.isPending ? "A guardar…" : "Guardar página"}
         </Button>
       </div>
-      <PaginaInscricaoEditor value={doc} onChange={setDoc} defaultTitle={acao.title ?? undefined} />
+      <PaginaInscricaoEditor value={doc} onChange={setDoc} defaultTitle={acao.title ?? undefined} acaoId={acao.id} />
     </div>
   );
 }
