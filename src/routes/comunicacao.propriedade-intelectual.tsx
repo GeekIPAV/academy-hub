@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Pencil, Plus, Trash2 } from "lucide-react";
+import { RouteGate } from "@/components/RouteGate";
+
 
 export const Route = createFileRoute("/comunicacao/propriedade-intelectual")({
   head: () => ({
@@ -17,8 +19,13 @@ export const Route = createFileRoute("/comunicacao/propriedade-intelectual")({
       { name: "description", content: "Metodologia Ubuntu, regulamentos e condições de uso dos recursos pedagógicos do IPAV." },
     ],
   }),
-  component: PropriedadeIntelectualPage,
+  component: () => (
+    <RouteGate path="/comunicacao/propriedade-intelectual">
+      <PropriedadeIntelectualPage />
+    </RouteGate>
+  ),
 });
+
 
 type Section = { heading: string; body: string; italic?: boolean };
 type PageContent = { title: string; sections: Section[] };

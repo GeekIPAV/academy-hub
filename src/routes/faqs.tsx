@@ -48,13 +48,20 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, Pencil, Trash2, Save, Loader2, X } from "lucide-react";
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { RouteGate } from "@/components/RouteGate";
+
 
 const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
 
 export const Route = createFileRoute("/faqs")({
   head: () => ({ meta: [{ title: "FAQs — Academia Ubuntu" }] }),
-  component: FaqsPage,
+  component: () => (
+    <RouteGate path="/faqs">
+      <FaqsPage />
+    </RouteGate>
+  ),
 });
+
 
 interface FaqRow {
   id: string;

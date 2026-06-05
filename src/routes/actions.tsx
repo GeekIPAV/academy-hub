@@ -6,11 +6,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/lib/app-context";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+import { RouteGate } from "@/components/RouteGate";
 
 export const Route = createFileRoute("/actions")({
   head: () => ({ meta: [{ title: "Ações — Academia Ubuntu" }] }),
-  component: ActionsPage,
+  component: () => (
+    <RouteGate path="/actions">
+      <ActionsPage />
+    </RouteGate>
+  ),
 });
+
 
 function ActionsPage() {
   const fetchFn = useServerFn(listActions);
