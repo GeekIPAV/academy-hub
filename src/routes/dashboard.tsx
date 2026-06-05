@@ -3,7 +3,6 @@ import { useApp } from "@/lib/app-context";
 import { WidgetRoadmap } from "@/components/WidgetRoadmap";
 import { Button } from "@/components/ui/button";
 import { BookMarked, User } from "lucide-react";
-import { useIsFormando } from "@/hooks/use-is-formando";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 import { RouteGate } from "@/components/RouteGate";
