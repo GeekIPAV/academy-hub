@@ -84,7 +84,6 @@ function AuthPage() {
       lastCheckedEmail.current = normalized;
       if (res.exists) {
         setMode("login");
-        if (res.full_name) setFullName(res.full_name);
         setTimeout(() => passwordRef.current?.focus(), 60);
       } else {
         setMode("signup");
