@@ -136,6 +136,11 @@ function CatalogoTab() {
   const [bulkCategoria, setBulkCategoria] = useState<string>("");
   const [bulkIpavMode, setBulkIpavMode] = useState<"keep" | "yes" | "no">("keep");
 
+  const [search, setSearch] = useState("");
+  const [filterCategoria, setFilterCategoria] = useState<string>("");
+  const [filterYear, setFilterYear] = useState<string>("");
+  const [sort, setSort] = useState("title-asc");
+
   const bulkDeleteFn = useServerFn(bulkDeletePublicacoes);
   const bulkUpdateFn = useServerFn(bulkUpdatePublicacoes);
 
