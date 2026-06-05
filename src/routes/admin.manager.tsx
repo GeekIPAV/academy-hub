@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Copy, ExternalLink, Pencil, Plus, Shield, Trash2, UserPlus } from "lucide-react";
+import { ChevronDown, Copy, ExternalLink, Pencil, Plus, Shield, Trash2, UserPlus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -55,6 +55,33 @@ export const Route = createFileRoute("/admin/manager")({
   component: AdminManagerPage,
 });
 
+/** Botão chevron usado nos cabeçalhos colapsáveis. */
+function CollapseToggle({
+  open,
+  onToggle,
+  label,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  label: string;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onToggle}
+      aria-label={open ? `Colapsar ${label}` : `Expandir ${label}`}
+      aria-expanded={open}
+      className="shrink-0"
+    >
+      <ChevronDown
+        className={`h-4 w-4 transition-transform ${open ? "" : "-rotate-90"}`}
+      />
+    </Button>
+  );
+}
+
+
 function AdminManagerPage() {
   const { isAdmin, isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/admin/manager", id);
@@ -81,10 +108,11 @@ function AdminManagerPage() {
           </p>
         </div>
       )}
-      <InviteLinksManager />
-      <UsersManager />
       <RolesManager />
       {visible("route-matrix") && <AccessTab />}
+      <InviteLinksManager />
+      <UsersManager />
+
     </div>
   );
 }
@@ -223,8 +251,11 @@ function RolesManager() {
   const qc = useQueryClient();
   const { roles, isLoading } = useRoles();
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+
+
 
   const createFn = useServerFn(createRole);
   const updateFn = useServerFn(updateRole);
@@ -277,12 +308,20 @@ function RolesManager() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-        <div>
-          <CardTitle>Perfis de Utilizador</CardTitle>
-          <CardDescription>
-            Cria novos perfis para depois definir, na matriz abaixo, o que cada um pode ver.
-          </CardDescription>
+        <div className="flex items-start gap-2">
+          <CollapseToggle
+            open={!collapsed}
+            onToggle={() => setCollapsed((v) => !v)}
+            label="Perfis de Utilizador"
+          />
+          <div>
+            <CardTitle>Perfis de Utilizador</CardTitle>
+            <CardDescription>
+              Cria novos perfis para depois definir, na matriz abaixo, o que cada um pode ver.
+            </CardDescription>
+          </div>
         </div>
+
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm">
@@ -333,7 +372,9 @@ function RolesManager() {
           </DialogContent>
         </Dialog>
       </CardHeader>
-      <CardContent>
+      {!collapsed && (
+        <CardContent>
+
         {isLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-10 w-full" />
@@ -388,7 +429,9 @@ function RolesManager() {
             </TableBody>
           </Table>
         )}
-      </CardContent>
+        </CardContent>
+      )}
+
     </Card>
   );
 }
@@ -396,6 +439,7 @@ function RolesManager() {
 function AccessTab() {
   const { activeRoleNames } = useRoles();
   const { isAllowed, toggle } = usePermissions();
+  const [collapsed, setCollapsed] = useState(false);
 
   const isGranted = (role: RoleName, path: string) => isAllowed(role, path, "rota");
 
@@ -405,46 +449,56 @@ function AccessTab() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Matriz de Acessos</CardTitle>
-        <CardDescription>
-          Controle que rotas cada perfil pode aceder. Linhas: rotas. Colunas: perfis.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start gap-2 space-y-0">
+        <CollapseToggle
+          open={!collapsed}
+          onToggle={() => setCollapsed((v) => !v)}
+          label="Matriz de Acessos"
+        />
+        <div>
+          <CardTitle>Matriz de Acessos</CardTitle>
+          <CardDescription>
+            Controle que rotas cada perfil pode aceder. Linhas: rotas. Colunas: perfis.
+          </CardDescription>
+        </div>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Rota</TableHead>
-              {activeRoleNames.map((r: string) => (
-                <TableHead key={r} className="text-center">
-                  {r}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {APP_ROUTES.map((route) => (
-              <TableRow key={route.path}>
-                <TableCell>
-                  <div className="font-medium">{route.label}</div>
-                  <div className="text-xs text-muted-foreground">{route.path}</div>
-                </TableCell>
-                {activeRoleNames.map((role: string) => (
-                  <TableCell key={role} className="text-center">
-                    <Switch
-                      checked={isGranted(role, route.path)}
-                      onCheckedChange={(v) => handleToggle(role, route.path, v)}
-                    />
-                  </TableCell>
+      {!collapsed && (
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Rota</TableHead>
+                {activeRoleNames.map((r: string) => (
+                  <TableHead key={r} className="text-center">
+                    {r}
+                  </TableHead>
                 ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
+            </TableHeader>
+            <TableBody>
+              {APP_ROUTES.map((route) => (
+                <TableRow key={route.path}>
+                  <TableCell>
+                    <div className="font-medium">{route.label}</div>
+                    <div className="text-xs text-muted-foreground">{route.path}</div>
+                  </TableCell>
+                  {activeRoleNames.map((role: string) => (
+                    <TableCell key={role} className="text-center">
+                      <Switch
+                        checked={isGranted(role, route.path)}
+                        onCheckedChange={(v) => handleToggle(role, route.path, v)}
+                      />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      )}
     </Card>
   );
+
 }
 
 interface InviteRow {
@@ -463,6 +517,8 @@ function InviteLinksManager() {
   const qc = useQueryClient();
   const { roles } = useRoles();
   const activeRoles = roles.filter((r) => r.is_active);
+  const [collapsed, setCollapsed] = useState(false);
+
 
   const listFn = useServerFn(listInvites);
   const createFn = useServerFn(createInvite);
@@ -580,12 +636,20 @@ function InviteLinksManager() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-        <div>
-          <CardTitle>Links de Convite</CardTitle>
-          <CardDescription>
-            Gera um link partilhável com os perfis que escolheres. Quem aceder cria a própria conta.
-          </CardDescription>
+        <div className="flex items-start gap-2">
+          <CollapseToggle
+            open={!collapsed}
+            onToggle={() => setCollapsed((v) => !v)}
+            label="Links de Convite"
+          />
+          <div>
+            <CardTitle>Links de Convite</CardTitle>
+            <CardDescription>
+              Gera um link partilhável com os perfis que escolheres. Quem aceder cria a própria conta.
+            </CardDescription>
+          </div>
         </div>
+
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
           <DialogTrigger asChild>
             <Button size="sm">
@@ -675,7 +739,9 @@ function InviteLinksManager() {
           </DialogContent>
         </Dialog>
       </CardHeader>
-      <CardContent>
+      {!collapsed && (
+        <CardContent>
+
         {invitesQ.isLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-10 w-full" />
@@ -773,7 +839,9 @@ function InviteLinksManager() {
             </TableBody>
           </Table>
         )}
-      </CardContent>
+        </CardContent>
+      )}
+
 
       <Dialog open={editId !== null} onOpenChange={(o) => { if (!o) setEditId(null); }}>
         <DialogContent>
