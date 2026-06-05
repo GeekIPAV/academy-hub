@@ -136,20 +136,30 @@ export const listInscritosAcao = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabaseAdmin
       .from("inscritos_acoes")
       .select(
-        "id, status, submitted_at, tshirt_size, certificate_sent, user_id, utilizadores(full_name, email)",
+        "id, status, submitted_at, tshirt_size, certificate_sent, user_id",
       )
       .eq("action_id", data.actionId)
       .order("submitted_at", { ascending: true });
     if (error) throw new Error(error.message);
+    const userIds = Array.from(new Set((rows ?? []).map((r) => r.user_id).filter((x): x is string => !!x)));
+    const userMap = new Map<string, { full_name: string | null; email: string | null }>();
+    if (userIds.length > 0) {
+      const { data: users } = await supabaseAdmin
+        .from("utilizadores")
+        .select("id, full_name, email")
+        .in("id", userIds);
+      (users ?? []).forEach((u) => userMap.set(u.id as string, { full_name: (u.full_name as string | null) ?? null, email: (u.email as string | null) ?? null }));
+    }
     return (rows ?? []).map((r: Record<string, unknown>) => {
-      const u = r.utilizadores as { full_name?: string | null; email?: string | null } | null;
+      const uid = r.user_id as string | null;
+      const u = uid ? userMap.get(uid) : null;
       return {
         id: r.id as string,
         status: (r.status as string | null) ?? null,
         submitted_at: (r.submitted_at as string | null) ?? null,
         tshirt_size: (r.tshirt_size as string | null) ?? null,
         certificate_sent: !!r.certificate_sent,
-        user_id: r.user_id as string | null,
+        user_id: uid,
         full_name: u?.full_name ?? null,
         email: u?.email ?? null,
       };
