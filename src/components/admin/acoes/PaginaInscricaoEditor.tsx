@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
+import { generateHTML } from "@tiptap/html";
 import StarterKit from "@tiptap/starter-kit";
 import {
   DndContext,
