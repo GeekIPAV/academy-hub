@@ -71,7 +71,7 @@ interface Props {
   acaoId: string;
 }
 
-export function PaginaInscricaoEditor({ value, onChange, defaultTitle }: Props) {
+export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }: Props) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const background: PageBackground = value.background ?? { type: "color", value: "#ffffff" };
@@ -99,10 +99,34 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle }: Props) 
     ]);
   }
 
+  async function uploadFile(file: File): Promise<string | null> {
+    const path = `pagina-inscricao/${acaoId}/${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage.from("resources").upload(path, file, { upsert: true });
+    if (error) {
+      toast.error(error.message);
+      return null;
+    }
+    const { data: urlData } = supabase.storage.from("resources").getPublicUrl(data.path);
+    return urlData.publicUrl;
+  }
+
   function addImage() {
     const url = window.prompt("URL da imagem:");
     if (!url) return;
     update([...value.blocks, { id: cryptoRandom(), type: "image", url, alt: "" }]);
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, isBackground: boolean) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = await uploadFile(file);
+    if (!url) return;
+    if (isBackground) {
+      setBackground({ type: "image", value: url });
+    } else {
+      update([...value.blocks, { id: cryptoRandom(), type: "image", url, alt: "" }]);
+    }
+    e.target.value = "";
   }
 
   function removeBlock(id: string) {
