@@ -83,7 +83,7 @@ const patchSchema = z.object({
       start_date: z.string().nullable().optional(),
       end_date: z.string().nullable().optional(),
       registration_status: z.string().nullable().optional(),
-      status: z.string().nullable().optional(),
+      status: z.string().optional(),
       action_type: z.string().nullable().optional(),
       max_capacity: z.number().int().nullable().optional(),
       tshirt_tracking_link: z.string().nullable().optional(),
