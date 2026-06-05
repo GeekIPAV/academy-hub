@@ -73,10 +73,16 @@ function BibliotecaPage() {
 
   const listFn = useServerFn(listPublicacoes);
   const categoriasFn = useServerFn(listCategorias);
+  const categoriasComPublicacoesFn = useServerFn(listCategoriasComPublicacoes);
 
   const { data: categorias = [] } = useQuery({
     queryKey: ["biblioteca-categorias"],
     queryFn: () => categoriasFn(),
+  });
+
+  const { data: categoriasVisiveis = [] } = useQuery({
+    queryKey: ["biblioteca-categorias-visiveis", tab],
+    queryFn: () => categoriasComPublicacoesFn({ data: { tab } }),
   });
 
   const { data: publicacoes = [], isLoading } = useQuery({
