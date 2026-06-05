@@ -84,7 +84,7 @@ const proposeSchema = z.object({
   author: z.string().trim().max(300).optional().nullable(),
   summary: z.string().trim().max(4000).optional().nullable(),
   year: z.number().int().min(1800).max(3000).optional().nullable(),
-  link: z.string().trim().max(1000).url().optional().nullable().or(z.literal("").transform(() => null)),
+  link: z.string().trim().max(1000).optional().nullable(),
   image_url: z.string().trim().max(1000).optional().nullable(),
   categoria_id: z.string().uuid().optional().nullable(),
 });
