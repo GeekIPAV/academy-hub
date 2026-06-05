@@ -248,6 +248,13 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
         </div>
       </div>
 
+      <input
+        ref={blockFileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleBlockFile}
+      />
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm" onClick={addRichtext}>
           + Parágrafo
