@@ -171,7 +171,7 @@ function ConstructionBridge({ className }: { className?: string }) {
         <line x1="400" y1="25" x2="366" y2="12" strokeWidth="1.5" />
 
         {/* Cabo e Carga Suspensa Animada */}
-        <g class="anim-crane-load">
+        <g className="anim-crane-load">
           <line x1="325" y1="25" x2="325" y2="60" strokeWidth="1.5" />
           <circle cx="325" cy="62" r="2" fill="currentColor" />
           {/* Peça de ponte a ser encaixada */}
@@ -197,7 +197,7 @@ function ConstructionBridge({ className }: { className?: string }) {
         <line x1="0" y1="-3" x2="-4" y2="5" strokeWidth="2.5" /> {/* Pernas */}
         <line x1="0" y1="-3" x2="4" y2="5" strokeWidth="2.5" />
         {/* Braço com Martelo Animado */}
-        <g class="anim-hammer">
+        <g className="anim-hammer">
           <line x1="0" y1="-9" x2="6" y2="-11" strokeWidth="2" />
           <path d="M 5 -15 L 9 -13 L 8 -11 L 4 -13 Z" fill="currentColor" /> {/* Martelo */}
         </g>
@@ -210,32 +210,32 @@ function ConstructionBridge({ className }: { className?: string }) {
         <line x1="0" y1="-11" x2="0" y2="-3" strokeWidth="2.5" />
         <line x1="0" y1="-3" x2="-3" y2="5" strokeWidth="2.5" />
         <line x1="0" y1="-3" x2="3" y2="5" strokeWidth="2.5" />
-        <g class="anim-hammer-delayed">
+        <g className="anim-hammer-delayed">
           <line x1="0" y1="-9" x2="-6" y2="-11" strokeWidth="2" />
           <path d="M -5 -15 L -9 -13 L -8 -11 L -4 -13 Z" fill="currentColor" />
         </g>
       </g>
 
       {/* Trabalhador 3: Direita, a correr (Looping) */}
-      <g class="anim-runner-1">
+      <g className="anim-runner-1">
         <circle cx="0" cy="-14" r="3.5" fill="currentColor" />
         <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="currentColor" />
         <line x1="0" y1="-11" x2="1" y2="-4" strokeWidth="2.5" />
         {/* Pernas em passada */}
-        <line x1="1" y1="-4" x2="-3" y2="4" class="leg-l" strokeWidth="2.5" />
-        <line x1="1" y1="-4" x2="5" y2="4" class="leg-r" strokeWidth="2.5" />
+        <line x1="1" y1="-4" x2="-3" y2="4" className="leg-l" strokeWidth="2.5" />
+        <line x1="1" y1="-4" x2="5" y2="4" className="leg-r" strokeWidth="2.5" />
         {/* Braços correndo */}
         <line x1="1" y1="-9" x2="-4" y2="-5" strokeWidth="2" />
         <line x1="1" y1="-9" x2="5" y2="-6" strokeWidth="2" />
       </g>
 
       {/* Trabalhador 4: Direita, a correr noutra direção (Looping) */}
-      <g class="anim-runner-2">
+      <g className="anim-runner-2">
         <circle cx="0" cy="-14" r="3.5" fill="currentColor" />
         <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="currentColor" />
         <line x1="0" y1="-11" x2="1" y2="-4" strokeWidth="2.5" />
-        <line x1="1" y1="-4" x2="-4" y2="4" class="leg-l" strokeWidth="2.5" />
-        <line x1="1" y1="-4" x2="4" y2="4" class="leg-r" strokeWidth="2.5" />
+        <line x1="1" y1="-4" x2="-4" y2="4" className="leg-l" strokeWidth="2.5" />
+        <line x1="1" y1="-4" x2="4" y2="4" className="leg-r" strokeWidth="2.5" />
         <line x1="1" y1="-9" x2="-3" y2="-4" strokeWidth="2" />
         {/* Segurando um plano/papel técnico */}
         <path d="M 2 -8 L 7 -12 L 10 -7 L 5 -3 Z" fill="currentColor" opacity="0.2" />
@@ -243,7 +243,7 @@ function ConstructionBridge({ className }: { className?: string }) {
       </g>
 
       {/* Água em movimento constante */}
-      <g class="anim-water" strokeDasharray="20 15">
+      <g className="anim-water" strokeDasharray="20 15">
         <path
           d="M -40 166 Q -20 163, 0 166 T 40 166 T 80 166 T 120 166 T 160 166 T 200 166 T 240 166 T 280 166 T 320 166 T 360 166 T 400 166 T 440 166 T 480 166 T 520 166 T 560 166 T 600 166 T 640 166"
           opacity="0.4"
