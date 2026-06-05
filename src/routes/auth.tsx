@@ -1,10 +1,11 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useServerFn } from "@tanstack/react-start";
+import { verifyAuthEmail } from "@/lib/auth-identity.functions";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -21,14 +22,19 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type Mode = "initial" | "login" | "signup";
+
 function AuthPage() {
   const navigate = useNavigate();
   const { redirect } = Route.useSearch();
-  // Only allow internal redirects (must start with a single "/").
   const safeRedirect =
     redirect && /^\/(?!\/)/.test(redirect) ? redirect : null;
   const target = safeRedirect ?? "/dashboard";
   const inviteToken = safeRedirect?.match(/^\/convite\/([^/?#]+)/)?.[1] ?? null;
+
+  const verifyEmail = useServerFn(verifyAuthEmail);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -37,10 +43,15 @@ function AuthPage() {
   }, [navigate, target]);
 
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [mode, setMode] = useState<Mode>("initial");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [bgLoaded, setBgLoaded] = useState(false);
+  const lastCheckedEmail = useRef<string | null>(null);
+  const passwordRef = useRef<HTMLInputElement | null>(null);
+  const nameRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const img = new Image();
@@ -53,26 +64,80 @@ function AuthPage() {
     }
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Bem-vindo!");
-    navigate({ to: target });
+  // Se o utilizador edita o email depois de já termos expandido, recolhe.
+  useEffect(() => {
+    if (mode !== "initial" && email !== lastCheckedEmail.current) {
+      setMode("initial");
+      setPassword("");
+      setFullName("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email]);
+
+  const runEmailCheck = async () => {
+    const normalized = email.trim().toLowerCase();
+    if (!EMAIL_RE.test(normalized)) return;
+    if (lastCheckedEmail.current === normalized && mode !== "initial") return;
+    setChecking(true);
+    try {
+      const res = await verifyEmail({ data: { email: normalized } });
+      lastCheckedEmail.current = normalized;
+      if (res.exists) {
+        setMode("login");
+        if (res.full_name) setFullName(res.full_name);
+        setTimeout(() => passwordRef.current?.focus(), 60);
+      } else {
+        setMode("signup");
+        setTimeout(() => nameRef.current?.focus(), 60);
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Falha na verificação.";
+      toast.error(msg);
+    } finally {
+      setChecking(false);
+    }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const normalized = email.trim().toLowerCase();
+    if (!EMAIL_RE.test(normalized)) {
+      toast.error("Introduz um email válido.");
+      return;
+    }
+    if (mode === "initial") {
+      await runEmailCheck();
+      return;
+    }
+    if (mode === "login") {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email: normalized,
+        password,
+      });
+      setLoading(false);
+      if (error) return toast.error(error.message);
+      toast.success("Bem-vindo!");
+      navigate({ to: target });
+      return;
+    }
+    // signup
+    if (!fullName.trim()) {
+      toast.error("Indica o teu nome completo.");
+      return;
+    }
+    if (password.length < 6) {
+      toast.error("A password tem de ter pelo menos 6 caracteres.");
+      return;
+    }
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: normalized,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}${target}`,
         data: {
-          full_name: fullName,
+          full_name: fullName.trim(),
           ...(inviteToken ? { invite_token: inviteToken } : {}),
         },
       },
@@ -80,7 +145,6 @@ function AuthPage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     if (data.session) {
-      // Auto-confirm ativo — já temos sessão, segue para o destino (ex: convite).
       toast.success("Conta criada!");
       navigate({ to: target });
       return;
@@ -89,9 +153,12 @@ function AuthPage() {
   };
 
   const handleForgotPassword = async () => {
-    if (!email) return toast.error("Introduz o teu email primeiro.");
+    const normalized = email.trim().toLowerCase();
+    if (!EMAIL_RE.test(normalized)) {
+      return toast.error("Introduz o teu email primeiro.");
+    }
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(normalized, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setLoading(false);
@@ -114,96 +181,125 @@ function AuthPage() {
 
   if (!bgLoaded) return <LoadingU />;
 
+  const primaryLabel =
+    mode === "login"
+      ? loading
+        ? "A entrar…"
+        : "Entrar"
+      : mode === "signup"
+        ? loading
+          ? "A criar…"
+          : "Criar conta e entrar"
+        : checking
+          ? "A verificar…"
+          : "Continuar";
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${authBackground})` }}>
-      {true && (
-        <Card className="w-full max-w-md backdrop-blur-sm bg-card/95 overflow-hidden">
-          <CardHeader className="flex items-center justify-center bg-[#183967]">
-          <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-32 w-auto" />
+    <div
+      className="fixed inset-0 flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      style={{
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url(${authBackground})`,
+      }}
+    >
+      <Card className="w-full max-w-md backdrop-blur-sm bg-card/95 overflow-hidden transition-all duration-300">
+        <CardHeader className="flex items-center justify-center bg-[#183967]">
+          <img
+            src={aluLogo}
+            alt="Academia de Líderes Ubuntu"
+            className="h-32 w-auto"
+          />
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="login" className="mt-[15px]">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Criar conta</TabsTrigger>
-            </TabsList>
+        <CardContent className="pt-6">
+          {mode !== "initial" && (
+            <div className="mb-4 animate-in fade-in slide-in-from-top-1 duration-300">
+              <h2 className="text-lg font-semibold">
+                {mode === "login"
+                  ? `Bem-vindo de volta${fullName ? `, ${fullName.split(" ")[0]}` : ""}`
+                  : "Vamos criar a tua conta"}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {mode === "login"
+                  ? "Introduz a tua password para entrar."
+                  : "Indica o teu nome e cria uma password."}
+              </p>
+            </div>
+          )}
 
-            <TabsContent value="login" className="space-y-4 pt-4">
-              <form onSubmit={handleLogin} className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="login-email">Email</Label>
-                  <Input className="bg-white"
-                    id="login-email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="login-password">Password</Label>
-                  <Input className="bg-white"
-                    id="login-password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? "A entrar…" : "Entrar"}
-                </Button>
-                <div className="text-center">
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    disabled={loading}
-                    className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-                  >
-                    Esqueci-me da password
-                  </button>
-                </div>
-              </form>
-            </TabsContent>
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="auth-email">Email</Label>
+              <Input
+                className="bg-white"
+                id="auth-email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => {
+                  if (mode === "initial") runEmailCheck();
+                }}
+                disabled={loading}
+              />
+            </div>
 
-            <TabsContent value="signup" className="space-y-4 pt-4">
-              <form onSubmit={handleSignup} className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="su-name">Nome completo</Label>
-                  <Input className="bg-white"
-                    id="su-name"
-                    required
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="su-email">Email</Label>
-                  <Input className="bg-white"
-                    id="su-email"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="su-password">Password</Label>
-                  <Input className="bg-white"
-                    id="su-password"
-                    type="password"
-                    required
-                    minLength={6}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-                <Button type="submit" disabled={loading} className="w-full">
-                  {loading ? "A criar…" : "Criar conta"}
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
+            {mode === "signup" && (
+              <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-300">
+                <Label htmlFor="auth-name">Nome completo</Label>
+                <Input
+                  ref={nameRef}
+                  className="bg-white"
+                  id="auth-name"
+                  required
+                  autoComplete="name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+            )}
+
+            {(mode === "login" || mode === "signup") && (
+              <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-300">
+                <Label htmlFor="auth-password">
+                  {mode === "signup" ? "Cria uma password" : "Password"}
+                </Label>
+                <Input
+                  ref={passwordRef}
+                  className="bg-white"
+                  id="auth-password"
+                  type="password"
+                  required
+                  minLength={mode === "signup" ? 6 : undefined}
+                  autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                />
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading || checking}
+              className="w-full"
+            >
+              {primaryLabel}
+            </Button>
+
+            {mode === "login" && (
+              <div className="text-center animate-in fade-in duration-300">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={loading}
+                  className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+                >
+                  Esqueci-me da password
+                </button>
+              </div>
+            )}
+          </form>
 
           <div className="my-4 flex items-center gap-2">
             <div className="h-px flex-1 bg-border" />
@@ -238,10 +334,8 @@ function AuthPage() {
             </svg>
             Continuar com Google
           </Button>
-
         </CardContent>
       </Card>
-      )}
     </div>
   );
 }
