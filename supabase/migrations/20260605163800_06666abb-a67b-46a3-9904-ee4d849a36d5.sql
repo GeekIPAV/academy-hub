@@ -1,0 +1,1 @@
+ALTER TABLE public.acoes ADD COLUMN IF NOT EXISTS conteudo_pagina_inscricao jsonb;

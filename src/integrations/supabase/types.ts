@@ -23,6 +23,7 @@ export type Database = {
           avaliacao_satisfacao: number | null
           avaliacao_satisfacao_link: string | null
           category: string | null
+          conteudo_pagina_inscricao: Json | null
           created_at: string | null
           created_by: string | null
           description: string | null
@@ -49,6 +50,7 @@ export type Database = {
           avaliacao_satisfacao?: number | null
           avaliacao_satisfacao_link?: string | null
           category?: string | null
+          conteudo_pagina_inscricao?: Json | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -75,6 +77,7 @@ export type Database = {
           avaliacao_satisfacao?: number | null
           avaliacao_satisfacao_link?: string | null
           category?: string | null
+          conteudo_pagina_inscricao?: Json | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
