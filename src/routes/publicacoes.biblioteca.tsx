@@ -202,7 +202,7 @@ function BibliotecaPage() {
           >
             Todas
           </button>
-          {categorias.map((c) => (
+          {categoriasVisiveis.map((c) => (
             <button
               key={c.id}
               type="button"
