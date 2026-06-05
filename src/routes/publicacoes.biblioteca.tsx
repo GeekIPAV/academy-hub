@@ -245,79 +245,159 @@ function PublicacoesView({
 }
 
 function PublicacaoCard({ p }: { p: Publicacao }) {
+  const [open, setOpen] = useState(false);
   return (
-    <a
-      href={p.link || "#"}
-      target={p.link ? "_blank" : undefined}
-      rel="noreferrer"
-      className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-3 transition hover:border-primary/60 hover:shadow-sm"
-    >
-      <div className="relative mx-auto h-32 w-24 overflow-hidden rounded-md bg-muted">
-        {p.image_url ? (
-          <img
-            src={p.image_url}
-            alt={p.title}
-            className="h-full w-full object-cover transition group-hover:scale-[1.02]"
-            loading="lazy"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-            <BookOpen className="h-8 w-8" />
-          </div>
-        )}
-      </div>
-      <div className="space-y-1">
-        <h3 className="text-sm font-medium leading-snug text-foreground break-words">
-          {p.title}
-        </h3>
-        {p.author && (
-          <p className="text-xs text-muted-foreground break-words">{p.author}</p>
-        )}
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-          {p.categoria?.name && <span className="rounded bg-muted px-1.5 py-0.5">{p.categoria.name}</span>}
-          {p.year && <span>{p.year}</span>}
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary/60 hover:shadow-sm"
+      >
+        <div className="relative mx-auto h-32 w-24 overflow-hidden rounded-md bg-muted">
+          {p.image_url ? (
+            <img
+              src={p.image_url}
+              alt={p.title}
+              className="h-full w-full object-cover transition group-hover:scale-[1.02]"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+              <BookOpen className="h-8 w-8" />
+            </div>
+          )}
         </div>
-      </div>
-    </a>
+        <div className="space-y-1">
+          <h3 className="text-sm font-medium leading-snug text-foreground break-words">
+            {p.title}
+          </h3>
+          {p.author && (
+            <p className="text-xs text-muted-foreground break-words">{p.author}</p>
+          )}
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+            {p.categoria?.name && <span className="rounded bg-muted px-1.5 py-0.5">{p.categoria.name}</span>}
+            {p.year && <span>{p.year}</span>}
+          </div>
+        </div>
+      </button>
+      <PublicacaoDetailsDialog p={p} open={open} onOpenChange={setOpen} />
+    </>
   );
 }
 
 function PublicacaoRow({ p }: { p: Publicacao }) {
+  const [open, setOpen] = useState(false);
   return (
-    <div className="flex gap-4 p-4">
-      <div className="h-20 w-14 flex-shrink-0 overflow-hidden rounded bg-muted">
-        {p.image_url ? (
-          <img src={p.image_url} alt={p.title} className="h-full w-full object-cover" loading="lazy" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-            <BookOpen className="h-5 w-5" />
-          </div>
-        )}
-      </div>
-      <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex items-start justify-between gap-2">
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex w-full gap-4 p-4 text-left transition hover:bg-muted/40"
+      >
+        <div className="h-20 w-14 flex-shrink-0 overflow-hidden rounded bg-muted">
+          {p.image_url ? (
+            <img src={p.image_url} alt={p.title} className="h-full w-full object-cover" loading="lazy" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+              <BookOpen className="h-5 w-5" />
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1 space-y-1">
           <h3 className="text-sm font-medium text-foreground">{p.title}</h3>
+          {p.author && <p className="text-xs text-muted-foreground">{p.author}</p>}
+          {p.summary && <p className="text-xs text-muted-foreground line-clamp-2">{p.summary}</p>}
+          <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+            {p.categoria?.name && (
+              <span className="rounded bg-muted px-1.5 py-0.5">{p.categoria.name}</span>
+            )}
+            {p.year && <span>{p.year}</span>}
+          </div>
+        </div>
+      </button>
+      <PublicacaoDetailsDialog p={p} open={open} onOpenChange={setOpen} />
+    </>
+  );
+}
+
+function PublicacaoDetailsDialog({
+  p,
+  open,
+  onOpenChange,
+}: {
+  p: Publicacao;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-left">{p.title}</DialogTitle>
+          {p.author && (
+            <DialogDescription className="text-left">{p.author}</DialogDescription>
+          )}
+        </DialogHeader>
+        <div className="grid gap-4 md:grid-cols-[160px_1fr]">
+          <div className="mx-auto h-52 w-40 overflow-hidden rounded-md bg-muted md:mx-0">
+            {p.image_url ? (
+              <img src={p.image_url} alt={p.title} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                <BookOpen className="h-10 w-10" />
+              </div>
+            )}
+          </div>
+          <dl className="space-y-3 text-sm">
+            {p.categoria?.name && (
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground">Categoria</dt>
+                <dd className="text-foreground">{p.categoria.name}</dd>
+              </div>
+            )}
+            {p.year && (
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground">Ano</dt>
+                <dd className="text-foreground">{p.year}</dd>
+              </div>
+            )}
+            <div>
+              <dt className="text-xs uppercase tracking-wide text-muted-foreground">Tipo</dt>
+              <dd className="text-foreground">{p.is_ipav ? "Publicação IPAV" : "Outra publicação"}</dd>
+            </div>
+            {p.summary && (
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground">Resumo</dt>
+                <dd className="whitespace-pre-wrap text-foreground">{p.summary}</dd>
+              </div>
+            )}
+            {p.link && (
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground">Link</dt>
+                <dd className="break-all text-foreground">
+                  <a href={p.link} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                    {p.link}
+                  </a>
+                </dd>
+              </div>
+            )}
+          </dl>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Fechar
+          </Button>
           {p.link && (
-            <a
-              href={p.link}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-            >
-              Abrir <ExternalLink className="h-3 w-3" />
-            </a>
+            <Button asChild>
+              <a href={p.link} target="_blank" rel="noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                Abrir link
+              </a>
+            </Button>
           )}
-        </div>
-        {p.author && <p className="text-xs text-muted-foreground">{p.author}</p>}
-        {p.summary && <p className="text-xs text-muted-foreground line-clamp-2">{p.summary}</p>}
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-          {p.categoria?.name && (
-            <span className="rounded bg-muted px-1.5 py-0.5">{p.categoria.name}</span>
-          )}
-          {p.year && <span>{p.year}</span>}
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
