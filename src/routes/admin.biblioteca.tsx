@@ -543,6 +543,90 @@ function PublicacaoForm({
 
 // ---------------- Bulk Add ----------------
 
+const BULK_FIELD_COUNT = 6;
+
+function detectBulkDelimiter(value: string) {
+  const candidates = ["|", "\t", ";"];
+  return candidates
+    .map((delimiter) => ({ delimiter, count: value.split(delimiter).length - 1 }))
+    .sort((a, b) => b.count - a.count)[0]?.delimiter ?? "|";
+}
+
+function parseDelimitedRows(value: string, delimiter: string) {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < value.length; i += 1) {
+    const char = value[i];
+    const next = value[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        field += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === delimiter && !inQuotes) {
+      row.push(field);
+      field = "";
+    } else if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && next === "\n") i += 1;
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+    } else {
+      field += char;
+    }
+  }
+
+  if (field || row.length) {
+    row.push(field);
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+function normaliseBulkRows(rows: string[][], delimiter: string) {
+  const cleaned = rows
+    .map((row) => row.map((cell) => cell.trim()))
+    .filter((row) => row.some(Boolean) && !(row[0]?.startsWith("#") && row.slice(1).every((cell) => !cell)));
+  const repaired: string[][] = [];
+
+  for (let i = 0; i < cleaned.length; i += 1) {
+    const current = cleaned[i];
+    const next = cleaned[i + 1];
+    if (!current) continue;
+
+    if (current.length === 1 && current[0] && next && next.length > 1) {
+      const merged = [...next];
+      merged[0] = `${current[0]} ${merged[0] ?? ""}`.replace(/\s+/g, " ").trim();
+      repaired.push(merged);
+      i += 1;
+      continue;
+    }
+
+    if (current.length === 1 && current[0] && repaired.length) {
+      const previous = repaired[repaired.length - 1];
+      if (previous && previous.length >= BULK_FIELD_COUNT - 1) {
+        previous[5] = [previous[5], current[0]].filter(Boolean).join("\n");
+        continue;
+      }
+    }
+
+    repaired.push(current);
+  }
+
+  return repaired.map((row) => {
+    if (row.length <= BULK_FIELD_COUNT) return row;
+    return [...row.slice(0, BULK_FIELD_COUNT - 1), row.slice(BULK_FIELD_COUNT - 1).join(` ${delimiter} `)];
+  });
+}
+
 function BulkAddPanel({ onDone }: { onDone: () => void }) {
   const bulkFn = useServerFn(bulkCreatePublicacoes);
   const [text, setText] = useState("");
@@ -550,9 +634,9 @@ function BulkAddPanel({ onDone }: { onDone: () => void }) {
   const [createMissing, setCreateMissing] = useState(true);
 
   const parseRows = () => {
-    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
-    return lines.map((line, idx) => {
-      const parts = line.split("|").map((p) => p.trim());
+    const delimiter = detectBulkDelimiter(text);
+    const parsedRows = normaliseBulkRows(parseDelimitedRows(text, delimiter), delimiter);
+    return parsedRows.map((parts, idx) => {
       const [title, author, year, categoria_name, link, summary] = parts;
       if (!title) throw new Error(`Linha ${idx + 1}: título em falta.`);
       const yr = year ? Number(year) : null;
@@ -560,7 +644,7 @@ function BulkAddPanel({ onDone }: { onDone: () => void }) {
         throw new Error(`Linha ${idx + 1}: ano inválido "${year}".`);
       }
       return {
-        title,
+        title: title.replace(/\s+/g, " ").trim(),
         author: author || null,
         year: yr,
         categoria_name: categoria_name || null,
