@@ -252,9 +252,8 @@ function PublicacaoCard({ p }: { p: Publicacao }) {
       rel="noreferrer"
       className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-3 transition hover:border-primary/60 hover:shadow-sm"
     >
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-md bg-muted">
+      <div className="relative mx-auto h-32 w-24 overflow-hidden rounded-md bg-muted">
         {p.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={p.image_url}
             alt={p.title}
@@ -263,18 +262,18 @@ function PublicacaoCard({ p }: { p: Publicacao }) {
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-            <BookOpen className="h-10 w-10" />
+            <BookOpen className="h-8 w-8" />
           </div>
         )}
       </div>
       <div className="space-y-1">
-        <h3 className="line-clamp-2 text-sm font-medium leading-snug text-foreground">
+        <h3 className="text-sm font-medium leading-snug text-foreground break-words">
           {p.title}
         </h3>
         {p.author && (
-          <p className="text-xs text-muted-foreground line-clamp-1">{p.author}</p>
+          <p className="text-xs text-muted-foreground break-words">{p.author}</p>
         )}
-        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
           {p.categoria?.name && <span className="rounded bg-muted px-1.5 py-0.5">{p.categoria.name}</span>}
           {p.year && <span>{p.year}</span>}
         </div>
