@@ -181,51 +181,6 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
       <Field label="Estado">
         <Input value={form.status} onChange={(e) => set("status", e.target.value)} />
       </Field>
-      <Field label="Link T-shirt tracking" className="sm:col-span-2">
-        <Input
-          value={form.tshirt_tracking_link}
-          onChange={(e) => set("tshirt_tracking_link", e.target.value)}
-        />
-      </Field>
-      <Field label="Valor T-shirt (€)">
-        <Input
-          type="number"
-          step="0.01"
-          value={form.tshirt_value}
-          onChange={(e) => set("tshirt_value", e.target.value)}
-        />
-      </Field>
-      <Field label="Link Fotos">
-        <Input value={form.fotos_link} onChange={(e) => set("fotos_link", e.target.value)} />
-      </Field>
-      <Field label="Satisfação (0–10)">
-        <Input
-          type="number"
-          step="0.1"
-          value={form.avaliacao_satisfacao}
-          onChange={(e) => set("avaliacao_satisfacao", e.target.value)}
-        />
-      </Field>
-      <Field label="Link satisfação">
-        <Input
-          value={form.avaliacao_satisfacao_link}
-          onChange={(e) => set("avaliacao_satisfacao_link", e.target.value)}
-        />
-      </Field>
-      <Field label="Impacto (0–10)">
-        <Input
-          type="number"
-          step="0.1"
-          value={form.avaliacao_impacto}
-          onChange={(e) => set("avaliacao_impacto", e.target.value)}
-        />
-      </Field>
-      <Field label="Link impacto">
-        <Input
-          value={form.avaliacao_impacto_link}
-          onChange={(e) => set("avaliacao_impacto_link", e.target.value)}
-        />
-      </Field>
 
       <div className="sm:col-span-2 flex justify-end">
         <Button type="submit" disabled={mut.isPending}>
