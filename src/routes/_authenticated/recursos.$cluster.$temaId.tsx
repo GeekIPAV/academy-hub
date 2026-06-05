@@ -376,7 +376,7 @@ function EditableField({
         {initial ? (
           <div
             className={cn("rich-text", readClassName)}
-            dangerouslySetInnerHTML={{ __html: normalized }}
+            dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(normalized) }}
           />
         ) : (
           <p className="text-sm italic text-muted-foreground">{placeholder}</p>
