@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 
-import { Award, Pencil, Plus, Trash2, Crop } from "lucide-react";
+import { Award, Pencil, Plus, Trash2, Crop, Users } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CoverImage } from "@/components/CoverImage";
 import { CoverAdjustDialog } from "@/components/CoverAdjustDialog";
 import { toast } from "sonner";
