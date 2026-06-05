@@ -32,7 +32,7 @@ export interface PublicEventDetails {
   max_capacity: number | null;
   required_fields: RequiredField[];
   aceite_count: number;
-  conteudo_pagina_inscricao: unknown;
+  conteudo_pagina_inscricao: JsonVal | null;
 }
 
 /**
