@@ -153,6 +153,7 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
     update(arrayMove(value.blocks, oldIdx, newIdx));
   }
 
+  const bgOpacity = background.opacity ?? 1;
   const previewBgStyle =
     background.type === "image" && background.value
       ? { backgroundImage: `url(${background.value})`, backgroundSize: "cover", backgroundPosition: "center" }
@@ -194,7 +195,7 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
               type="button"
               size="sm"
               variant={background.type === "image" ? "default" : "outline"}
-              onClick={() => setBackground({ type: "image", value: background.type === "image" ? background.value : "" })}
+              onClick={() => setBackground({ type: "image", value: background.type === "image" ? background.value : "", opacity: background.opacity ?? 1 })}
             >
               Imagem
             </Button>
@@ -224,7 +225,7 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
               </div>
               <Input
                 value={background.value}
-                onChange={(e) => setBackground({ type: "image", value: e.target.value })}
+                onChange={(e) => setBackground({ ...background, type: "image", value: e.target.value })}
                 placeholder="URL da imagem de fundo"
               />
               <input
@@ -234,18 +235,56 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
                 className="hidden"
                 onChange={handleBgFile}
               />
+              <div className="space-y-1 pt-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs text-muted-foreground">Transparência da imagem</label>
+                  <span className="text-[10px] text-muted-foreground">{Math.round(bgOpacity * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={bgOpacity}
+                  onChange={(e) => setBackground({ ...background, opacity: Number(e.target.value) })}
+                  className="w-full"
+                />
+              </div>
             </div>
           )}
         </div>
 
-        {/* Pré-visualização do cabeçalho */}
-        <div
-          className="flex h-28 items-center justify-center rounded-md border"
-          style={previewBgStyle}
-        >
-          <h3 className="rounded bg-black/40 px-3 py-1 text-lg font-semibold text-white">
-            {value.title?.trim() || defaultTitle || "Título da página"}
-          </h3>
+        {/* Pré-visualização */}
+        <div className="relative overflow-hidden rounded-md border" style={previewBgStyle}>
+          {background.type === "image" && bgOpacity < 1 && (
+            <div
+              className="absolute inset-0 bg-white"
+              style={{ opacity: 1 - bgOpacity }}
+            />
+          )}
+          <div className="relative p-6">
+            <div className="mx-auto max-w-md rounded-lg bg-white p-5 shadow-lg">
+              <h3 className="text-center text-base font-bold text-gray-900">
+                {value.title?.trim() || defaultTitle || "Título da página"}
+              </h3>
+              <div className="mt-3 h-px bg-gray-200" />
+              <div className="mt-3 space-y-2">
+                {value.blocks.length === 0 ? (
+                  <p className="text-center text-[11px] text-muted-foreground">Sem conteúdo</p>
+                ) : (
+                  value.blocks.slice(0, 3).map((b) => (
+                    <div key={b.id} className="text-[11px] text-gray-700">
+                      {b.type === "richtext" ? (
+                        <div className="h-2 w-full rounded bg-gray-100" />
+                      ) : (
+                        <div className="h-10 w-full rounded bg-gray-100" />
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
