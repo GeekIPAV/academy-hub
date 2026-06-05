@@ -136,6 +136,7 @@ function BibliotecaPage() {
               variant={view === "gallery" ? "default" : "outline"}
               size="sm"
               onClick={() => setView("gallery")}
+              className={view === "gallery" ? "bg-secondary text-secondary-foreground hover:bg-secondary/90" : ""}
             >
               <LayoutGrid className="h-4 w-4" />
               Galeria
@@ -144,6 +145,7 @@ function BibliotecaPage() {
               variant={view === "list" ? "default" : "outline"}
               size="sm"
               onClick={() => setView("list")}
+              className={view === "list" ? "bg-secondary text-secondary-foreground hover:bg-secondary/90" : ""}
             >
               <ListIcon className="h-4 w-4" />
               Lista
