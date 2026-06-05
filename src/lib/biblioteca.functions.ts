@@ -49,6 +49,32 @@ export const listCategorias = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+const categoriasComPublicacoesSchema = z.object({
+  tab: z.enum(["ipav", "outras"]).optional(),
+});
+
+export const listCategoriasComPublicacoes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => categoriasComPublicacoesSchema.parse(input ?? {}))
+  .handler(async ({ data }): Promise<CategoriaBiblioteca[]> => {
+    let q = supabaseAdmin
+      .from("publicacoes")
+      .select("categoria_id")
+      .eq("status", "aprovado");
+    if (data.tab) q = q.eq("is_ipav", data.tab === "ipav");
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+    const ids = Array.from(new Set((rows ?? []).map((r) => r.categoria_id).filter(Boolean))) as string[];
+    if (!ids.length) return [];
+    const { data: cats, error: catErr } = await supabaseAdmin
+      .from("biblioteca_categorias")
+      .select("id, name")
+      .in("id", ids)
+      .order("name");
+    if (catErr) throw new Error(catErr.message);
+    return (cats ?? []) as CategoriaBiblioteca[];
+  });
+
 const listSchema = z.object({
   tab: z.enum(["ipav", "outras"]).optional(),
   categoriaId: z.string().uuid().nullable().optional(),
