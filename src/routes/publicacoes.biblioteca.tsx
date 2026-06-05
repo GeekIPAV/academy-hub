@@ -455,7 +455,7 @@ function SugerirPublicacaoDialog({ categorias }: { categorias: { id: string; nam
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">
+        <Button size="sm" className="bg-secondary text-secondary-foreground hover:bg-secondary/90">
           <Plus className="h-4 w-4" />
           Sugerir Publicação
         </Button>
