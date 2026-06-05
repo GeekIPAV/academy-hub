@@ -12,6 +12,43 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { generateHTML } from "@tiptap/html";
+import StarterKit from "@tiptap/starter-kit";
+
+interface PageBlock {
+  id: string;
+  type: "richtext" | "image";
+  content?: unknown;
+  url?: string;
+  alt?: string;
+}
+interface PageBackground {
+  type: "color" | "image";
+  value: string;
+  opacity?: number;
+}
+interface PageDoc {
+  blocks: PageBlock[];
+  title?: string;
+  background?: PageBackground;
+}
+function parsePageDoc(v: unknown): PageDoc | null {
+  if (!v || typeof v !== "object") return null;
+  const d = v as PageDoc;
+  if (!Array.isArray(d.blocks)) return null;
+  return d;
+}
+function BlockRichText({ content }: { content: unknown }) {
+  const html = useMemo(() => {
+    try {
+      if (!content || typeof content !== "object") return "";
+      return generateHTML(content as Parameters<typeof generateHTML>[0], [StarterKit]);
+    } catch {
+      return "";
+    }
+  }, [content]);
+  return <div className="prose prose-sm max-w-none text-gray-800" dangerouslySetInnerHTML={{ __html: html }} />;
+}
 import {
   Card,
   CardContent,
