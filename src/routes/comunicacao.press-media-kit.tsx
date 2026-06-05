@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { RouteGate } from "@/components/RouteGate";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 
 export const Route = createFileRoute("/comunicacao/press-media-kit")({
@@ -118,6 +119,7 @@ function PressKitPage() {
 
   return (
     <div className="mx-auto max-w-3xl py-4 space-y-8">
+      <ComponentAccessMatrix pagePath="/comunicacao/press-media-kit" />
       <div className="flex items-start justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">
           {content.title}

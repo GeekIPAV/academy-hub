@@ -10,6 +10,7 @@ import { useArticles } from "@/hooks/use-articles";
 import { tx } from "@/lib/articles-i18n";
 import { usePublicationsI18n } from "@/hooks/use-publications-i18n";
 import { RouteGate } from "@/components/RouteGate";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 
 export const Route = createFileRoute("/publicacoes/revistas")({
@@ -60,7 +61,8 @@ function RevistasPage() {
 
   return (
     <div className="bg-background">
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <ComponentAccessMatrix pagePath="/publicacoes/revistas" />
         <DashboardHeader />
         <FilterBar filters={filters} onChange={setFilters} />
 
