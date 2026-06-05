@@ -117,9 +117,24 @@ function CatalogoTab() {
   const upsertFn = useServerFn(upsertPublicacao);
   const deleteFn = useServerFn(deletePublicacao);
 
+  const [search, setSearch] = useState("");
+  const [filterCategoria, setFilterCategoria] = useState<string>("");
+  const [filterYear, setFilterYear] = useState<string>("");
+  const [sort, setSort] = useState("title-asc");
+  const [sortBy, sortOrder] = sort.split("-") as [string, "asc" | "desc"];
+
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["admin-publicacoes-aprovadas"],
-    queryFn: () => listFn(),
+    queryKey: ["admin-publicacoes-aprovadas", search, filterCategoria, filterYear, sort],
+    queryFn: () =>
+      listFn({
+        data: {
+          search: search || undefined,
+          categoriaId: filterCategoria || null,
+          year: filterYear ? Number(filterYear) : null,
+          sortBy: sortBy as "title" | "author" | "year",
+          sortOrder,
+        },
+      }),
   });
   const { data: categorias = [] } = useQuery({
     queryKey: ["biblioteca-categorias"],
@@ -135,6 +150,7 @@ function CatalogoTab() {
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [bulkCategoria, setBulkCategoria] = useState<string>("");
   const [bulkIpavMode, setBulkIpavMode] = useState<"keep" | "yes" | "no">("keep");
+
 
   const bulkDeleteFn = useServerFn(bulkDeletePublicacoes);
   const bulkUpdateFn = useServerFn(bulkUpdatePublicacoes);
@@ -303,6 +319,47 @@ function CatalogoTab() {
           </div>
         </div>
       )}
+
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="flex-1 min-w-[200px]">
+          <Input
+            placeholder="Pesquisar…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={filterCategoria || undefined} onValueChange={setFilterCategoria}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Todas as categorias" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todas as categorias</SelectItem>
+            {categorias.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          type="number"
+          placeholder="Ano"
+          className="w-[100px]"
+          value={filterYear}
+          onChange={(e) => setFilterYear(e.target.value)}
+        />
+        <Select value={sort} onValueChange={setSort}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="title-asc">Título ↑</SelectItem>
+            <SelectItem value="title-desc">Título ↓</SelectItem>
+            <SelectItem value="author-asc">Autor ↑</SelectItem>
+            <SelectItem value="author-desc">Autor ↓</SelectItem>
+            <SelectItem value="year-asc">Ano ↑</SelectItem>
+            <SelectItem value="year-desc">Ano ↓</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="rounded-lg border border-border">
         <Table>
