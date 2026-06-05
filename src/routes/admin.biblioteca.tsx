@@ -131,6 +131,61 @@ function CatalogoTab() {
   const [tempCreateId] = useState(() => crypto.randomUUID());
 
   const [editing, setEditing] = useState<typeof emptyForm | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkCategoria, setBulkCategoria] = useState<string>("");
+  const [bulkIpavMode, setBulkIpavMode] = useState<"keep" | "yes" | "no">("keep");
+
+  const bulkDeleteFn = useServerFn(bulkDeletePublicacoes);
+  const bulkUpdateFn = useServerFn(bulkUpdatePublicacoes);
+
+  const allSelected = rows.length > 0 && rows.every((r) => selected.has(r.id));
+  const someSelected = selected.size > 0 && !allSelected;
+  const toggleAll = () => {
+    if (allSelected) setSelected(new Set());
+    else setSelected(new Set(rows.map((r) => r.id)));
+  };
+  const toggleOne = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const bulkDelete = useMutation({
+    mutationFn: (ids: string[]) => bulkDeleteFn({ data: { ids } }),
+    onSuccess: (res) => {
+      toast.success(`${res.deleted} publicação(ões) removida(s).`);
+      setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["admin-publicacoes-aprovadas"] });
+      qc.invalidateQueries({ queryKey: ["publicacoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const bulkUpdate = useMutation({
+    mutationFn: () =>
+      bulkUpdateFn({
+        data: {
+          ids: Array.from(selected),
+          ...(bulkCategoria ? { categoria_id: bulkCategoria === "__clear__" ? null : bulkCategoria } : {}),
+          ...(bulkIpavMode !== "keep" ? { is_ipav: bulkIpavMode === "yes" } : {}),
+        },
+      }),
+    onSuccess: (res) => {
+      toast.success(`${res.updated} publicação(ões) atualizada(s).`);
+      setBulkEditOpen(false);
+      setBulkCategoria("");
+      setBulkIpavMode("keep");
+      setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["admin-publicacoes-aprovadas"] });
+      qc.invalidateQueries({ queryKey: ["publicacoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   const save = useMutation({
     mutationFn: (form: typeof emptyForm) =>
