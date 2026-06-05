@@ -68,6 +68,7 @@ interface Props {
   value: PageDoc;
   onChange: (v: PageDoc) => void;
   defaultTitle?: string;
+  acaoId: string;
 }
 
 export function PaginaInscricaoEditor({ value, onChange, defaultTitle }: Props) {
