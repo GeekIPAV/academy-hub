@@ -402,6 +402,89 @@ function PublicacaoForm({
   );
 }
 
+// ---------------- Bulk Add ----------------
+
+function BulkAddPanel({ onDone }: { onDone: () => void }) {
+  const bulkFn = useServerFn(bulkCreatePublicacoes);
+  const [text, setText] = useState("");
+  const [isIpav, setIsIpav] = useState(false);
+  const [createMissing, setCreateMissing] = useState(true);
+
+  const parseRows = () => {
+    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
+    return lines.map((line, idx) => {
+      const parts = line.split("|").map((p) => p.trim());
+      const [title, author, year, categoria_name, link, summary] = parts;
+      if (!title) throw new Error(`Linha ${idx + 1}: título em falta.`);
+      const yr = year ? Number(year) : null;
+      if (year && (isNaN(yr!) || yr! < 1800 || yr! > 3000)) {
+        throw new Error(`Linha ${idx + 1}: ano inválido "${year}".`);
+      }
+      return {
+        title,
+        author: author || null,
+        year: yr,
+        categoria_name: categoria_name || null,
+        link: link || null,
+        summary: summary || null,
+        is_ipav: isIpav,
+      };
+    });
+  };
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      const rows = parseRows();
+      if (rows.length === 0) throw new Error("Nenhuma linha válida.");
+      return bulkFn({ data: { rows, createMissingCategorias: createMissing } });
+    },
+    onSuccess: (res) => {
+      toast.success(`${res.inserted} publicação(ões) criada(s).`);
+      setText("");
+      onDone();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-md bg-muted/50 p-3 text-xs text-muted-foreground">
+        <div className="font-medium text-foreground">Formato: uma publicação por linha</div>
+        <div className="mt-1">
+          Campos separados por <code className="rounded bg-background px-1">|</code>:{" "}
+          <code>título | autor | ano | categoria | link | resumo</code>
+        </div>
+        <div className="mt-1">Apenas o título é obrigatório. Linhas iniciadas por <code>#</code> são ignoradas.</div>
+      </div>
+      <Textarea
+        rows={10}
+        placeholder={`Marketing 4.0 | Philip Kotler | 2017 | Marketing | https://… | Resumo curto\nOutro Livro | Autor X | 2020 | Gestão`}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="font-mono text-xs"
+      />
+      <div className="flex flex-wrap items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Switch id="bulk-ipav" checked={isIpav} onCheckedChange={setIsIpav} />
+          <Label htmlFor="bulk-ipav">Marcar todas como IPAV</Label>
+        </div>
+        <div className="flex items-center gap-2">
+          <Switch id="bulk-cats" checked={createMissing} onCheckedChange={setCreateMissing} />
+          <Label htmlFor="bulk-cats">Criar categorias em falta</Label>
+        </div>
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={() => setText("")}>Limpar</Button>
+        <Button onClick={() => mut.mutate()} disabled={mut.isPending || !text.trim()}>
+          {mut.isPending ? "A importar…" : "Importar"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+
+
 // ---------------- Categorias ----------------
 
 function CategoriasTab() {
