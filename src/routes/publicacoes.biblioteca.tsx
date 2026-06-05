@@ -70,11 +70,6 @@ function BibliotecaPage() {
   const [year, setYear] = useState<string>("all");
   const [sort, setSort] = useState<string>("title-asc");
 
-  const activeCategoria = useMemo(() => {
-    if (categoriaId === "all") return null;
-    return categorias.find((c) => c.id === categoriaId) ?? null;
-  }, [categorias, categoriaId]);
-
   const listFn = useServerFn(listPublicacoes);
   const categoriasFn = useServerFn(listCategorias);
 
