@@ -65,13 +65,24 @@ function cryptoRandom() {
 interface Props {
   value: PageDoc;
   onChange: (v: PageDoc) => void;
+  defaultTitle?: string;
 }
 
-export function PaginaInscricaoEditor({ value, onChange }: Props) {
+export function PaginaInscricaoEditor({ value, onChange, defaultTitle }: Props) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const background: PageBackground = value.background ?? { type: "color", value: "#ffffff" };
 
   function update(blocks: PageBlock[]) {
     onChange({ ...value, blocks });
+  }
+
+  function setTitle(title: string) {
+    onChange({ ...value, title });
+  }
+
+  function setBackground(bg: PageBackground) {
+    onChange({ ...value, background: bg });
   }
 
   function addRichtext() {
@@ -107,6 +118,12 @@ export function PaginaInscricaoEditor({ value, onChange }: Props) {
     if (oldIdx < 0 || newIdx < 0) return;
     update(arrayMove(value.blocks, oldIdx, newIdx));
   }
+
+  const previewBgStyle =
+    background.type === "image" && background.value
+      ? { backgroundImage: `url(${background.value})`, backgroundSize: "cover", backgroundPosition: "center" }
+      : { backgroundColor: background.value || "#ffffff" };
+
 
   return (
     <div className="space-y-4">
