@@ -3,7 +3,7 @@ import { useApp } from "@/lib/app-context";
 
 /**
  * Banner "Estamos a melhorar esta página" — aparece no final de cada página.
- * Ponte em arco complexa com trabalhadores (capacete + martelo):
+ * Ponte em arco (ainda em construção) com trabalhadores (capacete + martelo):
  * 2 parados a martelar e 3 a correr de um lado para o outro.
  */
 export function ImprovingBanner() {
@@ -29,18 +29,39 @@ export function ImprovingBanner() {
 function ArchBridge({ className }: { className?: string }) {
   const W = 400;
   const H = 100;
-  const DECK_Y = 55;
-  const ARCH_PEAK = 12;
+  // Apoios do tabuleiro (mais baixos) e pico do arco do tabuleiro (mais alto)
+  const DECK_EDGE_Y = 70;
+  const DECK_PEAK_Y = 42;
+  // Arco superior (estrutura)
+  const ARCH_PEAK_Y = 8;
   const ARCH_LEFT = 30;
   const ARCH_RIGHT = 370;
 
-  const archY = (x: number) => {
+  // Curva parabólica do tabuleiro (arco para cima)
+  const deckY = (x: number) => {
     const t = (x - ARCH_LEFT) / (ARCH_RIGHT - ARCH_LEFT);
-    return ARCH_PEAK + (DECK_Y - ARCH_PEAK) * (1 - 4 * t * (1 - t));
+    const tt = Math.max(0, Math.min(1, t));
+    return DECK_EDGE_Y + (DECK_PEAK_Y - DECK_EDGE_Y) * (4 * tt * (1 - tt));
   };
 
-  const hangers: number[] = [];
-  for (let x = ARCH_LEFT + 14; x < ARCH_RIGHT; x += 18) hangers.push(x);
+  // Curva do arco superior
+  const archY = (x: number) => {
+    const t = (x - ARCH_LEFT) / (ARCH_RIGHT - ARCH_LEFT);
+    const tt = Math.max(0, Math.min(1, t));
+    return DECK_EDGE_Y + (ARCH_PEAK_Y - DECK_EDGE_Y) * (4 * tt * (1 - tt));
+  };
+
+  // Path do tabuleiro (uma curva única, suave)
+  const deckPath = `M ${ARCH_LEFT} ${DECK_EDGE_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * DECK_PEAK_Y - DECK_EDGE_Y} ${ARCH_RIGHT} ${DECK_EDGE_Y}`;
+  const deckPath2 = `M ${ARCH_LEFT} ${DECK_EDGE_Y + 3.5} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * (DECK_PEAK_Y + 3.5) - (DECK_EDGE_Y + 3.5)} ${ARCH_RIGHT} ${DECK_EDGE_Y + 3.5}`;
+
+  // Suspensores ao longo do tabuleiro
+  const hangerXs: number[] = [];
+  for (let x = ARCH_LEFT + 18; x < ARCH_RIGHT; x += 22) hangerXs.push(x);
+
+  // Posições dos trabalhadores parados (sobre o tabuleiro curvo)
+  const h1x = 130;
+  const h2x = 285;
 
   return (
     <svg
@@ -54,73 +75,102 @@ function ArchBridge({ className }: { className?: string }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      {/* Pilares */}
-      <rect x="2" y={DECK_Y} width="20" height={H - DECK_Y - 2} opacity="0.18" fill="currentColor" stroke="none" />
-      <rect x={W - 22} y={DECK_Y} width="20" height={H - DECK_Y - 2} opacity="0.18" fill="currentColor" stroke="none" />
-      <line x1="2" y1={DECK_Y} x2="2" y2={H - 2} />
-      <line x1="22" y1={DECK_Y} x2="22" y2={H - 2} />
-      <line x1={W - 22} y1={DECK_Y} x2={W - 22} y2={H - 2} />
-      <line x1={W - 2} y1={DECK_Y} x2={W - 2} y2={H - 2} />
+      {/* Pilares de apoio */}
+      <rect x="6" y={DECK_EDGE_Y} width="18" height={H - DECK_EDGE_Y - 2} opacity="0.18" fill="currentColor" stroke="none" />
+      <rect x={W - 24} y={DECK_EDGE_Y} width="18" height={H - DECK_EDGE_Y - 2} opacity="0.18" fill="currentColor" stroke="none" />
+      <line x1="6" y1={DECK_EDGE_Y} x2="6" y2={H - 2} />
+      <line x1="24" y1={DECK_EDGE_Y} x2="24" y2={H - 2} />
+      <line x1={W - 24} y1={DECK_EDGE_Y} x2={W - 24} y2={H - 2} />
+      <line x1={W - 6} y1={DECK_EDGE_Y} x2={W - 6} y2={H - 2} />
 
       {/* Água */}
       <line x1="0" y1={H - 4} x2={W} y2={H - 4} opacity="0.25" strokeDasharray="6 4" />
       <line x1="0" y1={H - 1} x2={W} y2={H - 1} opacity="0.18" strokeDasharray="3 5" />
 
-      {/* Arco principal */}
+      {/* Arco principal (estrutura superior) — incompleto à direita */}
       <path
-        d={`M${ARCH_LEFT} ${DECK_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * ARCH_PEAK - DECK_Y} ${ARCH_RIGHT} ${DECK_Y}`}
+        d={`M ${ARCH_LEFT} ${DECK_EDGE_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * ARCH_PEAK_Y - DECK_EDGE_Y} ${ARCH_RIGHT - 60} ${archY(ARCH_RIGHT - 60)}`}
         strokeWidth="2.2"
       />
+      {/* Pedaço solto do arco (peça por colocar) */}
       <path
-        d={`M${ARCH_LEFT + 4} ${DECK_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * (ARCH_PEAK + 5) - DECK_Y} ${ARCH_RIGHT - 4} ${DECK_Y}`}
+        d={`M ${ARCH_RIGHT - 35} ${archY(ARCH_RIGHT - 35) - 6} Q ${ARCH_RIGHT - 18} ${archY(ARCH_RIGHT - 18) - 4} ${ARCH_RIGHT - 2} ${DECK_EDGE_Y - 4}`}
         opacity="0.45"
+        strokeDasharray="3 3"
       />
-      {Array.from({ length: 9 }).map((_, i) => {
-        const x = ARCH_LEFT + 20 + i * 38;
-        return <line key={`tr-${i}`} x1={x} y1={archY(x)} x2={x} y2={archY(x) + 5} opacity="0.4" />;
+
+      {/* Suspensores (verticais entre arco e tabuleiro) — alguns em falta */}
+      {hangerXs.map((x, i) => {
+        if (i === 3 || i === 7 || i > hangerXs.length - 3) return null;
+        const ay = archY(x);
+        const dy = deckY(x);
+        if (ay >= dy - 2) return null;
+        return <line key={`h-${x}`} x1={x} y1={ay} x2={x} y2={dy} opacity="0.55" />;
       })}
 
-      {/* Suspensores */}
-      {hangers.map((x) => (
-        <line key={`h-${x}`} x1={x} y1={archY(x)} x2={x} y2={DECK_Y} opacity="0.55" />
-      ))}
+      {/* Tabuleiro curvo (linha principal) */}
+      <path d={deckPath} strokeWidth="2" />
+      <path d={deckPath2} opacity="0.5" />
 
-      {/* Tabuleiro */}
-      <line x1="0" y1={DECK_Y} x2={W} y2={DECK_Y} strokeWidth="2" />
-      <line x1="0" y1={DECK_Y + 3.5} x2={W} y2={DECK_Y + 3.5} opacity="0.5" />
-      <line x1="10" y1={DECK_Y + 1.7} x2={W - 10} y2={DECK_Y + 1.7} opacity="0.35" strokeDasharray="6 8" />
-
-      {/* Treliça */}
-      {Array.from({ length: 20 }).map((_, i) => {
-        const x1 = 22 + i * 18;
-        const x2 = x1 + 18;
-        if (x2 > W - 22) return null;
+      {/* Treliça por baixo do tabuleiro (X's seguindo a curva) — com falhas */}
+      {Array.from({ length: 18 }).map((_, i) => {
+        const step = (ARCH_RIGHT - ARCH_LEFT) / 18;
+        const x1 = ARCH_LEFT + i * step;
+        const x2 = x1 + step;
+        if (x2 > ARCH_RIGHT) return null;
+        // buracos na construção
+        if (i === 5 || i === 12 || i === 15) return null;
+        const y1 = deckY(x1) + 4;
+        const y2 = deckY(x2) + 4;
+        const yb1 = y1 + 7;
+        const yb2 = y2 + 7;
         return (
           <g key={`tru-${i}`} opacity="0.35">
-            <line x1={x1} y1={DECK_Y + 3.5} x2={x2} y2={DECK_Y + 10} />
-            <line x1={x2} y1={DECK_Y + 3.5} x2={x1} y2={DECK_Y + 10} />
-            <line x1={x1} y1={DECK_Y + 10} x2={x2} y2={DECK_Y + 10} />
+            <line x1={x1} y1={y1} x2={x2} y2={yb2} />
+            <line x1={x2} y1={y2} x2={x1} y2={yb1} />
+            <line x1={x1} y1={yb1} x2={x2} y2={yb2} />
           </g>
         );
       })}
 
-      {/* 2 trabalhadores parados a martelar */}
-      <g transform={`translate(110 ${DECK_Y})`}>
+      {/* Secção do tabuleiro em falta (lacuna) */}
+      <g opacity="0.55">
+        <line x1={ARCH_RIGHT - 55} y1={deckY(ARCH_RIGHT - 55) - 3} x2={ARCH_RIGHT - 55} y2={deckY(ARCH_RIGHT - 55) + 6} strokeDasharray="2 2" />
+        <line x1={ARCH_RIGHT - 35} y1={deckY(ARCH_RIGHT - 35) - 3} x2={ARCH_RIGHT - 35} y2={deckY(ARCH_RIGHT - 35) + 6} strokeDasharray="2 2" />
+      </g>
+
+      {/* Andaime / estrutura temporária junto à zona incompleta */}
+      <g opacity="0.5">
+        <line x1={ARCH_RIGHT - 50} y1={deckY(ARCH_RIGHT - 50)} x2={ARCH_RIGHT - 50} y2={DECK_EDGE_Y + 10} />
+        <line x1={ARCH_RIGHT - 30} y1={deckY(ARCH_RIGHT - 30)} x2={ARCH_RIGHT - 30} y2={DECK_EDGE_Y + 10} />
+        <line x1={ARCH_RIGHT - 50} y1={DECK_EDGE_Y + 4} x2={ARCH_RIGHT - 30} y2={DECK_EDGE_Y + 4} />
+        <line x1={ARCH_RIGHT - 50} y1={DECK_EDGE_Y + 10} x2={ARCH_RIGHT - 30} y2={DECK_EDGE_Y + 10} />
+        <line x1={ARCH_RIGHT - 50} y1={DECK_EDGE_Y + 4} x2={ARCH_RIGHT - 30} y2={DECK_EDGE_Y + 10} />
+      </g>
+
+      {/* Pilha de materiais no tabuleiro (à esquerda) */}
+      <g opacity="0.55">
+        <rect x={60} y={deckY(60) - 3} width="10" height="3" fill="currentColor" stroke="none" />
+        <rect x={62} y={deckY(62) - 6} width="6" height="3" fill="currentColor" stroke="none" />
+      </g>
+
+      {/* 2 trabalhadores parados a martelar (em cima do tabuleiro curvo) */}
+      <g transform={`translate(${h1x} ${deckY(h1x)})`}>
         <Hammerer delay={0} />
       </g>
-      <g transform={`translate(265 ${DECK_Y})`}>
+      <g transform={`translate(${h2x} ${deckY(h2x)})`}>
         <Hammerer delay={0.25} flip />
       </g>
 
-      {/* 3 trabalhadores a correr */}
+      {/* 3 trabalhadores a correr ao longo da curva */}
       <g style={{ animation: "run-right 6s linear infinite" }}>
-        <Runner deckY={DECK_Y} delay={0} />
+        <Runner deckY={deckY} delay={0} />
       </g>
       <g style={{ animation: "run-left 7s linear infinite", animationDelay: "-1.5s" }}>
-        <Runner deckY={DECK_Y} delay={0.2} flip />
+        <Runner deckY={deckY} delay={0.2} flip />
       </g>
       <g style={{ animation: "run-right 8s linear infinite", animationDelay: "-3s" }}>
-        <Runner deckY={DECK_Y} delay={0.35} />
+        <Runner deckY={deckY} delay={0.35} />
       </g>
 
       <style>{`
@@ -159,13 +209,10 @@ function ArchBridge({ className }: { className?: string }) {
 
 /* ----------------------------- Worker bits ----------------------------- */
 
-// Capacete (forma de meio-disco + aba)
 function Helmet({ cx, cy }: { cx: number; cy: number }) {
   return (
     <g>
-      {/* aba */}
       <line x1={cx - 3} y1={cy + 0.2} x2={cx + 3} y2={cy + 0.2} strokeWidth="1.4" />
-      {/* cúpula */}
       <path d={`M ${cx - 2.6} ${cy + 0.2} A 2.6 2.4 0 0 1 ${cx + 2.6} ${cy + 0.2} Z`} fill="currentColor" stroke="none" />
     </g>
   );
@@ -173,8 +220,13 @@ function Helmet({ cx, cy }: { cx: number; cy: number }) {
 
 /* ----------------------------- Runner ----------------------------- */
 
-function Runner({ deckY, delay, flip = false }: { deckY: number; delay: number; flip?: boolean }) {
-  const feetY = deckY;
+function Runner({ deckY, delay, flip = false }: { deckY: (x: number) => number; delay: number; flip?: boolean }) {
+  // O runner é desenhado a (0,0); o translateX da animação posiciona-o em x.
+  // Para acompanhar a curva, usamos uma translação Y baseada na posição absoluta
+  // — aproximamos com um pequeno bob; (acompanhar exatamente a curva exigia JS por frame)
+  // Como simplificação, posicionamos o runner numa altura média do deck.
+  const baseY = deckY(200); // ponto alto central
+  const feetY = baseY;
   const hipY = feetY - 7;
   const shoulderY = hipY - 4;
   const headY = shoulderY - 3;
@@ -185,14 +237,10 @@ function Runner({ deckY, delay, flip = false }: { deckY: number; delay: number; 
       transform={`scale(${scaleX} 1)`}
       style={{ transformOrigin: "0px 0px", animation: `bob-runner 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}
     >
-      {/* cabeça */}
       <circle cx="0" cy={headY} r="2.2" fill="currentColor" stroke="none" opacity="0.9" />
-      {/* capacete */}
       <Helmet cx={0} cy={headY - 2.2} />
-      {/* tronco */}
       <line x1="-0.5" y1={shoulderY} x2="0.8" y2={hipY} />
 
-      {/* pernas */}
       <g style={{ transformOrigin: `0.8px ${hipY}px`, animation: `leg-front 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}>
         <line x1="0.8" y1={hipY} x2="0.8" y2={feetY} />
       </g>
@@ -200,14 +248,11 @@ function Runner({ deckY, delay, flip = false }: { deckY: number; delay: number; 
         <line x1="0.8" y1={hipY} x2="0.8" y2={feetY} />
       </g>
 
-      {/* braço a segurar martelo (à frente) */}
       <g style={{ transformOrigin: `-0.5px ${shoulderY}px`, animation: `arm-back 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}>
         <line x1="-0.5" y1={shoulderY} x2="3" y2={shoulderY + 3} />
-        {/* martelo */}
         <line x1="3" y1={shoulderY + 3} x2="5" y2={shoulderY + 1} strokeWidth="0.8" />
         <rect x="4.4" y={shoulderY + 0.2} width="2" height="1.6" fill="currentColor" stroke="none" />
       </g>
-      {/* outro braço */}
       <g style={{ transformOrigin: `-0.5px ${shoulderY}px`, animation: `arm-back 0.4s ease-in-out infinite reverse`, animationDelay: `${delay}s` }}>
         <line x1="-0.5" y1={shoulderY} x2="-2.5" y2={shoulderY + 3} />
       </g>
@@ -215,10 +260,9 @@ function Runner({ deckY, delay, flip = false }: { deckY: number; delay: number; 
   );
 }
 
-/* ----------------------------- Hammerer (parado a martelar) ----------------------------- */
+/* ----------------------------- Hammerer ----------------------------- */
 
 function Hammerer({ delay, flip = false }: { delay: number; flip?: boolean }) {
-  // Posicionado com origem nos pés (0,0). Tabuleiro está em y=0 no grupo pai.
   const feetY = 0;
   const hipY = feetY - 9;
   const shoulderY = hipY - 5;
@@ -227,20 +271,14 @@ function Hammerer({ delay, flip = false }: { delay: number; flip?: boolean }) {
 
   return (
     <g transform={`scale(${scaleX} 1)`} style={{ transformOrigin: "0px 0px" }}>
-      {/* pernas paradas, ligeiramente afastadas */}
       <line x1="-1.5" y1={hipY} x2="-1.5" y2={feetY} />
       <line x1="1.5" y1={hipY} x2="1.5" y2={feetY} />
-      {/* tronco */}
       <line x1="0" y1={hipY} x2="0" y2={shoulderY} />
-      {/* cabeça */}
       <circle cx="0" cy={headY} r="2.4" fill="currentColor" stroke="none" opacity="0.9" />
-      {/* capacete */}
       <Helmet cx={0} cy={headY - 2.3} />
 
-      {/* braço de apoio (à frente) */}
       <line x1="0" y1={shoulderY} x2="3" y2={shoulderY + 4} />
 
-      {/* braço com martelo a balançar */}
       <g
         style={{
           transformOrigin: `0px ${shoulderY}px`,
@@ -249,11 +287,9 @@ function Hammerer({ delay, flip = false }: { delay: number; flip?: boolean }) {
         }}
       >
         <line x1="0" y1={shoulderY} x2="0" y2={shoulderY - 7} strokeWidth="1" />
-        {/* cabeça do martelo */}
         <rect x="-2" y={shoulderY - 9} width="4" height="2" fill="currentColor" stroke="none" />
       </g>
 
-      {/* "prego" / ponto de trabalho */}
       <line x1="3" y1={feetY - 1} x2="5" y2={feetY - 1} opacity="0.5" />
     </g>
   );
