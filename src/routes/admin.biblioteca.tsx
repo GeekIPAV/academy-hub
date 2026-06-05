@@ -612,7 +612,7 @@ function normaliseBulkRows(rows: string[][], delimiter: string) {
 
     if (current.length === 1 && current[0] && repaired.length) {
       const previous = repaired[repaired.length - 1];
-      if (previous && previous.length >= BULK_FIELD_COUNT) {
+      if (previous && previous.length >= BULK_FIELD_COUNT - 1) {
         previous[5] = [previous[5], current[0]].filter(Boolean).join("\n");
         continue;
       }
