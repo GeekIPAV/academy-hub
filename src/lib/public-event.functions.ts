@@ -14,6 +14,14 @@ export interface RequiredField {
   required?: boolean;
 }
 
+type JsonVal =
+  | string
+  | number
+  | boolean
+  | null
+  | { [k: string]: JsonVal }
+  | JsonVal[];
+
 export interface PublicEventDetails {
   id: string;
   notion_id: string | null;
@@ -24,6 +32,7 @@ export interface PublicEventDetails {
   max_capacity: number | null;
   required_fields: RequiredField[];
   aceite_count: number;
+  conteudo_pagina_inscricao: JsonVal | null;
 }
 
 /**
@@ -39,7 +48,7 @@ export const getPublicEventDetails = createServerFn({ method: "GET" })
     const query = supabaseAdmin
       .from("acoes")
       .select(
-        "id, notion_id, title, description, action_date, registration_status, max_capacity, required_fields",
+        "id, notion_id, title, description, action_date, registration_status, max_capacity, required_fields, conteudo_pagina_inscricao",
       );
     const { data: row, error } = await (isUuid
       ? query.eq("id", data.identifier)
@@ -66,6 +75,8 @@ export const getPublicEventDetails = createServerFn({ method: "GET" })
         ? (row.required_fields as unknown as RequiredField[])
         : [],
       aceite_count: count ?? 0,
+      conteudo_pagina_inscricao:
+        ((row as { conteudo_pagina_inscricao?: unknown }).conteudo_pagina_inscricao ?? null) as JsonVal | null,
     };
   });
 

@@ -12,6 +12,43 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { generateHTML } from "@tiptap/html";
+import StarterKit from "@tiptap/starter-kit";
+
+interface PageBlock {
+  id: string;
+  type: "richtext" | "image";
+  content?: unknown;
+  url?: string;
+  alt?: string;
+}
+interface PageBackground {
+  type: "color" | "image";
+  value: string;
+  opacity?: number;
+}
+interface PageDoc {
+  blocks: PageBlock[];
+  title?: string;
+  background?: PageBackground;
+}
+function parsePageDoc(v: unknown): PageDoc | null {
+  if (!v || typeof v !== "object") return null;
+  const d = v as PageDoc;
+  if (!Array.isArray(d.blocks)) return null;
+  return d;
+}
+function BlockRichText({ content }: { content: unknown }) {
+  const html = useMemo(() => {
+    try {
+      if (!content || typeof content !== "object") return "";
+      return generateHTML(content as Parameters<typeof generateHTML>[0], [StarterKit]);
+    } catch {
+      return "";
+    }
+  }, [content]);
+  return <div className="prose prose-sm max-w-none text-gray-800" dangerouslySetInnerHTML={{ __html: html }} />;
+}
 import {
   Card,
   CardContent,
@@ -249,9 +286,29 @@ function PublicEventPage() {
     identity.status === "new" ||
     identity.status === "google";
 
+  const pageDoc = useMemo(
+    () => parsePageDoc(event.data?.conteudo_pagina_inscricao),
+    [event.data?.conteudo_pagina_inscricao],
+  );
+  const bg = pageDoc?.background;
+  const bgOpacity = bg?.opacity ?? 1;
+  const containerStyle: React.CSSProperties =
+    bg?.type === "image" && bg.value
+      ? { backgroundImage: `url(${bg.value})`, backgroundSize: "cover", backgroundPosition: "center" }
+      : bg?.type === "color" && bg.value
+        ? { backgroundColor: bg.value }
+        : {};
+  const customTitle = pageDoc?.title?.trim() || event.data?.title || "";
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/40 to-muted/10 px-4 py-10">
-      <div className="mx-auto flex max-w-xl flex-col items-center gap-6">
+    <div
+      className="relative min-h-screen bg-gradient-to-b from-muted/40 to-muted/10 px-4 py-10"
+      style={containerStyle}
+    >
+      {bg?.type === "image" && bgOpacity < 1 && (
+        <div className="pointer-events-none absolute inset-0 bg-white" style={{ opacity: 1 - bgOpacity }} />
+      )}
+      <div className="relative mx-auto flex max-w-xl flex-col items-center gap-6">
         <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-12 w-auto" />
 
         {event.isLoading ? (
@@ -278,7 +335,7 @@ function PublicEventPage() {
         ) : (
           <Card className="w-full border-0 bg-background shadow-xl">
             <CardHeader className="space-y-3">
-              <CardTitle className="text-2xl">{event.data.title}</CardTitle>
+              <CardTitle className="text-2xl">{customTitle}</CardTitle>
               {event.data.action_date && (
                 <CardDescription className="flex items-center gap-2">
                   <CalendarDays className="h-4 w-4" />
@@ -298,11 +355,30 @@ function PublicEventPage() {
             </CardHeader>
 
             <CardContent className="space-y-6">
-              {event.data.description && (
-                <p className="whitespace-pre-line text-sm text-muted-foreground">
-                  {event.data.description}
-                </p>
+              {pageDoc && pageDoc.blocks.length > 0 ? (
+                <div className="space-y-4">
+                  {pageDoc.blocks.map((b) =>
+                    b.type === "richtext" ? (
+                      <BlockRichText key={b.id} content={b.content} />
+                    ) : b.url ? (
+                      <img
+                        key={b.id}
+                        src={b.url}
+                        alt={b.alt ?? ""}
+                        className="mx-auto max-h-96 rounded object-contain"
+                      />
+                    ) : null,
+                  )}
+                </div>
+              ) : (
+                event.data.description && (
+                  <p className="whitespace-pre-line text-sm text-muted-foreground">
+                    {event.data.description}
+                  </p>
+                )
               )}
+
+
 
               {closed ? (
                 <p className="rounded-md bg-muted p-3 text-sm">
