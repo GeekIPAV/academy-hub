@@ -298,7 +298,98 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
           Botão fixo — onde o utilizador preenche os dados de inscrição.
         </p>
       </div>
+
+      {/* Pré-visualização da página */}
+      <div className="space-y-2 pt-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Pré-visualização
+        </p>
+        <PagePreview
+          title={value.title?.trim() || defaultTitle || "Título da página"}
+          blocks={value.blocks}
+          background={background}
+        />
+      </div>
     </div>
+  );
+}
+
+function PagePreview({
+  title,
+  blocks,
+  background,
+}: {
+  title: string;
+  blocks: PageBlock[];
+  background: PageBackground;
+}) {
+  const bgOpacity = background.opacity ?? 1;
+  const bgStyle =
+    background.type === "image" && background.value
+      ? {
+          backgroundImage: `url(${background.value})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }
+      : { backgroundColor: background.value || "#ffffff" };
+
+  return (
+    <div className="relative overflow-hidden rounded-md border" style={bgStyle}>
+      {background.type === "image" && bgOpacity < 1 && (
+        <div
+          className="absolute inset-0 bg-white"
+          style={{ opacity: 1 - bgOpacity }}
+        />
+      )}
+      <div className="relative p-6">
+        <div className="mx-auto max-w-xl rounded-lg bg-white p-6 shadow-xl">
+          <h2 className="text-center text-xl font-bold text-gray-900">{title}</h2>
+          <div className="mt-3 h-px bg-gray-200" />
+          <div className="mt-4 space-y-4">
+            {blocks.length === 0 ? (
+              <p className="text-center text-xs text-muted-foreground">
+                Sem conteúdo
+              </p>
+            ) : (
+              blocks.map((b) =>
+                b.type === "richtext" ? (
+                  <RichTextRender key={b.id} content={b.content} />
+                ) : b.url ? (
+                  <img
+                    key={b.id}
+                    src={b.url}
+                    alt={b.alt ?? ""}
+                    className="mx-auto max-h-72 rounded object-contain"
+                  />
+                ) : null,
+              )
+            )}
+          </div>
+          <div className="mt-6 flex justify-center">
+            <Button size="lg" disabled className="pointer-events-none opacity-100">
+              Inscrever-me
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RichTextRender({ content }: { content: unknown }) {
+  const html = useMemo(() => {
+    try {
+      if (!content || typeof content !== "object") return "";
+      return generateHTML(content as Parameters<typeof generateHTML>[0], [StarterKit]);
+    } catch {
+      return "";
+    }
+  }, [content]);
+  return (
+    <div
+      className="prose prose-sm max-w-none text-gray-800"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
   );
 }
 
