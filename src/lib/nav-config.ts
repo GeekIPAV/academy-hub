@@ -11,6 +11,7 @@ import {
   Library,
   ListChecks,
   Lock,
+  Mail,
   Medal,
   Megaphone,
   Newspaper,
@@ -81,6 +82,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { path: "/admin/badges", label: "Gestão de Badges", icon: Medal },
       { path: "/admin/manager", label: "Central de Comando", icon: Shield },
       { path: "/admin/governacao", label: "Governação de Dados", icon: Lock },
+      { path: "/admin/emails", label: "Gestão de Emails", icon: Mail },
     ],
   },
 ];
