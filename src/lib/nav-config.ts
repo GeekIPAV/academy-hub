@@ -14,7 +14,7 @@ import {
   Mail,
   Medal,
   Megaphone,
-  Newspaper,
+  
   Shield,
   type LucideIcon,
 } from "lucide-react";
@@ -57,7 +57,6 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Publicações",
     items: [
       { path: "/publicacoes/revistas", label: "Revistas Científicas", icon: BookOpen, gated: true },
-      { path: "/publicacoes/ipav", label: "Publicações IPAV", icon: Newspaper, gated: true },
       { path: "/publicacoes/biblioteca", label: "Biblioteca", icon: Library, gated: true },
     ],
   },
