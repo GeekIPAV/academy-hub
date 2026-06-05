@@ -217,7 +217,7 @@ export const inviteUser = createServerFn({ method: "POST" })
         .upsert({ id: newUserId, full_name: data.full_name });
     }
 
-    // The handle_new_user trigger auto-assigns "Participante". Clear all roles
+    // The handle_new_user trigger auto-assigns "Utilizador". Clear all roles
     // and apply exactly what the admin selected.
     const { error: delErr } = await supabaseAdmin
       .from("user_roles")
