@@ -3,8 +3,8 @@ import { useApp } from "@/lib/app-context";
 
 /**
  * Banner "Estamos a melhorar esta página" — aparece no final de cada página.
- * Mostra uma ponte EM CONSTRUÇÃO (não terminada) a ocupar o bloco todo,
- * com o texto por cima da imagem.
+ * Ponte em arco complexa, com tabuleiro centrado, suspensa por cabos a partir
+ * do arco. Bonecos a correr de um lado para o outro sobre o tabuleiro.
  */
 export function ImprovingBanner() {
   const { isComponentVisible } = useApp();
@@ -19,138 +19,181 @@ export function ImprovingBanner() {
       <p className="px-6 pt-4 pb-2 text-base font-semibold">
         Estamos a melhorar esta página
       </p>
-      <BridgeUnderConstruction className="block w-full h-28" />
+      <ArchBridge className="block w-full h-32" />
     </div>
   );
 }
 
-function BridgeUnderConstruction({ className }: { className?: string }) {
+/* ----------------------------- Bridge ----------------------------- */
+
+function ArchBridge({ className }: { className?: string }) {
+  // Geometria do arco principal (suspende o tabuleiro)
+  // Tabuleiro está em y = DECK_Y, centrado verticalmente no bloco
+  const W = 400;
+  const H = 100;
+  const DECK_Y = 55; // tabuleiro centrado
+  const ARCH_PEAK = 12;
+  const ARCH_LEFT = 30;
+  const ARCH_RIGHT = 370;
+
+  // y do arco numa coordenada x (parábola)
+  const archY = (x: number) => {
+    const t = (x - ARCH_LEFT) / (ARCH_RIGHT - ARCH_LEFT);
+    return ARCH_PEAK + (DECK_Y - ARCH_PEAK) * (1 - 4 * t * (1 - t));
+  };
+
+  // Suspensores verticais do arco até ao tabuleiro
+  const hangers: number[] = [];
+  for (let x = ARCH_LEFT + 14; x < ARCH_RIGHT; x += 18) hangers.push(x);
+
   return (
     <svg
-      viewBox="0 0 400 100"
+      viewBox={`0 0 ${W} ${H}`}
       preserveAspectRatio="none"
       className={className}
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.4"
+      strokeWidth="1.3"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      {/* Lado esquerdo da ponte — já construído */}
-      <line x1="0" y1="78" x2="170" y2="78" strokeWidth="2" />
-      <line x1="0" y1="82" x2="170" y2="82" opacity="0.4" />
-      {[20, 60, 100, 140].map((x) => (
-        <line key={`pl-${x}`} x1={x} y1="82" x2={x} y2="98" />
+      {/* Pilares de apoio (encontros) */}
+      <rect x="2" y={DECK_Y} width="20" height={H - DECK_Y - 2} opacity="0.18" fill="currentColor" stroke="none" />
+      <rect x={W - 22} y={DECK_Y} width="20" height={H - DECK_Y - 2} opacity="0.18" fill="currentColor" stroke="none" />
+      <line x1="2" y1={DECK_Y} x2="2" y2={H - 2} />
+      <line x1="22" y1={DECK_Y} x2="22" y2={H - 2} />
+      <line x1={W - 22} y1={DECK_Y} x2={W - 22} y2={H - 2} />
+      <line x1={W - 2} y1={DECK_Y} x2={W - 2} y2={H - 2} />
+
+      {/* Água/sombra por baixo */}
+      <line x1="0" y1={H - 4} x2={W} y2={H - 4} opacity="0.25" strokeDasharray="6 4" />
+      <line x1="0" y1={H - 1} x2={W} y2={H - 1} opacity="0.18" strokeDasharray="3 5" />
+
+      {/* Arco principal (duplo, para volume) */}
+      <path
+        d={`M${ARCH_LEFT} ${DECK_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * ARCH_PEAK - DECK_Y} ${ARCH_RIGHT} ${DECK_Y}`}
+        strokeWidth="2.2"
+      />
+      <path
+        d={`M${ARCH_LEFT + 4} ${DECK_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * (ARCH_PEAK + 5) - DECK_Y} ${ARCH_RIGHT - 4} ${DECK_Y}`}
+        opacity="0.45"
+      />
+      {/* Travessas que ligam os dois arcos */}
+      {Array.from({ length: 9 }).map((_, i) => {
+        const x = ARCH_LEFT + 20 + i * 38;
+        return <line key={`tr-${i}`} x1={x} y1={archY(x)} x2={x} y2={archY(x) + 5} opacity="0.4" />;
+      })}
+
+      {/* Suspensores verticais (do arco até ao tabuleiro) */}
+      {hangers.map((x) => (
+        <line key={`h-${x}`} x1={x} y1={archY(x)} x2={x} y2={DECK_Y} opacity="0.55" />
       ))}
-      {[0, 80].map((x) => (
-        <path key={`al-${x}`} d={`M${x} 78 Q ${x + 40} 56 ${x + 80} 78`} opacity="0.45" />
-      ))}
 
-      {/* Lado direito da ponte — já construído */}
-      <line x1="260" y1="78" x2="400" y2="78" strokeWidth="2" />
-      <line x1="260" y1="82" x2="400" y2="82" opacity="0.4" />
-      {[280, 320, 360, 395].map((x) => (
-        <line key={`pr-${x}`} x1={x} y1="82" x2={x} y2="98" />
-      ))}
-      <path d="M260 78 Q 300 56 340 78" opacity="0.45" />
-      <path d="M340 78 Q 370 58 400 78" opacity="0.45" />
+      {/* Tabuleiro (centrado) */}
+      <line x1="0" y1={DECK_Y} x2={W} y2={DECK_Y} strokeWidth="2" />
+      <line x1="0" y1={DECK_Y + 3.5} x2={W} y2={DECK_Y + 3.5} opacity="0.5" />
+      {/* Traços do tabuleiro (linha central da estrada) */}
+      <line x1="10" y1={DECK_Y + 1.7} x2={W - 10} y2={DECK_Y + 1.7} opacity="0.35" strokeDasharray="6 8" />
 
-      {/* Vão central INACABADO — vigas soltas, gap entre 170 e 260 */}
-      {/* viga em construção pendurada */}
-      <line x1="170" y1="78" x2="200" y2="74" opacity="0.7" />
-      <line x1="230" y1="76" x2="260" y2="78" opacity="0.7" />
-      {/* peças soltas / por colocar */}
-      <rect x="200" y="72" width="14" height="2.5" rx="0.5" opacity="0.55" transform="rotate(-6 207 73)" />
-      <rect x="218" y="74" width="12" height="2.5" rx="0.5" opacity="0.55" transform="rotate(4 224 75)" />
-      {/* andaime no meio */}
-      <line x1="200" y1="78" x2="200" y2="98" opacity="0.5" />
-      <line x1="230" y1="78" x2="230" y2="98" opacity="0.5" />
-      <line x1="200" y1="88" x2="230" y2="88" opacity="0.5" />
-      <line x1="200" y1="78" x2="230" y2="78" opacity="0.5" strokeDasharray="3 3" />
+      {/* Treliça por baixo do tabuleiro */}
+      {Array.from({ length: 20 }).map((_, i) => {
+        const x1 = 22 + i * 18;
+        const x2 = x1 + 18;
+        if (x2 > W - 22) return null;
+        return (
+          <g key={`tru-${i}`} opacity="0.35">
+            <line x1={x1} y1={DECK_Y + 3.5} x2={x2} y2={DECK_Y + 10} />
+            <line x1={x2} y1={DECK_Y + 3.5} x2={x1} y2={DECK_Y + 10} />
+            <line x1={x1} y1={DECK_Y + 10} x2={x2} y2={DECK_Y + 10} />
+          </g>
+        );
+      })}
 
-      {/* Torres */}
-      <line x1="0" y1="10" x2="0" y2="78" strokeWidth="2" />
-      <line x1="400" y1="10" x2="400" y2="78" strokeWidth="2" />
-
-      {/* Cabos suspensos — parcialmente colocados */}
-      <path d="M0 18 Q 140 60 170 50" opacity="0.35" />
-      <path d="M260 50 Q 300 58 400 18" opacity="0.35" />
-      {/* cabo central por ligar (tracejado) */}
-      <path d="M170 50 Q 215 38 260 50" opacity="0.3" strokeDasharray="3 3" />
-
-      {/* Trabalhadores espalhados, concentrados na zona em construção */}
-      {[
-        { x: 35, tool: "hammer", delay: 0 },
-        { x: 90, tool: "plank", delay: 0.2 },
-        { x: 145, tool: "wrench", delay: 0.4 },
-        { x: 185, tool: "hammer", delay: 0.1 },
-        { x: 215, tool: "plank", delay: 0.5 },
-        { x: 245, tool: "wrench", delay: 0.3 },
-        { x: 295, tool: "hammer", delay: 0.6 },
-        { x: 360, tool: "plank", delay: 0.2 },
-      ].map((w, i) => (
-        <Worker key={i} x={w.x} tool={w.tool as "hammer" | "wrench" | "plank"} delay={w.delay} />
-      ))}
+      {/* Bonecos a correr — animados ao longo do tabuleiro */}
+      <g style={{ animation: "run-right 6s linear infinite" }}>
+        <Runner deckY={DECK_Y} delay={0} />
+      </g>
+      <g style={{ animation: "run-right 6s linear infinite", animationDelay: "-2s" }}>
+        <Runner deckY={DECK_Y} delay={0.15} />
+      </g>
+      <g style={{ animation: "run-left 7s linear infinite", animationDelay: "-1s" }}>
+        <Runner deckY={DECK_Y} delay={0.3} flip />
+      </g>
+      <g style={{ animation: "run-left 7s linear infinite", animationDelay: "-4s" }}>
+        <Runner deckY={DECK_Y} delay={0.45} flip />
+      </g>
 
       <style>{`
-        @keyframes hammer {
-          0%, 100% { transform: rotate(-25deg); }
-          50% { transform: rotate(30deg); }
+        @keyframes run-right {
+          from { transform: translateX(-30px); }
+          to   { transform: translateX(430px); }
         }
-        @keyframes wrench {
-          0%, 100% { transform: rotate(-15deg); }
-          50% { transform: rotate(20deg); }
+        @keyframes run-left {
+          from { transform: translateX(430px); }
+          to   { transform: translateX(-30px); }
         }
-        @keyframes bob {
+        @keyframes leg-front {
+          0%, 100% { transform: rotate(35deg); }
+          50%      { transform: rotate(-35deg); }
+        }
+        @keyframes leg-back {
+          0%, 100% { transform: rotate(-35deg); }
+          50%      { transform: rotate(35deg); }
+        }
+        @keyframes arm-front {
+          0%, 100% { transform: rotate(-40deg); }
+          50%      { transform: rotate(40deg); }
+        }
+        @keyframes arm-back {
+          0%, 100% { transform: rotate(40deg); }
+          50%      { transform: rotate(-40deg); }
+        }
+        @keyframes bob-runner {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-1.2px); }
+          50%      { transform: translateY(-1.5px); }
         }
       `}</style>
     </svg>
   );
 }
 
-function Worker({ x, tool, delay }: { x: number; tool: "hammer" | "wrench" | "plank"; delay: number }) {
-  const headY = 58;
-  const bodyTop = headY + 2.5;
-  const bodyBottom = headY + 12;
+/* ----------------------------- Runner ----------------------------- */
+
+function Runner({ deckY, delay, flip = false }: { deckY: number; delay: number; flip?: boolean }) {
+  // Boneco posicionado em x=0 (translação aplicada pelo grupo pai).
+  // Pés ficam sobre o tabuleiro (deckY). Altura ~ 14px.
+  const feetY = deckY; // pés sobre tabuleiro
+  const hipY = feetY - 7;
+  const shoulderY = hipY - 4;
+  const headY = shoulderY - 3;
+  const scaleX = flip ? -1 : 1;
+
   return (
-    <g style={{ animation: `bob 1.4s ease-in-out infinite`, animationDelay: `${delay}s`, transformOrigin: `${x}px ${headY}px` }}>
-      <circle cx={x} cy={headY} r="2.4" />
-      <path d={`M${x - 2.8} ${headY - 2} Q ${x} ${headY - 5} ${x + 2.8} ${headY - 2}`} />
-      <line x1={x} y1={bodyTop} x2={x} y2={bodyBottom} />
-      <line x1={x} y1={bodyBottom} x2={x - 2.5} y2={bodyBottom + 6} />
-      <line x1={x} y1={bodyBottom} x2={x + 2.5} y2={bodyBottom + 6} />
+    <g
+      transform={`scale(${scaleX} 1)`}
+      style={{ transformOrigin: "0px 0px", animation: `bob-runner 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}
+    >
+      {/* cabeça */}
+      <circle cx="0" cy={headY} r="2.2" />
+      {/* tronco inclinado para a frente */}
+      <line x1="-0.5" y1={shoulderY} x2="0.8" y2={hipY} />
 
-      {tool === "hammer" && (
-        <>
-          <line x1={x} y1={headY + 6} x2={x - 4} y2={headY + 7} />
-          <g style={{ transformOrigin: `${x}px ${headY + 6}px`, animation: `hammer 1s ease-in-out infinite`, animationDelay: `${delay}s` }}>
-            <line x1={x} y1={headY + 6} x2={x + 5} y2={headY + 2} />
-            <rect x={x + 4.2} y={headY - 1} width="3" height="4" rx="0.6" />
-          </g>
-        </>
-      )}
+      {/* pernas (a alternar) */}
+      <g style={{ transformOrigin: `0.8px ${hipY}px`, animation: `leg-front 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}>
+        <line x1="0.8" y1={hipY} x2="0.8" y2={feetY} />
+      </g>
+      <g style={{ transformOrigin: `0.8px ${hipY}px`, animation: `leg-back 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}>
+        <line x1="0.8" y1={hipY} x2="0.8" y2={feetY} />
+      </g>
 
-      {tool === "wrench" && (
-        <>
-          <line x1={x} y1={headY + 6} x2={x - 4} y2={headY + 5} />
-          <g style={{ transformOrigin: `${x}px ${headY + 6}px`, animation: `wrench 1.3s ease-in-out infinite`, animationDelay: `${delay}s` }}>
-            <line x1={x} y1={headY + 6} x2={x + 6} y2={headY + 3} />
-            <rect x={x + 5.5} y={headY} width="3" height="4" rx="0.8" />
-            <line x1={x + 7} y1={headY + 1.5} x2={x + 8.5} y2={headY + 1.5} />
-          </g>
-        </>
-      )}
-
-      {tool === "plank" && (
-        <>
-          <line x1={x} y1={bodyTop + 1} x2={x - 6} y2={headY - 4} />
-          <line x1={x} y1={bodyTop + 1} x2={x + 6} y2={headY - 4} />
-          <rect x={x - 8} y={headY - 6} width="16" height="2.5" rx="0.6" opacity="0.75" />
-        </>
-      )}
+      {/* braços (a alternar, opostos às pernas) */}
+      <g style={{ transformOrigin: `-0.5px ${shoulderY}px`, animation: `arm-front 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}>
+        <line x1="-0.5" y1={shoulderY} x2="-0.5" y2={shoulderY + 5} />
+      </g>
+      <g style={{ transformOrigin: `-0.5px ${shoulderY}px`, animation: `arm-back 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}>
+        <line x1="-0.5" y1={shoulderY} x2="-0.5" y2={shoulderY + 5} />
+      </g>
     </g>
   );
 }
