@@ -25,6 +25,7 @@ import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EventoIdRouteImport } from './routes/evento.$id'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
+import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as ComunicacaoPropriedadeIntelectualRouteImport } from './routes/comunicacao.propriedade-intelectual'
 import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
@@ -36,11 +37,14 @@ import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
 import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
 import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
+import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
 import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 import { Route as AuthenticatedRecursosClusterIndexRouteImport } from './routes/_authenticated/recursos.$cluster.index'
+import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
@@ -126,6 +130,11 @@ const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
   path: '/entidade/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
+  id: '/email/unsubscribe',
+  path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConviteTokenRoute = ConviteTokenRouteImport.update({
   id: '/convite/$token',
   path: '/convite/$token',
@@ -184,6 +193,11 @@ const PublicacoesRevistasIdRoute = PublicacoesRevistasIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => PublicacoesRevistasRoute,
 } as any)
+const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
+  id: '/lovable/email/suppression',
+  path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EntidadeAcoesIdRoute = EntidadeAcoesIdRouteImport.update({
   id: '/entidade/acoes/$id',
   path: '/entidade/acoes/$id',
@@ -211,6 +225,18 @@ const AuthenticatedRecursosClusterIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedRecursosClusterRoute,
+  } as any)
+const LovableEmailTransactionalSendRoute =
+  LovableEmailTransactionalSendRouteImport.update({
+    id: '/lovable/email/transactional/send',
+    path: '/lovable/email/transactional/send',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailTransactionalPreviewRoute =
+  LovableEmailTransactionalPreviewRouteImport.update({
+    id: '/lovable/email/transactional/preview',
+    path: '/lovable/email/transactional/preview',
+    getParentRoute: () => rootRouteImport,
   } as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
@@ -260,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/convite/$token': typeof ConviteTokenRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/evento/$id': typeof EventoIdRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
@@ -270,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/recursos/': typeof AuthenticatedRecursosIndexRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
@@ -277,6 +305,8 @@ export interface FileRoutesByFullPath {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRoutesByTo {
@@ -297,6 +327,7 @@ export interface FileRoutesByTo {
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/convite/$token': typeof ConviteTokenRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/evento/$id': typeof EventoIdRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
@@ -306,6 +337,7 @@ export interface FileRoutesByTo {
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/recursos': typeof AuthenticatedRecursosIndexRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
@@ -313,6 +345,8 @@ export interface FileRoutesByTo {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRoutesById {
@@ -336,6 +370,7 @@ export interface FileRoutesById {
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/convite/$token': typeof ConviteTokenRoute
+  '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/evento/$id': typeof EventoIdRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
@@ -346,6 +381,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/_authenticated/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
+  '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
   '/_authenticated/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
@@ -353,6 +389,8 @@ export interface FileRoutesById {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRouteTypes {
@@ -376,6 +414,7 @@ export interface FileRouteTypes {
     | '/comunicacao/press-media-kit'
     | '/comunicacao/propriedade-intelectual'
     | '/convite/$token'
+    | '/email/unsubscribe'
     | '/entidade/dashboard'
     | '/evento/$id'
     | '/inscricao/$token'
@@ -386,6 +425,7 @@ export interface FileRouteTypes {
     | '/admin/recursos'
     | '/recursos/$cluster'
     | '/entidade/acoes/$id'
+    | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
     | '/recursos/'
     | '/recursos/$cluster/$temaId'
@@ -393,6 +433,8 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/recursos/$cluster/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -413,6 +455,7 @@ export interface FileRouteTypes {
     | '/comunicacao/press-media-kit'
     | '/comunicacao/propriedade-intelectual'
     | '/convite/$token'
+    | '/email/unsubscribe'
     | '/entidade/dashboard'
     | '/evento/$id'
     | '/inscricao/$token'
@@ -422,6 +465,7 @@ export interface FileRouteTypes {
     | '/actions/$id'
     | '/admin/recursos'
     | '/entidade/acoes/$id'
+    | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
     | '/recursos'
     | '/recursos/$cluster/$temaId'
@@ -429,6 +473,8 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/recursos/$cluster'
   id:
     | '__root__'
@@ -451,6 +497,7 @@ export interface FileRouteTypes {
     | '/comunicacao/press-media-kit'
     | '/comunicacao/propriedade-intelectual'
     | '/convite/$token'
+    | '/email/unsubscribe'
     | '/entidade/dashboard'
     | '/evento/$id'
     | '/inscricao/$token'
@@ -461,6 +508,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/recursos'
     | '/_authenticated/recursos/$cluster'
     | '/entidade/acoes/$id'
+    | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
     | '/_authenticated/recursos/'
     | '/_authenticated/recursos/$cluster/$temaId'
@@ -468,6 +516,8 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
+    | '/lovable/email/transactional/preview'
+    | '/lovable/email/transactional/send'
     | '/_authenticated/recursos/$cluster/'
   fileRoutesById: FileRoutesById
 }
@@ -490,6 +540,7 @@ export interface RootRouteChildren {
   ComunicacaoPressMediaKitRoute: typeof ComunicacaoPressMediaKitRoute
   ComunicacaoPropriedadeIntelectualRoute: typeof ComunicacaoPropriedadeIntelectualRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
+  EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   EventoIdRoute: typeof EventoIdRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
@@ -497,10 +548,13 @@ export interface RootRouteChildren {
   PublicacoesIpavRoute: typeof PublicacoesIpavRoute
   PublicacoesRevistasRoute: typeof PublicacoesRevistasRouteWithChildren
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
+  LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiCertificatesActionIdParticipanteIdRoute: typeof ApiCertificatesActionIdParticipanteIdRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
+  LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
+  LovableEmailTransactionalSendRoute: typeof LovableEmailTransactionalSendRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -617,6 +671,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntidadeDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/email/unsubscribe': {
+      id: '/email/unsubscribe'
+      path: '/email/unsubscribe'
+      fullPath: '/email/unsubscribe'
+      preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/convite/$token': {
       id: '/convite/$token'
       path: '/convite/$token'
@@ -694,6 +755,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicacoesRevistasIdRouteImport
       parentRoute: typeof PublicacoesRevistasRoute
     }
+    '/lovable/email/suppression': {
+      id: '/lovable/email/suppression'
+      path: '/lovable/email/suppression'
+      fullPath: '/lovable/email/suppression'
+      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/entidade/acoes/$id': {
       id: '/entidade/acoes/$id'
       path: '/entidade/acoes/$id'
@@ -728,6 +796,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/recursos/$cluster/'
       preLoaderRoute: typeof AuthenticatedRecursosClusterIndexRouteImport
       parentRoute: typeof AuthenticatedRecursosClusterRoute
+    }
+    '/lovable/email/transactional/send': {
+      id: '/lovable/email/transactional/send'
+      path: '/lovable/email/transactional/send'
+      fullPath: '/lovable/email/transactional/send'
+      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
@@ -848,6 +930,7 @@ const rootRouteChildren: RootRouteChildren = {
   ComunicacaoPropriedadeIntelectualRoute:
     ComunicacaoPropriedadeIntelectualRoute,
   ConviteTokenRoute: ConviteTokenRoute,
+  EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   EventoIdRoute: EventoIdRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
@@ -855,11 +938,14 @@ const rootRouteChildren: RootRouteChildren = {
   PublicacoesIpavRoute: PublicacoesIpavRoute,
   PublicacoesRevistasRoute: PublicacoesRevistasRouteWithChildren,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
+  LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiCertificatesActionIdParticipanteIdRoute:
     ApiCertificatesActionIdParticipanteIdRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
+  LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
+  LovableEmailTransactionalSendRoute: LovableEmailTransactionalSendRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
