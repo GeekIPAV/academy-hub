@@ -16,6 +16,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingU, LoadingUInline } from "@/components/LoadingU";
+import { ImprovingBanner } from "@/components/ImprovingBanner";
 
 function NotFoundComponent() {
   return (
