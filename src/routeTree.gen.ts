@@ -20,7 +20,6 @@ import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PublicacoesRevistasRouteImport } from './routes/publicacoes.revistas'
-import { Route as PublicacoesIpavRouteImport } from './routes/publicacoes.ipav'
 import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as EventoIdRouteImport } from './routes/evento.$id'
@@ -105,11 +104,6 @@ const IndexRoute = IndexRouteImport.update({
 const PublicacoesRevistasRoute = PublicacoesRevistasRouteImport.update({
   id: '/publicacoes/revistas',
   path: '/publicacoes/revistas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PublicacoesIpavRoute = PublicacoesIpavRouteImport.update({
-  id: '/publicacoes/ipav',
-  path: '/publicacoes/ipav',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PublicacoesBibliotecaRoute = PublicacoesBibliotecaRouteImport.update({
@@ -305,7 +299,6 @@ export interface FileRoutesByFullPath {
   '/evento/$id': typeof EventoIdRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
-  '/publicacoes/ipav': typeof PublicacoesIpavRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
@@ -348,7 +341,6 @@ export interface FileRoutesByTo {
   '/evento/$id': typeof EventoIdRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
-  '/publicacoes/ipav': typeof PublicacoesIpavRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
@@ -393,7 +385,6 @@ export interface FileRoutesById {
   '/evento/$id': typeof EventoIdRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
-  '/publicacoes/ipav': typeof PublicacoesIpavRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
@@ -439,7 +430,6 @@ export interface FileRouteTypes {
     | '/evento/$id'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
-    | '/publicacoes/ipav'
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
@@ -482,7 +472,6 @@ export interface FileRouteTypes {
     | '/evento/$id'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
-    | '/publicacoes/ipav'
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
@@ -526,7 +515,6 @@ export interface FileRouteTypes {
     | '/evento/$id'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
-    | '/publicacoes/ipav'
     | '/publicacoes/revistas'
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
@@ -571,7 +559,6 @@ export interface RootRouteChildren {
   EventoIdRoute: typeof EventoIdRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
-  PublicacoesIpavRoute: typeof PublicacoesIpavRoute
   PublicacoesRevistasRoute: typeof PublicacoesRevistasRouteWithChildren
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
@@ -660,13 +647,6 @@ declare module '@tanstack/react-router' {
       path: '/publicacoes/revistas'
       fullPath: '/publicacoes/revistas'
       preLoaderRoute: typeof PublicacoesRevistasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/publicacoes/ipav': {
-      id: '/publicacoes/ipav'
-      path: '/publicacoes/ipav'
-      fullPath: '/publicacoes/ipav'
-      preLoaderRoute: typeof PublicacoesIpavRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/publicacoes/biblioteca': {
@@ -977,7 +957,6 @@ const rootRouteChildren: RootRouteChildren = {
   EventoIdRoute: EventoIdRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
-  PublicacoesIpavRoute: PublicacoesIpavRoute,
   PublicacoesRevistasRoute: PublicacoesRevistasRouteWithChildren,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
@@ -992,3 +971,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
