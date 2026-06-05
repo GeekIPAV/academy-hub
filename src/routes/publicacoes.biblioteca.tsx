@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   listCategorias,
+  listCategoriasComPublicacoes,
   listPublicacoes,
   proposePublicacao,
   type Publicacao,
