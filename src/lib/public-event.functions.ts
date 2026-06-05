@@ -32,13 +32,19 @@ export interface PublicEventDetails {
 export const getPublicEventDetails = createServerFn({ method: "GET" })
   .inputValidator((input) => identifierSchema.parse(input))
   .handler(async ({ data }): Promise<PublicEventDetails> => {
-    const { data: row, error } = await supabaseAdmin
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        data.identifier,
+      );
+    const query = supabaseAdmin
       .from("acoes")
       .select(
         "id, notion_id, title, description, action_date, registration_status, max_capacity, required_fields",
-      )
-      .eq("notion_id", data.identifier)
-      .maybeSingle();
+      );
+    const { data: row, error } = await (isUuid
+      ? query.eq("id", data.identifier)
+      : query.eq("notion_id", data.identifier)
+    ).maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Evento não encontrado.");
 
