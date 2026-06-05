@@ -13,6 +13,14 @@ async function assertAdmin(userId: string) {
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Acesso restrito.");
 }
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | { [k: string]: JsonValue }
+  | JsonValue[];
+
 
 export type AcaoRow = {
   id: string;
