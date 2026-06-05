@@ -19,9 +19,11 @@ export function useRoles() {
     queryKey: ["roles"],
     queryFn: () => fetcher(),
     enabled: !!user?.id,
-    staleTime: 5 * 60_000,
-    gcTime: 30 * 60_000,
+    staleTime: 15 * 60_000,
+    gcTime: 60 * 60_000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   const roles: RoleRow[] = Array.isArray(query.data) ? (query.data as RoleRow[]) : [];
