@@ -41,10 +41,6 @@ function DashboardPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">
-              A visualizar como{" "}
-              <span className="font-medium text-foreground">{activeRoles.join(" + ")}</span>.
-            </p>
           </div>
           {visible("profile-button") && (
             <Button asChild variant="outline">
