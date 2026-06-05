@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/table";
 import {
   approvePublicacao,
+  bulkCreatePublicacoes,
   deleteCategoria,
   deletePublicacao,
   listAllApprovedPublicacoes,
