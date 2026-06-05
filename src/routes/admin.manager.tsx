@@ -251,8 +251,11 @@ function RolesManager() {
   const qc = useQueryClient();
   const { roles, isLoading } = useRoles();
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+
+
 
   const createFn = useServerFn(createRole);
   const updateFn = useServerFn(updateRole);
