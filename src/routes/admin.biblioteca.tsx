@@ -328,12 +328,12 @@ function CatalogoTab() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Select value={filterCategoria || undefined} onValueChange={setFilterCategoria}>
+        <Select value={filterCategoria || "__all__"} onValueChange={(v) => setFilterCategoria(v === "__all__" ? "" : v)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Todas as categorias" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as categorias</SelectItem>
+            <SelectItem value="__all__">Todas as categorias</SelectItem>
             {categorias.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
             ))}
