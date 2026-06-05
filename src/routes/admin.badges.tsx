@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Award, Pencil, Plus, Trash2, Crop, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
