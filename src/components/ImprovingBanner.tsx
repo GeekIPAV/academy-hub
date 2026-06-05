@@ -16,9 +16,7 @@ export function ImprovingBanner() {
 
   return (
     <div className="mt-8 overflow-hidden rounded-xl border border-[#008DD5]/30 bg-[#E8F4FC] text-[#193B69] shadow-sm">
-      <p className="px-6 pt-4 pb-2 text-center text-base font-semibold">
-        Estamos a melhorar esta página
-      </p>
+      <p className="px-6 pt-4 pb-8 text-center text-base font-semibold">Estamos a melhorar esta página</p>
       <ArchBridge className="block w-full h-32" />
     </div>
   );
@@ -76,8 +74,24 @@ function ArchBridge({ className }: { className?: string }) {
       aria-hidden="true"
     >
       {/* Pilares de apoio */}
-      <rect x="6" y={DECK_EDGE_Y} width="18" height={H - DECK_EDGE_Y - 2} opacity="0.18" fill="currentColor" stroke="none" />
-      <rect x={W - 24} y={DECK_EDGE_Y} width="18" height={H - DECK_EDGE_Y - 2} opacity="0.18" fill="currentColor" stroke="none" />
+      <rect
+        x="6"
+        y={DECK_EDGE_Y}
+        width="18"
+        height={H - DECK_EDGE_Y - 2}
+        opacity="0.18"
+        fill="currentColor"
+        stroke="none"
+      />
+      <rect
+        x={W - 24}
+        y={DECK_EDGE_Y}
+        width="18"
+        height={H - DECK_EDGE_Y - 2}
+        opacity="0.18"
+        fill="currentColor"
+        stroke="none"
+      />
       <line x1="6" y1={DECK_EDGE_Y} x2="6" y2={H - 2} />
       <line x1="24" y1={DECK_EDGE_Y} x2="24" y2={H - 2} />
       <line x1={W - 24} y1={DECK_EDGE_Y} x2={W - 24} y2={H - 2} />
@@ -135,8 +149,20 @@ function ArchBridge({ className }: { className?: string }) {
 
       {/* Secção do tabuleiro em falta (lacuna) */}
       <g opacity="0.55">
-        <line x1={ARCH_RIGHT - 55} y1={deckY(ARCH_RIGHT - 55) - 3} x2={ARCH_RIGHT - 55} y2={deckY(ARCH_RIGHT - 55) + 6} strokeDasharray="2 2" />
-        <line x1={ARCH_RIGHT - 35} y1={deckY(ARCH_RIGHT - 35) - 3} x2={ARCH_RIGHT - 35} y2={deckY(ARCH_RIGHT - 35) + 6} strokeDasharray="2 2" />
+        <line
+          x1={ARCH_RIGHT - 55}
+          y1={deckY(ARCH_RIGHT - 55) - 3}
+          x2={ARCH_RIGHT - 55}
+          y2={deckY(ARCH_RIGHT - 55) + 6}
+          strokeDasharray="2 2"
+        />
+        <line
+          x1={ARCH_RIGHT - 35}
+          y1={deckY(ARCH_RIGHT - 35) - 3}
+          x2={ARCH_RIGHT - 35}
+          y2={deckY(ARCH_RIGHT - 35) + 6}
+          strokeDasharray="2 2"
+        />
       </g>
 
       {/* Andaime / estrutura temporária junto à zona incompleta */}
@@ -220,7 +246,11 @@ function Helmet({ cx, cy }: { cx: number; cy: number }) {
   return (
     <g>
       <line x1={cx - 3} y1={cy + 0.2} x2={cx + 3} y2={cy + 0.2} strokeWidth="1.4" />
-      <path d={`M ${cx - 2.6} ${cy + 0.2} A 2.6 2.4 0 0 1 ${cx + 2.6} ${cy + 0.2} Z`} fill="currentColor" stroke="none" />
+      <path
+        d={`M ${cx - 2.6} ${cy + 0.2} A 2.6 2.4 0 0 1 ${cx + 2.6} ${cy + 0.2} Z`}
+        fill="currentColor"
+        stroke="none"
+      />
     </g>
   );
 }
@@ -242,25 +272,53 @@ function Runner({ deckY, delay, flip = false }: { deckY: (x: number) => number; 
   return (
     <g
       transform={`scale(${scaleX} 1)`}
-      style={{ transformOrigin: "0px 0px", animation: `bob-runner 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}
+      style={{
+        transformOrigin: "0px 0px",
+        animation: `bob-runner 0.4s ease-in-out infinite`,
+        animationDelay: `${delay}s`,
+      }}
     >
       <circle cx="0" cy={headY} r="2.2" fill="currentColor" stroke="none" opacity="0.9" />
       <Helmet cx={0} cy={headY - 2.2} />
       <line x1="-0.5" y1={shoulderY} x2="0.8" y2={hipY} />
 
-      <g style={{ transformOrigin: `0.8px ${hipY}px`, animation: `leg-front 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}>
+      <g
+        style={{
+          transformOrigin: `0.8px ${hipY}px`,
+          animation: `leg-front 0.4s ease-in-out infinite`,
+          animationDelay: `${delay}s`,
+        }}
+      >
         <line x1="0.8" y1={hipY} x2="0.8" y2={feetY} />
       </g>
-      <g style={{ transformOrigin: `0.8px ${hipY}px`, animation: `leg-back 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}>
+      <g
+        style={{
+          transformOrigin: `0.8px ${hipY}px`,
+          animation: `leg-back 0.4s ease-in-out infinite`,
+          animationDelay: `${delay}s`,
+        }}
+      >
         <line x1="0.8" y1={hipY} x2="0.8" y2={feetY} />
       </g>
 
-      <g style={{ transformOrigin: `-0.5px ${shoulderY}px`, animation: `arm-back 0.4s ease-in-out infinite`, animationDelay: `${delay}s` }}>
+      <g
+        style={{
+          transformOrigin: `-0.5px ${shoulderY}px`,
+          animation: `arm-back 0.4s ease-in-out infinite`,
+          animationDelay: `${delay}s`,
+        }}
+      >
         <line x1="-0.5" y1={shoulderY} x2="3" y2={shoulderY + 3} />
         <line x1="3" y1={shoulderY + 3} x2="5" y2={shoulderY + 1} strokeWidth="0.8" />
         <rect x="4.4" y={shoulderY + 0.2} width="2" height="1.6" fill="currentColor" stroke="none" />
       </g>
-      <g style={{ transformOrigin: `-0.5px ${shoulderY}px`, animation: `arm-back 0.4s ease-in-out infinite reverse`, animationDelay: `${delay}s` }}>
+      <g
+        style={{
+          transformOrigin: `-0.5px ${shoulderY}px`,
+          animation: `arm-back 0.4s ease-in-out infinite reverse`,
+          animationDelay: `${delay}s`,
+        }}
+      >
         <line x1="-0.5" y1={shoulderY} x2="-2.5" y2={shoulderY + 3} />
       </g>
     </g>
