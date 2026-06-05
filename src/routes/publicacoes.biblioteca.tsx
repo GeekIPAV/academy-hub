@@ -393,16 +393,6 @@ function PublicacaoDetailsDialog({
                 <dd className="whitespace-pre-wrap text-foreground">{p.summary}</dd>
               </div>
             )}
-            {p.link && (
-              <div>
-                <dt className="text-xs uppercase tracking-wide text-muted-foreground">Link</dt>
-                <dd className="break-all text-foreground">
-                  <a href={p.link} target="_blank" rel="noreferrer" className="text-primary hover:underline">
-                    {p.link}
-                  </a>
-                </dd>
-              </div>
-            )}
           </dl>
         </div>
         <DialogFooter>
