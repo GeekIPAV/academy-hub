@@ -267,3 +267,68 @@ export const deleteCategoria = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ---------- Bulk add ----------
+
+const bulkRowSchema = z.object({
+  title: z.string().trim().min(1).max(300),
+  author: z.string().trim().max(300).optional().nullable(),
+  summary: z.string().trim().max(4000).optional().nullable(),
+  year: z.number().int().min(1800).max(3000).optional().nullable(),
+  link: z.string().trim().max(1000).optional().nullable(),
+  image_url: z.string().trim().max(1000).optional().nullable(),
+  categoria_name: z.string().trim().max(120).optional().nullable(),
+  is_ipav: z.boolean().optional().default(false),
+});
+
+const bulkSchema = z.object({
+  rows: z.array(bulkRowSchema).min(1).max(500),
+  createMissingCategorias: z.boolean().optional().default(true),
+});
+
+export const bulkCreatePublicacoes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => bulkSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+
+    const { data: cats, error: catErr } = await supabaseAdmin
+      .from("biblioteca_categorias")
+      .select("id, name");
+    if (catErr) throw new Error(catErr.message);
+    const byName = new Map((cats ?? []).map((c) => [c.name.trim().toLowerCase(), c.id]));
+
+    const payload: any[] = [];
+    for (const r of data.rows) {
+      let categoria_id: string | null = null;
+      if (r.categoria_name && r.categoria_name.trim()) {
+        const key = r.categoria_name.trim().toLowerCase();
+        categoria_id = byName.get(key) ?? null;
+        if (!categoria_id && data.createMissingCategorias) {
+          const { data: created, error } = await supabaseAdmin
+            .from("biblioteca_categorias")
+            .insert({ name: r.categoria_name.trim() })
+            .select("id")
+            .single();
+          if (error) throw new Error(error.message);
+          categoria_id = created.id;
+          byName.set(key, created.id);
+        }
+      }
+      payload.push({
+        title: r.title,
+        author: r.author || null,
+        summary: r.summary || null,
+        year: r.year ?? null,
+        link: r.link || null,
+        image_url: r.image_url || null,
+        categoria_id,
+        is_ipav: !!r.is_ipav,
+        status: "aprovado" as const,
+      });
+    }
+
+    const { error } = await supabaseAdmin.from("publicacoes").insert(payload);
+    if (error) throw new Error(error.message);
+    return { ok: true, inserted: payload.length };
+  });
