@@ -15,8 +15,8 @@ export function ImprovingBanner() {
   }
 
   return (
-    <div className="mt-8 overflow-hidden rounded-xl border border-amber-200 bg-amber-50 text-amber-900 shadow-sm">
-      <p className="px-6 pt-4 pb-2 text-base font-semibold">
+    <div className="mt-8 overflow-hidden rounded-xl border border-[#008DD5]/30 bg-[#E8F4FC] text-[#193B69] shadow-sm">
+      <p className="px-6 pt-4 pb-2 text-center text-base font-semibold">
         Estamos a melhorar esta página
       </p>
       <ArchBridge className="block w-full h-32" />
