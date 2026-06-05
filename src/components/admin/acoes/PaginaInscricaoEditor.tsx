@@ -34,6 +34,7 @@ export interface PageBlock {
 export interface PageBackground {
   type: "color" | "image";
   value: string; // hex / css color OR image URL
+  opacity?: number; // 0..1 for image transparency (overlay white)
 }
 
 export interface PageDoc {
