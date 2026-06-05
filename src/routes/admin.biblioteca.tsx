@@ -178,29 +178,47 @@ function CatalogoTab() {
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="mt-3 rounded-lg border border-border bg-card p-4">
-          <PublicacaoForm
-            form={createForm}
-            setForm={setCreateForm}
-            categorias={categorias}
-            tempId={tempCreateId}
-          />
-          <div className="mt-3 flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setCreateForm({ ...emptyForm })}>
-              Limpar
-            </Button>
-            <Button
-              onClick={() => {
-                if (!createForm.title.trim()) {
-                  toast.error("Título obrigatório.");
-                  return;
-                }
-                save.mutate(createForm);
-              }}
-              disabled={save.isPending}
-            >
-              Criar
-            </Button>
-          </div>
+          <Tabs defaultValue="individual">
+            <TabsList>
+              <TabsTrigger value="individual">Individual</TabsTrigger>
+              <TabsTrigger value="bulk">Em massa</TabsTrigger>
+            </TabsList>
+            <TabsContent value="individual" className="mt-4">
+              <PublicacaoForm
+                form={createForm}
+                setForm={setCreateForm}
+                categorias={categorias}
+                tempId={tempCreateId}
+              />
+              <div className="mt-3 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setCreateForm({ ...emptyForm })}>
+                  Limpar
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (!createForm.title.trim()) {
+                      toast.error("Título obrigatório.");
+                      return;
+                    }
+                    save.mutate(createForm);
+                  }}
+                  disabled={save.isPending}
+                >
+                  Criar
+                </Button>
+              </div>
+            </TabsContent>
+            <TabsContent value="bulk" className="mt-4">
+              <BulkAddPanel
+                onDone={() => {
+                  qc.invalidateQueries({ queryKey: ["admin-publicacoes-aprovadas"] });
+                  qc.invalidateQueries({ queryKey: ["publicacoes"] });
+                  qc.invalidateQueries({ queryKey: ["biblioteca-categorias"] });
+                  setCreateOpen(false);
+                }}
+              />
+            </TabsContent>
+          </Tabs>
         </CollapsibleContent>
       </Collapsible>
 
