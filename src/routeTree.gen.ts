@@ -41,6 +41,7 @@ import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 import { Route as AuthenticatedRecursosClusterIndexRouteImport } from './routes/_authenticated/recursos.$cluster.index'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './routes/api/certificates.$actionId.$participanteId'
 import { Route as AuthenticatedRecursosClusterTemaIdRouteImport } from './routes/_authenticated/recursos.$cluster.$temaId'
 
@@ -209,6 +210,12 @@ const AuthenticatedRecursosClusterIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedRecursosClusterRoute,
   } as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiCertificatesActionIdParticipanteIdRoute =
   ApiCertificatesActionIdParticipanteIdRouteImport.update({
     id: '/api/certificates/$actionId/$participanteId',
@@ -255,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/recursos/': typeof AuthenticatedRecursosIndexRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRoutesByTo {
@@ -288,6 +296,7 @@ export interface FileRoutesByTo {
   '/recursos': typeof AuthenticatedRecursosIndexRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRoutesById {
@@ -325,6 +334,7 @@ export interface FileRoutesById {
   '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
   '/_authenticated/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
+  '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRouteTypes {
@@ -362,6 +372,7 @@ export interface FileRouteTypes {
     | '/recursos/'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
+    | '/lovable/email/queue/process'
     | '/recursos/$cluster/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -395,6 +406,7 @@ export interface FileRouteTypes {
     | '/recursos'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
+    | '/lovable/email/queue/process'
     | '/recursos/$cluster'
   id:
     | '__root__'
@@ -431,6 +443,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recursos/'
     | '/_authenticated/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
+    | '/lovable/email/queue/process'
     | '/_authenticated/recursos/$cluster/'
   fileRoutesById: FileRoutesById
 }
@@ -461,6 +474,7 @@ export interface RootRouteChildren {
   PublicacoesRevistasRoute: typeof PublicacoesRevistasRouteWithChildren
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
   ApiCertificatesActionIdParticipanteIdRoute: typeof ApiCertificatesActionIdParticipanteIdRoute
+  LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -689,6 +703,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosClusterIndexRouteImport
       parentRoute: typeof AuthenticatedRecursosClusterRoute
     }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/certificates/$actionId/$participanteId': {
       id: '/api/certificates/$actionId/$participanteId'
       path: '/api/certificates/$actionId/$participanteId'
@@ -796,6 +817,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
   ApiCertificatesActionIdParticipanteIdRoute:
     ApiCertificatesActionIdParticipanteIdRoute,
+  LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
