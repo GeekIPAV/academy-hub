@@ -285,7 +285,7 @@ function AdminEmailsPage() {
               <div
                 className="rounded-md border bg-background p-4 text-sm"
                 dangerouslySetInnerHTML={{
-                  __html: renderPreview(bodyHtml, detail.variables),
+                  __html: sanitizeRichHtml(renderPreview(bodyHtml, detail.variables)),
                 }}
               />
             </CardContent>
