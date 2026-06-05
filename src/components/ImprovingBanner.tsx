@@ -174,13 +174,20 @@ function ArchBridge({ className }: { className?: string }) {
       </g>
 
       <style>{`
+        /* Runners ficam confinados ao tabuleiro (x: 35 → 365) e seguem a curva */
         @keyframes run-right {
-          from { transform: translateX(-30px); }
-          to   { transform: translateX(430px); }
+          0%   { transform: translate(35px, 28px); }
+          25%  { transform: translate(117px, 7px); }
+          50%  { transform: translate(200px, 0px); }
+          75%  { transform: translate(282px, 7px); }
+          100% { transform: translate(365px, 28px); }
         }
         @keyframes run-left {
-          from { transform: translateX(430px); }
-          to   { transform: translateX(-30px); }
+          0%   { transform: translate(365px, 28px); }
+          25%  { transform: translate(282px, 7px); }
+          50%  { transform: translate(200px, 0px); }
+          75%  { transform: translate(117px, 7px); }
+          100% { transform: translate(35px, 28px); }
         }
         @keyframes leg-front {
           0%, 100% { transform: rotate(35deg); }
