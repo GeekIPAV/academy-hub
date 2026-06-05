@@ -332,3 +332,37 @@ export const bulkCreatePublicacoes = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true, inserted: payload.length };
   });
+
+// ---------- Bulk delete / update ----------
+
+const idsSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(500) });
+
+export const bulkDeletePublicacoes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => idsSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { error } = await supabaseAdmin.from("publicacoes").delete().in("id", data.ids);
+    if (error) throw new Error(error.message);
+    return { ok: true, deleted: data.ids.length };
+  });
+
+const bulkUpdateSchema = z.object({
+  ids: z.array(z.string().uuid()).min(1).max(500),
+  categoria_id: z.string().uuid().nullable().optional(),
+  is_ipav: z.boolean().optional(),
+});
+
+export const bulkUpdatePublicacoes = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => bulkUpdateSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const patch: { categoria_id?: string | null; is_ipav?: boolean } = {};
+    if (data.categoria_id !== undefined) patch.categoria_id = data.categoria_id;
+    if (data.is_ipav !== undefined) patch.is_ipav = data.is_ipav;
+    if (Object.keys(patch).length === 0) return { ok: true, updated: 0 };
+    const { error } = await supabaseAdmin.from("publicacoes").update(patch).in("id", data.ids);
+    if (error) throw new Error(error.message);
+    return { ok: true, updated: data.ids.length };
+  });

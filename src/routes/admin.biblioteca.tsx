@@ -43,6 +43,8 @@ import {
 import {
   approvePublicacao,
   bulkCreatePublicacoes,
+  bulkDeletePublicacoes,
+  bulkUpdatePublicacoes,
   deleteCategoria,
   deletePublicacao,
   listAllApprovedPublicacoes,
@@ -53,6 +55,7 @@ import {
   upsertPublicacao,
   type Publicacao,
 } from "@/lib/biblioteca.functions";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/admin/biblioteca")({
   head: () => ({ meta: [{ title: "Gestão da Biblioteca" }] }),
@@ -128,6 +131,61 @@ function CatalogoTab() {
   const [tempCreateId] = useState(() => crypto.randomUUID());
 
   const [editing, setEditing] = useState<typeof emptyForm | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkCategoria, setBulkCategoria] = useState<string>("");
+  const [bulkIpavMode, setBulkIpavMode] = useState<"keep" | "yes" | "no">("keep");
+
+  const bulkDeleteFn = useServerFn(bulkDeletePublicacoes);
+  const bulkUpdateFn = useServerFn(bulkUpdatePublicacoes);
+
+  const allSelected = rows.length > 0 && rows.every((r) => selected.has(r.id));
+  const someSelected = selected.size > 0 && !allSelected;
+  const toggleAll = () => {
+    if (allSelected) setSelected(new Set());
+    else setSelected(new Set(rows.map((r) => r.id)));
+  };
+  const toggleOne = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const bulkDelete = useMutation({
+    mutationFn: (ids: string[]) => bulkDeleteFn({ data: { ids } }),
+    onSuccess: (res) => {
+      toast.success(`${res.deleted} publicação(ões) removida(s).`);
+      setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["admin-publicacoes-aprovadas"] });
+      qc.invalidateQueries({ queryKey: ["publicacoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const bulkUpdate = useMutation({
+    mutationFn: () =>
+      bulkUpdateFn({
+        data: {
+          ids: Array.from(selected),
+          ...(bulkCategoria ? { categoria_id: bulkCategoria === "__clear__" ? null : bulkCategoria } : {}),
+          ...(bulkIpavMode !== "keep" ? { is_ipav: bulkIpavMode === "yes" } : {}),
+        },
+      }),
+    onSuccess: (res) => {
+      toast.success(`${res.updated} publicação(ões) atualizada(s).`);
+      setBulkEditOpen(false);
+      setBulkCategoria("");
+      setBulkIpavMode("keep");
+      setSelected(new Set());
+      qc.invalidateQueries({ queryKey: ["admin-publicacoes-aprovadas"] });
+      qc.invalidateQueries({ queryKey: ["publicacoes"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   const save = useMutation({
     mutationFn: (form: typeof emptyForm) =>
@@ -222,10 +280,41 @@ function CatalogoTab() {
         </CollapsibleContent>
       </Collapsible>
 
+      {selected.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
+          <span className="text-sm">{selected.size} selecionada(s)</span>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => setSelected(new Set())}>Limpar seleção</Button>
+            <Button size="sm" variant="outline" onClick={() => setBulkEditOpen(true)}>
+              <Pencil className="mr-1 h-4 w-4" /> Editar
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => {
+                if (confirm(`Eliminar ${selected.size} publicação(ões)?`)) {
+                  bulkDelete.mutate(Array.from(selected));
+                }
+              }}
+              disabled={bulkDelete.isPending}
+            >
+              <Trash2 className="mr-1 h-4 w-4" /> Apagar
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-lg border border-border">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                  onCheckedChange={toggleAll}
+                  aria-label="Selecionar todas"
+                />
+              </TableHead>
               <TableHead>Título</TableHead>
               <TableHead>Autor</TableHead>
               <TableHead>Categoria</TableHead>
@@ -236,12 +325,19 @@ function CatalogoTab() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground">A carregar…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground">A carregar…</TableCell></TableRow>
             ) : rows.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center text-sm text-muted-foreground">Sem publicações.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground">Sem publicações.</TableCell></TableRow>
             ) : (
               rows.map((p) => (
-                <TableRow key={p.id}>
+                <TableRow key={p.id} data-state={selected.has(p.id) ? "selected" : undefined}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selected.has(p.id)}
+                      onCheckedChange={() => toggleOne(p.id)}
+                      aria-label={`Selecionar ${p.title}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{p.title}</TableCell>
                   <TableCell className="text-muted-foreground">{p.author || "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{p.categoria?.name || "—"}</TableCell>
@@ -285,6 +381,49 @@ function CatalogoTab() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={bulkEditOpen} onOpenChange={setBulkEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar {selected.size} publicação(ões)</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Categoria (opcional)</Label>
+              <Select value={bulkCategoria || undefined} onValueChange={setBulkCategoria}>
+                <SelectTrigger><SelectValue placeholder="Não alterar" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__clear__">— Remover categoria —</SelectItem>
+                  {categorias.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>IPAV</Label>
+              <Select value={bulkIpavMode} onValueChange={(v) => setBulkIpavMode(v as typeof bulkIpavMode)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="keep">Não alterar</SelectItem>
+                  <SelectItem value="yes">Marcar como IPAV</SelectItem>
+                  <SelectItem value="no">Desmarcar IPAV</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBulkEditOpen(false)}>Cancelar</Button>
+            <Button
+              onClick={() => bulkUpdate.mutate()}
+              disabled={bulkUpdate.isPending || (!bulkCategoria && bulkIpavMode === "keep")}
+            >
+              Aplicar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
