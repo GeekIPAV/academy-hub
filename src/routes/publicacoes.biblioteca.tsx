@@ -140,7 +140,7 @@ function BibliotecaPage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_200px_160px]">
+        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_160px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -150,19 +150,6 @@ function BibliotecaPage() {
               className="pl-9"
             />
           </div>
-          <Select value={categoriaId} onValueChange={setCategoriaId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as categorias</SelectItem>
-              {categorias.map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
           <Select value={year} onValueChange={setYear}>
             <SelectTrigger>
               <SelectValue placeholder="Ano" />
