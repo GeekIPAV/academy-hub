@@ -124,6 +124,7 @@ function AdminBadgesPage() {
           <TabsTrigger value="catalogo">Catálogo de Badges</TabsTrigger>
           <TabsTrigger value="utilizadores">Utilizadores Credenciados</TabsTrigger>
           <TabsTrigger value="massa">Atribuição em Massa</TabsTrigger>
+          <TabsTrigger value="auto">Auto por Perfil</TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalogo" className="mt-4">
@@ -134,6 +135,9 @@ function AdminBadgesPage() {
         </TabsContent>
         <TabsContent value="massa" className="mt-4">
           <AtribuicaoMassaTab />
+        </TabsContent>
+        <TabsContent value="auto" className="mt-4">
+          <AutoPorPerfilTab />
         </TabsContent>
       </Tabs>
     </div>
