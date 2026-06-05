@@ -48,28 +48,29 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Formação",
     items: [
-      { path: "/elearning", label: "E-learning", icon: GraduationCap },
-      { path: "/recursos", label: "Centro de Recursos", icon: BookMarked },
+      { path: "/elearning", label: "E-learning", icon: GraduationCap, gated: true },
+      { path: "/recursos", label: "Centro de Recursos", icon: BookMarked, gated: true },
     ],
   },
   {
     label: "Publicações",
     items: [
-      { path: "/publicacoes/revistas", label: "Revistas Científicas", icon: BookOpen },
-      { path: "/publicacoes/ipav", label: "Publicações IPAV", icon: Newspaper },
-      { path: "/publicacoes/biblioteca", label: "Biblioteca", icon: Library },
+      { path: "/publicacoes/revistas", label: "Revistas Científicas", icon: BookOpen, gated: true },
+      { path: "/publicacoes/ipav", label: "Publicações IPAV", icon: Newspaper, gated: true },
+      { path: "/publicacoes/biblioteca", label: "Biblioteca", icon: Library, gated: true },
     ],
   },
   {
-    items: [{ path: "/faqs", label: "FAQs", icon: HelpCircle }],
+    items: [{ path: "/faqs", label: "FAQs", icon: HelpCircle, gated: true }],
   },
   {
     label: "Comunicação",
     items: [
-      { path: "/comunicacao/press-media-kit", label: "Press Media Kit", icon: Megaphone },
-      { path: "/comunicacao/propriedade-intelectual", label: "Propriedade Intelectual", icon: Copyright },
+      { path: "/comunicacao/press-media-kit", label: "Press Media Kit", icon: Megaphone, gated: true },
+      { path: "/comunicacao/propriedade-intelectual", label: "Propriedade Intelectual", icon: Copyright, gated: true },
     ],
   },
+
   {
     label: "Admin",
     adminOnly: true,
