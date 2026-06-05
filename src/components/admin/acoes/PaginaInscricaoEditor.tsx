@@ -214,11 +214,26 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
               />
             </div>
           ) : (
-            <Input
-              value={background.value}
-              onChange={(e) => setBackground({ type: "image", value: e.target.value })}
-              placeholder="URL da imagem de fundo"
-            />
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Button type="button" size="sm" variant="outline" onClick={() => bgFileRef.current?.click()}>
+                  <Upload className="mr-1 h-3.5 w-3.5" /> Carregar
+                </Button>
+                <span className="text-xs text-muted-foreground">ou</span>
+              </div>
+              <Input
+                value={background.value}
+                onChange={(e) => setBackground({ type: "image", value: e.target.value })}
+                placeholder="URL da imagem de fundo"
+              />
+              <input
+                ref={bgFileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleBgFile}
+              />
+            </div>
           )}
         </div>
 
