@@ -3,7 +3,6 @@ import { useApp } from "@/lib/app-context";
 import { WidgetRoadmap } from "@/components/WidgetRoadmap";
 import { Button } from "@/components/ui/button";
 import { BookMarked, User } from "lucide-react";
-import { useIsFormando } from "@/hooks/use-is-formando";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 import { RouteGate } from "@/components/RouteGate";
@@ -29,7 +28,7 @@ function getGreeting(): string {
 
 function DashboardPage() {
   const { activeRoles, isComponentVisible, profile } = useApp();
-  const isFormando = useIsFormando();
+  
   const visible = (id: string) => isComponentVisible("/dashboard", id);
 
   return (
@@ -57,7 +56,7 @@ function DashboardPage() {
           )}
         </div>
       )}
-      {isFormando && visible("recursos-button") && (
+      {visible("recursos-button") && (
         <div className="flex justify-center">
           <Button asChild variant="outline" size="lg">
             <Link to="/recursos">
