@@ -177,7 +177,7 @@ function PublicEventPage() {
             "O email indicado não corresponde ao documento.",
         });
       } else if (res.exists) {
-        setIdentity({ status: "existing", full_name: res.full_name });
+        setIdentity({ status: "existing", full_name: null });
       } else {
         setIdentity({ status: "new" });
       }

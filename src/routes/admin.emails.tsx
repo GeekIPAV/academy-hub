@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { Check, ChevronsUpDown, Mail, RotateCcw, Save } from "lucide-react";
 import {
   listEmailTemplates,
@@ -284,7 +285,7 @@ function AdminEmailsPage() {
               <div
                 className="rounded-md border bg-background p-4 text-sm"
                 dangerouslySetInnerHTML={{
-                  __html: renderPreview(bodyHtml, detail.variables),
+                  __html: sanitizeRichHtml(renderPreview(bodyHtml, detail.variables)),
                 }}
               />
             </CardContent>

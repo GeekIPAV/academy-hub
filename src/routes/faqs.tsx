@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { toast } from "sonner";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -304,7 +305,7 @@ function FaqsPage() {
                       <AccordionContent>
                         <div
                           className="rich-text text-muted-foreground pl-6"
-                          dangerouslySetInnerHTML={{ __html: f.answer }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(f.answer) }}
                         />
                       </AccordionContent>
                     </AccordionItem>
@@ -429,7 +430,7 @@ function SortableFaq({
       </div>
       {open && (
         <div className="px-3 pb-3 pl-16 text-sm text-muted-foreground">
-          <div className="rich-text" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+          <div className="rich-text" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(faq.answer) }} />
         </div>
       )}
     </div>

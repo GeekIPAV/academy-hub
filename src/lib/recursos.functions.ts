@@ -18,11 +18,13 @@ export const getRecursoSignedUrl = createServerFn({ method: "POST" })
     if (idx >= 0) path = path.slice(idx + marker.length);
     path = path.replace(/^\/+/, "");
 
-    // Find the recurso that owns this storage path and verify the caller can access it.
+    // Find the recurso that owns this exact storage path and verify the caller can access it.
+    // Use exact-match against the public URL suffix to avoid LIKE wildcard injection (%/_).
+    const publicSuffix = `/storage/v1/object/public/resources/${path}`;
     const { data: recurso, error: recursoErr } = await supabaseAdmin
       .from("recursos")
-      .select("id")
-      .ilike("file_url", `%${path}%`)
+      .select("id, file_url")
+      .or(`file_url.eq.${path},file_url.eq.${publicSuffix}`)
       .maybeSingle();
     if (recursoErr) throw new Error(recursoErr.message);
     if (!recurso) {

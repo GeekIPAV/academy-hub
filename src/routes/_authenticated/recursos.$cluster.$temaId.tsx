@@ -8,6 +8,7 @@ import { useResourceTypeMap } from "@/hooks/use-resource-types";
 import { useResourceCategoryMap } from "@/hooks/use-resource-categories";
 import { useApp } from "@/lib/app-context";
 import { toast } from "sonner";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import {
   Loader2,
   FileText,
@@ -340,7 +341,7 @@ function EditableField({
     return (
       <div
         className={cn("rich-text", readClassName)}
-        dangerouslySetInnerHTML={{ __html: normalized }}
+        dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(normalized) }}
       />
     );
   }
@@ -375,7 +376,7 @@ function EditableField({
         {initial ? (
           <div
             className={cn("rich-text", readClassName)}
-            dangerouslySetInnerHTML={{ __html: normalized }}
+            dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(normalized) }}
           />
         ) : (
           <p className="text-sm italic text-muted-foreground">{placeholder}</p>
@@ -740,7 +741,7 @@ function BlocoCard({
         {bloco.description && (
           <div
             className="rich-text mt-2 text-sm leading-relaxed text-foreground/90"
-            dangerouslySetInnerHTML={{ __html: bloco.description }}
+            dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(bloco.description) }}
           />
         )}
         {bloco.materials && (
