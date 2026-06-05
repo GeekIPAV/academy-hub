@@ -741,7 +741,7 @@ function BlocoCard({
         {bloco.description && (
           <div
             className="rich-text mt-2 text-sm leading-relaxed text-foreground/90"
-            dangerouslySetInnerHTML={{ __html: bloco.description }}
+            dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(bloco.description) }}
           />
         )}
         {bloco.materials && (
