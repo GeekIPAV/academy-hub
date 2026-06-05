@@ -348,6 +348,16 @@ function CatalogoTab() {
           value={filterYear}
           onChange={(e) => setFilterYear(e.target.value)}
         />
+        <Select value={filterIpav} onValueChange={setFilterIpav}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas (IPAV)</SelectItem>
+            <SelectItem value="yes">Só IPAV</SelectItem>
+            <SelectItem value="no">Só não-IPAV</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={sort} onValueChange={setSort}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
