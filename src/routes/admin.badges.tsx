@@ -847,7 +847,7 @@ function AutoPorPerfilTab() {
 
   const reload = async () => {
     setLoading(true);
-    const { supabase } = await import("@/integrations/supabase/client");
+    
     const { data, error } = await supabase
       .from("badge_role_auto_grant" as any)
       .select("id, badge_id, role_name")
@@ -857,14 +857,14 @@ function AutoPorPerfilTab() {
     setLoading(false);
   };
 
-  useMemo(() => { reload(); }, []);
+  useEffect(() => { reload(); }, []);
 
   const add = async () => {
     if (!badgeId || !roleName) {
       toast.error("Seleciona um badge e um perfil");
       return;
     }
-    const { supabase } = await import("@/integrations/supabase/client");
+    
     const { error } = await supabase
       .from("badge_role_auto_grant" as any)
       .insert({ badge_id: badgeId, role_name: roleName } as any);
@@ -875,7 +875,7 @@ function AutoPorPerfilTab() {
   };
 
   const remove = async (id: string) => {
-    const { supabase } = await import("@/integrations/supabase/client");
+    
     const { error } = await supabase.from("badge_role_auto_grant" as any).delete().eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Regra removida");
