@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
@@ -16,10 +16,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Bold, GripVertical, ImagePlus, Italic, List, ListOrdered, Trash2 } from "lucide-react";
+import { Bold, GripVertical, ImagePlus, Italic, List, ListOrdered, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 import type { JsonValue } from "@/lib/admin-acoes-gestao.functions";
+import { toast } from "sonner";
 
 export interface PageBlock {
   id: string;
