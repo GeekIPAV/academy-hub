@@ -57,7 +57,7 @@ function DashboardPage() {
           )}
         </div>
       )}
-      {isFormando && visible("recursos-button") && (
+      {visible("recursos-button") && (
         <div className="flex justify-center">
           <Button asChild variant="outline" size="lg">
             <Link to="/recursos">
