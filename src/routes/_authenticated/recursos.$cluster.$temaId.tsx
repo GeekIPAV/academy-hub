@@ -341,7 +341,7 @@ function EditableField({
     return (
       <div
         className={cn("rich-text", readClassName)}
-        dangerouslySetInnerHTML={{ __html: normalized }}
+        dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(normalized) }}
       />
     );
   }
