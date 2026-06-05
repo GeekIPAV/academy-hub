@@ -120,6 +120,7 @@ function CatalogoTab() {
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState<string>("");
   const [filterYear, setFilterYear] = useState<string>("");
+  const [filterIpav, setFilterIpav] = useState<string>("all");
   const [sort, setSort] = useState("title-asc");
   const [sortBy, sortOrder] = sort.split("-") as [string, "asc" | "desc"];
 
