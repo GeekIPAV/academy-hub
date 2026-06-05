@@ -70,6 +70,7 @@ import {
 } from "@/hooks/use-badges";
 import { useClusters } from "@/hooks/use-clusters";
 import { useUsers } from "@/hooks/use-users";
+import { useRoles } from "@/hooks/use-roles";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 export const Route = createFileRoute("/admin/badges")({
