@@ -2,9 +2,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { useApp } from "@/lib/app-context";
 
 /**
- * Banner "Estamos a melhorar esta página" — aparece no final de cada página.
- * Estilo "Notion" (linhas grossas, cantos arredondados).
- * Ponte em construção com gap central, grua e trabalhadores animados.
+ * Banner "Estamos a melhorar esta página" — estilo Notion em construção.
  */
 export function ImprovingBanner() {
   const { isComponentVisible } = useApp();
@@ -15,343 +13,248 @@ export function ImprovingBanner() {
   }
 
   return (
-    <div className="mt-8 overflow-hidden rounded-xl border border-[#008DD5]/30 bg-[#E8F4FC] text-[#193B69] shadow-sm">
-      <p className="px-6 pt-4 pb-8 text-center text-base font-semibold">Estamos a melhorar esta página</p>
-      <ArchBridge className="block w-full h-32" />
+    <div className="mt-8 overflow-hidden rounded-xl border border-[#008DD5]/20 bg-[#E8F4FC] text-[#193B69] shadow-sm">
+      <p className="px-6 pt-6 pb-12 text-center text-base font-semibold tracking-wide">
+        Estamos a melhorar esta página
+      </p>
+      <ConstructionBridge className="block w-full h-auto max-h-40" />
     </div>
   );
 }
 
-/* ----------------------------- Bridge ----------------------------- */
+/* ----------------------------- Desenho da Ponte ----------------------------- */
 
-function ArchBridge({ className }: { className?: string }) {
-  const W = 400;
-  const H = 100;
-  const DECK_EDGE_Y = 70;
-  const DECK_PEAK_Y = 42;
-  const ARCH_PEAK_Y = 8;
-  const ARCH_LEFT = 30;
-  const ARCH_RIGHT = 370;
-
-  // Curvas
-  const deckY = (x: number) => {
-    const t = (x - ARCH_LEFT) / (ARCH_RIGHT - ARCH_LEFT);
-    const tt = Math.max(0, Math.min(1, t));
-    return DECK_EDGE_Y + (DECK_PEAK_Y - DECK_EDGE_Y) * (4 * tt * (1 - tt));
-  };
-  const archY = (x: number) => {
-    const t = (x - ARCH_LEFT) / (ARCH_RIGHT - ARCH_LEFT);
-    const tt = Math.max(0, Math.min(1, t));
-    return DECK_EDGE_Y + (ARCH_PEAK_Y - DECK_EDGE_Y) * (4 * tt * (1 - tt));
-  };
-
-  const deckPath = `M ${ARCH_LEFT} ${DECK_EDGE_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * DECK_PEAK_Y - DECK_EDGE_Y} ${ARCH_RIGHT} ${DECK_EDGE_Y}`;
-
-  const hangerXs: number[] = [];
-  for (let x = ARCH_LEFT + 18; x < ARCH_RIGHT; x += 22) hangerXs.push(x);
-
-  const h1x = 110;
-  const h2x = 295;
-
+function ConstructionBridge({ className }: { className?: string }) {
   return (
     <svg
-      viewBox={`0 0 ${W} ${H}`}
-      preserveAspectRatio="none"
+      viewBox="0 0 600 180"
       className={className}
       fill="none"
       stroke="currentColor"
-      strokeWidth="2" // Estilo Notion: linhas mais grossas
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <defs>
-        {/* Máscara para criar o buraco no meio da ponte (construção) */}
-        <clipPath id="bridge-gap">
-          <rect x="0" y="0" width="170" height={H} />
-          <rect x="230" y="0" width={W} height={H} />
-        </clipPath>
-      </defs>
-
-      {/* Água (linhas onduladas simplificadas) */}
-      <path
-        d={`M 0 ${H - 8} Q 20 ${H - 12} 40 ${H - 8} T 80 ${H - 8} T 120 ${H - 8} T 160 ${H - 8} T 200 ${H - 8} T 240 ${H - 8} T 280 ${H - 8} T 320 ${H - 8} T 360 ${H - 8} T 400 ${H - 8}`}
-        strokeWidth="1.5"
-        opacity="0.3"
-      />
-      <path
-        d={`M -20 ${H - 3} Q 0 ${H - 7} 20 ${H - 3} T 60 ${H - 3} T 100 ${H - 3} T 140 ${H - 3} T 180 ${H - 3} T 220 ${H - 3} T 260 ${H - 3} T 300 ${H - 3} T 340 ${H - 3} T 380 ${H - 3} T 420 ${H - 3}`}
-        strokeWidth="1.5"
-        opacity="0.2"
-      />
-
-      {/* Pilares de apoio */}
-      <rect
-        x="10"
-        y={DECK_EDGE_Y}
-        width="20"
-        height={H - DECK_EDGE_Y}
-        fill="currentColor"
-        opacity="0.1"
-        stroke="none"
-      />
-      <rect x="10" y={DECK_EDGE_Y} width="20" height={H - DECK_EDGE_Y} />
-      <rect
-        x={W - 30}
-        y={DECK_EDGE_Y}
-        width="20"
-        height={H - DECK_EDGE_Y}
-        fill="currentColor"
-        opacity="0.1"
-        stroke="none"
-      />
-      <rect x={W - 30} y={DECK_EDGE_Y} width="20" height={H - DECK_EDGE_Y} />
-
-      {/* Grupo com a estrutura principal recortada (gap no centro) */}
-      <g clipPath="url(#bridge-gap)">
-        {/* Arco e Tabuleiro */}
-        <path
-          d={`M ${ARCH_LEFT} ${DECK_EDGE_Y} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * ARCH_PEAK_Y - DECK_EDGE_Y} ${ARCH_RIGHT} ${DECK_EDGE_Y}`}
-          strokeWidth="2.5"
-        />
-        <path d={deckPath} strokeWidth="2.5" />
-        <path
-          d={`M ${ARCH_LEFT} ${DECK_EDGE_Y + 4} Q ${(ARCH_LEFT + ARCH_RIGHT) / 2} ${2 * (DECK_PEAK_Y + 4) - (DECK_EDGE_Y + 4)} ${ARCH_RIGHT} ${DECK_EDGE_Y + 4}`}
-          strokeWidth="1.5"
-          opacity="0.6"
-        />
-
-        {/* Suspensores */}
-        {hangerXs.map((x) => {
-          const ay = archY(x);
-          const dy = deckY(x);
-          if (ay >= dy - 2) return null;
-          return <line key={`h-${x}`} x1={x} y1={ay} x2={x} y2={dy} strokeWidth="1.5" />;
-        })}
-
-        {/* Treliça inferior */}
-        {Array.from({ length: 18 }).map((_, i) => {
-          const step = (ARCH_RIGHT - ARCH_LEFT) / 18;
-          const x1 = ARCH_LEFT + i * step;
-          const x2 = x1 + step;
-          if (x2 > ARCH_RIGHT) return null;
-          const y1 = deckY(x1) + 4;
-          const y2 = deckY(x2) + 4;
-          return (
-            <g key={`tru-${i}`} strokeWidth="1.2" opacity="0.5">
-              <line x1={x1} y1={y1} x2={x2} y2={y2 + 8} />
-              <line x1={x2} y1={y2} x2={x1} y2={y1 + 8} />
-            </g>
-          );
-        })}
-      </g>
-
-      {/* Andaimes de suporte ao lado do buraco */}
-      <g strokeWidth="1.5" opacity="0.7">
-        {/* Andaime Esquerdo */}
-        <line x1="160" y1={deckY(160)} x2="160" y2={H - 5} />
-        <line x1="145" y1={deckY(145)} x2="145" y2={H - 5} />
-        <line x1="140" y1="65" x2="165" y2="65" />
-        <line x1="140" y1="80" x2="165" y2="80" />
-        <line x1="145" y1="65" x2="160" y2="80" strokeWidth="1" />
-        <line x1="160" y1="65" x2="145" y2="80" strokeWidth="1" />
-
-        {/* Andaime Direito */}
-        <line x1="240" y1={deckY(240)} x2="240" y2={H - 5} />
-        <line x1="255" y1={deckY(255)} x2="255" y2={H - 5} />
-        <line x1="235" y1="65" x2="260" y2="65" />
-        <line x1="235" y1="80" x2="260" y2="80" />
-        <line x1="240" y1="65" x2="255" y2="80" strokeWidth="1" />
-        <line x1="255" y1="65" x2="240" y2="80" strokeWidth="1" />
-      </g>
-
-      {/* Grua a colocar o pedaço central */}
-      <g strokeWidth="2">
-        <line x1="215" y1="5" x2="215" y2="65" /> {/* Mastro */}
-        <line x1="170" y1="15" x2="235" y2="15" /> {/* Braço */}
-        <line x1="215" y1="30" x2="190" y2="15" strokeWidth="1.5" /> {/* Reforço diagonal */}
-        <line x1="195" y1="15" x2="195" y2="35" strokeWidth="1" strokeDasharray="2 1" /> {/* Cabo */}
-        {/* Peça a ser colocada - quase alinhada com o tabuleiro para os runners passarem */}
-        <path d={`M 170 ${deckY(170) - 2} Q 200 ${deckY(200) - 2} 230 ${deckY(230) - 2}`} strokeWidth="2.5" />
-        <path
-          d={`M 170 ${deckY(170) + 2} Q 200 ${deckY(200) + 2} 230 ${deckY(230) + 2}`}
-          strokeWidth="1.5"
-          opacity="0.6"
-        />
-      </g>
-
-      {/* Materiais na ponte */}
-      <rect x="65" y={deckY(65) - 6} width="12" height="6" fill="currentColor" stroke="none" opacity="0.8" />
-      <rect x="68" y={deckY(68) - 12} width="8" height="6" fill="currentColor" stroke="none" opacity="0.8" />
-
-      {/* 2 Trabalhadores parados a martelar */}
-      <g transform={`translate(${h1x} ${deckY(h1x)})`}>
-        <Hammerer delay={0} />
-      </g>
-      <g transform={`translate(${h2x} ${deckY(h2x)})`}>
-        <Hammerer delay={0.25} flip />
-      </g>
-
-      {/* 3 Trabalhadores a correr */}
-      <g style={{ animation: "run-right 6s linear infinite" }}>
-        <Runner deckY={deckY} delay={0} />
-      </g>
-      <g style={{ animation: "run-left 7s linear infinite", animationDelay: "-1.5s" }}>
-        <Runner deckY={deckY} delay={0.2} flip />
-      </g>
-      <g style={{ animation: "run-right 8s linear infinite", animationDelay: "-3s" }}>
-        <Runner deckY={deckY} delay={0.35} />
-      </g>
-
+      {/* Estilos das Animações */}
       <style>{`
-        @keyframes run-right {
-          0%   { transform: translate(35px, 28px); }
-          25%  { transform: translate(117px, 7px); }
-          50%  { transform: translate(200px, 0px); }
-          75%  { transform: translate(282px, 7px); }
-          100% { transform: translate(365px, 28px); }
+        .anim-hammer {
+          transform-origin: 2px -10px;
+          animation: hammer-swing 0.6s ease-in-out infinite alternate;
         }
-        @keyframes run-left {
-          0%   { transform: translate(365px, 28px); }
-          25%  { transform: translate(282px, 7px); }
-          50%  { transform: translate(200px, 0px); }
-          75%  { transform: translate(117px, 7px); }
-          100% { transform: translate(35px, 28px); }
+        .anim-hammer-delayed {
+          transform-origin: 2px -10px;
+          animation: hammer-swing 0.6s ease-in-out infinite alternate;
+          animation-delay: 0.3s;
         }
-        @keyframes leg-front {
-          0%, 100% { transform: rotate(35deg); }
-          50%      { transform: rotate(-35deg); }
+        .anim-runner-1 {
+          animation: run-left-right 6s linear infinite;
         }
-        @keyframes leg-back {
-          0%, 100% { transform: rotate(-35deg); }
-          50%      { transform: rotate(35deg); }
+        .anim-runner-2 {
+          animation: run-right-left 5s linear infinite;
         }
-        @keyframes arm-back {
-          0%, 100% { transform: rotate(40deg); }
-          50%      { transform: rotate(-40deg); }
+        .anim-crane-load {
+          animation: float-load 3s ease-in-out infinite alternate;
         }
-        @keyframes bob-runner {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-1.5px); }
+        .anim-water {
+          animation: wave-move 4s linear infinite;
         }
+        .leg-l {
+          transform-origin: 0px -4px;
+          animation: stride 0.4s ease-in-out infinite alternate;
+        }
+        .leg-r {
+          transform-origin: 0px -4px;
+          animation: stride 0.4s ease-in-out infinite alternate reverse;
+        }
+
         @keyframes hammer-swing {
-          0%, 100% { transform: rotate(-70deg); }
-          50%      { transform: rotate(20deg); }
+          0% { transform: rotate(-60deg); }
+          100% { transform: rotate(15deg); }
+        }
+        @keyframes stride {
+          0% { transform: rotate(-25deg); }
+          100% { transform: rotate(25deg); }
+        }
+        @keyframes float-load {
+          0% { transform: translateY(0px); }
+          100% { transform: translateY(-5px); }
+        }
+        @keyframes run-left-right {
+          0% { transform: translate(320px, 108px); }
+          100% { transform: translate(450px, 122px); }
+        }
+        @keyframes run-right-left {
+          0% { transform: translate(440px, 122px) scaleX(-1); }
+          100% { transform: translate(310px, 106px) scaleX(-1); }
+        }
+        @keyframes wave-move {
+          0% { strokeDashoffset: 0; }
+          100% { strokeDashoffset: -40; }
         }
       `}</style>
+
+      {/* Encostas / Pilares Laterais */}
+      <path d="M 0 140 L 40 140 L 40 170 L 0 170 Z" fill="currentColor" opacity="0.1" />
+      <line x1="40" y1="140" x2="40" y2="170" />
+      <path d="M 560 142 L 600 142 L 600 170 L 560 170 Z" fill="currentColor" opacity="0.1" />
+      <line x1="560" y1="142" x2="560" y2="170" />
+
+      {/* Andaimes (Esquerda e Centro) */}
+      <g opacity="0.3" strokeWidth="1.5">
+        {/* Andaime Esquerda */}
+        <line x1="90" y1="120" x2="90" y2="165" />
+        <line x1="120" y1="112" x2="120" y2="165" />
+        <line x1="90" y1="135" x2="120" y2="135" />
+        <line x1="90" y1="150" x2="120" y2="150" />
+        <line x1="90" y1="135" x2="120" y2="150" />
+        <line x1="120" y1="135" x2="90" y2="150" />
+
+        {/* Andaime Centro (Suporte do corte) */}
+        <line x1="240" y1="95" x2="240" y2="165" />
+        <line x1="260" y1="95" x2="260" y2="165" />
+        <line x1="240" y1="115" x2="260" y2="115" />
+        <line x1="240" y1="135" x2="260" y2="135" />
+        <line x1="240" y1="155" x2="260" y2="155" />
+        <line x1="240" y1="115" x2="260" y2="135" />
+        <line x1="260" y1="115" x2="240" y2="135" />
+      </g>
+
+      {/* PONTE ESQUERDA (Em construção) */}
+      <g>
+        <path d="M 40 140 C 100 110, 180 95, 260 95" strokeWidth="3" />
+        <path d="M 40 148 C 100 118, 180 103, 260 103" strokeWidth="1.5" opacity="0.5" />
+        {/* Treliça interna */}
+        <path d="M 45 140 L 65 118 L 95 130 L 125 106 L 165 120 L 205 97 L 245 108" opacity="0.4" strokeWidth="1.5" />
+        {/* Arco superior esquerdo */}
+        <path d="M 40 140 C 90 90, 170 65, 260 65" strokeWidth="3" />
+        {/* Linhas verticais de união */}
+        <line x1="90" y1="114" x2="90" y2="82" opacity="0.4" />
+        <line x1="140" y1="104" x2="140" y2="72" opacity="0.4" />
+        <line x1="190" y1="98" x2="190" y2="66" opacity="0.4" />
+        <line x1="240" y1="95" x2="240" y2="65" opacity="0.4" />
+        {/* Fim do corte abrupto da estrutura */}
+        <line x1="260" y1="65" x2="260" y2="95" strokeDasharray="3 3" />
+      </g>
+
+      {/* PONTE DIREITA (Em construção) */}
+      <g>
+        <path d="M 310 105 C 390 105, 480 115, 560 142" strokeWidth="3" />
+        <path d="M 310 113 C 390 113, 480 123, 560 150" strokeWidth="1.5" opacity="0.5" />
+        {/* Treliça interna */}
+        <path d="M 320 113 L 350 105 L 390 118 L 430 109 L 480 125 L 530 116" opacity="0.4" strokeWidth="1.5" />
+        {/* Arco superior direito */}
+        <path d="M 310 68 C 390 68, 480 90, 560 142" strokeWidth="3" />
+        {/* Linhas verticais */}
+        <line x1="350" y1="105" x2="350" y2="70" opacity="0.4" />
+        <line x1="410" y1="106" x2="410" y2="75" opacity="0.4" />
+        <line x1="470" y1="112" x2="470" y2="88" opacity="0.4" />
+        {/* Fim do corte abrupto */}
+        <line x1="310" y1="68" x2="310" y2="105" strokeDasharray="3 3" />
+      </g>
+
+      {/* O GUINDASTE (Estilo minimalista do Notion) */}
+      <g strokeWidth="2.5">
+        {/* Base / Torre */}
+        <path d="M 360 140 L 360 25 L 372 25 L 372 140" fill="currentColor" opacity="0.05" />
+        <line x1="360" y1="25" x2="372" y2="25" />
+        <line x1="360" y1="140" x2="360" y2="25" />
+        <line x1="372" y1="140" x2="372" y2="25" />
+        <path
+          d="M 360 120 L 372 100 M 360 100 L 372 80 M 360 80 L 372 60 M 360 60 L 372 40"
+          strokeWidth="1.5"
+          opacity="0.4"
+        />
+
+        {/* Lança do Guindaste */}
+        <line x1="300" y1="25" x2="440" y2="25" />
+        <line x1="366" y1="25" x2="366" y2="12" />
+        <line x1="300" y1="25" x2="366" y2="12" strokeWidth="1.5" />
+        <line x1="400" y1="25" x2="366" y2="12" strokeWidth="1.5" />
+
+        {/* Cabo e Carga Suspensa Animada */}
+        <g class="anim-crane-load">
+          <line x1="325" y1="25" x2="325" y2="60" strokeWidth="1.5" />
+          <circle cx="325" cy="62" r="2" fill="currentColor" />
+          {/* Peça de ponte a ser encaixada */}
+          <path d="M 295 68 L 355 68" strokeWidth="4" />
+          <path d="M 300 68 L 315 76 L 335 68 L 350 76" strokeWidth="1.5" opacity="0.6" />
+        </g>
+      </g>
+
+      {/* Tijolos / Materiais empilhados */}
+      <g opacity="0.7" strokeWidth="1.5">
+        <rect x="105" y="103" width="12" height="6" rx="1" fill="currentColor" />
+        <rect x="118" y="101" width="12" height="6" rx="1" fill="currentColor" />
+        <rect x="110" y="95" width="12" height="6" rx="1" fill="currentColor" />
+      </g>
+
+      {/* TRABALHADORES ANIMADOS */}
+
+      {/* Trabalhador 1: Esquerda, a martelar */}
+      <g transform="translate(150, 102)">
+        <circle cx="0" cy="-14" r="3.5" fill="currentColor" />
+        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="currentColor" /> {/* Capacete */}
+        <line x1="0" y1="-11" x2="0" y2="-3" strokeWidth="2.5" /> {/* Corpo */}
+        <line x1="0" y1="-3" x2="-4" y2="5" strokeWidth="2.5" /> {/* Pernas */}
+        <line x1="0" y1="-3" x2="4" y2="5" strokeWidth="2.5" />
+        {/* Braço com Martelo Animado */}
+        <g class="anim-hammer">
+          <line x1="0" y1="-9" x2="6" y2="-11" strokeWidth="2" />
+          <path d="M 5 -15 L 9 -13 L 8 -11 L 4 -13 Z" fill="currentColor" /> {/* Martelo */}
+        </g>
+      </g>
+
+      {/* Trabalhador 2: Centro-Esquerda, a martelar invertido */}
+      <g transform="translate(210, 96)">
+        <circle cx="0" cy="-14" r="3.5" fill="currentColor" />
+        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="currentColor" />
+        <line x1="0" y1="-11" x2="0" y2="-3" strokeWidth="2.5" />
+        <line x1="0" y1="-3" x2="-3" y2="5" strokeWidth="2.5" />
+        <line x1="0" y1="-3" x2="3" y2="5" strokeWidth="2.5" />
+        <g class="anim-hammer-delayed">
+          <line x1="0" y1="-9" x2="-6" y2="-11" strokeWidth="2" />
+          <path d="M -5 -15 L -9 -13 L -8 -11 L -4 -13 Z" fill="currentColor" />
+        </g>
+      </g>
+
+      {/* Trabalhador 3: Direita, a correr (Looping) */}
+      <g class="anim-runner-1">
+        <circle cx="0" cy="-14" r="3.5" fill="currentColor" />
+        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="currentColor" />
+        <line x1="0" y1="-11" x2="1" y2="-4" strokeWidth="2.5" />
+        {/* Pernas em passada */}
+        <line x1="1" y1="-4" x2="-3" y2="4" class="leg-l" strokeWidth="2.5" />
+        <line x1="1" y1="-4" x2="5" y2="4" class="leg-r" strokeWidth="2.5" />
+        {/* Braços correndo */}
+        <line x1="1" y1="-9" x2="-4" y2="-5" strokeWidth="2" />
+        <line x1="1" y1="-9" x2="5" y2="-6" strokeWidth="2" />
+      </g>
+
+      {/* Trabalhador 4: Direita, a correr noutra direção (Looping) */}
+      <g class="anim-runner-2">
+        <circle cx="0" cy="-14" r="3.5" fill="currentColor" />
+        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="currentColor" />
+        <line x1="0" y1="-11" x2="1" y2="-4" strokeWidth="2.5" />
+        <line x1="1" y1="-4" x2="-4" y2="4" class="leg-l" strokeWidth="2.5" />
+        <line x1="1" y1="-4" x2="4" y2="4" class="leg-r" strokeWidth="2.5" />
+        <line x1="1" y1="-9" x2="-3" y2="-4" strokeWidth="2" />
+        {/* Segurando um plano/papel técnico */}
+        <path d="M 2 -8 L 7 -12 L 10 -7 L 5 -3 Z" fill="currentColor" opacity="0.2" />
+        <line x1="1" y1="-9" x2="6" y2="-7" strokeWidth="2" />
+      </g>
+
+      {/* Água em movimento constante */}
+      <g class="anim-water" strokeDasharray="20 15">
+        <path
+          d="M -40 166 Q -20 163, 0 166 T 40 166 T 80 166 T 120 166 T 160 166 T 200 166 T 240 166 T 280 166 T 320 166 T 360 166 T 400 166 T 440 166 T 480 166 T 520 166 T 560 166 T 600 166 T 640 166"
+          opacity="0.4"
+        />
+        <path
+          d="M -20 171 Q 0 169, 20 171 T 60 171 T 100 171 T 140 171 T 180 171 T 220 171 T 260 171 T 300 171 T 340 171 T 380 171 T 420 171 T 460 171 T 500 171 T 540 171 T 580 171 T 620 171"
+          opacity="0.2"
+        />
+      </g>
     </svg>
-  );
-}
-
-/* ----------------------------- Worker bits ----------------------------- */
-
-function Helmet({ cx, cy }: { cx: number; cy: number }) {
-  return (
-    <g>
-      <line x1={cx - 3.5} y1={cy + 0.5} x2={cx + 3.5} y2={cy + 0.5} strokeWidth="1.5" />
-      <path d={`M ${cx - 3} ${cy + 0.5} A 3 2.8 0 0 1 ${cx + 3} ${cy + 0.5} Z`} fill="currentColor" stroke="none" />
-    </g>
-  );
-}
-
-/* ----------------------------- Runner ----------------------------- */
-
-function Runner({ deckY, delay, flip = false }: { deckY: (x: number) => number; delay: number; flip?: boolean }) {
-  const baseY = deckY(200);
-  const feetY = baseY;
-  const hipY = feetY - 7;
-  const shoulderY = hipY - 4;
-  const headY = shoulderY - 3;
-  const scaleX = flip ? -1 : 1;
-
-  return (
-    <g
-      transform={`scale(${scaleX} 1)`}
-      style={{
-        transformOrigin: "0px 0px",
-        animation: `bob-runner 0.4s ease-in-out infinite`,
-        animationDelay: `${delay}s`,
-      }}
-      strokeWidth="1.8" // Corpo mais preenchido
-    >
-      <circle cx="0" cy={headY} r="2.5" fill="none" stroke="currentColor" />
-      <Helmet cx={0} cy={headY - 2.5} />
-      <line x1="-0.5" y1={shoulderY} x2="0.8" y2={hipY} />
-
-      <g
-        style={{
-          transformOrigin: `0.8px ${hipY}px`,
-          animation: `leg-front 0.4s ease-in-out infinite`,
-          animationDelay: `${delay}s`,
-        }}
-      >
-        <line x1="0.8" y1={hipY} x2="0.8" y2={feetY} />
-      </g>
-      <g
-        style={{
-          transformOrigin: `0.8px ${hipY}px`,
-          animation: `leg-back 0.4s ease-in-out infinite`,
-          animationDelay: `${delay}s`,
-        }}
-      >
-        <line x1="0.8" y1={hipY} x2="0.8" y2={feetY} />
-      </g>
-
-      <g
-        style={{
-          transformOrigin: `-0.5px ${shoulderY}px`,
-          animation: `arm-back 0.4s ease-in-out infinite`,
-          animationDelay: `${delay}s`,
-        }}
-      >
-        <line x1="-0.5" y1={shoulderY} x2="3" y2={shoulderY + 3} />
-        <line x1="3" y1={shoulderY + 3} x2="5" y2={shoulderY + 1} strokeWidth="1.2" />
-        <rect x="4.4" y={shoulderY + 0.2} width="2.5" height="2" fill="currentColor" stroke="none" />
-      </g>
-      <g
-        style={{
-          transformOrigin: `-0.5px ${shoulderY}px`,
-          animation: `arm-back 0.4s ease-in-out infinite reverse`,
-          animationDelay: `${delay}s`,
-        }}
-      >
-        <line x1="-0.5" y1={shoulderY} x2="-2.5" y2={shoulderY + 3} />
-      </g>
-    </g>
-  );
-}
-
-/* ----------------------------- Hammerer ----------------------------- */
-
-function Hammerer({ delay, flip = false }: { delay: number; flip?: boolean }) {
-  const feetY = 0;
-  const hipY = feetY - 9;
-  const shoulderY = hipY - 5;
-  const headY = shoulderY - 3;
-  const scaleX = flip ? -1 : 1;
-
-  return (
-    <g transform={`scale(${scaleX} 1)`} style={{ transformOrigin: "0px 0px" }} strokeWidth="1.8">
-      <line x1="-1.5" y1={hipY} x2="-1.5" y2={feetY} />
-      <line x1="1.5" y1={hipY} x2="1.5" y2={feetY} />
-      <line x1="0" y1={hipY} x2="0" y2={shoulderY} />
-      <circle cx="0" cy={headY} r="2.5" fill="none" stroke="currentColor" />
-      <Helmet cx={0} cy={headY - 2.5} />
-
-      <line x1="0" y1={shoulderY} x2="3" y2={shoulderY + 4} />
-
-      <g
-        style={{
-          transformOrigin: `0px ${shoulderY}px`,
-          animation: `hammer-swing 0.7s ease-in-out infinite`,
-          animationDelay: `${delay}s`,
-        }}
-      >
-        <line x1="0" y1={shoulderY} x2="0" y2={shoulderY - 7} strokeWidth="1.2" />
-        <rect x="-2.5" y={shoulderY - 9.5} width="5" height="2.5" fill="currentColor" stroke="none" />
-      </g>
-
-      <line x1="3" y1={feetY - 1} x2="5" y2={feetY - 1} strokeWidth="1" opacity="0.5" />
-    </g>
   );
 }
