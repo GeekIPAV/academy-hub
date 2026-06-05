@@ -33,6 +33,7 @@ import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
+import { Route as AdminBibliotecaRouteImport } from './routes/admin.biblioteca'
 import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
@@ -173,6 +174,11 @@ const AdminEmailsRoute = AdminEmailsRouteImport.update({
   path: '/admin/emails',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminBibliotecaRoute = AdminBibliotecaRouteImport.update({
+  id: '/admin/biblioteca',
+  path: '/admin/biblioteca',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminBadgesRoute = AdminBadgesRouteImport.update({
   id: '/admin/badges',
   path: '/admin/badges',
@@ -286,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
+  '/admin/biblioteca': typeof AdminBibliotecaRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
@@ -328,6 +335,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
+  '/admin/biblioteca': typeof AdminBibliotecaRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
@@ -372,6 +380,7 @@ export interface FileRoutesById {
   '/_authenticated/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
+  '/admin/biblioteca': typeof AdminBibliotecaRoute
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
@@ -417,6 +426,7 @@ export interface FileRouteTypes {
     | '/recursos'
     | '/admin/acoes'
     | '/admin/badges'
+    | '/admin/biblioteca'
     | '/admin/emails'
     | '/admin/governacao'
     | '/admin/manager'
@@ -459,6 +469,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin/acoes'
     | '/admin/badges'
+    | '/admin/biblioteca'
     | '/admin/emails'
     | '/admin/governacao'
     | '/admin/manager'
@@ -502,6 +513,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recursos'
     | '/admin/acoes'
     | '/admin/badges'
+    | '/admin/biblioteca'
     | '/admin/emails'
     | '/admin/governacao'
     | '/admin/manager'
@@ -546,6 +558,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   AdminAcoesRoute: typeof AdminAcoesRoute
   AdminBadgesRoute: typeof AdminBadgesRoute
+  AdminBibliotecaRoute: typeof AdminBibliotecaRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
   AdminGovernacaoRoute: typeof AdminGovernacaoRoute
   AdminManagerRoute: typeof AdminManagerRoute
@@ -738,6 +751,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/emails'
       fullPath: '/admin/emails'
       preLoaderRoute: typeof AdminEmailsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/biblioteca': {
+      id: '/admin/biblioteca'
+      path: '/admin/biblioteca'
+      fullPath: '/admin/biblioteca'
+      preLoaderRoute: typeof AdminBibliotecaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/badges': {
@@ -943,6 +963,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   AdminAcoesRoute: AdminAcoesRoute,
   AdminBadgesRoute: AdminBadgesRoute,
+  AdminBibliotecaRoute: AdminBibliotecaRoute,
   AdminEmailsRoute: AdminEmailsRoute,
   AdminGovernacaoRoute: AdminGovernacaoRoute,
   AdminManagerRoute: AdminManagerRoute,
@@ -971,13 +992,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

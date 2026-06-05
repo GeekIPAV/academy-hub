@@ -330,6 +330,27 @@ export type Database = {
           },
         ]
       }
+      biblioteca_categorias: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cluster_covers: {
         Row: {
           cluster_name: string
@@ -1110,6 +1131,69 @@ export type Database = {
             columns: ["cluster_id"]
             isOneToOne: false
             referencedRelation: "clusters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      publicacoes: {
+        Row: {
+          author: string | null
+          categoria_id: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_ipav: boolean
+          link: string | null
+          proposed_by: string | null
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          author?: string | null
+          categoria_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_ipav?: boolean
+          link?: string | null
+          proposed_by?: string | null
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          author?: string | null
+          categoria_id?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_ipav?: boolean
+          link?: string | null
+          proposed_by?: string | null
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "publicacoes_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "biblioteca_categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "publicacoes_proposed_by_fkey"
+            columns: ["proposed_by"]
+            isOneToOne: false
+            referencedRelation: "utilizadores"
             referencedColumns: ["id"]
           },
         ]
