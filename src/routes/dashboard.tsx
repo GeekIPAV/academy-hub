@@ -6,12 +6,19 @@ import { BookMarked, User } from "lucide-react";
 import { useIsFormando } from "@/hooks/use-is-formando";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
+import { RouteGate } from "@/components/RouteGate";
+
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [{ title: "Dashboard — Academia Ubuntu" }],
   }),
-  component: DashboardPage,
+  component: () => (
+    <RouteGate path="/dashboard">
+      <DashboardPage />
+    </RouteGate>
+  ),
 });
+
 
 function getGreeting(): string {
   const hour = new Date().getHours();

@@ -10,6 +10,8 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { toast } from "sonner";
 import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { RouteGate } from "@/components/RouteGate";
+
 
 export const Route = createFileRoute("/comunicacao/press-media-kit")({
   head: () => ({
@@ -22,8 +24,13 @@ export const Route = createFileRoute("/comunicacao/press-media-kit")({
       },
     ],
   }),
-  component: PressKitPage,
+  component: () => (
+    <RouteGate path="/comunicacao/press-media-kit">
+      <PressKitPage />
+    </RouteGate>
+  ),
 });
+
 
 type PressLink = { label: string; url: string };
 type PageContent = {

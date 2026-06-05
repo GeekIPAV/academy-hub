@@ -9,6 +9,8 @@ import { FilterBar, emptyFilters, type Filters } from "@/components/publications
 import { useArticles } from "@/hooks/use-articles";
 import { tx } from "@/lib/articles-i18n";
 import { usePublicationsI18n } from "@/hooks/use-publications-i18n";
+import { RouteGate } from "@/components/RouteGate";
+
 
 export const Route = createFileRoute("/publicacoes/revistas")({
   head: () => ({
@@ -17,8 +19,13 @@ export const Route = createFileRoute("/publicacoes/revistas")({
       { name: "description", content: "Revista Ubuntu — artigos de ciências sociais e humanas." },
     ],
   }),
-  component: RevistasPage,
+  component: () => (
+    <RouteGate path="/publicacoes/revistas">
+      <RevistasPage />
+    </RouteGate>
+  ),
 });
+
 
 function RevistasPage() {
   const { t, lang } = usePublicationsI18n();
