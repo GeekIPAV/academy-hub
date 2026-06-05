@@ -14,6 +14,14 @@ export interface RequiredField {
   required?: boolean;
 }
 
+type JsonVal =
+  | string
+  | number
+  | boolean
+  | null
+  | { [k: string]: JsonVal }
+  | JsonVal[];
+
 export interface PublicEventDetails {
   id: string;
   notion_id: string | null;
