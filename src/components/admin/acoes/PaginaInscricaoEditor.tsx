@@ -101,12 +101,12 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
 
   async function uploadFile(file: File): Promise<string | null> {
     const path = `pagina-inscricao/${acaoId}/${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage.from("resources").upload(path, file, { upsert: true });
+    const { data, error } = await supabase.storage.from("covers").upload(path, file, { upsert: true });
     if (error) {
       toast.error(error.message);
       return null;
     }
-    const { data: urlData } = supabase.storage.from("resources").getPublicUrl(data.path);
+    const { data: urlData } = supabase.storage.from("covers").getPublicUrl(data.path);
     return urlData.publicUrl;
   }
 
