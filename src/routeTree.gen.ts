@@ -32,6 +32,7 @@ import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicac
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
+import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
@@ -167,6 +168,11 @@ const AdminGovernacaoRoute = AdminGovernacaoRouteImport.update({
   path: '/admin/governacao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminEmailsRoute = AdminEmailsRouteImport.update({
+  id: '/admin/emails',
+  path: '/admin/emails',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminBadgesRoute = AdminBadgesRouteImport.update({
   id: '/admin/badges',
   path: '/admin/badges',
@@ -280,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
+  '/admin/emails': typeof AdminEmailsRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
@@ -321,6 +328,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
+  '/admin/emails': typeof AdminEmailsRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
@@ -364,6 +372,7 @@ export interface FileRoutesById {
   '/_authenticated/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
+  '/admin/emails': typeof AdminEmailsRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
@@ -408,6 +417,7 @@ export interface FileRouteTypes {
     | '/recursos'
     | '/admin/acoes'
     | '/admin/badges'
+    | '/admin/emails'
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
@@ -449,6 +459,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin/acoes'
     | '/admin/badges'
+    | '/admin/emails'
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
@@ -491,6 +502,7 @@ export interface FileRouteTypes {
     | '/_authenticated/recursos'
     | '/admin/acoes'
     | '/admin/badges'
+    | '/admin/emails'
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
@@ -534,6 +546,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   AdminAcoesRoute: typeof AdminAcoesRoute
   AdminBadgesRoute: typeof AdminBadgesRoute
+  AdminEmailsRoute: typeof AdminEmailsRoute
   AdminGovernacaoRoute: typeof AdminGovernacaoRoute
   AdminManagerRoute: typeof AdminManagerRoute
   AdminProgramasRoute: typeof AdminProgramasRoute
@@ -718,6 +731,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/governacao'
       fullPath: '/admin/governacao'
       preLoaderRoute: typeof AdminGovernacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/emails': {
+      id: '/admin/emails'
+      path: '/admin/emails'
+      fullPath: '/admin/emails'
+      preLoaderRoute: typeof AdminEmailsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/badges': {
@@ -923,6 +943,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   AdminAcoesRoute: AdminAcoesRoute,
   AdminBadgesRoute: AdminBadgesRoute,
+  AdminEmailsRoute: AdminEmailsRoute,
   AdminGovernacaoRoute: AdminGovernacaoRoute,
   AdminManagerRoute: AdminManagerRoute,
   AdminProgramasRoute: AdminProgramasRoute,
