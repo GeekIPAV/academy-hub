@@ -517,6 +517,8 @@ function InviteLinksManager() {
   const qc = useQueryClient();
   const { roles } = useRoles();
   const activeRoles = roles.filter((r) => r.is_active);
+  const [collapsed, setCollapsed] = useState(false);
+
 
   const listFn = useServerFn(listInvites);
   const createFn = useServerFn(createInvite);
@@ -634,12 +636,20 @@ function InviteLinksManager() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-        <div>
-          <CardTitle>Links de Convite</CardTitle>
-          <CardDescription>
-            Gera um link partilhável com os perfis que escolheres. Quem aceder cria a própria conta.
-          </CardDescription>
+        <div className="flex items-start gap-2">
+          <CollapseToggle
+            open={!collapsed}
+            onToggle={() => setCollapsed((v) => !v)}
+            label="Links de Convite"
+          />
+          <div>
+            <CardTitle>Links de Convite</CardTitle>
+            <CardDescription>
+              Gera um link partilhável com os perfis que escolheres. Quem aceder cria a própria conta.
+            </CardDescription>
+          </div>
         </div>
+
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
           <DialogTrigger asChild>
             <Button size="sm">
