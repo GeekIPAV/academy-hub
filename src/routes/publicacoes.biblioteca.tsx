@@ -68,6 +68,7 @@ function BibliotecaPage() {
   const [search, setSearch] = useState("");
   const [categoriaId, setCategoriaId] = useState<string>("all");
   const [year, setYear] = useState<string>("all");
+  const [sort, setSort] = useState<string>("title-asc");
 
   const listFn = useServerFn(listPublicacoes);
   const categoriasFn = useServerFn(listCategorias);
@@ -78,16 +79,20 @@ function BibliotecaPage() {
   });
 
   const { data: publicacoes = [], isLoading } = useQuery({
-    queryKey: ["publicacoes", tab, categoriaId, year, search],
-    queryFn: () =>
-      listFn({
+    queryKey: ["publicacoes", tab, categoriaId, year, search, sort],
+    queryFn: () => {
+      const [sortBy, sortOrder] = sort.split("-") as ["title" | "author" | "year", "asc" | "desc"];
+      return listFn({
         data: {
           tab,
           categoriaId: categoriaId === "all" ? null : categoriaId,
           year: year === "all" ? null : Number(year),
           search,
+          sortBy,
+          sortOrder,
         },
-      }),
+      });
+    },
   });
 
   const years = useMemo(() => {
