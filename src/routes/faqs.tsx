@@ -305,7 +305,7 @@ function FaqsPage() {
                       <AccordionContent>
                         <div
                           className="rich-text text-muted-foreground pl-6"
-                          dangerouslySetInnerHTML={{ __html: f.answer }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(f.answer) }}
                         />
                       </AccordionContent>
                     </AccordionItem>
