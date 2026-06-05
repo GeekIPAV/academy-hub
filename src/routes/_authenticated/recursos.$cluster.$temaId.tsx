@@ -8,6 +8,7 @@ import { useResourceTypeMap } from "@/hooks/use-resource-types";
 import { useResourceCategoryMap } from "@/hooks/use-resource-categories";
 import { useApp } from "@/lib/app-context";
 import { toast } from "sonner";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import {
   Loader2,
   FileText,
