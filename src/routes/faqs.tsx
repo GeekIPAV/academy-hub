@@ -49,6 +49,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, Plus, Pencil, Trash2, Save, Loader2, X } from "lucide-react";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { RouteGate } from "@/components/RouteGate";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 
 const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
@@ -225,6 +226,7 @@ function FaqsPage() {
 
   return (
     <div className="container mx-auto max-w-3xl p-6 space-y-6">
+      <ComponentAccessMatrix pagePath="/faqs" />
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">FAQs</h1>

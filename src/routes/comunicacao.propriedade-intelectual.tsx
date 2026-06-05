@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { toast } from "sonner";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 
 export const Route = createFileRoute("/comunicacao/propriedade-intelectual")({
@@ -100,6 +101,7 @@ function PropriedadeIntelectualPage() {
 
   return (
     <div className="mx-auto max-w-3xl py-4 space-y-12">
+      <ComponentAccessMatrix pagePath="/comunicacao/propriedade-intelectual" />
       <div className="flex items-start justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">
           {content.title}
