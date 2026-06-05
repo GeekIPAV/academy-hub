@@ -55,19 +55,19 @@ export const listAcoesFull = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("acoes")
       .select(
-        "id, title, description, category, action_date, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, tshirt_tracking_link, tshirt_value, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, programas(title), entidades(nome)",
+        "id, title, description, category, action_date, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, tshirt_tracking_link, tshirt_value, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, programas(title), entidades(name)",
       )
       .order("action_date", { ascending: false, nullsFirst: false })
       .limit(1000);
     if (error) throw new Error(error.message);
     return (data ?? []).map((r: Record<string, unknown>): AcaoRow => {
       const programa = r.programas as { title?: string | null } | null;
-      const entidade = r.entidades as { nome?: string | null } | null;
+      const entidade = r.entidades as { name?: string | null } | null;
       const { programas: _p, entidades: _e, ...rest } = r;
       return {
         ...(rest as Omit<AcaoRow, "programa_title" | "entidade_nome">),
         programa_title: programa?.title ?? null,
-        entidade_nome: entidade?.nome ?? null,
+        entidade_nome: entidade?.name ?? null,
       };
     });
   });
