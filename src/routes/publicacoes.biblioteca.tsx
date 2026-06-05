@@ -198,7 +198,7 @@ function BibliotecaPage() {
             onClick={() => setCategoriaId("all")}
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
               categoriaId === "all"
-                ? "bg-primary text-primary-foreground"
+                ? "bg-secondary text-secondary-foreground"
                 : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
             }`}
           >
@@ -211,7 +211,7 @@ function BibliotecaPage() {
               onClick={() => setCategoriaId(c.id)}
               className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                 categoriaId === c.id
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-secondary text-secondary-foreground"
                   : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
               }`}
             >
