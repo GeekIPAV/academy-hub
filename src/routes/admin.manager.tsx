@@ -308,12 +308,20 @@ function RolesManager() {
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-        <div>
-          <CardTitle>Perfis de Utilizador</CardTitle>
-          <CardDescription>
-            Cria novos perfis para depois definir, na matriz abaixo, o que cada um pode ver.
-          </CardDescription>
+        <div className="flex items-start gap-2">
+          <CollapseToggle
+            open={!collapsed}
+            onToggle={() => setCollapsed((v) => !v)}
+            label="Perfis de Utilizador"
+          />
+          <div>
+            <CardTitle>Perfis de Utilizador</CardTitle>
+            <CardDescription>
+              Cria novos perfis para depois definir, na matriz abaixo, o que cada um pode ver.
+            </CardDescription>
+          </div>
         </div>
+
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm">
@@ -364,7 +372,9 @@ function RolesManager() {
           </DialogContent>
         </Dialog>
       </CardHeader>
-      <CardContent>
+      {!collapsed && (
+        <CardContent>
+
         {isLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-10 w-full" />
