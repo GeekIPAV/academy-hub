@@ -29,8 +29,15 @@ export interface PageBlock {
   alt?: string;
 }
 
+export interface PageBackground {
+  type: "color" | "image";
+  value: string; // hex / css color OR image URL
+}
+
 export interface PageDoc {
   blocks: PageBlock[];
+  title?: string;
+  background?: PageBackground;
 }
 
 function isPageDoc(v: unknown): v is PageDoc {
@@ -49,6 +56,7 @@ export function loadDoc(value: JsonValue | null | undefined): PageDoc {
     ],
   };
 }
+
 
 function cryptoRandom() {
   return Math.random().toString(36).slice(2, 10);
