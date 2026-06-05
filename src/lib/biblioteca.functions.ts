@@ -142,17 +142,40 @@ export const listPendingPublicacoes = createServerFn({ method: "GET" })
     return (data ?? []).map((r) => ({ ...r, proposed_by_name: r.proposed_by ? names[r.proposed_by] ?? null : null })) as Publicacao[];
   });
 
-export const listAllApprovedPublicacoes = createServerFn({ method: "GET" })
+const adminListSchema = z.object({
+  categoriaId: z.string().uuid().nullable().optional(),
+  year: z.number().int().min(1800).max(3000).nullable().optional(),
+  search: z.string().max(200).optional(),
+  sortBy: z.enum(["title", "author", "year"]).optional().default("title"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
+});
+
+export const listAllApprovedPublicacoes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<Publicacao[]> => {
+  .inputValidator((input) => adminListSchema.parse(input ?? {}))
+  .handler(async ({ data, context }): Promise<Publicacao[]> => {
     await assertAdmin(context.userId);
-    const { data, error } = await supabaseAdmin
+    let q = supabaseAdmin
       .from("publicacoes")
       .select("*, categoria:biblioteca_categorias(id, name)")
-      .eq("status", "aprovado")
-      .order("title");
+      .eq("status", "aprovado");
+    if (data.categoriaId) q = q.eq("categoria_id", data.categoriaId);
+    if (data.year) q = q.eq("year", data.year);
+    if (data.search && data.search.trim()) {
+      const s = data.search.trim().replace(/[%_]/g, "");
+      q = q.or(`title.ilike.%${s}%,author.ilike.%${s}%`);
+    }
+    const ascending = data.sortOrder === "asc";
+    if (data.sortBy === "year") {
+      q = q.order("year", { ascending, nullsFirst: false });
+    } else if (data.sortBy === "author") {
+      q = q.order("author", { ascending, nullsFirst: true });
+    } else {
+      q = q.order("title", { ascending, nullsFirst: true });
+    }
+    const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
-    return (data ?? []) as Publicacao[];
+    return (rows ?? []) as Publicacao[];
   });
 
 const upsertSchema = z.object({
