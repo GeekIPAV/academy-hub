@@ -43,7 +43,7 @@ export type AcaoRow = {
   avaliacao_satisfacao_link: string | null;
   avaliacao_impacto: number | null;
   avaliacao_impacto_link: string | null;
-  conteudo_pagina_inscricao: Record<string, unknown> | null;
+  conteudo_pagina_inscricao: JsonValue | null;
   programa_title?: string | null;
   entidade_nome?: string | null;
 };
