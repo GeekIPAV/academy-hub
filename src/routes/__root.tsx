@@ -177,8 +177,8 @@ function AppShell() {
             </div>
           </header>
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
-            <ImprovingBanner />
             {isRouterLoading ? <InlineLoader /> : <Outlet />}
+            <ImprovingBanner />
           </main>
         </div>
       </div>
