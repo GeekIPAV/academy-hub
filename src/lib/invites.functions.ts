@@ -256,7 +256,7 @@ export const claimInvite = createServerFn({ method: "POST" })
       .upsert({ id: userId }, { onConflict: "id", ignoreDuplicates: true });
 
     // Adiciona as roles do convite sem apagar as existentes (idempotente).
-    // Remove apenas o "Participante" default se passarmos a ter outra role explícita.
+    // Remove apenas o "Utilizador" default se passarmos a ter outra role explícita.
     for (const role of inv.roles as string[]) {
       const { error } = await supabaseAdmin.from("user_roles").insert({
         user_id: userId,
@@ -268,12 +268,12 @@ export const claimInvite = createServerFn({ method: "POST" })
       }
     }
     const invitedRoles = inv.roles as string[];
-    if (invitedRoles.length > 0 && !invitedRoles.includes("Participante")) {
+    if (invitedRoles.length > 0 && !invitedRoles.includes("Utilizador")) {
       await supabaseAdmin
         .from("user_roles")
         .delete()
         .eq("user_id", userId)
-        .eq("role_name", "Participante");
+        .eq("role_name", "Utilizador");
     }
 
     return { ok: true };
