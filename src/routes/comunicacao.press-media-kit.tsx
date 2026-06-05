@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { toast } from "sonner";
 import { ExternalLink, Pencil, Plus, Trash2 } from "lucide-react";
 import { RichTextEditor } from "@/components/rich-text-editor";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { RouteGate } from "@/components/RouteGate";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
