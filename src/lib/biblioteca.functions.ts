@@ -358,7 +358,7 @@ export const bulkUpdatePublicacoes = createServerFn({ method: "POST" })
   .inputValidator((input) => bulkUpdateSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const patch: Record<string, unknown> = {};
+    const patch: { categoria_id?: string | null; is_ipav?: boolean } = {};
     if (data.categoria_id !== undefined) patch.categoria_id = data.categoria_id;
     if (data.is_ipav !== undefined) patch.is_ipav = data.is_ipav;
     if (Object.keys(patch).length === 0) return { ok: true, updated: 0 };
