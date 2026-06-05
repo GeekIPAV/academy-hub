@@ -124,7 +124,7 @@ function BibliotecaPage() {
         </p>
       </header>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as "ipav" | "outras")}>
+      <Tabs value={tab} onValueChange={(v) => { setTab(v as "ipav" | "outras"); setCategoriaId("all"); }}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <TabsList>
             <TabsTrigger value="ipav">Publicações IPAV</TabsTrigger>
