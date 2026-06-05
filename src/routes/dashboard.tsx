@@ -28,7 +28,7 @@ function getGreeting(): string {
 
 function DashboardPage() {
   const { activeRoles, isComponentVisible, profile } = useApp();
-  const isFormando = useIsFormando();
+  
   const visible = (id: string) => isComponentVisible("/dashboard", id);
 
   return (
