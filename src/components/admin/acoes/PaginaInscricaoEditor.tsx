@@ -255,38 +255,6 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
           )}
         </div>
 
-        {/* Pré-visualização */}
-        <div className="relative overflow-hidden rounded-md border" style={previewBgStyle}>
-          {background.type === "image" && bgOpacity < 1 && (
-            <div
-              className="absolute inset-0 bg-white"
-              style={{ opacity: 1 - bgOpacity }}
-            />
-          )}
-          <div className="relative p-6">
-            <div className="mx-auto max-w-md rounded-lg bg-white p-5 shadow-lg">
-              <h3 className="text-center text-base font-bold text-gray-900">
-                {value.title?.trim() || defaultTitle || "Título da página"}
-              </h3>
-              <div className="mt-3 h-px bg-gray-200" />
-              <div className="mt-3 space-y-2">
-                {value.blocks.length === 0 ? (
-                  <p className="text-center text-[11px] text-muted-foreground">Sem conteúdo</p>
-                ) : (
-                  value.blocks.slice(0, 3).map((b) => (
-                    <div key={b.id} className="text-[11px] text-gray-700">
-                      {b.type === "richtext" ? (
-                        <div className="h-2 w-full rounded bg-gray-100" />
-                      ) : (
-                        <div className="h-10 w-full rounded bg-gray-100" />
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <input
