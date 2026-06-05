@@ -29,8 +29,15 @@ export interface PageBlock {
   alt?: string;
 }
 
+export interface PageBackground {
+  type: "color" | "image";
+  value: string; // hex / css color OR image URL
+}
+
 export interface PageDoc {
   blocks: PageBlock[];
+  title?: string;
+  background?: PageBackground;
 }
 
 function isPageDoc(v: unknown): v is PageDoc {
@@ -50,6 +57,7 @@ export function loadDoc(value: JsonValue | null | undefined): PageDoc {
   };
 }
 
+
 function cryptoRandom() {
   return Math.random().toString(36).slice(2, 10);
 }
@@ -57,13 +65,24 @@ function cryptoRandom() {
 interface Props {
   value: PageDoc;
   onChange: (v: PageDoc) => void;
+  defaultTitle?: string;
 }
 
-export function PaginaInscricaoEditor({ value, onChange }: Props) {
+export function PaginaInscricaoEditor({ value, onChange, defaultTitle }: Props) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const background: PageBackground = value.background ?? { type: "color", value: "#ffffff" };
 
   function update(blocks: PageBlock[]) {
     onChange({ ...value, blocks });
+  }
+
+  function setTitle(title: string) {
+    onChange({ ...value, title });
+  }
+
+  function setBackground(bg: PageBackground) {
+    onChange({ ...value, background: bg });
   }
 
   function addRichtext() {
@@ -100,8 +119,87 @@ export function PaginaInscricaoEditor({ value, onChange }: Props) {
     update(arrayMove(value.blocks, oldIdx, newIdx));
   }
 
+  const previewBgStyle =
+    background.type === "image" && background.value
+      ? { backgroundImage: `url(${background.value})`, backgroundSize: "cover", backgroundPosition: "center" }
+      : { backgroundColor: background.value || "#ffffff" };
+
+
   return (
     <div className="space-y-4">
+      {/* Definições da página */}
+      <div className="rounded-md border bg-muted/30 p-4 space-y-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Definições da página
+        </p>
+
+        <div>
+          <label className="mb-1 block text-xs text-muted-foreground">Título</label>
+          <Input
+            value={value.title ?? ""}
+            placeholder={defaultTitle ?? "Título da página"}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Por defeito é usado o nome da ação.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-xs text-muted-foreground">Fundo</label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={background.type === "color" ? "default" : "outline"}
+              onClick={() => setBackground({ type: "color", value: background.type === "color" ? background.value : "#ffffff" })}
+            >
+              Cor
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={background.type === "image" ? "default" : "outline"}
+              onClick={() => setBackground({ type: "image", value: background.type === "image" ? background.value : "" })}
+            >
+              Imagem
+            </Button>
+          </div>
+          {background.type === "color" ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={background.value || "#ffffff"}
+                onChange={(e) => setBackground({ type: "color", value: e.target.value })}
+                className="h-9 w-12 cursor-pointer rounded border bg-background"
+              />
+              <Input
+                value={background.value}
+                onChange={(e) => setBackground({ type: "color", value: e.target.value })}
+                placeholder="#ffffff"
+                className="max-w-[160px]"
+              />
+            </div>
+          ) : (
+            <Input
+              value={background.value}
+              onChange={(e) => setBackground({ type: "image", value: e.target.value })}
+              placeholder="URL da imagem de fundo"
+            />
+          )}
+        </div>
+
+        {/* Pré-visualização do cabeçalho */}
+        <div
+          className="flex h-28 items-center justify-center rounded-md border"
+          style={previewBgStyle}
+        >
+          <h3 className="rounded bg-black/40 px-3 py-1 text-lg font-semibold text-white">
+            {value.title?.trim() || defaultTitle || "Título da página"}
+          </h3>
+        </div>
+      </div>
+
       <div className="flex flex-wrap gap-2">
         <Button type="button" variant="outline" size="sm" onClick={addRichtext}>
           + Parágrafo
@@ -110,6 +208,7 @@ export function PaginaInscricaoEditor({ value, onChange }: Props) {
           <ImagePlus className="mr-1 h-3.5 w-3.5" /> Imagem
         </Button>
       </div>
+
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={value.blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
