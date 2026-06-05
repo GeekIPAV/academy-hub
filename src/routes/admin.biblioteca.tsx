@@ -120,10 +120,11 @@ function CatalogoTab() {
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState<string>("");
   const [filterYear, setFilterYear] = useState<string>("");
+  const [filterIpav, setFilterIpav] = useState<string>("all");
   const [sort, setSort] = useState("title-asc");
   const [sortBy, sortOrder] = sort.split("-") as [string, "asc" | "desc"];
 
-  const { data: rows = [], isLoading } = useQuery({
+  const { data: allRows = [], isLoading } = useQuery({
     queryKey: ["admin-publicacoes-aprovadas", search, filterCategoria, filterYear, sort],
     queryFn: () =>
       listFn({
@@ -136,6 +137,7 @@ function CatalogoTab() {
         },
       }),
   });
+  const rows = filterIpav === "all" ? allRows : allRows.filter((r) => (filterIpav === "yes" ? r.is_ipav : !r.is_ipav));
   const { data: categorias = [] } = useQuery({
     queryKey: ["biblioteca-categorias"],
     queryFn: () => categoriasFn(),
@@ -346,6 +348,16 @@ function CatalogoTab() {
           value={filterYear}
           onChange={(e) => setFilterYear(e.target.value)}
         />
+        <Select value={filterIpav} onValueChange={setFilterIpav}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas (IPAV)</SelectItem>
+            <SelectItem value="yes">Só IPAV</SelectItem>
+            <SelectItem value="no">Só não-IPAV</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={sort} onValueChange={setSort}>
           <SelectTrigger className="w-[180px]">
             <SelectValue />
