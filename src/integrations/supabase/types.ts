@@ -1506,6 +1506,14 @@ export type Database = {
           data_type: string
         }[]
       }
+      user_can_access_cluster: {
+        Args: { _cluster_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_can_access_recurso: {
+        Args: { _recurso_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
