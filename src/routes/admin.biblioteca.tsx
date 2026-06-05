@@ -124,7 +124,7 @@ function CatalogoTab() {
   const [sort, setSort] = useState("title-asc");
   const [sortBy, sortOrder] = sort.split("-") as [string, "asc" | "desc"];
 
-  const { data: rows = [], isLoading } = useQuery({
+  const { data: allRows = [], isLoading } = useQuery({
     queryKey: ["admin-publicacoes-aprovadas", search, filterCategoria, filterYear, sort],
     queryFn: () =>
       listFn({
@@ -137,6 +137,7 @@ function CatalogoTab() {
         },
       }),
   });
+  const rows = filterIpav === "all" ? allRows : allRows.filter((r) => (filterIpav === "yes" ? r.is_ipav : !r.is_ipav));
   const { data: categorias = [] } = useQuery({
     queryKey: ["biblioteca-categorias"],
     queryFn: () => categoriasFn(),
