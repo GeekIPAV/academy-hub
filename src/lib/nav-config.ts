@@ -14,7 +14,7 @@ import {
   Mail,
   Medal,
   Megaphone,
-  Newspaper,
+  
   Shield,
   type LucideIcon,
 } from "lucide-react";
