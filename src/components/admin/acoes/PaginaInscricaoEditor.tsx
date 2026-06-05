@@ -99,6 +99,9 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
     ]);
   }
 
+  const bgFileRef = useRef<HTMLInputElement>(null);
+  const blockFileRef = useRef<HTMLInputElement>(null);
+
   async function uploadFile(file: File): Promise<string | null> {
     const path = `pagina-inscricao/${acaoId}/${Date.now()}-${file.name}`;
     const { data, error } = await supabase.storage.from("covers").upload(path, file, { upsert: true });
@@ -111,21 +114,24 @@ export function PaginaInscricaoEditor({ value, onChange, defaultTitle, acaoId }:
   }
 
   function addImage() {
-    const url = window.prompt("URL da imagem:");
-    if (!url) return;
-    update([...value.blocks, { id: cryptoRandom(), type: "image", url, alt: "" }]);
+    blockFileRef.current?.click();
   }
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, isBackground: boolean) {
+  async function handleBlockFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = await uploadFile(file);
     if (!url) return;
-    if (isBackground) {
-      setBackground({ type: "image", value: url });
-    } else {
-      update([...value.blocks, { id: cryptoRandom(), type: "image", url, alt: "" }]);
-    }
+    update([...value.blocks, { id: cryptoRandom(), type: "image", url, alt: "" }]);
+    e.target.value = "";
+  }
+
+  async function handleBgFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = await uploadFile(file);
+    if (!url) return;
+    setBackground({ type: "image", value: url });
     e.target.value = "";
   }
 
