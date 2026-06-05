@@ -271,7 +271,7 @@ export const deleteCategoria = createServerFn({ method: "POST" })
 // ---------- Bulk add ----------
 
 const bulkRowSchema = z.object({
-  title: z.string().trim().min(1).max(300),
+  title: z.string().trim().min(1).max(1000),
   author: z.string().trim().max(300).optional().nullable(),
   summary: z.string().trim().max(4000).optional().nullable(),
   year: z.number().int().min(1800).max(3000).optional().nullable(),
