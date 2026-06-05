@@ -55,6 +55,33 @@ export const Route = createFileRoute("/admin/manager")({
   component: AdminManagerPage,
 });
 
+/** Botão chevron usado nos cabeçalhos colapsáveis. */
+function CollapseToggle({
+  open,
+  onToggle,
+  label,
+}: {
+  open: boolean;
+  onToggle: () => void;
+  label: string;
+}) {
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onToggle}
+      aria-label={open ? `Colapsar ${label}` : `Expandir ${label}`}
+      aria-expanded={open}
+      className="shrink-0"
+    >
+      <ChevronDown
+        className={`h-4 w-4 transition-transform ${open ? "" : "-rotate-90"}`}
+      />
+    </Button>
+  );
+}
+
+
 function AdminManagerPage() {
   const { isAdmin, isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/admin/manager", id);
