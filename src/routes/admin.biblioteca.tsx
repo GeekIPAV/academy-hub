@@ -117,9 +117,20 @@ function CatalogoTab() {
   const upsertFn = useServerFn(upsertPublicacao);
   const deleteFn = useServerFn(deletePublicacao);
 
+  const [sortBy, sortOrder] = sort.split("-") as [string, "asc" | "desc"];
+
   const { data: rows = [], isLoading } = useQuery({
-    queryKey: ["admin-publicacoes-aprovadas"],
-    queryFn: () => listFn(),
+    queryKey: ["admin-publicacoes-aprovadas", search, filterCategoria, filterYear, sort],
+    queryFn: () =>
+      listFn({
+        data: {
+          search: search || undefined,
+          categoriaId: filterCategoria || null,
+          year: filterYear ? Number(filterYear) : null,
+          sortBy: sortBy as "title" | "author" | "year",
+          sortOrder,
+        },
+      }),
   });
   const { data: categorias = [] } = useQuery({
     queryKey: ["biblioteca-categorias"],
