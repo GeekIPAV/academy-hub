@@ -248,6 +248,38 @@ export type Database = {
         }
         Relationships: []
       }
+      badge_role_auto_grant: {
+        Row: {
+          badge_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          role_name: string
+        }
+        Insert: {
+          badge_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role_name: string
+        }
+        Update: {
+          badge_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "badge_role_auto_grant_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       badges: {
         Row: {
           cluster_id: string

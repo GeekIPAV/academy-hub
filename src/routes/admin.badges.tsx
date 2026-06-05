@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Award, Pencil, Plus, Trash2, Crop, Users } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -124,6 +125,7 @@ function AdminBadgesPage() {
           <TabsTrigger value="catalogo">Catálogo de Badges</TabsTrigger>
           <TabsTrigger value="utilizadores">Utilizadores Credenciados</TabsTrigger>
           <TabsTrigger value="massa">Atribuição em Massa</TabsTrigger>
+          <TabsTrigger value="auto">Auto por Perfil</TabsTrigger>
         </TabsList>
 
         <TabsContent value="catalogo" className="mt-4">
@@ -134,6 +136,9 @@ function AdminBadgesPage() {
         </TabsContent>
         <TabsContent value="massa" className="mt-4">
           <AtribuicaoMassaTab />
+        </TabsContent>
+        <TabsContent value="auto" className="mt-4">
+          <AutoPorPerfilTab />
         </TabsContent>
       </Tabs>
     </div>
@@ -826,6 +831,122 @@ function AtribuicaoMassaTab() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </Card>
+  );
+}
+
+/* ------------------- Auto por Perfil ------------------- */
+
+function AutoPorPerfilTab() {
+  const { data: badges = [] } = useAllBadges();
+  const { roles } = useRoles();
+  const [rows, setRows] = useState<Array<{ id: string; badge_id: string; role_name: string }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [badgeId, setBadgeId] = useState<string>("");
+  const [roleName, setRoleName] = useState<string>("");
+
+  const reload = async () => {
+    setLoading(true);
+    
+    const { data, error } = await supabase
+      .from("badge_role_auto_grant" as any)
+      .select("id, badge_id, role_name")
+      .order("created_at", { ascending: false });
+    if (error) toast.error(error.message);
+    setRows((data as any) ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => { reload(); }, []);
+
+  const add = async () => {
+    if (!badgeId || !roleName) {
+      toast.error("Seleciona um badge e um perfil");
+      return;
+    }
+    
+    const { error } = await supabase
+      .from("badge_role_auto_grant" as any)
+      .insert({ badge_id: badgeId, role_name: roleName } as any);
+    if (error) return toast.error(error.message);
+    toast.success("Regra adicionada");
+    setBadgeId(""); setRoleName("");
+    reload();
+  };
+
+  const remove = async (id: string) => {
+    
+    const { error } = await supabase.from("badge_role_auto_grant" as any).delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    toast.success("Regra removida");
+    reload();
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Auto-atribuição por perfil</CardTitle>
+        <CardDescription>
+          Quando um utilizador receber um perfil aqui listado, recebe automaticamente o badge associado. Aplica-se a novos registos e a futuras atribuições de perfil.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[240px] flex-1">
+            <Label>Badge</Label>
+            <Select value={badgeId} onValueChange={setBadgeId}>
+              <SelectTrigger><SelectValue placeholder="Selecionar badge" /></SelectTrigger>
+              <SelectContent>
+                {badges.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>{b.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-[200px] flex-1">
+            <Label>Perfil</Label>
+            <Select value={roleName} onValueChange={setRoleName}>
+              <SelectTrigger><SelectValue placeholder="Selecionar perfil" /></SelectTrigger>
+              <SelectContent>
+                {roles.map((r) => (
+                  <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={add}><Plus className="h-4 w-4 mr-1" />Adicionar regra</Button>
+        </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Badge</TableHead>
+              <TableHead>Perfil</TableHead>
+              <TableHead className="w-[80px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow><TableCell colSpan={3} className="text-muted-foreground">A carregar...</TableCell></TableRow>
+            ) : rows.length === 0 ? (
+              <TableRow><TableCell colSpan={3} className="text-muted-foreground">Sem regras configuradas.</TableCell></TableRow>
+            ) : rows.map((r) => {
+              const badge = badges.find((b) => b.id === r.badge_id);
+              return (
+                <TableRow key={r.id}>
+                  <TableCell>{badge?.title ?? r.badge_id}</TableCell>
+                  <TableCell>{r.role_name}</TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" onClick={() => remove(r.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </CardContent>
     </Card>
   );
 }
