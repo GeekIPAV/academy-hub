@@ -88,26 +88,26 @@ const verifySchema = z.object({
 
 export interface VerifyIdentityResult {
   exists: boolean;
-  full_name: string | null;
   /** True se o email e o documento existem mas pertencem a contas diferentes. */
   conflict: boolean;
   conflict_message?: string;
 }
 
+const GENERIC_CONFLICT_MESSAGE =
+  "Os dados indicados não correspondem a uma conta única. Inicia sessão com a conta correta ou contacta-nos.";
+
 /**
  * Verifica se já existe um utilizador com este email, NIF ou passaporte.
- * Se qualquer destes existir, marcamos como utilizador existente para
- * forçar unificação numa única conta.
+ * Não devolve PII (nome) para evitar enumeração não autenticada.
  */
 export const verifyPublicUserIdentity = createServerFn({ method: "POST" })
   .inputValidator((input) => verifySchema.parse(input))
   .handler(async ({ data }): Promise<VerifyIdentityResult> => {
     const docColumn = data.doc_type === "nif" ? "nif" : "passport_num";
 
-    // Uma única query: cruza email OR documento.
     const { data: users, error } = await supabaseAdmin
       .from("utilizadores")
-      .select("id, full_name, email, nif, passport_num")
+      .select("id, email, nif, passport_num")
       .or(`email.eq.${data.email},${docColumn}.eq.${data.doc_number}`);
     if (error) throw new Error(error.message);
 
@@ -116,43 +116,36 @@ export const verifyPublicUserIdentity = createServerFn({ method: "POST" })
     if (rows.length > 1) {
       return {
         exists: false,
-        full_name: null,
         conflict: true,
-        conflict_message:
-          "O email e o documento que indicaste já pertencem a contas diferentes. Inicia sessão na conta correta ou contacta-nos.",
+        conflict_message: GENERIC_CONFLICT_MESSAGE,
       };
     }
 
     if (rows.length === 1) {
       const u = rows[0];
-      const emailMatches =
-        (u.email ?? "").toLowerCase() === data.email;
+      const emailMatches = (u.email ?? "").toLowerCase() === data.email;
       const docMatches =
         (u as Record<string, unknown>)[docColumn] === data.doc_number;
-      // Se só bate num campo e o outro está preenchido com valor diferente, é conflito.
       if (emailMatches && !docMatches && (u as Record<string, unknown>)[docColumn]) {
         return {
           exists: false,
-          full_name: null,
           conflict: true,
-          conflict_message:
-            "Este email já está associado a outro documento. Verifica os dados ou faz login.",
+          conflict_message: GENERIC_CONFLICT_MESSAGE,
         };
       }
       if (!emailMatches && docMatches && u.email) {
         return {
           exists: false,
-          full_name: null,
           conflict: true,
-          conflict_message:
-            "Este documento já está associado a outro email. Usa o email correto ou faz login com Google.",
+          conflict_message: GENERIC_CONFLICT_MESSAGE,
         };
       }
-      return { exists: true, full_name: u.full_name, conflict: false };
+      return { exists: true, conflict: false };
     }
 
-    return { exists: false, full_name: null, conflict: false };
+    return { exists: false, conflict: false };
   });
+
 
 
 const enrollForUserSchema = z.object({
