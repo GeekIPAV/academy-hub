@@ -739,7 +739,9 @@ function InviteLinksManager() {
           </DialogContent>
         </Dialog>
       </CardHeader>
-      <CardContent>
+      {!collapsed && (
+        <CardContent>
+
         {invitesQ.isLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-10 w-full" />
@@ -837,7 +839,9 @@ function InviteLinksManager() {
             </TableBody>
           </Table>
         )}
-      </CardContent>
+        </CardContent>
+      )}
+
 
       <Dialog open={editId !== null} onOpenChange={(o) => { if (!o) setEditId(null); }}>
         <DialogContent>
