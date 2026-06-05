@@ -320,6 +320,47 @@ function CatalogoTab() {
         </div>
       )}
 
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="flex-1 min-w-[200px]">
+          <Input
+            placeholder="Pesquisar…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <Select value={filterCategoria || undefined} onValueChange={setFilterCategoria}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Todas as categorias" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="">Todas as categorias</SelectItem>
+            {categorias.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          type="number"
+          placeholder="Ano"
+          className="w-[100px]"
+          value={filterYear}
+          onChange={(e) => setFilterYear(e.target.value)}
+        />
+        <Select value={sort} onValueChange={setSort}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="title-asc">Título ↑</SelectItem>
+            <SelectItem value="title-desc">Título ↓</SelectItem>
+            <SelectItem value="author-asc">Autor ↑</SelectItem>
+            <SelectItem value="author-desc">Autor ↓</SelectItem>
+            <SelectItem value="year-asc">Ano ↑</SelectItem>
+            <SelectItem value="year-desc">Ano ↓</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="rounded-lg border border-border">
         <Table>
           <TableHeader>
