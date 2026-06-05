@@ -1,46 +1,78 @@
-## Problema
+## Objetivo
 
-1. Na sidebar, só 3 itens têm `gated: true` em `src/lib/nav-config.ts` — o resto (`/elearning`, `/recursos`, `/publicacoes/*`, `/faqs`, `/comunicacao/*`) ignora a matriz e mostra-se sempre.
-2. As próprias páginas não bloqueiam acesso direto por URL com base na matriz de rotas.
+Criar `/admin/emails` onde admins escolhem um template de email (auth ou app) numa dropdown com pesquisa, editam o **assunto** e o **corpo** num editor rich-text com chips de variáveis, e guardam. Os emails passam a ser enviados com o conteúdo guardado em base de dados, com fallback para o template por defeito.
 
-## Alteração 1 — Sidebar
+## Pré-requisito: domínio de envio
 
-Em `src/lib/nav-config.ts`, marcar `gated: true` em todos os itens não-admin:
+Antes de o sistema poder enviar emails customizados, é preciso configurar o domínio (ex: `notify.ipav.pt` ou `mail.ipav.pt`) — `app.ipav.pt` é o domínio da app, não serve diretamente como subdomínio de envio delegado.
 
-- `/elearning`, `/recursos`
-- `/publicacoes/revistas`, `/publicacoes/ipav`, `/publicacoes/biblioteca`
-- `/faqs`
-- `/comunicacao/press-media-kit`, `/comunicacao/propriedade-intelectual`
+```text
+<presentation-actions>
+<presentation-open-email-setup>Configurar domínio de email</presentation-open-email-setup>
+</presentation-actions>
+```
 
-O grupo "Admin" mantém `adminOnly: true`.
+Quando confirmares, eu corro o setup da infraestrutura de emails e faço scaffold dos templates auth + app, e só depois construo a UI admin.
 
-## Alteração 2 — Bloqueio de rota
+## Modelo de dados
 
-Criar `src/components/RouteGate.tsx`:
+Nova tabela `email_templates_custom`:
+- `template_key` (PK, ex: `auth.recovery`, `app.inscricao-confirmada`)
+- `kind` (`auth` | `app`)
+- `subject` (text)
+- `body_html` (text — HTML gerado pelo editor)
+- `variables` (jsonb — lista de `{key, label}` disponíveis, ex: `[{key:"nome",label:"Nome"}]`)
+- `updated_by`, timestamps
 
-- Recebe `path: string` e `children`.
-- Usa `useApp()` para ler `canAccess` e `isAdmin`.
-- Se `canAccess(path)` for falso, renderiza o cartão "Acesso restrito" (mesmo padrão visual usado em `entidade.dashboard.tsx`: `Card` + `ShieldAlert` + texto).
-- Caso contrário, renderiza `children`.
-- Admin vê sempre (já coberto pelo `canAccess`).
+RLS: SELECT/UPDATE só admin. Render de email lê via `supabaseAdmin`.
 
-Aplicar `<RouteGate path="/...">` como wrapper do conteúdo nos route files das páginas gated:
+## Templates registados (catálogo)
 
-- `src/routes/elearning.tsx`
-- `src/routes/recursos.tsx`
-- `src/routes/publicacoes.revistas.tsx`
-- `src/routes/publicacoes.ipav.tsx`
-- `src/routes/publicacoes.biblioteca.tsx`
-- `src/routes/faqs.tsx`
-- `src/routes/comunicacao.press-media-kit.tsx`
-- `src/routes/comunicacao.propriedade-intelectual.tsx`
-- `src/routes/dashboard.tsx` e `src/routes/actions.tsx` (já gated na sidebar mas sem guard de rota — bom alinhar)
+Ficheiro `src/lib/email-templates/catalog.ts` — fonte de verdade dos templates editáveis, suas variáveis e o subject/body por defeito:
 
-(Confirmo nomes exatos dos ficheiros no momento de editar.)
+- **Auth (6)**: signup, magic-link, recovery, invite, email-change, reauthentication
+- **App (inicial)**: inscricao-confirmada, inscricao-suplente, certificado-emitido, convite-entidade
 
-## Resultado
+Cada entrada do catálogo declara `{ key, kind, displayName, defaultSubject, defaultBodyHtml, variables[] }`.
 
-- Itens desligados na Central de Comando deixam de aparecer na sidebar para os roles afetados.
-- Acesso por URL direto a essas rotas devolve "Acesso restrito" em vez do conteúdo.
-- Admin continua a ver tudo.
-- Sem alteração de business logic nem da matriz de permissões.
+## Página admin — `/admin/emails`
+
+UI (uma única coluna, padrão das outras páginas admin):
+1. **Combobox searchable** (shadcn `Command` + `Popover`) agrupada por secção "Autenticação" / "Aplicação", a mostrar `displayName` e descrição curta.
+2. Ao escolher → carrega valores guardados (ou defaults se ainda não customizado), mostra:
+   - Input `Assunto`
+   - Barra de chips com as **variáveis disponíveis** desse template (clique insere `{{nome}}` no editor/assunto onde estiver o cursor)
+   - `RichTextEditor` (reutilizar `src/components/rich-text-editor.tsx`) para o corpo
+   - Preview lateral/inferior renderizado (substitui variáveis por valores de exemplo)
+3. Botões: **Guardar**, **Restaurar default**, **Enviar email de teste para mim**
+4. Aviso se o domínio de envio ainda não estiver verificado.
+
+## Server functions (`src/lib/admin-emails.functions.ts`)
+
+Todas com `requireSupabaseAuth` + check `is_admin`:
+- `listEmailTemplates()` → catálogo + flag `customized`
+- `getEmailTemplate(key)` → custom merged com default
+- `saveEmailTemplate({key, subject, body_html})` → validação Zod (subject ≤200, body ≤50k, variáveis usadas têm de pertencer ao catálogo)
+- `resetEmailTemplate(key)` → apaga linha custom
+- `sendTestEmail(key)` → envia para o email do admin com dados de exemplo
+
+## Integração no envio
+
+- **App emails**: a rota `/lovable/email/transactional/send` (scaffolded) passa por um helper que, antes de renderizar o template React, consulta `email_templates_custom` por `key`. Se existir, substitui subject + render por HTML guardado com interpolação `{{var}}`. Caso contrário usa o React component default.
+- **Auth emails**: a edge function `auth-email-hook` (scaffolded) faz a mesma lookup por `auth.<action>` antes de enfileirar.
+
+## Rota e navegação
+
+- Adicionar `src/routes/admin.emails.tsx`
+- Adicionar item "Gestão de Emails" (icon `Mail`) no grupo Admin em `src/lib/nav-config.ts`
+
+## Ordem de execução (após aprovação)
+
+1. Setup do domínio de email (interação tua na dialog).
+2. `setup_email_infra` + scaffold auth + scaffold app emails.
+3. Migration para `email_templates_custom` + catálogo + nav item.
+4. Server functions + página admin `/admin/emails`.
+5. Hook de lookup no render dos templates (auth + app).
+6. Testar com "Enviar email de teste".
+
+Confirmas o domínio que queres usar (ex: `notify.ipav.pt`) para eu avançar?
