@@ -3,7 +3,8 @@ import { useApp } from "@/lib/app-context";
 
 /**
  * Banner "Estamos a melhorar esta página" — aparece no final de cada página.
- * A ponte ocupa todo o bloco, de um lado ao outro, com trabalhadores animados.
+ * Mostra uma ponte EM CONSTRUÇÃO (não terminada) a ocupar o bloco todo,
+ * com o texto por cima da imagem.
  */
 export function ImprovingBanner() {
   const { isComponentVisible } = useApp();
@@ -14,19 +15,16 @@ export function ImprovingBanner() {
   }
 
   return (
-    <div className="relative mt-8 overflow-hidden rounded-xl border border-amber-200 bg-amber-50 text-amber-900 shadow-sm">
-      <BridgeWorkersIcon className="block w-full h-28" />
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <p className="rounded-md bg-amber-50/85 px-4 py-1.5 text-base font-semibold backdrop-blur-sm">
-          Estamos a melhorar esta página
-        </p>
-      </div>
+    <div className="mt-8 overflow-hidden rounded-xl border border-amber-200 bg-amber-50 text-amber-900 shadow-sm">
+      <p className="px-6 pt-4 pb-2 text-base font-semibold">
+        Estamos a melhorar esta página
+      </p>
+      <BridgeUnderConstruction className="block w-full h-28" />
     </div>
   );
 }
 
-function BridgeWorkersIcon({ className }: { className?: string }) {
-  // viewBox largo para a ponte correr de um lado ao outro
+function BridgeUnderConstruction({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 400 100"
@@ -39,44 +37,58 @@ function BridgeWorkersIcon({ className }: { className?: string }) {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      {/* Tabuleiro da ponte (full-width) */}
-      <line x1="0" y1="78" x2="400" y2="78" strokeWidth="2" />
-      <line x1="0" y1="82" x2="400" y2="82" opacity="0.4" />
-
-      {/* Pilares verticais ao longo da ponte */}
-      {[20, 60, 100, 140, 180, 220, 260, 300, 340, 380].map((x) => (
-        <line key={`p-${x}`} x1={x} y1="82" x2={x} y2="98" />
+      {/* Lado esquerdo da ponte — já construído */}
+      <line x1="0" y1="78" x2="170" y2="78" strokeWidth="2" />
+      <line x1="0" y1="82" x2="170" y2="82" opacity="0.4" />
+      {[20, 60, 100, 140].map((x) => (
+        <line key={`pl-${x}`} x1={x} y1="82" x2={x} y2="98" />
+      ))}
+      {[0, 80].map((x) => (
+        <path key={`al-${x}`} d={`M${x} 78 Q ${x + 40} 56 ${x + 80} 78`} opacity="0.45" />
       ))}
 
-      {/* Arcos da ponte */}
-      {[0, 80, 160, 240, 320].map((x) => (
-        <path key={`a-${x}`} d={`M${x} 78 Q ${x + 40} 56 ${x + 80} 78`} opacity="0.45" />
+      {/* Lado direito da ponte — já construído */}
+      <line x1="260" y1="78" x2="400" y2="78" strokeWidth="2" />
+      <line x1="260" y1="82" x2="400" y2="82" opacity="0.4" />
+      {[280, 320, 360, 395].map((x) => (
+        <line key={`pr-${x}`} x1={x} y1="82" x2={x} y2="98" />
       ))}
+      <path d="M260 78 Q 300 56 340 78" opacity="0.45" />
+      <path d="M340 78 Q 370 58 400 78" opacity="0.45" />
 
-      {/* Cabos suspensos no topo */}
-      <path d="M0 20 Q 200 60 400 20" opacity="0.35" />
-      {Array.from({ length: 20 }).map((_, i) => {
-        const x = i * 20 + 10;
-        // aproximação da curva quadrática y = 20 + (60-20)*4*t*(1-t), t = x/400
-        const t = x / 400;
-        const y = 20 + (60 - 20) * 4 * t * (1 - t);
-        return <line key={`c-${i}`} x1={x} y1={y} x2={x} y2="78" opacity="0.25" />;
-      })}
+      {/* Vão central INACABADO — vigas soltas, gap entre 170 e 260 */}
+      {/* viga em construção pendurada */}
+      <line x1="170" y1="78" x2="200" y2="74" opacity="0.7" />
+      <line x1="230" y1="76" x2="260" y2="78" opacity="0.7" />
+      {/* peças soltas / por colocar */}
+      <rect x="200" y="72" width="14" height="2.5" rx="0.5" opacity="0.55" transform="rotate(-6 207 73)" />
+      <rect x="218" y="74" width="12" height="2.5" rx="0.5" opacity="0.55" transform="rotate(4 224 75)" />
+      {/* andaime no meio */}
+      <line x1="200" y1="78" x2="200" y2="98" opacity="0.5" />
+      <line x1="230" y1="78" x2="230" y2="98" opacity="0.5" />
+      <line x1="200" y1="88" x2="230" y2="88" opacity="0.5" />
+      <line x1="200" y1="78" x2="230" y2="78" opacity="0.5" strokeDasharray="3 3" />
 
       {/* Torres */}
-      <line x1="0" y1="0" x2="0" y2="78" strokeWidth="2" />
-      <line x1="400" y1="0" x2="400" y2="78" strokeWidth="2" />
+      <line x1="0" y1="10" x2="0" y2="78" strokeWidth="2" />
+      <line x1="400" y1="10" x2="400" y2="78" strokeWidth="2" />
 
-      {/* Trabalhadores espalhados ao longo da ponte */}
+      {/* Cabos suspensos — parcialmente colocados */}
+      <path d="M0 18 Q 140 60 170 50" opacity="0.35" />
+      <path d="M260 50 Q 300 58 400 18" opacity="0.35" />
+      {/* cabo central por ligar (tracejado) */}
+      <path d="M170 50 Q 215 38 260 50" opacity="0.3" strokeDasharray="3 3" />
+
+      {/* Trabalhadores espalhados, concentrados na zona em construção */}
       {[
-        { x: 30, tool: "hammer", delay: 0 },
-        { x: 75, tool: "plank", delay: 0.2 },
-        { x: 130, tool: "wrench", delay: 0.4 },
-        { x: 175, tool: "hammer", delay: 0.1 },
-        { x: 225, tool: "plank", delay: 0.5 },
-        { x: 275, tool: "wrench", delay: 0.3 },
-        { x: 325, tool: "hammer", delay: 0.6 },
-        { x: 370, tool: "plank", delay: 0.2 },
+        { x: 35, tool: "hammer", delay: 0 },
+        { x: 90, tool: "plank", delay: 0.2 },
+        { x: 145, tool: "wrench", delay: 0.4 },
+        { x: 185, tool: "hammer", delay: 0.1 },
+        { x: 215, tool: "plank", delay: 0.5 },
+        { x: 245, tool: "wrench", delay: 0.3 },
+        { x: 295, tool: "hammer", delay: 0.6 },
+        { x: 360, tool: "plank", delay: 0.2 },
       ].map((w, i) => (
         <Worker key={i} x={w.x} tool={w.tool as "hammer" | "wrench" | "plank"} delay={w.delay} />
       ))}
@@ -105,13 +117,9 @@ function Worker({ x, tool, delay }: { x: number; tool: "hammer" | "wrench" | "pl
   const bodyBottom = headY + 12;
   return (
     <g style={{ animation: `bob 1.4s ease-in-out infinite`, animationDelay: `${delay}s`, transformOrigin: `${x}px ${headY}px` }}>
-      {/* cabeça */}
       <circle cx={x} cy={headY} r="2.4" />
-      {/* capacete */}
       <path d={`M${x - 2.8} ${headY - 2} Q ${x} ${headY - 5} ${x + 2.8} ${headY - 2}`} />
-      {/* tronco */}
       <line x1={x} y1={bodyTop} x2={x} y2={bodyBottom} />
-      {/* pernas */}
       <line x1={x} y1={bodyBottom} x2={x - 2.5} y2={bodyBottom + 6} />
       <line x1={x} y1={bodyBottom} x2={x + 2.5} y2={bodyBottom + 6} />
 
@@ -138,7 +146,6 @@ function Worker({ x, tool, delay }: { x: number; tool: "hammer" | "wrench" | "pl
 
       {tool === "plank" && (
         <>
-          {/* braços a segurar a tábua acima da cabeça */}
           <line x1={x} y1={bodyTop + 1} x2={x - 6} y2={headY - 4} />
           <line x1={x} y1={bodyTop + 1} x2={x + 6} y2={headY - 4} />
           <rect x={x - 8} y={headY - 6} width="16" height="2.5" rx="0.6" opacity="0.75" />
