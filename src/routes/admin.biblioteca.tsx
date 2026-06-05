@@ -117,6 +117,10 @@ function CatalogoTab() {
   const upsertFn = useServerFn(upsertPublicacao);
   const deleteFn = useServerFn(deletePublicacao);
 
+  const [search, setSearch] = useState("");
+  const [filterCategoria, setFilterCategoria] = useState<string>("");
+  const [filterYear, setFilterYear] = useState<string>("");
+  const [sort, setSort] = useState("title-asc");
   const [sortBy, sortOrder] = sort.split("-") as [string, "asc" | "desc"];
 
   const { data: rows = [], isLoading } = useQuery({
