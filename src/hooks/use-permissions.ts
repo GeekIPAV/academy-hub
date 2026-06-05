@@ -25,9 +25,13 @@ export function usePermissions() {
     queryKey: QK,
     queryFn: () => list(),
     enabled: !!user?.id,
-    staleTime: 5 * 60_000,
-    gcTime: 30 * 60_000,
+    // Permissions rarely change; cache for 15 min and rely on admin
+    // mutations (togglePermission) to invalidate when needed.
+    staleTime: 15 * 60_000,
+    gcTime: 60 * 60_000,
     refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 
   const permissions: PermissionRow[] = Array.isArray(query.data)
