@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { toast } from "sonner";
+import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
