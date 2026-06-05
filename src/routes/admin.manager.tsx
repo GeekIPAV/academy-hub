@@ -439,6 +439,7 @@ function RolesManager() {
 function AccessTab() {
   const { activeRoleNames } = useRoles();
   const { isAllowed, toggle } = usePermissions();
+  const [collapsed, setCollapsed] = useState(false);
 
   const isGranted = (role: RoleName, path: string) => isAllowed(role, path, "rota");
 
@@ -448,46 +449,56 @@ function AccessTab() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Matriz de Acessos</CardTitle>
-        <CardDescription>
-          Controle que rotas cada perfil pode aceder. Linhas: rotas. Colunas: perfis.
-        </CardDescription>
+      <CardHeader className="flex flex-row items-start gap-2 space-y-0">
+        <CollapseToggle
+          open={!collapsed}
+          onToggle={() => setCollapsed((v) => !v)}
+          label="Matriz de Acessos"
+        />
+        <div>
+          <CardTitle>Matriz de Acessos</CardTitle>
+          <CardDescription>
+            Controle que rotas cada perfil pode aceder. Linhas: rotas. Colunas: perfis.
+          </CardDescription>
+        </div>
       </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Rota</TableHead>
-              {activeRoleNames.map((r: string) => (
-                <TableHead key={r} className="text-center">
-                  {r}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {APP_ROUTES.map((route) => (
-              <TableRow key={route.path}>
-                <TableCell>
-                  <div className="font-medium">{route.label}</div>
-                  <div className="text-xs text-muted-foreground">{route.path}</div>
-                </TableCell>
-                {activeRoleNames.map((role: string) => (
-                  <TableCell key={role} className="text-center">
-                    <Switch
-                      checked={isGranted(role, route.path)}
-                      onCheckedChange={(v) => handleToggle(role, route.path, v)}
-                    />
-                  </TableCell>
+      {!collapsed && (
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Rota</TableHead>
+                {activeRoleNames.map((r: string) => (
+                  <TableHead key={r} className="text-center">
+                    {r}
+                  </TableHead>
                 ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
+            </TableHeader>
+            <TableBody>
+              {APP_ROUTES.map((route) => (
+                <TableRow key={route.path}>
+                  <TableCell>
+                    <div className="font-medium">{route.label}</div>
+                    <div className="text-xs text-muted-foreground">{route.path}</div>
+                  </TableCell>
+                  {activeRoleNames.map((role: string) => (
+                    <TableCell key={role} className="text-center">
+                      <Switch
+                        checked={isGranted(role, route.path)}
+                        onCheckedChange={(v) => handleToggle(role, route.path, v)}
+                      />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      )}
     </Card>
   );
+
 }
 
 interface InviteRow {
