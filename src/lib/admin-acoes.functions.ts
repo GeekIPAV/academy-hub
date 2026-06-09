@@ -46,7 +46,7 @@ export const getActionDetails = createServerFn({ method: "POST" })
       supabaseAdmin
         .from("acoes")
         .select(
-          "id, notion_id, title, description, category, action_date, start_date, end_date, registration_status, max_capacity, entity_id, program_id, required_fields, tshirt_tracking_link, tshirt_value, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link",
+          "id, notion_id, title, description, formato, localizacao, produto, projeto, pais, email_responsavel, start_date, end_date, registration_status, max_capacity, entity_id, program_id, required_fields, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link",
         )
         .eq("id", data.actionId)
         .maybeSingle(),
