@@ -29,7 +29,7 @@ import {
 
 
 export function AppSidebar() {
-  const { canAccess, profile, activeRoles, isRealAdmin, isAdmin, impersonatedRole, setImpersonatedRole, realRole } = useApp();
+  const { canAccess, profile, activeRoles, isRealAdmin, impersonatedRole, setImpersonatedRole, realRole } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -52,9 +52,9 @@ export function AppSidebar() {
 
       <SidebarContent>
         {NAV_GROUPS.map((group, idx) => {
-          if (group.adminOnly && !isAdmin) return null;
           const items = group.items.filter((it) => (it.gated ? canAccess(it.path) : true));
           if (items.length === 0) return null;
+
           return (
             <SidebarGroup key={group.label ?? `g-${idx}`}>
               {group.label && <SidebarGroupLabel>{group.label}</SidebarGroupLabel>}
