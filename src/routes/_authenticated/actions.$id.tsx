@@ -158,7 +158,7 @@ function ActionDetailPage() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           {data.description && <p>{data.description}</p>}
-          {data.action_date && <p>Data: {data.action_date}</p>}
+          {data.start_date && <p>Data: {data.start_date}</p>}
         </CardContent>
       </Card>
 

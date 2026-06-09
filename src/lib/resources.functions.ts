@@ -80,14 +80,14 @@ export const getResourcesContext = createServerFn({ method: "GET" })
 
     const { data: rows } = await supabaseAdmin
       .from("inscritos_acoes")
-      .select("status, acoes!inner(category)")
+      .select("status, acoes!inner(action_type)")
       .eq("user_id", userId);
 
     for (const row of (rows ?? []) as Array<{
       status: string | null;
-      acoes: { category: string | null } | null;
+      acoes: { action_type: string | null } | null;
     }>) {
-      const cat = row.acoes?.category as Phase | undefined;
+      const cat = row.acoes?.action_type as Phase | undefined;
       const st = (row.status ?? "").toLowerCase();
       if (cat && cat in completed && COMPLETED_STATUSES.includes(st)) {
         completed[cat] = true;

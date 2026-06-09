@@ -12,7 +12,7 @@ export interface RoadmapItem {
     id: string;
     title: string | null;
     registration_status: string | null;
-    action_date: string | null;
+    start_date: string | null;
   } | null;
 }
 
@@ -28,7 +28,6 @@ export const getRoadmap = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<RoadmapItem[]> => {
     const { supabase, userId } = context;
 
-    // Get user's enrollment cohort (program_id + entity_id)
     const { data: enrollments, error: eErr } = await supabase
       .from("inscritos_programa")
       .select("cohort_id, entidades_programas(program_id, entity_id)")
@@ -45,31 +44,29 @@ export const getRoadmap = createServerFn({ method: "GET" })
       return PHASES.map((p) => ({ ...p, action: null }));
     }
 
-    // FTC: program-wide
     const { data: ftcActions } = await supabaseAdmin
       .from("acoes")
-      .select("id, title, category, registration_status, action_date, program_id, entity_id")
+      .select("id, title, action_type, registration_status, start_date, program_id, entity_id")
       .eq("program_id", programId)
-      .eq("category", "FTC")
-      .order("action_date", { ascending: true, nullsFirst: false });
+      .eq("action_type", "FTC")
+      .order("start_date", { ascending: true, nullsFirst: false });
 
-    // Others: program + entity
     let entityActions: typeof ftcActions = [];
     if (entityId) {
       const { data } = await supabaseAdmin
         .from("acoes")
-        .select("id, title, category, registration_status, action_date, program_id, entity_id")
+        .select("id, title, action_type, registration_status, start_date, program_id, entity_id")
         .eq("program_id", programId)
         .eq("entity_id", entityId)
-        .in("category", ["FTP", "SU", "SF"])
-        .order("action_date", { ascending: true, nullsFirst: false });
+        .in("action_type", ["FTP", "SU", "SF"])
+        .order("start_date", { ascending: true, nullsFirst: false });
       entityActions = data ?? [];
     }
 
     const all = [...(ftcActions ?? []), ...entityActions];
 
     return PHASES.map(({ phase, label }) => {
-      const action = all.find((a) => a.category === phase) ?? null;
+      const action = all.find((a) => a.action_type === phase) ?? null;
       return {
         phase,
         label,
@@ -78,7 +75,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
               id: action.id,
               title: action.title,
               registration_status: action.registration_status,
-              action_date: action.action_date,
+              start_date: action.start_date,
             }
           : null,
       };
