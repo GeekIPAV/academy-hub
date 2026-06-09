@@ -24,8 +24,9 @@ import { toast } from "sonner";
 interface RequiredField {
   name: string;
   label?: string;
-  type?: "text" | "number" | "email" | "tel" | "textarea" | "date";
+  type?: "text" | "number" | "email" | "tel" | "textarea" | "date" | "checkbox" | "select" | "multiselect";
   required?: boolean;
+  options?: string[];
 }
 
 export const Route = createFileRoute("/_authenticated/actions/$id")({
