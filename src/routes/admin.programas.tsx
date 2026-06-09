@@ -41,13 +41,10 @@ export const Route = createFileRoute("/admin/programas")({
 
 
 function AdminProgramasPage() {
-  const { isAdmin } = useApp();
-
   const fetchProgramas = useServerFn(listProgramas);
   const { data: programasRaw, isLoading: loadingProgramas, error: programasError } = useQuery({
     queryKey: ["admin-programas"],
     queryFn: () => fetchProgramas(),
-    enabled: isAdmin,
     retry: false,
   });
   const programas = Array.isArray(programasRaw) ? programasRaw : [];
@@ -58,17 +55,7 @@ function AdminProgramasPage() {
     if (!programId && programas.length > 0) setProgramId(programas[0].id);
   }, [programas, programId]);
 
-  if (!isAdmin) {
-    return (
-      <Card className="mx-auto max-w-md p-8 text-center">
-        <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-        <p className="font-medium">Acesso restrito</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Esta área é exclusiva para administradores.
-        </p>
-      </Card>
-    );
-  }
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
