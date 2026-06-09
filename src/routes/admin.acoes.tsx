@@ -41,14 +41,13 @@ type ViewMode = "table" | "calendar";
 type SortKey = "start_date_desc" | "start_date_asc" | "title_asc";
 
 function AdminAcoesPage() {
-  const { isAdmin } = useApp();
   const fetchAcoes = useServerFn(listAcoesFull);
   const { data, isLoading } = useQuery({
     queryKey: ["admin-acoes-full"],
     queryFn: () => fetchAcoes(),
-    enabled: isAdmin,
   });
   const acoes = (data ?? []) as AcaoRow[];
+
 
   const [view, setView] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
