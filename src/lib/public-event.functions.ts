@@ -12,7 +12,9 @@ export interface RequiredField {
   label?: string;
   type?: string;
   required?: boolean;
+  options?: string[];
 }
+
 
 type JsonVal =
   | string
