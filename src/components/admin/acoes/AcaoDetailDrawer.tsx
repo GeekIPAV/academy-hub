@@ -45,7 +45,7 @@ export function AcaoDetailDrawer({ acao, open, onOpenChange }: Props) {
         <SheetHeader className="border-b px-6 py-4">
           <SheetTitle className="flex items-center gap-2">
             {acao.title ?? "(sem título)"}
-            {acao.category && <Badge variant="outline">{acao.category}</Badge>}
+            {acao.formato && <Badge variant="outline">{acao.formato}</Badge>}
           </SheetTitle>
         </SheetHeader>
         <div className="p-6">
