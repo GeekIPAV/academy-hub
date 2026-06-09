@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { GraduationCap, ShieldAlert, Users, Building2 } from "lucide-react";
+import { GraduationCap, Users, Building2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -28,21 +28,23 @@ import {
   listProgramaEntidades,
   listProgramaParticipantes,
 } from "@/lib/admin-programas.functions";
-import { useApp } from "@/lib/app-context";
+import { RouteGate } from "@/components/RouteGate";
 
 export const Route = createFileRoute("/admin/programas")({
   head: () => ({ meta: [{ title: "Gestão de Programas — Admin" }] }),
-  component: AdminProgramasPage,
+  component: () => (
+    <RouteGate path="/admin/programas">
+      <AdminProgramasPage />
+    </RouteGate>
+  ),
 });
 
-function AdminProgramasPage() {
-  const { isAdmin } = useApp();
 
+function AdminProgramasPage() {
   const fetchProgramas = useServerFn(listProgramas);
   const { data: programasRaw, isLoading: loadingProgramas, error: programasError } = useQuery({
     queryKey: ["admin-programas"],
     queryFn: () => fetchProgramas(),
-    enabled: isAdmin,
     retry: false,
   });
   const programas = Array.isArray(programasRaw) ? programasRaw : [];
@@ -53,17 +55,7 @@ function AdminProgramasPage() {
     if (!programId && programas.length > 0) setProgramId(programas[0].id);
   }, [programas, programId]);
 
-  if (!isAdmin) {
-    return (
-      <Card className="mx-auto max-w-md p-8 text-center">
-        <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-        <p className="font-medium">Acesso restrito</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Esta área é exclusiva para administradores.
-        </p>
-      </Card>
-    );
-  }
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">

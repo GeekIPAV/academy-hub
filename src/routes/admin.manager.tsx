@@ -50,10 +50,17 @@ import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
 import { createInvite, listInvites, revokeInvite, updateInvite } from "@/lib/invites.functions";
 import { useQuery } from "@tanstack/react-query";
 
+import { RouteGate } from "@/components/RouteGate";
+
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
-  component: AdminManagerPage,
+  component: () => (
+    <RouteGate path="/admin/manager">
+      <AdminManagerPage />
+    </RouteGate>
+  ),
 });
+
 
 /** Botão chevron usado nos cabeçalhos colapsáveis. */
 function CollapseToggle({
@@ -83,22 +90,12 @@ function CollapseToggle({
 
 
 function AdminManagerPage() {
-  const { isAdmin, isComponentVisible } = useApp();
+  const { isComponentVisible } = useApp();
   const visible = (id: string) => isComponentVisible("/admin/manager", id);
-  if (!isAdmin) {
-    return (
-      <Card className="mx-auto max-w-md p-8 text-center">
-        <Shield className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-        <p className="font-medium">Acesso restrito</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Ative o role "Admin" na sidebar para continuar (modo mock).
-        </p>
-      </Card>
-    );
-  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
+
       <ComponentAccessMatrix pagePath="/admin/manager" />
       {visible("header") && (
         <div>

@@ -74,10 +74,17 @@ import { useUsers } from "@/hooks/use-users";
 import { useRoles } from "@/hooks/use-roles";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 
+import { RouteGate } from "@/components/RouteGate";
+
 export const Route = createFileRoute("/admin/badges")({
   head: () => ({ meta: [{ title: "Gestão de Badges — Academia Ubuntu" }] }),
-  component: AdminBadgesPage,
+  component: () => (
+    <RouteGate path="/admin/badges">
+      <AdminBadgesPage />
+    </RouteGate>
+  ),
 });
+
 
 type BadgeRow = {
   id: string;
@@ -94,25 +101,15 @@ type BadgeRow = {
 };
 
 function AdminBadgesPage() {
-  const { roles, isLoading } = useCurrentProfile();
-  const isAdmin = roles.includes("Admin");
+  const { isLoading } = useCurrentProfile();
 
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">A carregar…</p>;
   }
-  if (!isAdmin) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Acesso restrito</CardTitle>
-          <CardDescription>Esta área é exclusiva para administradores.</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
+
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Gestão de Badges</h1>
         <p className="text-sm text-muted-foreground">

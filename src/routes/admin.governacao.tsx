@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { RefreshCw, Lock, Shield } from "lucide-react";
+import { RefreshCw, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { useApp } from "@/lib/app-context";
+import { RouteGate } from "@/components/RouteGate";
 import {
   listGovernanceFields,
   setFieldClassification,
@@ -40,22 +40,15 @@ import {
 
 export const Route = createFileRoute("/admin/governacao")({
   head: () => ({ meta: [{ title: "Governação de Dados — Admin" }] }),
-  component: GovernancaPage,
+  component: () => (
+    <RouteGate path="/admin/governacao">
+      <GovernancaPage />
+    </RouteGate>
+  ),
 });
 
 function GovernancaPage() {
-  const { isAdmin } = useApp();
-  if (!isAdmin) {
-    return (
-      <Card className="mx-auto max-w-md p-8 text-center">
-        <Shield className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-        <p className="font-medium">Acesso restrito</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Apenas administradores podem aceder à Governação de Dados.
-        </p>
-      </Card>
-    );
-  }
+
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">

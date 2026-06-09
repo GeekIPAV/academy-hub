@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDays, ListChecks, Settings2, ShieldAlert, Table2 } from "lucide-react";
+import { CalendarDays, ListChecks, Settings2, Table2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useApp } from "@/lib/app-context";
 import { listAcoesFull, type AcaoRow } from "@/lib/admin-acoes-gestao.functions";
 import { AcoesDataTable } from "@/components/admin/acoes/AcoesDataTable";
 import {
@@ -26,24 +25,29 @@ import {
   type CardFieldsConfig,
 } from "@/components/admin/acoes/AcoesCalendar";
 import { AcaoDetailDrawer } from "@/components/admin/acoes/AcaoDetailDrawer";
+import { RouteGate } from "@/components/RouteGate";
 
 export const Route = createFileRoute("/admin/acoes")({
   head: () => ({ meta: [{ title: "Gestão de Ações — Admin" }] }),
-  component: AdminAcoesPage,
+  component: () => (
+    <RouteGate path="/admin/acoes">
+      <AdminAcoesPage />
+    </RouteGate>
+  ),
 });
+
 
 type ViewMode = "table" | "calendar";
 type SortKey = "start_date_desc" | "start_date_asc" | "title_asc";
 
 function AdminAcoesPage() {
-  const { isAdmin } = useApp();
   const fetchAcoes = useServerFn(listAcoesFull);
   const { data, isLoading } = useQuery({
     queryKey: ["admin-acoes-full"],
     queryFn: () => fetchAcoes(),
-    enabled: isAdmin,
   });
   const acoes = (data ?? []) as AcaoRow[];
+
 
   const [view, setView] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
@@ -90,17 +94,8 @@ function AdminAcoesPage() {
     [acoes, selectedId],
   );
 
-  if (!isAdmin) {
-    return (
-      <Card className="mx-auto max-w-md p-8 text-center">
-        <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
-        <p className="font-medium">Acesso restrito</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Esta área é exclusiva para administradores.
-        </p>
-      </Card>
-    );
-  }
+
+
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">

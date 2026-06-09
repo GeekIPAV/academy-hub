@@ -131,13 +131,23 @@ export const Route = createFileRoute("/_authenticated/admin/recursos")({
   beforeLoad: async () => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) throw redirect({ to: "/auth" });
-    const { data: roles } = await supabase
+    const { data: roleRows } = await supabase
       .from("user_roles")
       .select("role_name")
       .eq("user_id", u.user.id);
-    const isAdmin = (roles ?? []).some((r) => r.role_name === "Admin");
-    if (!isAdmin) throw redirect({ to: "/dashboard" });
+    const roles = (roleRows ?? []).map((r) => r.role_name);
+    if (roles.includes("Admin")) return;
+    if (roles.length === 0) throw redirect({ to: "/dashboard" });
+    const { data: perms } = await supabase
+      .from("permissoes_roles")
+      .select("id")
+      .eq("resource_id", "/admin/recursos")
+      .eq("tipo", "rota")
+      .in("role_name", roles)
+      .limit(1);
+    if (!perms || perms.length === 0) throw redirect({ to: "/dashboard" });
   },
+
   head: () => ({ meta: [{ title: "Gestor de Recursos — Admin" }] }),
   component: AdminResourcesPage,
 });
