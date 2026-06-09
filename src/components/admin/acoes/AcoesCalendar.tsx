@@ -31,11 +31,11 @@ export function AcoesCalendar({ data, cardFields, onOpen }: Props) {
   const events = useMemo(
     () =>
       data
-        .filter((a) => a.action_date || a.start_date)
+        .filter((a) => a.start_date)
         .map((a) => ({
           id: a.id,
           title: a.title ?? "(sem título)",
-          start: a.start_date ?? a.action_date ?? undefined,
+          start: a.start_date ?? undefined,
           end: a.end_date ?? undefined,
           extendedProps: a,
         })),
@@ -62,11 +62,11 @@ export function AcoesCalendar({ data, cardFields, onOpen }: Props) {
           return (
             <div className="px-1 py-0.5 text-xs leading-tight">
               <div className="truncate font-medium">{info.event.title}</div>
-              {cardFields.showDate && a.action_date && (
-                <div className="opacity-80">{a.action_date}</div>
+              {cardFields.showDate && a.start_date && (
+                <div className="opacity-80">{a.start_date}</div>
               )}
-              {cardFields.showCategory && a.category && (
-                <div className="opacity-80">{a.category}</div>
+              {cardFields.showCategory && a.formato && (
+                <div className="opacity-80">{a.formato}</div>
               )}
               {cardFields.showStatus && a.registration_status && (
                 <div className="opacity-80">{a.registration_status}</div>
