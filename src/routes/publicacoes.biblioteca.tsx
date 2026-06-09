@@ -321,6 +321,7 @@ function PublicacaoCard({ p }: { p: Publicacao }) {
           )}
           <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
             {p.categoria?.name && <span className="rounded bg-muted px-1.5 py-0.5">{p.categoria.name}</span>}
+            {p.language && <span className="rounded bg-muted px-1.5 py-0.5">{p.language}</span>}
             {p.year && <span>{p.year}</span>}
           </div>
         </div>
@@ -356,6 +357,7 @@ function PublicacaoRow({ p }: { p: Publicacao }) {
             {p.categoria?.name && (
               <span className="rounded bg-muted px-1.5 py-0.5">{p.categoria.name}</span>
             )}
+            {p.language && <span className="rounded bg-muted px-1.5 py-0.5">{p.language}</span>}
             {p.year && <span>{p.year}</span>}
           </div>
         </div>
@@ -406,6 +408,12 @@ function PublicacaoDetailsDialog({
                 <dd className="text-foreground">{p.year}</dd>
               </div>
             )}
+            {p.language && (
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground">Língua</dt>
+                <dd className="text-foreground">{p.language}</dd>
+              </div>
+            )}
             <div>
               <dt className="text-xs uppercase tracking-wide text-muted-foreground">Tipo</dt>
               <dd className="text-foreground">{p.is_ipav ? "Publicação IPAV" : "Outra publicação"}</dd>
@@ -445,6 +453,7 @@ function SugerirPublicacaoDialog({ categorias }: { categorias: { id: string; nam
     year: "",
     link: "",
     image_url: "",
+    language: "",
     categoria_id: "",
   });
   const [tempId] = useState(() => crypto.randomUUID());
@@ -461,6 +470,7 @@ function SugerirPublicacaoDialog({ categorias }: { categorias: { id: string; nam
           year: form.year ? Number(form.year) : null,
           link: form.link || null,
           image_url: form.image_url || null,
+          language: form.language || null,
           categoria_id: form.categoria_id || null,
         },
       }),
@@ -468,7 +478,7 @@ function SugerirPublicacaoDialog({ categorias }: { categorias: { id: string; nam
       toast.success("Proposta enviada. Aguarda moderação.");
       qc.invalidateQueries({ queryKey: ["publicacoes"] });
       setOpen(false);
-      setForm({ title: "", author: "", summary: "", year: "", link: "", image_url: "", categoria_id: "" });
+      setForm({ title: "", author: "", summary: "", year: "", link: "", image_url: "", language: "", categoria_id: "" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
