@@ -135,8 +135,6 @@ const updateActionSchema = z.object({
     .object({
       start_date: z.string().nullable().optional(),
       end_date: z.string().nullable().optional(),
-      tshirt_tracking_link: z.string().max(1000).nullable().optional(),
-      tshirt_value: z.number().nullable().optional(),
       fotos_link: z.string().max(1000).nullable().optional(),
       avaliacao_satisfacao: z.number().min(0).max(10).nullable().optional(),
       avaliacao_satisfacao_link: z.string().max(1000).nullable().optional(),
