@@ -77,16 +77,18 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
   const [form, setForm] = useState(() => ({
     title: acao.title ?? "",
     description: acao.description ?? "",
-    category: acao.category ?? "",
-    action_date: acao.action_date ?? "",
+    formato: acao.formato ?? "",
+    localizacao: acao.localizacao ?? "",
+    pais: acao.pais ?? "",
+    produto: acao.produto ?? "",
+    projeto: acao.projeto ?? "",
+    email_responsavel: acao.email_responsavel ?? "",
     start_date: acao.start_date ?? "",
     end_date: acao.end_date ?? "",
     registration_status: acao.registration_status ?? "",
     status: acao.status ?? "",
     action_type: acao.action_type ?? "",
     max_capacity: acao.max_capacity?.toString() ?? "",
-    tshirt_tracking_link: acao.tshirt_tracking_link ?? "",
-    tshirt_value: acao.tshirt_value?.toString() ?? "",
     fotos_link: acao.fotos_link ?? "",
     avaliacao_satisfacao: acao.avaliacao_satisfacao?.toString() ?? "",
     avaliacao_satisfacao_link: acao.avaliacao_satisfacao_link ?? "",
@@ -102,16 +104,18 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
           fields: {
             title: form.title || null,
             description: form.description || null,
-            category: form.category || null,
-            action_date: form.action_date || null,
+            formato: form.formato || null,
+            localizacao: form.localizacao || null,
+            pais: form.pais || null,
+            produto: form.produto || null,
+            projeto: form.projeto || null,
+            email_responsavel: form.email_responsavel || null,
             start_date: form.start_date || null,
             end_date: form.end_date || null,
             registration_status: form.registration_status || null,
             status: form.status || undefined,
             action_type: form.action_type || null,
             max_capacity: form.max_capacity === "" ? null : Number(form.max_capacity),
-            tshirt_tracking_link: form.tshirt_tracking_link || null,
-            tshirt_value: form.tshirt_value === "" ? null : Number(form.tshirt_value),
             fotos_link: form.fotos_link || null,
             avaliacao_satisfacao:
               form.avaliacao_satisfacao === "" ? null : Number(form.avaliacao_satisfacao),
@@ -150,14 +154,30 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
           onChange={(e) => set("description", e.target.value)}
         />
       </Field>
-      <Field label="Categoria">
-        <Input value={form.category} onChange={(e) => set("category", e.target.value)} />
+      <Field label="Formato">
+        <Input value={form.formato} onChange={(e) => set("formato", e.target.value)} />
       </Field>
       <Field label="Tipo">
         <Input value={form.action_type} onChange={(e) => set("action_type", e.target.value)} />
       </Field>
-      <Field label="Data da ação">
-        <Input type="date" value={form.action_date} onChange={(e) => set("action_date", e.target.value)} />
+      <Field label="Produto">
+        <Input value={form.produto} onChange={(e) => set("produto", e.target.value)} />
+      </Field>
+      <Field label="Projeto">
+        <Input value={form.projeto} onChange={(e) => set("projeto", e.target.value)} />
+      </Field>
+      <Field label="Localização">
+        <Input value={form.localizacao} onChange={(e) => set("localizacao", e.target.value)} />
+      </Field>
+      <Field label="País">
+        <Input value={form.pais} onChange={(e) => set("pais", e.target.value)} />
+      </Field>
+      <Field label="Email responsável">
+        <Input
+          type="email"
+          value={form.email_responsavel}
+          onChange={(e) => set("email_responsavel", e.target.value)}
+        />
       </Field>
       <Field label="Capacidade máxima">
         <Input
