@@ -74,10 +74,17 @@ import { useUsers } from "@/hooks/use-users";
 import { useRoles } from "@/hooks/use-roles";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 
+import { RouteGate } from "@/components/RouteGate";
+
 export const Route = createFileRoute("/admin/badges")({
   head: () => ({ meta: [{ title: "Gestão de Badges — Academia Ubuntu" }] }),
-  component: AdminBadgesPage,
+  component: () => (
+    <RouteGate path="/admin/badges">
+      <AdminBadgesPage />
+    </RouteGate>
+  ),
 });
+
 
 type BadgeRow = {
   id: string;
