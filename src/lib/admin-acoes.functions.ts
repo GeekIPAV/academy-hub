@@ -26,9 +26,9 @@ export const listAcoes = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("acoes")
       .select(
-        "id, title, category, action_date, start_date, end_date, registration_status, entity_id, program_id",
+        "id, title, formato, start_date, end_date, registration_status, entity_id, program_id",
       )
-      .order("action_date", { ascending: false, nullsFirst: false })
+      .order("start_date", { ascending: false, nullsFirst: false })
       .limit(500);
     if (error) throw new Error(error.message);
     return data ?? [];
