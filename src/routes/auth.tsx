@@ -165,9 +165,9 @@ function AuthPage() {
     toast.success("Email de recuperação enviado. Verifica a tua caixa de entrada.");
   };
 
-  const handleGoogle = async () => {
+  const handleOAuth = async (provider: "google" | "microsoft") => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
+    const result = await lovable.auth.signInWithOAuth(provider, {
       redirect_uri: window.location.origin + target,
     });
     if (result.error) {
