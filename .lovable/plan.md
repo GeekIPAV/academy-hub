@@ -1,22 +1,21 @@
-## Problema
+## Adicionar login com Microsoft
 
-Na sidebar, o grupo "Admin" tem `adminOnly: true` e é escondido por completo a quem não tem o role `Admin` (`AppSidebar.tsx:55`), independentemente do que esteja marcado na Central de Comando. Por isso o utilizador `equipa ipav`, mesmo com tudo selecionado na matriz, não vê as entradas /admin/*.
+Adicionar um botão "Continuar com Microsoft" no ecrã `/auth`, a par dos existentes Email/Password e Google, usando o fluxo OAuth gerido da Lovable Cloud.
 
-## Solução
+### Passos
 
-Tratar o grupo Admin como qualquer outro grupo: cada item é mostrado se a matriz da Central de Comando autorizar a rota para algum dos roles ativos do utilizador (já existe `canAccess(path)` para isso). O grupo só desaparece se nenhum dos itens for visível.
+1. **Ativar o provider Microsoft na Lovable Cloud**
+   - Chamar `supabase--configure_social_auth` com `providers: ["google", "microsoft"]` (mantém Google já configurado, adiciona Microsoft).
+   - Isto regista o provider no backend para que `lovable.auth.signInWithOAuth("microsoft", ...)` funcione.
 
-## Alterações
+2. **`src/routes/auth.tsx` — adicionar handler e botão**
+   - Novo `handleMicrosoft` análogo a `handleGoogle`, a chamar `lovable.auth.signInWithOAuth("microsoft", { redirect_uri: window.location.origin + target })`.
+   - Adicionar um segundo `<Button variant="outline">` por baixo do botão Google, com o logótipo Microsoft (4 quadrados coloridos em SVG inline) e o texto "Continuar com Microsoft".
+   - Ambos os botões partilham o mesmo separador "ou" e ficam empilhados (`space-y-2`).
 
-1. `src/lib/nav-config.ts`
-   - Remover `adminOnly: true` do grupo Admin.
-   - Marcar cada item Admin com `gated: true` para passar pelo `canAccess()`.
+### Notas
 
-2. `src/components/AppSidebar.tsx`
-   - Remover a linha `if (group.adminOnly && !isAdmin) return null;` (deixa de ser necessária; já não há grupos adminOnly).
-   - A lógica existente `items.filter(it => it.gated ? canAccess(it.path) : true)` mais o `if (items.length === 0) return null;` trata tudo: se o role não tiver nenhuma rota /admin/* permitida, o grupo desaparece naturalmente. Admin continua a ver tudo porque `canAccess` devolve `true` para admin.
-
-## Notas
-
-- O `RouteGate` nas páginas /admin/* já valida acesso pela matriz, portanto a segurança não muda — só estamos a tornar a sidebar coerente com o que a matriz já permite.
-- Server-side as funções admin continuam protegidas pelo `assertAdmin` (ex: `permissions.functions.ts`, `roles.functions.ts`). Ou seja, embora o utilizador `equipa ipav` passe a ver e abrir as páginas /admin/* que a matriz autorizar, ações privilegiadas (criar/eliminar roles, alterar permissões, etc.) vão continuar a falhar com "Acesso restrito" se ele não for Admin. Avisa-me se quiseres que reveja também essa camada — por agora mantenho-a igual, já que só pediste para resolver a visibilidade.
+- Não toca em `src/integrations/lovable/index.ts` (já suporta `"microsoft"` no tipo).
+- Não altera lógica de email/password, recuperação, nem o fluxo de `verifyAuthEmail`.
+- Sem alterações de backend para além do `configure_social_auth`. As callbacks OAuth da Lovable tratam do resto.
+- Caso `configure_social_auth` não aceite `microsoft` no workspace, paro e reporto antes de mudar o frontend.
