@@ -17,7 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useApp } from "@/lib/app-context";
 import { listAcoesFull, type AcaoRow } from "@/lib/admin-acoes-gestao.functions";
 import { AcoesDataTable } from "@/components/admin/acoes/AcoesDataTable";
 import {
@@ -26,11 +25,17 @@ import {
   type CardFieldsConfig,
 } from "@/components/admin/acoes/AcoesCalendar";
 import { AcaoDetailDrawer } from "@/components/admin/acoes/AcaoDetailDrawer";
+import { RouteGate } from "@/components/RouteGate";
 
 export const Route = createFileRoute("/admin/acoes")({
   head: () => ({ meta: [{ title: "Gestão de Ações — Admin" }] }),
-  component: AdminAcoesPage,
+  component: () => (
+    <RouteGate path="/admin/acoes">
+      <AdminAcoesPage />
+    </RouteGate>
+  ),
 });
+
 
 type ViewMode = "table" | "calendar";
 type SortKey = "start_date_desc" | "start_date_asc" | "title_asc";
