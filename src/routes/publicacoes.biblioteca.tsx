@@ -541,23 +541,35 @@ function SugerirPublicacaoDialog({ categorias }: { categorias: { id: string; nam
               />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label>Categoria</Label>
-            <Select
-              value={form.categoria_id || undefined}
-              onValueChange={(v) => setForm({ ...form, categoria_id: v })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecionar…" />
-              </SelectTrigger>
-              <SelectContent>
-                {categorias.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Categoria</Label>
+              <Select
+                value={form.categoria_id || undefined}
+                onValueChange={(v) => setForm({ ...form, categoria_id: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categorias.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="language">Língua</Label>
+              <Input
+                id="language"
+                placeholder="Ex: Português, Inglês…"
+                value={form.language}
+                onChange={(e) => setForm({ ...form, language: e.target.value })}
+                maxLength={50}
+              />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="link">Link</Label>
