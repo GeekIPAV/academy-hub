@@ -1152,6 +1152,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_ipav: boolean
+          language: string | null
           link: string | null
           proposed_by: string | null
           status: string
@@ -1167,6 +1168,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_ipav?: boolean
+          language?: string | null
           link?: string | null
           proposed_by?: string | null
           status?: string
@@ -1182,6 +1184,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_ipav?: boolean
+          language?: string | null
           link?: string | null
           proposed_by?: string | null
           status?: string
