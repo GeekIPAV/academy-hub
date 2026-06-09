@@ -216,7 +216,6 @@ export const createAcaoProposta = createServerFn({ method: "POST" })
         title: data.action_type,
         start_date: data.start_date,
         end_date: data.end_date,
-        action_date: data.start_date,
         status: "Pendente",
         created_by: userId,
       })
