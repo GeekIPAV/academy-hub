@@ -12,7 +12,6 @@ import { usePublicationsI18n } from "@/hooks/use-publications-i18n";
 import { RouteGate } from "@/components/RouteGate";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
-
 export const Route = createFileRoute("/publicacoes/revistas")({
   head: () => ({
     meta: [
@@ -26,7 +25,6 @@ export const Route = createFileRoute("/publicacoes/revistas")({
     </RouteGate>
   ),
 });
-
 
 function RevistasPage() {
   const { t, lang } = usePublicationsI18n();
@@ -46,18 +44,23 @@ function RevistasPage() {
       if (filters.search) {
         const q = filters.search.toLowerCase();
         const haystack = [
-          tx(a.title, lang), tx(a.subtitle, lang),
-          ...a.authors, ...a.tags.map((tag) => tx(tag, lang)),
-          tx(a.impactArea, lang), tx(a.methodology, lang), tx(a.sampleType, lang),
-        ].join(" ").toLowerCase();
+          tx(a.title, lang),
+          tx(a.subtitle, lang),
+          ...a.authors,
+          ...a.tags.map((tag) => tx(tag, lang)),
+          tx(a.impactArea, lang),
+          tx(a.methodology, lang),
+          tx(a.sampleType, lang),
+        ]
+          .join(" ")
+          .toLowerCase();
         if (!haystack.includes(q)) return false;
       }
       return true;
     });
   }, [filters, lang, articles]);
 
-  const selectedArticle =
-    filteredArticles.find((a) => a.id === selectedId) ?? filteredArticles[0] ?? null;
+  const selectedArticle = filteredArticles.find((a) => a.id === selectedId) ?? filteredArticles[0] ?? null;
 
   return (
     <div className="bg-background">

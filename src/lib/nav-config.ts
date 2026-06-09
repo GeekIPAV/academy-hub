@@ -14,7 +14,6 @@ import {
   Mail,
   Medal,
   Megaphone,
-  
   Shield,
   type LucideIcon,
 } from "lucide-react";
@@ -56,7 +55,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: "Publicações",
     items: [
-      { path: "/publicacoes/revistas", label: "Revistas Científicas", icon: BookOpen, gated: true },
+      { path: "/publicacoes/revistas", label: "Revista Científica", icon: BookOpen, gated: true },
       { path: "/publicacoes/biblioteca", label: "Biblioteca", icon: Library, gated: true },
     ],
   },
@@ -71,18 +70,18 @@ export const NAV_GROUPS: NavGroup[] = [
 
   {
     label: "Admin",
+    adminOnly: true,
     items: [
-      { path: "/admin/programas", label: "Gestão de Programas", icon: Shield, gated: true },
-      { path: "/admin/acoes", label: "Gestão de Ações", icon: CalendarCog, gated: true },
-      { path: "/admin/recursos", label: "Gestão de Recursos", icon: FolderCog, gated: true },
-      { path: "/admin/badges", label: "Gestão de Badges", icon: Medal, gated: true },
-      { path: "/admin/manager", label: "Central de Comando", icon: Shield, gated: true },
-      { path: "/admin/governacao", label: "Governação de Dados", icon: Lock, gated: true },
-      { path: "/admin/emails", label: "Gestão de Emails", icon: Mail, gated: true },
-      { path: "/admin/biblioteca", label: "Gestão da Biblioteca", icon: Library, gated: true },
+      { path: "/admin/programas", label: "Gestão de Programas", icon: Shield },
+      { path: "/admin/acoes", label: "Gestão de Ações", icon: CalendarCog },
+      { path: "/admin/recursos", label: "Gestão de Recursos", icon: FolderCog },
+      { path: "/admin/badges", label: "Gestão de Badges", icon: Medal },
+      { path: "/admin/manager", label: "Central de Comando", icon: Shield },
+      { path: "/admin/governacao", label: "Governação de Dados", icon: Lock },
+      { path: "/admin/emails", label: "Gestão de Emails", icon: Mail },
+      { path: "/admin/biblioteca", label: "Gestão da Biblioteca", icon: Library },
     ],
   },
-
 ];
 
 /** Flat list of every nav item, in display order. */
