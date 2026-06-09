@@ -614,9 +614,20 @@ function PublicacaoForm({
           <Label htmlFor="is_ipav">Publicação IPAV</Label>
         </div>
       </div>
-      <div className="space-y-1.5">
-        <Label>Link</Label>
-        <Input value={form.link} onChange={(e) => update({ link: e.target.value })} />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Língua</Label>
+          <Input
+            placeholder="Ex: Português, Inglês…"
+            value={form.language}
+            onChange={(e) => update({ language: e.target.value })}
+            maxLength={50}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Link</Label>
+          <Input value={form.link} onChange={(e) => update({ link: e.target.value })} />
+        </div>
       </div>
       <div className="space-y-1.5">
         <Label>Resumo</Label>
