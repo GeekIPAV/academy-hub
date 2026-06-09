@@ -21,6 +21,13 @@ export type JsonValue =
   | { [k: string]: JsonValue }
   | JsonValue[];
 
+export interface RequiredFieldDef {
+  name: string;
+  label?: string;
+  type?: string;
+  required?: boolean;
+}
+
 
 export type AcaoRow = {
   id: string;
