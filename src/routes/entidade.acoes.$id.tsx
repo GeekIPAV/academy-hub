@@ -20,7 +20,6 @@ import {
   Plus,
   RefreshCw,
   ShieldCheck,
-  Shirt,
   Sparkles,
   Stamp,
   Trash2,
