@@ -45,6 +45,17 @@ import {
   type PageDoc,
 } from "./PaginaInscricaoEditor";
 
+function slugifyFieldName(label: string, idx: number): string {
+  const s = label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return s || `campo_${idx + 1}`;
+}
+
+
 interface Props {
   acao: AcaoRow | null;
   open: boolean;
