@@ -61,13 +61,11 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    items: [{ path: "/faqs", label: "FAQs", icon: HelpCircle, gated: true }],
-  },
-  {
     label: "Comunicação",
     items: [
       { path: "/comunicacao/press-media-kit", label: "Press Media Kit", icon: Megaphone, gated: true },
       { path: "/comunicacao/propriedade-intelectual", label: "Propriedade Intelectual", icon: Copyright, gated: true },
+      { path: "/faqs", label: "FAQs", icon: HelpCircle, gated: true },
     ],
   },
 
