@@ -53,6 +53,7 @@ export type AcaoRow = {
   avaliacao_impacto: number | null;
   avaliacao_impacto_link: string | null;
   conteudo_pagina_inscricao: JsonValue | null;
+  required_fields: RequiredFieldDef[];
   programa_title?: string | null;
   entidade_nome?: string | null;
 };
