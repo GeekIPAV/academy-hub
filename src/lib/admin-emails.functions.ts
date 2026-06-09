@@ -3,17 +3,12 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { EMAIL_TEMPLATE_CATALOG, getCatalogEntry } from "@/lib/email-templates/catalog";
+import { assertRouteAccess } from "@/lib/admin-access.server";
 
 async function assertAdmin(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from("user_roles")
-    .select("role_name")
-    .eq("user_id", userId)
-    .eq("role_name", "Admin")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Acesso restrito.");
+  await assertRouteAccess(userId, "/admin/emails");
 }
+
 
 export interface EmailTemplateListItem {
   key: string;
