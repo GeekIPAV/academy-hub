@@ -106,6 +106,7 @@ const emptyForm = {
   year: "",
   link: "",
   image_url: "",
+  language: "",
   categoria_id: "",
   is_ipav: false,
 };
@@ -120,18 +121,20 @@ function CatalogoTab() {
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState<string>("");
   const [filterYear, setFilterYear] = useState<string>("");
+  const [filterLanguage, setFilterLanguage] = useState<string>("");
   const [filterIpav, setFilterIpav] = useState<string>("all");
   const [sort, setSort] = useState("title-asc");
   const [sortBy, sortOrder] = sort.split("-") as [string, "asc" | "desc"];
 
   const { data: allRows = [], isLoading } = useQuery({
-    queryKey: ["admin-publicacoes-aprovadas", search, filterCategoria, filterYear, sort],
+    queryKey: ["admin-publicacoes-aprovadas", search, filterCategoria, filterYear, filterLanguage, sort],
     queryFn: () =>
       listFn({
         data: {
           search: search || undefined,
           categoriaId: filterCategoria || null,
           year: filterYear ? Number(filterYear) : null,
+          language: filterLanguage || null,
           sortBy: sortBy as "title" | "author" | "year",
           sortOrder,
         },
@@ -143,6 +146,8 @@ function CatalogoTab() {
     queryFn: () => categoriasFn(),
   });
 
+  const languagesOptions = Array.from(new Set(allRows.map((r) => r.language).filter(Boolean))).sort() as string[];
+
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({ ...emptyForm });
   const [tempCreateId] = useState(() => crypto.randomUUID());
@@ -152,6 +157,7 @@ function CatalogoTab() {
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [bulkCategoria, setBulkCategoria] = useState<string>("");
   const [bulkIpavMode, setBulkIpavMode] = useState<"keep" | "yes" | "no">("keep");
+  const [bulkLanguage, setBulkLanguage] = useState<string>("");
 
 
   const bulkDeleteFn = useServerFn(bulkDeletePublicacoes);
@@ -190,6 +196,7 @@ function CatalogoTab() {
           ids: Array.from(selected),
           ...(bulkCategoria ? { categoria_id: bulkCategoria === "__clear__" ? null : bulkCategoria } : {}),
           ...(bulkIpavMode !== "keep" ? { is_ipav: bulkIpavMode === "yes" } : {}),
+          ...(bulkLanguage.trim() ? { language: bulkLanguage.trim() } : {}),
         },
       }),
     onSuccess: (res) => {
@@ -197,6 +204,7 @@ function CatalogoTab() {
       setBulkEditOpen(false);
       setBulkCategoria("");
       setBulkIpavMode("keep");
+      setBulkLanguage("");
       setSelected(new Set());
       qc.invalidateQueries({ queryKey: ["admin-publicacoes-aprovadas"] });
       qc.invalidateQueries({ queryKey: ["publicacoes"] });
@@ -216,6 +224,7 @@ function CatalogoTab() {
           year: form.year ? Number(form.year) : null,
           link: form.link || null,
           image_url: form.image_url || null,
+          language: form.language || null,
           categoria_id: form.categoria_id || null,
           is_ipav: form.is_ipav,
         },
@@ -348,6 +357,17 @@ function CatalogoTab() {
           value={filterYear}
           onChange={(e) => setFilterYear(e.target.value)}
         />
+        <Select value={filterLanguage || "__all__"} onValueChange={(v) => setFilterLanguage(v === "__all__" ? "" : v)}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Todas as línguas" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Todas as línguas</SelectItem>
+            {languagesOptions.map((l) => (
+              <SelectItem key={l} value={l}>{l}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={filterIpav} onValueChange={setFilterIpav}>
           <SelectTrigger className="w-[160px]">
             <SelectValue />
@@ -387,6 +407,7 @@ function CatalogoTab() {
               <TableHead>Título</TableHead>
               <TableHead>Autor</TableHead>
               <TableHead>Categoria</TableHead>
+              <TableHead>Língua</TableHead>
               <TableHead>Ano</TableHead>
               <TableHead>IPAV</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -394,9 +415,9 @@ function CatalogoTab() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground">A carregar…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground">A carregar…</TableCell></TableRow>
             ) : rows.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground">Sem publicações.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground">Sem publicações.</TableCell></TableRow>
             ) : (
               rows.map((p) => (
                 <TableRow key={p.id} data-state={selected.has(p.id) ? "selected" : undefined}>
@@ -410,6 +431,7 @@ function CatalogoTab() {
                   <TableCell className="font-medium">{p.title}</TableCell>
                   <TableCell className="text-muted-foreground">{p.author || "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{p.categoria?.name || "—"}</TableCell>
+                  <TableCell className="text-muted-foreground">{p.language || "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{p.year || "—"}</TableCell>
                   <TableCell>{p.is_ipav ? "Sim" : "—"}</TableCell>
                   <TableCell className="text-right">
@@ -426,6 +448,7 @@ function CatalogoTab() {
                             year: p.year ? String(p.year) : "",
                             link: p.link || "",
                             image_url: p.image_url || "",
+                            language: p.language || "",
                             categoria_id: p.categoria_id || "",
                             is_ipav: p.is_ipav,
                           })
@@ -480,12 +503,21 @@ function CatalogoTab() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label>Língua (opcional)</Label>
+              <Input
+                placeholder="Deixar vazio para não alterar"
+                value={bulkLanguage}
+                onChange={(e) => setBulkLanguage(e.target.value)}
+                maxLength={50}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setBulkEditOpen(false)}>Cancelar</Button>
             <Button
               onClick={() => bulkUpdate.mutate()}
-              disabled={bulkUpdate.isPending || (!bulkCategoria && bulkIpavMode === "keep")}
+              disabled={bulkUpdate.isPending || (!bulkCategoria && bulkIpavMode === "keep" && !bulkLanguage)}
             >
               Aplicar
             </Button>
@@ -582,9 +614,20 @@ function PublicacaoForm({
           <Label htmlFor="is_ipav">Publicação IPAV</Label>
         </div>
       </div>
-      <div className="space-y-1.5">
-        <Label>Link</Label>
-        <Input value={form.link} onChange={(e) => update({ link: e.target.value })} />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Label>Língua</Label>
+          <Input
+            placeholder="Ex: Português, Inglês…"
+            value={form.language}
+            onChange={(e) => update({ language: e.target.value })}
+            maxLength={50}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>Link</Label>
+          <Input value={form.link} onChange={(e) => update({ link: e.target.value })} />
+        </div>
       </div>
       <div className="space-y-1.5">
         <Label>Resumo</Label>
@@ -612,7 +655,7 @@ function PublicacaoForm({
 
 // ---------------- Bulk Add ----------------
 
-const BULK_FIELD_COUNT = 6;
+const BULK_FIELD_COUNT = 7;
 
 function detectBulkDelimiter(value: string) {
   const candidates = ["|", "\t", ";"];
@@ -682,7 +725,7 @@ function normaliseBulkRows(rows: string[][], delimiter: string) {
     if (current.length === 1 && current[0] && repaired.length) {
       const previous = repaired[repaired.length - 1];
       if (previous && previous.length >= BULK_FIELD_COUNT - 1) {
-        previous[5] = [previous[5], current[0]].filter(Boolean).join("\n");
+        previous[6] = [previous[6], current[0]].filter(Boolean).join("\n");
         continue;
       }
     }
@@ -706,7 +749,7 @@ function BulkAddPanel({ onDone }: { onDone: () => void }) {
     const delimiter = detectBulkDelimiter(text);
     const parsedRows = normaliseBulkRows(parseDelimitedRows(text, delimiter), delimiter);
     return parsedRows.map((parts, idx) => {
-      const [title, author, year, categoria_name, link, summary] = parts;
+      const [title, author, year, language, categoria_name, link, summary] = parts;
       if (!title) throw new Error(`Linha ${idx + 1}: título em falta.`);
       const yr = year ? Number(year) : null;
       if (year && (isNaN(yr!) || yr! < 1800 || yr! > 3000)) {
@@ -716,6 +759,7 @@ function BulkAddPanel({ onDone }: { onDone: () => void }) {
         title: title.replace(/\s+/g, " ").trim(),
         author: author || null,
         year: yr,
+        language: language || null,
         categoria_name: categoria_name || null,
         link: link || null,
         summary: summary || null,
@@ -744,13 +788,13 @@ function BulkAddPanel({ onDone }: { onDone: () => void }) {
         <div className="font-medium text-foreground">Formato: uma publicação por linha</div>
         <div className="mt-1">
           Campos separados por <code className="rounded bg-background px-1">|</code>:{" "}
-          <code>título | autor | ano | categoria | link | resumo</code>
+          <code>título | autor | ano | língua | categoria | link | resumo</code>
         </div>
         <div className="mt-1">Apenas o título é obrigatório. Linhas iniciadas por <code>#</code> são ignoradas.</div>
       </div>
       <Textarea
         rows={10}
-        placeholder={`Marketing 4.0 | Philip Kotler | 2017 | Marketing | https://… | Resumo curto\nOutro Livro | Autor X | 2020 | Gestão`}
+        placeholder={`Marketing 4.0 | Philip Kotler | 2017 | Inglês | Marketing | https://… | Resumo curto\nOutro Livro | Autor X | 2020 | Português | Gestão`}
         value={text}
         onChange={(e) => setText(e.target.value)}
         className="font-mono text-xs"

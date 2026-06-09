@@ -69,6 +69,7 @@ function BibliotecaPage() {
   const [search, setSearch] = useState("");
   const [categoriaId, setCategoriaId] = useState<string>("all");
   const [year, setYear] = useState<string>("all");
+  const [language, setLanguage] = useState<string>("all");
   const [sort, setSort] = useState<string>("title-asc");
 
   const listFn = useServerFn(listPublicacoes);
@@ -86,7 +87,7 @@ function BibliotecaPage() {
   });
 
   const { data: publicacoes = [], isLoading } = useQuery({
-    queryKey: ["publicacoes", tab, categoriaId, year, search, sort],
+    queryKey: ["publicacoes", tab, categoriaId, year, language, search, sort],
     queryFn: () => {
       const [sortBy, sortOrder] = sort.split("-") as ["title" | "author" | "year", "asc" | "desc"];
       return listFn({
@@ -94,6 +95,7 @@ function BibliotecaPage() {
           tab,
           categoriaId: categoriaId === "all" ? null : categoriaId,
           year: year === "all" ? null : Number(year),
+          language: language === "all" ? null : language,
           search,
           sortBy,
           sortOrder,
@@ -106,6 +108,12 @@ function BibliotecaPage() {
     const set = new Set<number>();
     publicacoes.forEach((p) => p.year && set.add(p.year));
     return Array.from(set).sort((a, b) => b - a);
+  }, [publicacoes]);
+
+  const languages = useMemo(() => {
+    const set = new Set<string>();
+    publicacoes.forEach((p) => p.language && set.add(p.language));
+    return Array.from(set).sort();
   }, [publicacoes]);
 
   return (
@@ -154,7 +162,7 @@ function BibliotecaPage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_180px_180px]">
+        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_140px_140px_180px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -173,6 +181,19 @@ function BibliotecaPage() {
               {years.map((y) => (
                 <SelectItem key={y} value={String(y)}>
                   {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger>
+              <SelectValue placeholder="Língua" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as línguas</SelectItem>
+              {languages.map((l) => (
+                <SelectItem key={l} value={l}>
+                  {l}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -300,6 +321,7 @@ function PublicacaoCard({ p }: { p: Publicacao }) {
           )}
           <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
             {p.categoria?.name && <span className="rounded bg-muted px-1.5 py-0.5">{p.categoria.name}</span>}
+            {p.language && <span className="rounded bg-muted px-1.5 py-0.5">{p.language}</span>}
             {p.year && <span>{p.year}</span>}
           </div>
         </div>
@@ -335,6 +357,7 @@ function PublicacaoRow({ p }: { p: Publicacao }) {
             {p.categoria?.name && (
               <span className="rounded bg-muted px-1.5 py-0.5">{p.categoria.name}</span>
             )}
+            {p.language && <span className="rounded bg-muted px-1.5 py-0.5">{p.language}</span>}
             {p.year && <span>{p.year}</span>}
           </div>
         </div>
@@ -385,6 +408,12 @@ function PublicacaoDetailsDialog({
                 <dd className="text-foreground">{p.year}</dd>
               </div>
             )}
+            {p.language && (
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-muted-foreground">Língua</dt>
+                <dd className="text-foreground">{p.language}</dd>
+              </div>
+            )}
             <div>
               <dt className="text-xs uppercase tracking-wide text-muted-foreground">Tipo</dt>
               <dd className="text-foreground">{p.is_ipav ? "Publicação IPAV" : "Outra publicação"}</dd>
@@ -424,6 +453,7 @@ function SugerirPublicacaoDialog({ categorias }: { categorias: { id: string; nam
     year: "",
     link: "",
     image_url: "",
+    language: "",
     categoria_id: "",
   });
   const [tempId] = useState(() => crypto.randomUUID());
@@ -440,6 +470,7 @@ function SugerirPublicacaoDialog({ categorias }: { categorias: { id: string; nam
           year: form.year ? Number(form.year) : null,
           link: form.link || null,
           image_url: form.image_url || null,
+          language: form.language || null,
           categoria_id: form.categoria_id || null,
         },
       }),
@@ -447,7 +478,7 @@ function SugerirPublicacaoDialog({ categorias }: { categorias: { id: string; nam
       toast.success("Proposta enviada. Aguarda moderação.");
       qc.invalidateQueries({ queryKey: ["publicacoes"] });
       setOpen(false);
-      setForm({ title: "", author: "", summary: "", year: "", link: "", image_url: "", categoria_id: "" });
+      setForm({ title: "", author: "", summary: "", year: "", link: "", image_url: "", language: "", categoria_id: "" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -510,23 +541,35 @@ function SugerirPublicacaoDialog({ categorias }: { categorias: { id: string; nam
               />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label>Categoria</Label>
-            <Select
-              value={form.categoria_id || undefined}
-              onValueChange={(v) => setForm({ ...form, categoria_id: v })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecionar…" />
-              </SelectTrigger>
-              <SelectContent>
-                {categorias.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Categoria</Label>
+              <Select
+                value={form.categoria_id || undefined}
+                onValueChange={(v) => setForm({ ...form, categoria_id: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categorias.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="language">Língua</Label>
+              <Input
+                id="language"
+                placeholder="Ex: Português, Inglês…"
+                value={form.language}
+                onChange={(e) => setForm({ ...form, language: e.target.value })}
+                maxLength={50}
+              />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="link">Link</Label>
