@@ -216,7 +216,6 @@ export const createAcaoProposta = createServerFn({ method: "POST" })
         title: data.action_type,
         start_date: data.start_date,
         end_date: data.end_date,
-        action_date: data.start_date,
         status: "Pendente",
         created_by: userId,
       })
@@ -310,7 +309,7 @@ export const getEntidadeActionDetails = createServerFn({ method: "POST" })
       supabaseAdmin
         .from("acoes")
         .select(
-          "id, title, action_type, status, start_date, end_date, entity_id, created_by, tshirt_tracking_link, fotos_link, avaliacao_satisfacao_link, avaliacao_impacto_link",
+          "id, title, action_type, status, start_date, end_date, entity_id, created_by, fotos_link, avaliacao_satisfacao_link, avaliacao_impacto_link",
         )
         .eq("id", data.actionId)
         .maybeSingle(),

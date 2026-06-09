@@ -26,9 +26,9 @@ export const listAcoes = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("acoes")
       .select(
-        "id, title, category, action_date, start_date, end_date, registration_status, entity_id, program_id",
+        "id, title, formato, start_date, end_date, registration_status, entity_id, program_id",
       )
-      .order("action_date", { ascending: false, nullsFirst: false })
+      .order("start_date", { ascending: false, nullsFirst: false })
       .limit(500);
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -46,7 +46,7 @@ export const getActionDetails = createServerFn({ method: "POST" })
       supabaseAdmin
         .from("acoes")
         .select(
-          "id, notion_id, title, description, category, action_date, start_date, end_date, registration_status, max_capacity, entity_id, program_id, required_fields, tshirt_tracking_link, tshirt_value, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link",
+          "id, notion_id, title, description, formato, localizacao, produto, projeto, pais, email_responsavel, start_date, end_date, registration_status, max_capacity, entity_id, program_id, required_fields, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link",
         )
         .eq("id", data.actionId)
         .maybeSingle(),
@@ -135,8 +135,6 @@ const updateActionSchema = z.object({
     .object({
       start_date: z.string().nullable().optional(),
       end_date: z.string().nullable().optional(),
-      tshirt_tracking_link: z.string().max(1000).nullable().optional(),
-      tshirt_value: z.number().nullable().optional(),
       fotos_link: z.string().max(1000).nullable().optional(),
       avaliacao_satisfacao: z.number().min(0).max(10).nullable().optional(),
       avaliacao_satisfacao_link: z.string().max(1000).nullable().optional(),

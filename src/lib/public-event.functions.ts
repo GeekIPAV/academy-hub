@@ -27,7 +27,7 @@ export interface PublicEventDetails {
   notion_id: string | null;
   title: string | null;
   description: string | null;
-  action_date: string | null;
+  start_date: string | null;
   registration_status: string | null;
   max_capacity: number | null;
   required_fields: RequiredField[];
@@ -48,7 +48,7 @@ export const getPublicEventDetails = createServerFn({ method: "GET" })
     const query = supabaseAdmin
       .from("acoes")
       .select(
-        "id, notion_id, title, description, action_date, registration_status, max_capacity, required_fields, conteudo_pagina_inscricao",
+        "id, notion_id, title, description, start_date, registration_status, max_capacity, required_fields, conteudo_pagina_inscricao",
       );
     const { data: row, error } = await (isUuid
       ? query.eq("id", data.identifier)
@@ -68,7 +68,7 @@ export const getPublicEventDetails = createServerFn({ method: "GET" })
       notion_id: row.notion_id,
       title: row.title,
       description: row.description,
-      action_date: row.action_date,
+      start_date: row.start_date,
       registration_status: row.registration_status,
       max_capacity: row.max_capacity,
       required_fields: Array.isArray(row.required_fields)

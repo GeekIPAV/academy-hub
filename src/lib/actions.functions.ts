@@ -6,9 +6,9 @@ export const listActions = createServerFn({ method: "GET" }).handler(async () =>
   const { data, error } = await supabaseAdmin
     .from("acoes")
     .select(
-      "id, title, description, action_date, category, max_capacity, registration_status, program_id, programas(title)",
+      "id, title, description, start_date, formato, max_capacity, registration_status, program_id, programas(title)",
     )
-    .order("action_date", { ascending: true, nullsFirst: false });
+    .order("start_date", { ascending: true, nullsFirst: false });
   if (error) throw new Error(error.message);
   return data ?? [];
 });
@@ -19,7 +19,7 @@ export const getAction = createServerFn({ method: "GET" })
     const { data: action, error } = await supabaseAdmin
       .from("acoes")
       .select(
-        "id, title, description, action_date, category, max_capacity, required_fields, registration_status, programas(title)",
+        "id, title, description, start_date, formato, max_capacity, required_fields, registration_status, programas(title)",
       )
       .eq("id", data.id)
       .maybeSingle();

@@ -26,8 +26,6 @@ export type AcaoRow = {
   id: string;
   title: string | null;
   description: string | null;
-  category: string | null;
-  action_date: string | null;
   start_date: string | null;
   end_date: string | null;
   registration_status: string | null;
@@ -36,8 +34,12 @@ export type AcaoRow = {
   max_capacity: number | null;
   entity_id: string | null;
   program_id: string | null;
-  tshirt_tracking_link: string | null;
-  tshirt_value: number | null;
+  formato: string | null;
+  localizacao: string | null;
+  produto: string | null;
+  projeto: string | null;
+  pais: string | null;
+  email_responsavel: string | null;
   fotos_link: string | null;
   avaliacao_satisfacao: number | null;
   avaliacao_satisfacao_link: string | null;
@@ -55,9 +57,9 @@ export const listAcoesFull = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("acoes")
       .select(
-        "id, title, description, category, action_date, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, tshirt_tracking_link, tshirt_value, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, programas(title), entidades(name)",
+        "id, title, description, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, formato, localizacao, produto, projeto, pais, email_responsavel, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, programas(title), entidades(name)",
       )
-      .order("action_date", { ascending: false, nullsFirst: false })
+      .order("start_date", { ascending: false, nullsFirst: false })
       .limit(1000);
     if (error) throw new Error(error.message);
     return (data ?? []).map((r: Record<string, unknown>): AcaoRow => {
@@ -78,16 +80,18 @@ const patchSchema = z.object({
     .object({
       title: z.string().nullable().optional(),
       description: z.string().nullable().optional(),
-      category: z.string().nullable().optional(),
-      action_date: z.string().nullable().optional(),
       start_date: z.string().nullable().optional(),
       end_date: z.string().nullable().optional(),
       registration_status: z.string().nullable().optional(),
       status: z.string().optional(),
       action_type: z.string().nullable().optional(),
       max_capacity: z.number().int().nullable().optional(),
-      tshirt_tracking_link: z.string().nullable().optional(),
-      tshirt_value: z.number().nullable().optional(),
+      formato: z.string().nullable().optional(),
+      localizacao: z.string().nullable().optional(),
+      produto: z.string().nullable().optional(),
+      projeto: z.string().nullable().optional(),
+      pais: z.string().nullable().optional(),
+      email_responsavel: z.string().nullable().optional(),
       fotos_link: z.string().nullable().optional(),
       avaliacao_satisfacao: z.number().nullable().optional(),
       avaliacao_satisfacao_link: z.string().nullable().optional(),

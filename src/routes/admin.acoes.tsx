@@ -33,7 +33,7 @@ export const Route = createFileRoute("/admin/acoes")({
 });
 
 type ViewMode = "table" | "calendar";
-type SortKey = "action_date_desc" | "action_date_asc" | "title_asc";
+type SortKey = "start_date_desc" | "start_date_asc" | "title_asc";
 
 function AdminAcoesPage() {
   const { isAdmin } = useApp();
@@ -47,14 +47,14 @@ function AdminAcoesPage() {
 
   const [view, setView] = useState<ViewMode>("table");
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>("__all");
+  const [formato, setFormato] = useState<string>("__all");
   const [regStatus, setRegStatus] = useState<string>("__all");
-  const [sortKey, setSortKey] = useState<SortKey>("action_date_desc");
+  const [sortKey, setSortKey] = useState<SortKey>("start_date_desc");
   const [cardFields, setCardFields] = useState<CardFieldsConfig>(DEFAULT_CARD_FIELDS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const categories = useMemo(
-    () => Array.from(new Set(acoes.map((a) => a.category).filter(Boolean) as string[])).sort(),
+  const formatos = useMemo(
+    () => Array.from(new Set(acoes.map((a) => a.formato).filter(Boolean) as string[])).sort(),
     [acoes],
   );
   const statuses = useMemo(
@@ -74,16 +74,16 @@ function AdminAcoesPage() {
           (a.entidade_nome ?? "").toLowerCase().includes(q),
       );
     }
-    if (category !== "__all") out = out.filter((a) => a.category === category);
+    if (formato !== "__all") out = out.filter((a) => a.formato === formato);
     if (regStatus !== "__all") out = out.filter((a) => a.registration_status === regStatus);
     out = [...out].sort((a, b) => {
       if (sortKey === "title_asc") return (a.title ?? "").localeCompare(b.title ?? "");
-      const ad = a.action_date ?? "";
-      const bd = b.action_date ?? "";
-      return sortKey === "action_date_asc" ? ad.localeCompare(bd) : bd.localeCompare(ad);
+      const ad = a.start_date ?? "";
+      const bd = b.start_date ?? "";
+      return sortKey === "start_date_asc" ? ad.localeCompare(bd) : bd.localeCompare(ad);
     });
     return out;
-  }, [acoes, search, category, regStatus, sortKey]);
+  }, [acoes, search, formato, regStatus, sortKey]);
 
   const selected = useMemo(
     () => acoes.find((a) => a.id === selectedId) ?? null,
@@ -128,14 +128,14 @@ function AdminAcoesPage() {
             />
           </div>
           <div>
-            <Label className="mb-1 block text-xs uppercase text-muted-foreground">Categoria</Label>
-            <Select value={category} onValueChange={setCategory}>
+            <Label className="mb-1 block text-xs uppercase text-muted-foreground">Formato</Label>
+            <Select value={formato} onValueChange={setFormato}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__all">Todas</SelectItem>
-                {categories.map((c) => (
+                <SelectItem value="__all">Todos</SelectItem>
+                {formatos.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
                   </SelectItem>
@@ -166,8 +166,8 @@ function AdminAcoesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="action_date_desc">Data (mais recente)</SelectItem>
-                <SelectItem value="action_date_asc">Data (mais antiga)</SelectItem>
+                <SelectItem value="start_date_desc">Data (mais recente)</SelectItem>
+                <SelectItem value="start_date_asc">Data (mais antiga)</SelectItem>
                 <SelectItem value="title_asc">Título A→Z</SelectItem>
               </SelectContent>
             </Select>

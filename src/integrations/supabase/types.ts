@@ -16,85 +16,91 @@ export type Database = {
     Tables: {
       acoes: {
         Row: {
-          action_date: string | null
           action_type: string | null
           avaliacao_impacto: number | null
           avaliacao_impacto_link: string | null
           avaliacao_satisfacao: number | null
           avaliacao_satisfacao_link: string | null
-          category: string | null
           conteudo_pagina_inscricao: Json | null
           created_at: string | null
           created_by: string | null
           description: string | null
+          email_responsavel: string | null
           end_date: string | null
           entity_id: string | null
+          formato: string | null
           fotos_link: string | null
           id: string
+          localizacao: string | null
           max_capacity: number | null
           notion_id: string | null
+          pais: string | null
+          produto: string | null
           program_id: string | null
+          projeto: string | null
           registration_status: string | null
           required_fields: Json | null
           start_date: string | null
           status: string
           title: string | null
-          tshirt_tracking_link: string | null
-          tshirt_value: number | null
         }
         Insert: {
-          action_date?: string | null
           action_type?: string | null
           avaliacao_impacto?: number | null
           avaliacao_impacto_link?: string | null
           avaliacao_satisfacao?: number | null
           avaliacao_satisfacao_link?: string | null
-          category?: string | null
           conteudo_pagina_inscricao?: Json | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          email_responsavel?: string | null
           end_date?: string | null
           entity_id?: string | null
+          formato?: string | null
           fotos_link?: string | null
           id?: string
+          localizacao?: string | null
           max_capacity?: number | null
           notion_id?: string | null
+          pais?: string | null
+          produto?: string | null
           program_id?: string | null
+          projeto?: string | null
           registration_status?: string | null
           required_fields?: Json | null
           start_date?: string | null
           status?: string
           title?: string | null
-          tshirt_tracking_link?: string | null
-          tshirt_value?: number | null
         }
         Update: {
-          action_date?: string | null
           action_type?: string | null
           avaliacao_impacto?: number | null
           avaliacao_impacto_link?: string | null
           avaliacao_satisfacao?: number | null
           avaliacao_satisfacao_link?: string | null
-          category?: string | null
           conteudo_pagina_inscricao?: Json | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
+          email_responsavel?: string | null
           end_date?: string | null
           entity_id?: string | null
+          formato?: string | null
           fotos_link?: string | null
           id?: string
+          localizacao?: string | null
           max_capacity?: number | null
           notion_id?: string | null
+          pais?: string | null
+          produto?: string | null
           program_id?: string | null
+          projeto?: string | null
           registration_status?: string | null
           required_fields?: Json | null
           start_date?: string | null
           status?: string
           title?: string | null
-          tshirt_tracking_link?: string | null
-          tshirt_value?: number | null
         }
         Relationships: [
           {
