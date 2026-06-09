@@ -26,7 +26,9 @@ export interface RequiredFieldDef {
   label?: string;
   type?: string;
   required?: boolean;
+  options?: string[];
 }
+
 
 
 export type AcaoRow = {
