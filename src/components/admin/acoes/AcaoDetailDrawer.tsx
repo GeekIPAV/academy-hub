@@ -303,16 +303,8 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
                 {requiredFields.map((f, i) => (
                   <div
                     key={i}
-                    className="grid items-end gap-2 rounded-md border bg-muted/30 p-2 sm:grid-cols-[1fr_1fr_140px_90px_auto]"
+                    className="grid items-end gap-2 rounded-md border bg-muted/30 p-2 sm:grid-cols-[1fr_140px_90px_auto]"
                   >
-                    <div>
-                      <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Nome (chave)</Label>
-                      <Input
-                        value={f.name}
-                        onChange={(e) => updateField(i, { name: e.target.value })}
-                        placeholder="ex: telefone"
-                      />
-                    </div>
                     <div>
                       <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Etiqueta</Label>
                       <Input
