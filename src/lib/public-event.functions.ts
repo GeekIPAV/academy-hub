@@ -27,7 +27,7 @@ export interface PublicEventDetails {
   notion_id: string | null;
   title: string | null;
   description: string | null;
-  action_date: string | null;
+  start_date: string | null;
   registration_status: string | null;
   max_capacity: number | null;
   required_fields: RequiredField[];
