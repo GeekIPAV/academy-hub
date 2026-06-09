@@ -21,6 +21,13 @@ export type JsonValue =
   | { [k: string]: JsonValue }
   | JsonValue[];
 
+export interface RequiredFieldDef {
+  name: string;
+  label?: string;
+  type?: string;
+  required?: boolean;
+}
+
 
 export type AcaoRow = {
   id: string;
@@ -46,6 +53,7 @@ export type AcaoRow = {
   avaliacao_impacto: number | null;
   avaliacao_impacto_link: string | null;
   conteudo_pagina_inscricao: JsonValue | null;
+  required_fields: RequiredFieldDef[];
   programa_title?: string | null;
   entidade_nome?: string | null;
 };
@@ -57,7 +65,7 @@ export const listAcoesFull = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("acoes")
       .select(
-        "id, title, description, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, formato, localizacao, produto, projeto, pais, email_responsavel, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, programas(title), entidades(name)",
+        "id, title, description, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, formato, localizacao, produto, projeto, pais, email_responsavel, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, required_fields, programas(title), entidades(name)",
       )
       .order("start_date", { ascending: false, nullsFirst: false })
       .limit(1000);
@@ -66,8 +74,10 @@ export const listAcoesFull = createServerFn({ method: "GET" })
       const programa = r.programas as { title?: string | null } | null;
       const entidade = r.entidades as { name?: string | null } | null;
       const { programas: _p, entidades: _e, ...rest } = r;
+      const rf = (rest as { required_fields?: unknown }).required_fields;
       return {
-        ...(rest as Omit<AcaoRow, "programa_title" | "entidade_nome">),
+        ...(rest as Omit<AcaoRow, "programa_title" | "entidade_nome" | "required_fields">),
+        required_fields: Array.isArray(rf) ? (rf as RequiredFieldDef[]) : [],
         programa_title: programa?.title ?? null,
         entidade_nome: entidade?.name ?? null,
       };
@@ -97,6 +107,16 @@ const patchSchema = z.object({
       avaliacao_satisfacao_link: z.string().nullable().optional(),
       avaliacao_impacto: z.number().nullable().optional(),
       avaliacao_impacto_link: z.string().nullable().optional(),
+      required_fields: z
+        .array(
+          z.object({
+            name: z.string(),
+            label: z.string().optional(),
+            type: z.string().optional(),
+            required: z.boolean().optional(),
+          }),
+        )
+        .optional(),
     })
     .strict(),
 });

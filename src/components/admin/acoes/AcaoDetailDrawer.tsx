@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Copy, Check, ExternalLink, LinkIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Copy, Check, ChevronDown, ExternalLink, LinkIcon, Plus, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -9,8 +9,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -24,6 +37,7 @@ import {
   listInscritosAcao,
   savePaginaInscricao,
   type AcaoRow,
+  type RequiredFieldDef,
 } from "@/lib/admin-acoes-gestao.functions";
 import {
   PaginaInscricaoEditor,
@@ -90,11 +104,17 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
     action_type: acao.action_type ?? "",
     max_capacity: acao.max_capacity?.toString() ?? "",
     fotos_link: acao.fotos_link ?? "",
-    avaliacao_satisfacao: acao.avaliacao_satisfacao?.toString() ?? "",
     avaliacao_satisfacao_link: acao.avaliacao_satisfacao_link ?? "",
-    avaliacao_impacto: acao.avaliacao_impacto?.toString() ?? "",
     avaliacao_impacto_link: acao.avaliacao_impacto_link ?? "",
   }));
+  const [requiredFields, setRequiredFields] = useState<RequiredFieldDef[]>(
+    () => acao.required_fields ?? [],
+  );
+
+  const inscricaoUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/evento/${acao.id}`
+      : `/evento/${acao.id}`;
 
   const mut = useMutation({
     mutationFn: () =>
@@ -117,12 +137,9 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
             action_type: form.action_type || null,
             max_capacity: form.max_capacity === "" ? null : Number(form.max_capacity),
             fotos_link: form.fotos_link || null,
-            avaliacao_satisfacao:
-              form.avaliacao_satisfacao === "" ? null : Number(form.avaliacao_satisfacao),
             avaliacao_satisfacao_link: form.avaliacao_satisfacao_link || null,
-            avaliacao_impacto:
-              form.avaliacao_impacto === "" ? null : Number(form.avaliacao_impacto),
             avaliacao_impacto_link: form.avaliacao_impacto_link || null,
+            required_fields: requiredFields,
           },
         },
       }),
@@ -136,74 +153,214 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
   const set = <K extends keyof typeof form>(k: K, v: string) =>
     setForm((s) => ({ ...s, [k]: v }));
 
+  const updateField = (idx: number, patch: Partial<RequiredFieldDef>) =>
+    setRequiredFields((arr) => arr.map((f, i) => (i === idx ? { ...f, ...patch } : f)));
+  const removeField = (idx: number) =>
+    setRequiredFields((arr) => arr.filter((_, i) => i !== idx));
+  const addField = () =>
+    setRequiredFields((arr) => [
+      ...arr,
+      { name: "", label: "", type: "text", required: false },
+    ]);
+
   return (
     <form
-      className="grid gap-3 sm:grid-cols-2"
+      className="space-y-4"
       onSubmit={(e) => {
         e.preventDefault();
         mut.mutate();
       }}
     >
-      <Field label="Título" className="sm:col-span-2">
-        <Input value={form.title} onChange={(e) => set("title", e.target.value)} />
-      </Field>
-      <Field label="Descrição" className="sm:col-span-2">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Título" className="sm:col-span-2">
+          <Input value={form.title} onChange={(e) => set("title", e.target.value)} />
+        </Field>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-4">
+        <Field label="Estado">
+          <Input value={form.status} onChange={(e) => set("status", e.target.value)} />
+        </Field>
+        <Field label="Inscrições">
+          <Input
+            value={form.registration_status}
+            onChange={(e) => set("registration_status", e.target.value)}
+            placeholder="Aberto / Fechado"
+          />
+        </Field>
+        <Field label="Início">
+          <Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} />
+        </Field>
+        <Field label="Fim">
+          <Input type="date" value={form.end_date} onChange={(e) => set("end_date", e.target.value)} />
+        </Field>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-4">
+        <Field label="Tipo">
+          <Input value={form.action_type} onChange={(e) => set("action_type", e.target.value)} />
+        </Field>
+        <Field label="Formato">
+          <Input value={form.formato} onChange={(e) => set("formato", e.target.value)} />
+        </Field>
+        <Field label="Produto">
+          <Input value={form.produto} onChange={(e) => set("produto", e.target.value)} />
+        </Field>
+        <Field label="Projeto">
+          <Input value={form.projeto} onChange={(e) => set("projeto", e.target.value)} />
+        </Field>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Field label="País">
+          <Input value={form.pais} onChange={(e) => set("pais", e.target.value)} />
+        </Field>
+        <Field label="Localização">
+          <Input value={form.localizacao} onChange={(e) => set("localizacao", e.target.value)} />
+        </Field>
+        <Field label="Email responsável">
+          <Input
+            type="email"
+            value={form.email_responsavel}
+            onChange={(e) => set("email_responsavel", e.target.value)}
+          />
+        </Field>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Field label="Link de inscrição">
+          <Input readOnly value={inscricaoUrl} className="font-mono text-xs" />
+        </Field>
+        <Field label="Link avaliação satisfação">
+          <Input
+            value={form.avaliacao_satisfacao_link}
+            onChange={(e) => set("avaliacao_satisfacao_link", e.target.value)}
+          />
+        </Field>
+        <Field label="Link avaliação impacto">
+          <Input
+            value={form.avaliacao_impacto_link}
+            onChange={(e) => set("avaliacao_impacto_link", e.target.value)}
+          />
+        </Field>
+      </div>
+
+      <Field label="Descrição">
         <Textarea
-          rows={3}
+          rows={4}
           value={form.description}
           onChange={(e) => set("description", e.target.value)}
         />
       </Field>
-      <Field label="Formato">
-        <Input value={form.formato} onChange={(e) => set("formato", e.target.value)} />
-      </Field>
-      <Field label="Tipo">
-        <Input value={form.action_type} onChange={(e) => set("action_type", e.target.value)} />
-      </Field>
-      <Field label="Produto">
-        <Input value={form.produto} onChange={(e) => set("produto", e.target.value)} />
-      </Field>
-      <Field label="Projeto">
-        <Input value={form.projeto} onChange={(e) => set("projeto", e.target.value)} />
-      </Field>
-      <Field label="Localização">
-        <Input value={form.localizacao} onChange={(e) => set("localizacao", e.target.value)} />
-      </Field>
-      <Field label="País">
-        <Input value={form.pais} onChange={(e) => set("pais", e.target.value)} />
-      </Field>
-      <Field label="Email responsável">
-        <Input
-          type="email"
-          value={form.email_responsavel}
-          onChange={(e) => set("email_responsavel", e.target.value)}
-        />
-      </Field>
-      <Field label="Capacidade máxima">
-        <Input
-          type="number"
-          value={form.max_capacity}
-          onChange={(e) => set("max_capacity", e.target.value)}
-        />
-      </Field>
-      <Field label="Início">
-        <Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} />
-      </Field>
-      <Field label="Fim">
-        <Input type="date" value={form.end_date} onChange={(e) => set("end_date", e.target.value)} />
-      </Field>
-      <Field label="Inscrições">
-        <Input
-          value={form.registration_status}
-          onChange={(e) => set("registration_status", e.target.value)}
-          placeholder="Aberto / Fechado"
-        />
-      </Field>
-      <Field label="Estado">
-        <Input value={form.status} onChange={(e) => set("status", e.target.value)} />
-      </Field>
 
-      <div className="sm:col-span-2 flex justify-end">
+      <Collapsible>
+        <CollapsibleTrigger asChild>
+          <Button type="button" variant="outline" size="sm" className="w-full justify-between">
+            <span>Mais opções</span>
+            <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-4 space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Field label="Capacidade máxima">
+              <Input
+                type="number"
+                value={form.max_capacity}
+                onChange={(e) => set("max_capacity", e.target.value)}
+              />
+            </Field>
+            <Field label="Link fotos">
+              <Input
+                value={form.fotos_link}
+                onChange={(e) => set("fotos_link", e.target.value)}
+              />
+            </Field>
+          </div>
+
+          <div className="rounded-md border p-3">
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <Label className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Campos do formulário de inscrição
+                </Label>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Configure os campos extra que os inscritos terão de preencher.
+                </p>
+              </div>
+              <Button type="button" size="sm" variant="outline" onClick={addField}>
+                <Plus className="mr-1 h-3.5 w-3.5" /> Adicionar
+              </Button>
+            </div>
+            {requiredFields.length === 0 ? (
+              <p className="rounded-md border border-dashed p-4 text-center text-xs text-muted-foreground">
+                Sem campos extra.
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {requiredFields.map((f, i) => (
+                  <div
+                    key={i}
+                    className="grid items-end gap-2 rounded-md border bg-muted/30 p-2 sm:grid-cols-[1fr_1fr_140px_90px_auto]"
+                  >
+                    <div>
+                      <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Nome (chave)</Label>
+                      <Input
+                        value={f.name}
+                        onChange={(e) => updateField(i, { name: e.target.value })}
+                        placeholder="ex: telefone"
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Etiqueta</Label>
+                      <Input
+                        value={f.label ?? ""}
+                        onChange={(e) => updateField(i, { label: e.target.value })}
+                        placeholder="ex: Telemóvel"
+                      />
+                    </div>
+                    <div>
+                      <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Tipo</Label>
+                      <Select
+                        value={f.type ?? "text"}
+                        onValueChange={(v) => updateField(i, { type: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Texto</SelectItem>
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="tel">Telefone</SelectItem>
+                          <SelectItem value="number">Número</SelectItem>
+                          <SelectItem value="date">Data</SelectItem>
+                          <SelectItem value="textarea">Texto longo</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <label className="flex items-center gap-2 text-xs">
+                      <Checkbox
+                        checked={!!f.required}
+                        onCheckedChange={(v) => updateField(i, { required: !!v })}
+                      />
+                      Obrigatório
+                    </label>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => removeField(i)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      <div className="flex justify-end">
         <Button type="submit" disabled={mut.isPending}>
           {mut.isPending ? "A guardar…" : "Guardar"}
         </Button>
