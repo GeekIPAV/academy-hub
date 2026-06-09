@@ -69,6 +69,7 @@ function BibliotecaPage() {
   const [search, setSearch] = useState("");
   const [categoriaId, setCategoriaId] = useState<string>("all");
   const [year, setYear] = useState<string>("all");
+  const [language, setLanguage] = useState<string>("all");
   const [sort, setSort] = useState<string>("title-asc");
 
   const listFn = useServerFn(listPublicacoes);
@@ -86,7 +87,7 @@ function BibliotecaPage() {
   });
 
   const { data: publicacoes = [], isLoading } = useQuery({
-    queryKey: ["publicacoes", tab, categoriaId, year, search, sort],
+    queryKey: ["publicacoes", tab, categoriaId, year, language, search, sort],
     queryFn: () => {
       const [sortBy, sortOrder] = sort.split("-") as ["title" | "author" | "year", "asc" | "desc"];
       return listFn({
@@ -94,6 +95,7 @@ function BibliotecaPage() {
           tab,
           categoriaId: categoriaId === "all" ? null : categoriaId,
           year: year === "all" ? null : Number(year),
+          language: language === "all" ? null : language,
           search,
           sortBy,
           sortOrder,
@@ -106,6 +108,12 @@ function BibliotecaPage() {
     const set = new Set<number>();
     publicacoes.forEach((p) => p.year && set.add(p.year));
     return Array.from(set).sort((a, b) => b - a);
+  }, [publicacoes]);
+
+  const languages = useMemo(() => {
+    const set = new Set<string>();
+    publicacoes.forEach((p) => p.language && set.add(p.language));
+    return Array.from(set).sort();
   }, [publicacoes]);
 
   return (
@@ -154,7 +162,7 @@ function BibliotecaPage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_180px_180px]">
+        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_140px_140px_180px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -173,6 +181,19 @@ function BibliotecaPage() {
               {years.map((y) => (
                 <SelectItem key={y} value={String(y)}>
                   {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger>
+              <SelectValue placeholder="Língua" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as línguas</SelectItem>
+              {languages.map((l) => (
+                <SelectItem key={l} value={l}>
+                  {l}
                 </SelectItem>
               ))}
             </SelectContent>
