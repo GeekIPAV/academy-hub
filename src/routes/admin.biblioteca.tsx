@@ -655,7 +655,7 @@ function PublicacaoForm({
 
 // ---------------- Bulk Add ----------------
 
-const BULK_FIELD_COUNT = 6;
+const BULK_FIELD_COUNT = 7;
 
 function detectBulkDelimiter(value: string) {
   const candidates = ["|", "\t", ";"];
@@ -725,7 +725,7 @@ function normaliseBulkRows(rows: string[][], delimiter: string) {
     if (current.length === 1 && current[0] && repaired.length) {
       const previous = repaired[repaired.length - 1];
       if (previous && previous.length >= BULK_FIELD_COUNT - 1) {
-        previous[5] = [previous[5], current[0]].filter(Boolean).join("\n");
+        previous[6] = [previous[6], current[0]].filter(Boolean).join("\n");
         continue;
       }
     }
@@ -749,7 +749,7 @@ function BulkAddPanel({ onDone }: { onDone: () => void }) {
     const delimiter = detectBulkDelimiter(text);
     const parsedRows = normaliseBulkRows(parseDelimitedRows(text, delimiter), delimiter);
     return parsedRows.map((parts, idx) => {
-      const [title, author, year, categoria_name, link, summary] = parts;
+      const [title, author, year, language, categoria_name, link, summary] = parts;
       if (!title) throw new Error(`Linha ${idx + 1}: título em falta.`);
       const yr = year ? Number(year) : null;
       if (year && (isNaN(yr!) || yr! < 1800 || yr! > 3000)) {
@@ -759,6 +759,7 @@ function BulkAddPanel({ onDone }: { onDone: () => void }) {
         title: title.replace(/\s+/g, " ").trim(),
         author: author || null,
         year: yr,
+        language: language || null,
         categoria_name: categoria_name || null,
         link: link || null,
         summary: summary || null,
@@ -787,13 +788,13 @@ function BulkAddPanel({ onDone }: { onDone: () => void }) {
         <div className="font-medium text-foreground">Formato: uma publicação por linha</div>
         <div className="mt-1">
           Campos separados por <code className="rounded bg-background px-1">|</code>:{" "}
-          <code>título | autor | ano | categoria | link | resumo</code>
+          <code>título | autor | ano | língua | categoria | link | resumo</code>
         </div>
         <div className="mt-1">Apenas o título é obrigatório. Linhas iniciadas por <code>#</code> são ignoradas.</div>
       </div>
       <Textarea
         rows={10}
-        placeholder={`Marketing 4.0 | Philip Kotler | 2017 | Marketing | https://… | Resumo curto\nOutro Livro | Autor X | 2020 | Gestão`}
+        placeholder={`Marketing 4.0 | Philip Kotler | 2017 | Inglês | Marketing | https://… | Resumo curto\nOutro Livro | Autor X | 2020 | Português | Gestão`}
         value={text}
         onChange={(e) => setText(e.target.value)}
         className="font-mono text-xs"
