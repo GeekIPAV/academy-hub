@@ -338,10 +338,10 @@ function PublicEventPage() {
           <Card className="w-full border-0 bg-background shadow-xl">
             <CardHeader className="space-y-3">
               <CardTitle className="text-2xl">{customTitle}</CardTitle>
-              {event.data.action_date && (
+              {event.data.start_date && (
                 <CardDescription className="flex items-center gap-2">
                   <CalendarDays className="h-4 w-4" />
-                  {event.data.action_date}
+                  {event.data.start_date}
                 </CardDescription>
               )}
               <div className="flex flex-wrap gap-2">

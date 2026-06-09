@@ -68,8 +68,8 @@ function ActionsPage() {
                     <TableRow key={a.id}>
                       <TableCell className="font-medium">{a.title ?? "(sem título)"}</TableCell>
                       <TableCell>{a.programas?.title ?? "—"}</TableCell>
-                      <TableCell>{a.category ? <Badge variant="outline">{a.category}</Badge> : "—"}</TableCell>
-                      <TableCell>{a.action_date ?? "—"}</TableCell>
+                      <TableCell>{a.formato ? <Badge variant="outline">{a.formato}</Badge> : "—"}</TableCell>
+                      <TableCell>{a.start_date ?? "—"}</TableCell>
                       <TableCell>{a.max_capacity ?? "—"}</TableCell>
                       <TableCell>
                         <Badge variant={a.registration_status === "Aberto" ? "default" : "secondary"}>

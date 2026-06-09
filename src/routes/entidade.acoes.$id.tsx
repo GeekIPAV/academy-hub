@@ -20,7 +20,6 @@ import {
   Plus,
   RefreshCw,
   ShieldCheck,
-  Shirt,
   Sparkles,
   Stamp,
   Trash2,
@@ -293,11 +292,6 @@ function EntidadeAcaoDetailPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             <LogisticaLink
-              href={a.tshirt_tracking_link}
-              icon={<Shirt className="h-4 w-4" />}
-              label="Tracking de T-shirts"
-            />
-            <LogisticaLink
               href={a.fotos_link}
               icon={<Camera className="h-4 w-4" />}
               label="Fotografias"
@@ -312,8 +306,7 @@ function EntidadeAcaoDetailPage() {
               icon={<FileText className="h-4 w-4" />}
               label="Avaliação de Impacto"
             />
-            {!a.tshirt_tracking_link &&
-              !a.fotos_link &&
+            {!a.fotos_link &&
               !a.avaliacao_satisfacao_link &&
               !a.avaliacao_impacto_link && (
                 <p className="py-4 text-center text-sm text-muted-foreground">
