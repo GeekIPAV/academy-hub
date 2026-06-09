@@ -45,6 +45,17 @@ import {
   type PageDoc,
 } from "./PaginaInscricaoEditor";
 
+function slugifyFieldName(label: string, idx: number): string {
+  const s = label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  return s || `campo_${idx + 1}`;
+}
+
+
 interface Props {
   acao: AcaoRow | null;
   open: boolean;
@@ -139,7 +150,10 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
             fotos_link: form.fotos_link || null,
             avaliacao_satisfacao_link: form.avaliacao_satisfacao_link || null,
             avaliacao_impacto_link: form.avaliacao_impacto_link || null,
-            required_fields: requiredFields,
+            required_fields: requiredFields.map((f, i) => ({
+              ...f,
+              name: (f.name && f.name.trim()) || slugifyFieldName(f.label || "", i),
+            })),
           },
         },
       }),
@@ -300,16 +314,8 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
                 {requiredFields.map((f, i) => (
                   <div
                     key={i}
-                    className="grid items-end gap-2 rounded-md border bg-muted/30 p-2 sm:grid-cols-[1fr_1fr_140px_90px_auto]"
+                    className="grid items-end gap-2 rounded-md border bg-muted/30 p-2 sm:grid-cols-[1fr_140px_90px_auto]"
                   >
-                    <div>
-                      <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Nome (chave)</Label>
-                      <Input
-                        value={f.name}
-                        onChange={(e) => updateField(i, { name: e.target.value })}
-                        placeholder="ex: telefone"
-                      />
-                    </div>
                     <div>
                       <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Etiqueta</Label>
                       <Input
