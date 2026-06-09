@@ -42,12 +42,14 @@ function BlockRichText({ content }: { content: unknown }) {
   const html = useMemo(() => {
     try {
       if (!content || typeof content !== "object") return "";
-      return generateHTML(content as Parameters<typeof generateHTML>[0], [StarterKit]);
+      const raw = generateHTML(content as Parameters<typeof generateHTML>[0], [StarterKit]);
+      // Preserva parágrafos vazios (TipTap gera <p></p> que colapsa no DOM)
+      return raw.replace(/<p>\s*<\/p>/g, "<p><br></p>");
     } catch {
       return "";
     }
   }, [content]);
-  return <div className="prose prose-sm max-w-none text-gray-800" dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div className="prose prose-sm max-w-none text-gray-800 [&_p:empty]:min-h-[1em] [&_p>br:only-child]:inline-block" dangerouslySetInnerHTML={{ __html: html }} />;
 }
 import {
   Card,
