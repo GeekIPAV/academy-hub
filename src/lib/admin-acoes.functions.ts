@@ -2,17 +2,12 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { assertRouteAccess } from "@/lib/admin-access.server";
 
 async function assertAdmin(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from("user_roles")
-    .select("role_name")
-    .eq("user_id", userId)
-    .eq("role_name", "Admin")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Acesso restrito.");
+  await assertRouteAccess(userId, "/admin/acoes");
 }
+
 
 const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 const TRAINER_STATUS = ["Pendente", "Confirmado", "Cancelado"] as const;
