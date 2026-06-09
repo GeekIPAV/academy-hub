@@ -60,8 +60,8 @@ export function AcoesDataTable({ data, onOpen }: Props) {
         cell: (info) => info.getValue<string | null>() ?? "—",
       },
       {
-        accessorKey: "category",
-        header: "Categoria",
+        accessorKey: "formato",
+        header: "Formato",
         size: 110,
         cell: (info) => {
           const v = info.getValue<string | null>();
@@ -69,7 +69,7 @@ export function AcoesDataTable({ data, onOpen }: Props) {
         },
       },
       {
-        accessorKey: "action_date",
+        accessorKey: "start_date",
         header: "Data",
         size: 120,
       },
