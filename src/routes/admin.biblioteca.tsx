@@ -503,12 +503,21 @@ function CatalogoTab() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label>Língua (opcional)</Label>
+              <Input
+                placeholder="Não alterar (ex: Português, __clear__ para remover)"
+                value={bulkLanguage}
+                onChange={(e) => setBulkLanguage(e.target.value)}
+                maxLength={50}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setBulkEditOpen(false)}>Cancelar</Button>
             <Button
               onClick={() => bulkUpdate.mutate()}
-              disabled={bulkUpdate.isPending || (!bulkCategoria && bulkIpavMode === "keep")}
+              disabled={bulkUpdate.isPending || (!bulkCategoria && bulkIpavMode === "keep" && !bulkLanguage)}
             >
               Aplicar
             </Button>
