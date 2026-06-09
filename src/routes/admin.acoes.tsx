@@ -128,14 +128,14 @@ function AdminAcoesPage() {
             />
           </div>
           <div>
-            <Label className="mb-1 block text-xs uppercase text-muted-foreground">Categoria</Label>
-            <Select value={category} onValueChange={setCategory}>
+            <Label className="mb-1 block text-xs uppercase text-muted-foreground">Formato</Label>
+            <Select value={formato} onValueChange={setFormato}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__all">Todas</SelectItem>
-                {categories.map((c) => (
+                <SelectItem value="__all">Todos</SelectItem>
+                {formatos.map((c) => (
                   <SelectItem key={c} value={c}>
                     {c}
                   </SelectItem>
