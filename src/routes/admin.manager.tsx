@@ -50,10 +50,17 @@ import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
 import { createInvite, listInvites, revokeInvite, updateInvite } from "@/lib/invites.functions";
 import { useQuery } from "@tanstack/react-query";
 
+import { RouteGate } from "@/components/RouteGate";
+
 export const Route = createFileRoute("/admin/manager")({
   head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
-  component: AdminManagerPage,
+  component: () => (
+    <RouteGate path="/admin/manager">
+      <AdminManagerPage />
+    </RouteGate>
+  ),
 });
+
 
 /** Botão chevron usado nos cabeçalhos colapsáveis. */
 function CollapseToggle({
