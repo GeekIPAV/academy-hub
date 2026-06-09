@@ -196,7 +196,7 @@ function CatalogoTab() {
           ids: Array.from(selected),
           ...(bulkCategoria ? { categoria_id: bulkCategoria === "__clear__" ? null : bulkCategoria } : {}),
           ...(bulkIpavMode !== "keep" ? { is_ipav: bulkIpavMode === "yes" } : {}),
-          ...(bulkLanguage ? { language: bulkLanguage === "__clear__" ? null : bulkLanguage } : {}),
+          ...(bulkLanguage.trim() ? { language: bulkLanguage.trim() } : {}),
         },
       }),
     onSuccess: (res) => {
@@ -506,7 +506,7 @@ function CatalogoTab() {
             <div className="space-y-1.5">
               <Label>Língua (opcional)</Label>
               <Input
-                placeholder="Não alterar (ex: Português, __clear__ para remover)"
+                placeholder="Deixar vazio para não alterar"
                 value={bulkLanguage}
                 onChange={(e) => setBulkLanguage(e.target.value)}
                 maxLength={50}
