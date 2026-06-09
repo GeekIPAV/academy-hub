@@ -166,8 +166,8 @@ function AdminAcoesPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="action_date_desc">Data (mais recente)</SelectItem>
-                <SelectItem value="action_date_asc">Data (mais antiga)</SelectItem>
+                <SelectItem value="start_date_desc">Data (mais recente)</SelectItem>
+                <SelectItem value="start_date_asc">Data (mais antiga)</SelectItem>
                 <SelectItem value="title_asc">Título A→Z</SelectItem>
               </SelectContent>
             </Select>
