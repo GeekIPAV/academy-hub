@@ -106,6 +106,7 @@ const emptyForm = {
   year: "",
   link: "",
   image_url: "",
+  language: "",
   categoria_id: "",
   is_ipav: false,
 };
@@ -120,18 +121,20 @@ function CatalogoTab() {
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState<string>("");
   const [filterYear, setFilterYear] = useState<string>("");
+  const [filterLanguage, setFilterLanguage] = useState<string>("");
   const [filterIpav, setFilterIpav] = useState<string>("all");
   const [sort, setSort] = useState("title-asc");
   const [sortBy, sortOrder] = sort.split("-") as [string, "asc" | "desc"];
 
   const { data: allRows = [], isLoading } = useQuery({
-    queryKey: ["admin-publicacoes-aprovadas", search, filterCategoria, filterYear, sort],
+    queryKey: ["admin-publicacoes-aprovadas", search, filterCategoria, filterYear, filterLanguage, sort],
     queryFn: () =>
       listFn({
         data: {
           search: search || undefined,
           categoriaId: filterCategoria || null,
           year: filterYear ? Number(filterYear) : null,
+          language: filterLanguage || null,
           sortBy: sortBy as "title" | "author" | "year",
           sortOrder,
         },
@@ -143,6 +146,8 @@ function CatalogoTab() {
     queryFn: () => categoriasFn(),
   });
 
+  const languagesOptions = Array.from(new Set(allRows.map((r) => r.language).filter(Boolean))).sort() as string[];
+
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({ ...emptyForm });
   const [tempCreateId] = useState(() => crypto.randomUUID());
@@ -152,6 +157,7 @@ function CatalogoTab() {
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const [bulkCategoria, setBulkCategoria] = useState<string>("");
   const [bulkIpavMode, setBulkIpavMode] = useState<"keep" | "yes" | "no">("keep");
+  const [bulkLanguage, setBulkLanguage] = useState<string>("");
 
 
   const bulkDeleteFn = useServerFn(bulkDeletePublicacoes);
@@ -190,6 +196,7 @@ function CatalogoTab() {
           ids: Array.from(selected),
           ...(bulkCategoria ? { categoria_id: bulkCategoria === "__clear__" ? null : bulkCategoria } : {}),
           ...(bulkIpavMode !== "keep" ? { is_ipav: bulkIpavMode === "yes" } : {}),
+          ...(bulkLanguage ? { language: bulkLanguage === "__clear__" ? null : bulkLanguage } : {}),
         },
       }),
     onSuccess: (res) => {
@@ -197,6 +204,7 @@ function CatalogoTab() {
       setBulkEditOpen(false);
       setBulkCategoria("");
       setBulkIpavMode("keep");
+      setBulkLanguage("");
       setSelected(new Set());
       qc.invalidateQueries({ queryKey: ["admin-publicacoes-aprovadas"] });
       qc.invalidateQueries({ queryKey: ["publicacoes"] });
@@ -216,6 +224,7 @@ function CatalogoTab() {
           year: form.year ? Number(form.year) : null,
           link: form.link || null,
           image_url: form.image_url || null,
+          language: form.language || null,
           categoria_id: form.categoria_id || null,
           is_ipav: form.is_ipav,
         },
