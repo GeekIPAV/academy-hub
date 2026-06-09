@@ -17,15 +17,9 @@ export interface GovernanceField {
 const LOCKED_COLUMNS = new Set(["id", "created_at"]);
 
 async function assertAdmin(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from("user_roles")
-    .select("role_name")
-    .eq("user_id", userId)
-    .eq("role_name", "Admin")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Acesso restrito.");
+  await assertRouteAccess(userId, "/admin/governacao");
 }
+
 
 async function fetchSchemaColumns(): Promise<{ column_name: string; data_type: string }[]> {
   const { data, error } = await supabaseAdmin.rpc("list_utilizadores_columns");
