@@ -435,6 +435,7 @@ function CatalogoTab() {
                             year: p.year ? String(p.year) : "",
                             link: p.link || "",
                             image_url: p.image_url || "",
+                            language: p.language || "",
                             categoria_id: p.categoria_id || "",
                             is_ipav: p.is_ipav,
                           })
