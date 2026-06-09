@@ -107,6 +107,16 @@ const patchSchema = z.object({
       avaliacao_satisfacao_link: z.string().nullable().optional(),
       avaliacao_impacto: z.number().nullable().optional(),
       avaliacao_impacto_link: z.string().nullable().optional(),
+      required_fields: z
+        .array(
+          z.object({
+            name: z.string(),
+            label: z.string().optional(),
+            type: z.string().optional(),
+            required: z.boolean().optional(),
+          }),
+        )
+        .optional(),
     })
     .strict(),
 });
