@@ -380,7 +380,8 @@ function RichTextRender({ content }: { content: unknown }) {
   const html = useMemo(() => {
     try {
       if (!content || typeof content !== "object") return "";
-      return generateHTML(content as Parameters<typeof generateHTML>[0], [StarterKit]);
+      const raw = generateHTML(content as Parameters<typeof generateHTML>[0], [StarterKit]);
+      return raw.replace(/<p>\s*<\/p>/g, "<p><br></p>");
     } catch {
       return "";
     }
