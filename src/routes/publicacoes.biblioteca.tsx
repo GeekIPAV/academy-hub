@@ -298,7 +298,7 @@ function PublicacaoCard({ p }: { p: Publicacao }) {
         onClick={() => setOpen(true)}
         className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-3 text-left transition hover:border-primary/60 hover:shadow-sm"
       >
-        <div className="relative mx-auto h-32 w-24 overflow-hidden rounded-md bg-muted">
+        <div className="relative h-48 w-full overflow-hidden rounded-md bg-muted">
           {p.image_url ? (
             <img
               src={p.image_url}
