@@ -139,7 +139,10 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
             fotos_link: form.fotos_link || null,
             avaliacao_satisfacao_link: form.avaliacao_satisfacao_link || null,
             avaliacao_impacto_link: form.avaliacao_impacto_link || null,
-            required_fields: requiredFields,
+            required_fields: requiredFields.map((f, i) => ({
+              ...f,
+              name: (f.name && f.name.trim()) || slugifyFieldName(f.label || "", i),
+            })),
           },
         },
       }),
