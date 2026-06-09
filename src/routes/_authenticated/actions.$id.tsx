@@ -11,13 +11,22 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 interface RequiredField {
   name: string;
   label?: string;
-  type?: "text" | "number" | "email" | "tel" | "textarea" | "date";
+  type?: "text" | "number" | "email" | "tel" | "textarea" | "date" | "checkbox" | "select" | "multiselect";
   required?: boolean;
+  options?: string[];
 }
 
 export const Route = createFileRoute("/_authenticated/actions/$id")({
@@ -193,6 +202,57 @@ function ActionDetailPage() {
                         setValues((v) => ({ ...v, [key]: e.target.value }))
                       }
                     />
+                  ) : type === "checkbox" ? (
+                    <label className="flex items-center gap-2 text-sm">
+                      <Checkbox
+                        id={key}
+                        checked={values[key] === "true"}
+                        onCheckedChange={(v) =>
+                          setValues((vs) => ({ ...vs, [key]: v ? "true" : "false" }))
+                        }
+                      />
+                      {label}
+                    </label>
+                  ) : type === "select" ? (
+                    <Select
+                      value={values[key] ?? ""}
+                      onValueChange={(v) => setValues((vs) => ({ ...vs, [key]: v }))}
+                    >
+                      <SelectTrigger id={key}>
+                        <SelectValue placeholder="Selecionar…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(f.options ?? []).map((o) => (
+                          <SelectItem key={o} value={o}>
+                            {o}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : type === "multiselect" ? (
+                    <div className="space-y-1.5 rounded-md border p-2">
+                      {(f.options ?? []).map((o) => {
+                        const selected = (values[key] ?? "")
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean);
+                        const checked = selected.includes(o);
+                        return (
+                          <label key={o} className="flex items-center gap-2 text-sm">
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                const next = v
+                                  ? Array.from(new Set([...selected, o]))
+                                  : selected.filter((x) => x !== o);
+                                setValues((vs) => ({ ...vs, [key]: next.join(",") }));
+                              }}
+                            />
+                            {o}
+                          </label>
+                        );
+                      })}
+                    </div>
                   ) : (
                     <Input
                       id={key}

@@ -26,7 +26,9 @@ export interface RequiredFieldDef {
   label?: string;
   type?: string;
   required?: boolean;
+  options?: string[];
 }
+
 
 
 export type AcaoRow = {
@@ -114,6 +116,7 @@ const patchSchema = z.object({
             label: z.string().optional(),
             type: z.string().optional(),
             required: z.boolean().optional(),
+            options: z.array(z.string()).optional(),
           }),
         )
         .optional(),
