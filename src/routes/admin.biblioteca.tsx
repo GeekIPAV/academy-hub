@@ -357,6 +357,17 @@ function CatalogoTab() {
           value={filterYear}
           onChange={(e) => setFilterYear(e.target.value)}
         />
+        <Select value={filterLanguage || "__all__"} onValueChange={(v) => setFilterLanguage(v === "__all__" ? "" : v)}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Todas as línguas" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Todas as línguas</SelectItem>
+            {languagesOptions.map((l) => (
+              <SelectItem key={l} value={l}>{l}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Select value={filterIpav} onValueChange={setFilterIpav}>
           <SelectTrigger className="w-[160px]">
             <SelectValue />
@@ -396,6 +407,7 @@ function CatalogoTab() {
               <TableHead>Título</TableHead>
               <TableHead>Autor</TableHead>
               <TableHead>Categoria</TableHead>
+              <TableHead>Língua</TableHead>
               <TableHead>Ano</TableHead>
               <TableHead>IPAV</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -403,9 +415,9 @@ function CatalogoTab() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground">A carregar…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground">A carregar…</TableCell></TableRow>
             ) : rows.length === 0 ? (
-              <TableRow><TableCell colSpan={7} className="text-center text-sm text-muted-foreground">Sem publicações.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-sm text-muted-foreground">Sem publicações.</TableCell></TableRow>
             ) : (
               rows.map((p) => (
                 <TableRow key={p.id} data-state={selected.has(p.id) ? "selected" : undefined}>
@@ -419,6 +431,7 @@ function CatalogoTab() {
                   <TableCell className="font-medium">{p.title}</TableCell>
                   <TableCell className="text-muted-foreground">{p.author || "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{p.categoria?.name || "—"}</TableCell>
+                  <TableCell className="text-muted-foreground">{p.language || "—"}</TableCell>
                   <TableCell className="text-muted-foreground">{p.year || "—"}</TableCell>
                   <TableCell>{p.is_ipav ? "Sim" : "—"}</TableCell>
                   <TableCell className="text-right">
