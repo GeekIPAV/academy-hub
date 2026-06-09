@@ -27,6 +27,7 @@ export interface Publicacao {
   year: number | null;
   link: string | null;
   image_url: string | null;
+  language: string | null;
   status: "pendente" | "aprovado" | "rejeitado";
   categoria_id: string | null;
   is_ipav: boolean;
@@ -79,6 +80,7 @@ const listSchema = z.object({
   tab: z.enum(["ipav", "outras"]).optional(),
   categoriaId: z.string().uuid().nullable().optional(),
   year: z.number().int().min(1800).max(3000).nullable().optional(),
+  language: z.string().trim().max(50).nullable().optional(),
   search: z.string().max(200).optional(),
   sortBy: z.enum(["title", "author", "year"]).optional().default("title"),
   sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
@@ -95,6 +97,7 @@ export const listPublicacoes = createServerFn({ method: "POST" })
     if (data.tab) q = q.eq("is_ipav", data.tab === "ipav");
     if (data.categoriaId) q = q.eq("categoria_id", data.categoriaId);
     if (data.year) q = q.eq("year", data.year);
+    if (data.language) q = q.eq("language", data.language);
     if (data.search && data.search.trim()) {
       const s = data.search.trim().replace(/[%_]/g, "");
       q = q.or(`title.ilike.%${s}%,author.ilike.%${s}%`);
@@ -121,6 +124,7 @@ const proposeSchema = z.object({
   year: z.number().int().min(1800).max(3000).optional().nullable(),
   link: z.string().trim().max(1000).optional().nullable(),
   image_url: z.string().trim().max(1000).optional().nullable(),
+  language: z.string().trim().max(50).optional().nullable(),
   categoria_id: z.string().uuid().optional().nullable(),
 });
 
@@ -135,6 +139,7 @@ export const proposePublicacao = createServerFn({ method: "POST" })
       year: data.year ?? null,
       link: data.link || null,
       image_url: data.image_url || null,
+      language: data.language || null,
       categoria_id: data.categoria_id || null,
       is_ipav: false,
       status: "pendente",
@@ -171,6 +176,7 @@ export const listPendingPublicacoes = createServerFn({ method: "GET" })
 const adminListSchema = z.object({
   categoriaId: z.string().uuid().nullable().optional(),
   year: z.number().int().min(1800).max(3000).nullable().optional(),
+  language: z.string().trim().max(50).nullable().optional(),
   search: z.string().max(200).optional(),
   sortBy: z.enum(["title", "author", "year"]).optional().default("title"),
   sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
@@ -187,6 +193,7 @@ export const listAllApprovedPublicacoes = createServerFn({ method: "POST" })
       .eq("status", "aprovado");
     if (data.categoriaId) q = q.eq("categoria_id", data.categoriaId);
     if (data.year) q = q.eq("year", data.year);
+    if (data.language) q = q.eq("language", data.language);
     if (data.search && data.search.trim()) {
       const s = data.search.trim().replace(/[%_]/g, "");
       q = q.or(`title.ilike.%${s}%,author.ilike.%${s}%`);
@@ -212,6 +219,7 @@ const upsertSchema = z.object({
   year: z.number().int().min(1800).max(3000).optional().nullable(),
   link: z.string().trim().max(1000).optional().nullable(),
   image_url: z.string().trim().max(1000).optional().nullable(),
+  language: z.string().trim().max(50).optional().nullable(),
   categoria_id: z.string().uuid().optional().nullable(),
   is_ipav: z.boolean().default(false),
 });
@@ -228,6 +236,7 @@ export const upsertPublicacao = createServerFn({ method: "POST" })
       year: data.year ?? null,
       link: data.link || null,
       image_url: data.image_url || null,
+      language: data.language || null,
       categoria_id: data.categoria_id || null,
       is_ipav: data.is_ipav,
       status: "aprovado" as const,
@@ -335,6 +344,7 @@ const bulkRowSchema = z.object({
   year: z.number().int().min(1800).max(3000).optional().nullable(),
   link: z.string().trim().max(1000).optional().nullable(),
   image_url: z.string().trim().max(1000).optional().nullable(),
+  language: z.string().trim().max(50).optional().nullable(),
   categoria_name: z.string().trim().max(120).optional().nullable(),
   is_ipav: z.boolean().optional().default(false),
 });
@@ -380,6 +390,7 @@ export const bulkCreatePublicacoes = createServerFn({ method: "POST" })
         year: r.year ?? null,
         link: r.link || null,
         image_url: r.image_url || null,
+        language: r.language || null,
         categoria_id,
         is_ipav: !!r.is_ipav,
         status: "aprovado" as const,
@@ -408,6 +419,7 @@ export const bulkDeletePublicacoes = createServerFn({ method: "POST" })
 const bulkUpdateSchema = z.object({
   ids: z.array(z.string().uuid()).min(1).max(500),
   categoria_id: z.string().uuid().nullable().optional(),
+  language: z.string().trim().max(50).nullable().optional(),
   is_ipav: z.boolean().optional(),
 });
 
@@ -416,9 +428,10 @@ export const bulkUpdatePublicacoes = createServerFn({ method: "POST" })
   .inputValidator((input) => bulkUpdateSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const patch: { categoria_id?: string | null; is_ipav?: boolean } = {};
+    const patch: { categoria_id?: string | null; is_ipav?: boolean; language?: string | null } = {};
     if (data.categoria_id !== undefined) patch.categoria_id = data.categoria_id;
     if (data.is_ipav !== undefined) patch.is_ipav = data.is_ipav;
+    if (data.language !== undefined) patch.language = data.language;
     if (Object.keys(patch).length === 0) return { ok: true, updated: 0 };
     const { error } = await supabaseAdmin.from("publicacoes").update(patch).in("id", data.ids);
     if (error) throw new Error(error.message);
