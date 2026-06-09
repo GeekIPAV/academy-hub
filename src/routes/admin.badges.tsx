@@ -101,25 +101,15 @@ type BadgeRow = {
 };
 
 function AdminBadgesPage() {
-  const { roles, isLoading } = useCurrentProfile();
-  const isAdmin = roles.includes("Admin");
+  const { isLoading } = useCurrentProfile();
 
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">A carregar…</p>;
   }
-  if (!isAdmin) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Acesso restrito</CardTitle>
-          <CardDescription>Esta área é exclusiva para administradores.</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
+
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Gestão de Badges</h1>
         <p className="text-sm text-muted-foreground">
