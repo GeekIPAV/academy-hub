@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { GraduationCap, ShieldAlert, Users, Building2 } from "lucide-react";
+import { GraduationCap, Users, Building2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -28,12 +28,17 @@ import {
   listProgramaEntidades,
   listProgramaParticipantes,
 } from "@/lib/admin-programas.functions";
-import { useApp } from "@/lib/app-context";
+import { RouteGate } from "@/components/RouteGate";
 
 export const Route = createFileRoute("/admin/programas")({
   head: () => ({ meta: [{ title: "Gestão de Programas — Admin" }] }),
-  component: AdminProgramasPage,
+  component: () => (
+    <RouteGate path="/admin/programas">
+      <AdminProgramasPage />
+    </RouteGate>
+  ),
 });
+
 
 function AdminProgramasPage() {
   const { isAdmin } = useApp();
