@@ -311,55 +311,83 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
               </p>
             ) : (
               <div className="space-y-2">
-                {requiredFields.map((f, i) => (
+                {requiredFields.map((f, i) => {
+                  const needsOptions = f.type === "select" || f.type === "multiselect";
+                  return (
                   <div
                     key={i}
-                    className="grid items-end gap-2 rounded-md border bg-muted/30 p-2 sm:grid-cols-[1fr_140px_90px_auto]"
+                    className="space-y-2 rounded-md border bg-muted/30 p-2"
                   >
-                    <div>
-                      <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Etiqueta</Label>
-                      <Input
-                        value={f.label ?? ""}
-                        onChange={(e) => updateField(i, { label: e.target.value })}
-                        placeholder="ex: Telemóvel"
-                      />
-                    </div>
-                    <div>
-                      <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Tipo</Label>
-                      <Select
-                        value={f.type ?? "text"}
-                        onValueChange={(v) => updateField(i, { type: v })}
+                    <div className="grid items-end gap-2 sm:grid-cols-[1fr_140px_90px_auto]">
+                      <div>
+                        <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Etiqueta</Label>
+                        <Input
+                          value={f.label ?? ""}
+                          onChange={(e) => updateField(i, { label: e.target.value })}
+                          placeholder="ex: Telemóvel"
+                        />
+                      </div>
+                      <div>
+                        <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">Tipo</Label>
+                        <Select
+                          value={f.type ?? "text"}
+                          onValueChange={(v) => updateField(i, { type: v })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Texto</SelectItem>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="tel">Telefone</SelectItem>
+                            <SelectItem value="number">Número</SelectItem>
+                            <SelectItem value="date">Data</SelectItem>
+                            <SelectItem value="textarea">Texto longo</SelectItem>
+                            <SelectItem value="checkbox">Checkbox</SelectItem>
+                            <SelectItem value="select">Lista (escolha única)</SelectItem>
+                            <SelectItem value="multiselect">Lista (múltipla escolha)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <label className="flex items-center gap-2 text-xs">
+                        <Checkbox
+                          checked={!!f.required}
+                          onCheckedChange={(v) => updateField(i, { required: !!v })}
+                        />
+                        Obrigatório
+                      </label>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => removeField(i)}
                       >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="text">Texto</SelectItem>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="tel">Telefone</SelectItem>
-                          <SelectItem value="number">Número</SelectItem>
-                          <SelectItem value="date">Data</SelectItem>
-                          <SelectItem value="textarea">Texto longo</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <label className="flex items-center gap-2 text-xs">
-                      <Checkbox
-                        checked={!!f.required}
-                        onCheckedChange={(v) => updateField(i, { required: !!v })}
-                      />
-                      Obrigatório
-                    </label>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => removeField(i)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    {needsOptions && (
+                      <div>
+                        <Label className="mb-1 block text-[10px] uppercase text-muted-foreground">
+                          Opções (uma por linha)
+                        </Label>
+                        <Textarea
+                          rows={3}
+                          value={(f.options ?? []).join("\n")}
+                          onChange={(e) =>
+                            updateField(i, {
+                              options: e.target.value
+                                .split("\n")
+                                .map((s) => s.trim())
+                                .filter(Boolean),
+                            })
+                          }
+                          placeholder={"Opção 1\nOpção 2\nOpção 3"}
+                        />
+                      </div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
