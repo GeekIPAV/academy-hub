@@ -29,7 +29,7 @@ import {
 
 
 export function AppSidebar() {
-  const { canAccess, profile, activeRoles, isRealAdmin, impersonatedRole, setImpersonatedRole, realRole } = useApp();
+  const { canAccess, profile, activeRoles, isRealAdmin, impersonatedRole, setImpersonatedRole, realRole, isAdmin } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
