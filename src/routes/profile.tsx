@@ -28,7 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { anonimizarUtilizador } from "@/lib/governance.functions";
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({ meta: [{ title: "Perfil — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "O meu Perfil — Academia Ubuntu" }] }),
   component: ProfilePage,
 });
 
@@ -40,7 +40,7 @@ function ProfilePage() {
       <ComponentAccessMatrix pagePath="/profile" />
       {visible("header") && (
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Editar Perfil</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Editar o meu Perfil</h1>
           <p className="text-sm text-muted-foreground">Atualize os seus dados pessoais.</p>
         </div>
       )}

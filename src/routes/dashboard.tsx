@@ -43,7 +43,7 @@ function DashboardPage() {
           <Button asChild variant="outline">
             <Link to="/profile">
               <User className="h-4 w-4" />
-              Perfil
+              O meu Perfil
             </Link>
           </Button>
         </div>
