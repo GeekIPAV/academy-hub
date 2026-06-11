@@ -692,11 +692,15 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
             variant="inline"
             position={cluster.cover_position}
             scale={cluster.cover_scale ?? undefined}
-            onUploaded={(url) => saveCover.mutateAsync({ cover_url: url })}
-            onCleared={() => saveCover.mutateAsync({ cover_url: null })}
-            onAdjusted={(pos, sc) =>
-              saveCover.mutateAsync({ cover_position: pos, cover_scale: sc })
-            }
+            onUploaded={async (url) => {
+              await saveCover.mutateAsync({ cover_url: url });
+            }}
+            onCleared={async () => {
+              await saveCover.mutateAsync({ cover_url: null });
+            }}
+            onAdjusted={async (pos, sc) => {
+              await saveCover.mutateAsync({ cover_position: pos, cover_scale: sc });
+            }}
             aspectRatio={16 / 9}
           />
         </TableCell>
