@@ -4,7 +4,29 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { attachSupabaseAuth } from "@/integrations/supabase/attach-auth-client";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const clusterIdSchema = z.object({ cluster_id: z.string().uuid() });
+const clusterIdSchema = z.object({
+  cluster_id: z.string().uuid(),
+  entity_id: z.string().uuid().optional(),
+});
+
+async function resolveActingEntityId(
+  userId: string,
+  requested: string | undefined,
+): Promise<{ entityId: string | null; isAdmin: boolean; user: { full_name: string | null; email: string | null } | null }> {
+  const { data: user } = await supabaseAdmin
+    .from("utilizadores")
+    .select("entity_id, full_name, email, role")
+    .eq("id", userId)
+    .maybeSingle();
+  const isAdmin = user?.role === "Admin";
+  let entityId: string | null = user?.entity_id ?? null;
+  if (requested && isAdmin) entityId = requested;
+  return {
+    entityId,
+    isAdmin,
+    user: user ? { full_name: user.full_name ?? null, email: user.email ?? null } : null,
+  };
+}
 
 export const getClusterEnrollmentInfo = createServerFn({ method: "GET" })
   .middleware([attachSupabaseAuth, requireSupabaseAuth])
