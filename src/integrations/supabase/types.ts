@@ -397,6 +397,8 @@ export type Database = {
           cover_url: string | null
           created_at: string
           description: string | null
+          final_badge_id: string | null
+          formando_badge_id: string | null
           id: string
           info_pdf_url: string | null
           name: string
@@ -409,6 +411,8 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          final_badge_id?: string | null
+          formando_badge_id?: string | null
           id?: string
           info_pdf_url?: string | null
           name: string
@@ -421,13 +425,30 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           description?: string | null
+          final_badge_id?: string | null
+          formando_badge_id?: string | null
           id?: string
           info_pdf_url?: string | null
           name?: string
           sort_order?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clusters_final_badge_id_fkey"
+            columns: ["final_badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clusters_formando_badge_id_fkey"
+            columns: ["formando_badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       config_privacidade_campos: {
         Row: {
