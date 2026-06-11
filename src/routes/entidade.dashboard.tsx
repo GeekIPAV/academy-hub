@@ -186,6 +186,7 @@ function EntidadeDashboardPage() {
 
         {visible("tab-overview") && (
           <TabsContent value="overview" className="space-y-6">
+            <ProgramEnrollmentsCard entityId={selectedEntityId} />
             {visible("invite-card") && <InviteCard entityId={selectedEntityId} />}
             {visible("trainees-table") && <TraineesTable entityId={selectedEntityId} />}
           </TabsContent>
