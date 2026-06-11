@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId } from "@/lib/cluster-utils";
+import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { Loader2, Lock, Pencil, Check, X } from "lucide-react";
 import {
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/recursos/")({
 
 function ResourcesIndex() {
   const { isComponentVisible, isAdmin } = useApp();
+  const badgeSlugs = useUserBadgeClusterSlugs();
   const qc = useQueryClient();
 
   const clustersQuery = useQuery({
@@ -111,7 +113,7 @@ function ResourcesIndex() {
                 key={c.slug}
                 cluster={c}
                 description={row?.description ?? null}
-                allowed={isComponentVisible("/recursos", clusterComponentId(c.slug))}
+                allowed={isAdmin || isComponentVisible("/recursos", clusterComponentId(c.slug)) || badgeSlugs.has(c.slug)}
                 isAdmin={isAdmin}
                 onSaveDescription={(d) => setDescription(c.name, d)}
               />
