@@ -367,14 +367,14 @@ function ProgramaRow({
       </TableCell>
       <TableCell onClick={(e) => e.stopPropagation()}>
         <Select
-          value={p.cluster_id ?? ""}
-          onValueChange={(v) => update.mutate({ cluster_id: v || null })}
+          value={p.cluster_id ?? "__none__"}
+          onValueChange={(v) => update.mutate({ cluster_id: v === "__none__" ? null : v })}
         >
           <SelectTrigger className="h-8">
             <SelectValue placeholder="Selecionar cluster…" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Nenhum</SelectItem>
+            <SelectItem value="__none__">Nenhum</SelectItem>
             {clusters.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}
