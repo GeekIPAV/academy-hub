@@ -696,3 +696,46 @@ export const getOrCreateEntidadeInvite = createServerFn({ method: "POST" })
     if (cErr) throw new Error(cErr.message);
     return { token: created.token as string };
   });
+
+const createEntidadesSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1).max(200),
+        contact_name: z.string().trim().max(200).optional().nullable(),
+        contact_email: z
+          .string()
+          .trim()
+          .max(255)
+          .email()
+          .optional()
+          .nullable()
+          .or(z.literal("").transform(() => null)),
+        contact_phone: z.string().trim().max(50).optional().nullable(),
+        locality: z.string().trim().max(150).optional().nullable(),
+      }),
+    )
+    .min(1)
+    .max(500),
+});
+
+export const adminCreateEntidades = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => createEntidadesSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdminUser(context.userId);
+    const rows = data.items.map((it) => ({
+      id: crypto.randomUUID(),
+      name: it.name,
+      contact_name: it.contact_name ?? null,
+      contact_email: it.contact_email ?? null,
+      contact_phone: it.contact_phone ?? null,
+      locality: it.locality ?? null,
+    }));
+    const { data: inserted, error } = await supabaseAdmin
+      .from("entidades")
+      .insert(rows)
+      .select("id");
+    if (error) throw new Error(error.message);
+    return { created: inserted?.length ?? 0 };
+  });
