@@ -202,6 +202,7 @@ export const upsertBadge = createServerFn({ method: "POST" })
       validity_years: data.validity_type === "relative_years" ? data.validity_years ?? null : null,
       validity_fixed_date:
         data.validity_type === "fixed_date" ? data.validity_fixed_date ?? null : null,
+      kind: data.kind,
       ...(data.cover_position !== undefined ? { cover_position: data.cover_position } : {}),
       ...(data.cover_scale !== undefined ? { cover_scale: data.cover_scale } : {}),
     };
