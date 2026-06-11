@@ -31,7 +31,7 @@ export const listAllBadges = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("badges")
       .select(
-        "id, title, description, cluster_id, cover_url, cover_position, cover_scale, created_at, validity_type, validity_years, validity_fixed_date, clusters!badges_cluster_id_fkey(name)",
+        "id, title, description, cluster_id, cover_url, cover_position, cover_scale, created_at, validity_type, validity_years, validity_fixed_date, kind, clusters!badges_cluster_id_fkey(name)",
       )
       .order("title", { ascending: true });
     if (error) throw new Error(error.message);
@@ -50,6 +50,7 @@ export const listAllBadges = createServerFn({ method: "GET" })
         validity_type: row.validity_type,
         validity_years: row.validity_years,
         validity_fixed_date: row.validity_fixed_date,
+        kind: (row.kind ?? "formado") as "em_formacao" | "formado",
       };
     });
   });
