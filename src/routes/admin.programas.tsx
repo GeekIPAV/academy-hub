@@ -177,10 +177,20 @@ function ProgramasTable({
   selectedId,
   onSelect,
 }: {
-  rows: Array<{ id: string; title: string | null; is_active: boolean | null }>;
+  rows: Array<{ id: string; title: string | null; is_active: boolean | null; enrollment_open?: boolean | null }>;
   selectedId?: string;
   onSelect: (id: string) => void;
 }) {
+  const qc = useQueryClient();
+  const toggleFn = useServerFn(setProgramaEnrollmentOpen);
+  const toggle = useMutation({
+    mutationFn: (vars: { programId: string; open: boolean }) => toggleFn({ data: vars }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-programas"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (rows.length === 0) {
     return (
       <p className="py-6 text-center text-sm text-muted-foreground">
@@ -194,6 +204,7 @@ function ProgramasTable({
         <TableHeader>
           <TableRow>
             <TableHead>Título</TableHead>
+            <TableHead className="w-40">Inscrições abertas</TableHead>
             <TableHead className="w-32">Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -206,6 +217,15 @@ function ProgramasTable({
               className="cursor-pointer"
             >
               <TableCell className="font-medium">{p.title ?? "(sem título)"}</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={!!p.enrollment_open}
+                  onCheckedChange={(v) =>
+                    toggle.mutate({ programId: p.id, open: v === true })
+                  }
+                  aria-label="Inscrições abertas"
+                />
+              </TableCell>
               <TableCell>
                 <Badge variant={p.is_active ? "default" : "outline"}>
                   {p.is_active ? "Ativo" : "Inativo"}
