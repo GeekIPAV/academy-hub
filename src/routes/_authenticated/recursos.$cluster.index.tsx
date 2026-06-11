@@ -104,8 +104,6 @@ function ClusterTemas() {
 
   const filtered = filter === "__all" ? temas : temas.filter((t) => (t.bloco ?? "") === filter);
 
-  const hasBadge = useHasBadgeForCluster(cluster?.name ?? "");
-
   if (clusterQuery.isLoading) {
     return (
       <div className="flex justify-center py-16">
@@ -115,20 +113,7 @@ function ClusterTemas() {
   }
   if (!cluster) return null;
 
-
-  if (!allowed && !isAdmin) {
-    return (
-      <div className="mx-auto max-w-3xl py-16 text-center">
-        <h1 className="text-2xl font-semibold">{cluster.title}</h1>
-        <p className="mt-4 text-muted-foreground">Não tens acesso a este cluster.</p>
-        <Link to="/recursos" className="mt-6 inline-block text-sm text-secondary underline">
-          Voltar
-        </Link>
-      </div>
-    );
-  }
-
-  if (!hasBadge && !isAdmin) {
+  if (!canAccess) {
     return (
       <div className="mx-auto max-w-2xl py-16 text-center">
         <Lock className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
@@ -143,6 +128,7 @@ function ClusterTemas() {
       </div>
     );
   }
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
