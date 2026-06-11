@@ -338,7 +338,7 @@ function ProgramaRow({
     onSettled: invalidate,
   });
   const update = useMutation({
-    mutationFn: (vars: { title?: string; cluster_id?: string; is_active?: boolean }) =>
+    mutationFn: (vars: { title?: string; cluster_id?: string | null; is_active?: boolean }) =>
       updateFn({ data: { id: p.id, ...vars } }),
     onMutate: (vars) => patchLocal(vars),
     onError: (e: Error) => {
