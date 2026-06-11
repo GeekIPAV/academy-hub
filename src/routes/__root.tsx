@@ -20,6 +20,7 @@ import { ImprovingBanner } from "@/components/ImprovingBanner";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyEntidade } from "@/lib/entidade.functions";
+import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 function NotFoundComponent() {
   return (
@@ -191,14 +192,21 @@ function ShellWithSidebar({
   isRouterLoading: boolean;
 }) {
   const { isAdmin } = useApp();
+  const { isLoading: profileLoading } = useCurrentProfile();
   const fetchEntidade = useServerFn(getMyEntidade);
   const isOnboardingRoute = pathname === "/entidade/dashboard";
   const { data: entidade, isFetched } = useQuery({
     queryKey: ["my-entidade", "self"],
     queryFn: () => fetchEntidade(undefined as never),
-    enabled: isOnboardingRoute && !isAdmin,
+    enabled: isOnboardingRoute && !isAdmin && !profileLoading,
     retry: false,
   });
+
+  // Avoid flashing the sidebar / dashboard while we still don't know roles
+  // or whether the user already has an entidade.
+  if (isOnboardingRoute && !isAdmin && (profileLoading || !isFetched)) {
+    return <LoadingU />;
+  }
 
   const hideSidebar = isOnboardingRoute && !isAdmin && isFetched && !entidade;
 
