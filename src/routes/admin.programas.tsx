@@ -848,8 +848,77 @@ function ClusterProgramsPanel({
   const [addOpen, setAddOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
 
+  const fetchBadges = useServerFn(listAllBadges);
+  const { data: allBadges } = useQuery({
+    queryKey: ["admin-all-badges"],
+    queryFn: () => fetchBadges(),
+    retry: false,
+  });
+  const clusterBadges = useMemo(
+    () => (allBadges ?? []).filter((b) => b.cluster_id === cluster.id),
+    [allBadges, cluster.id],
+  );
+
+  const upsertFn = useServerFn(upsertClusterAdmin);
+  const saveBadge = useMutation({
+    mutationFn: (vars: { formando_badge_id?: string | null; final_badge_id?: string | null }) =>
+      upsertFn({ data: { id: cluster.id, name: cluster.name, ...vars } }),
+    onSuccess: () => {
+      toast.success("Badge atualizado.");
+      onChanged();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const NONE = "__none__";
+
   return (
     <div className="space-y-3 py-2">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Badge de formando (em formação)</Label>
+          <Select
+            value={cluster.formando_badge_id ?? NONE}
+            onValueChange={(v) =>
+              saveBadge.mutate({ formando_badge_id: v === NONE ? null : v })
+            }
+          >
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Sem badge" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NONE}>Sem badge</SelectItem>
+              {clusterBadges.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-xs">Badge final (formação concluída)</Label>
+          <Select
+            value={cluster.final_badge_id ?? NONE}
+            onValueChange={(v) =>
+              saveBadge.mutate({ final_badge_id: v === NONE ? null : v })
+            }
+          >
+            <SelectTrigger className="h-9">
+              <SelectValue placeholder="Sem badge" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NONE}>Sem badge</SelectItem>
+              {clusterBadges.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-medium">Programas do cluster</p>
         <div className="flex items-center gap-2">
