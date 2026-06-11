@@ -860,3 +860,59 @@ function AcoesTab({ entityId }: { entityId?: string }) {
   );
 }
 
+function ProgramEnrollmentsCard({ entityId }: { entityId?: string }) {
+  const fetchFn = useServerFn(listMyEntityProgramEnrollments);
+  const { data, isLoading } = useQuery({
+    queryKey: ["my-entity-program-enrollments", entityId ?? "self"],
+    queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
+    retry: false,
+  });
+  const rows = Array.isArray(data) ? data : [];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Inscrições em Programas</CardTitle>
+        <CardDescription>Estado das inscrições da tua organização.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <Skeleton className="h-20 w-full" />
+        ) : rows.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Ainda não submeteste nenhuma inscrição.{" "}
+            <Link to="/inscricao-programas" className="underline">Inscrever em Programas</Link>.
+          </p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Programa</TableHead>
+                <TableHead>Cluster</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Submetido</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">{r.program_title}</TableCell>
+                  <TableCell className="text-muted-foreground">{r.cluster_name ?? "—"}</TableCell>
+                  <TableCell>
+                    <Badge variant={r.status === "pendente" ? "secondary" : "default"}>
+                      {r.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
+                    {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
