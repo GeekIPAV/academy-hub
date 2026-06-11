@@ -811,7 +811,7 @@ function AcoesTab({ entityId, programTitle }: { entityId?: string; programTitle?
               >
                 <div className="space-y-2">
                   <Label>Tipo de ação</Label>
-                  <Select value={actionType} onValueChange={setActionType}>
+                  <Select value={actionType} onValueChange={setActionType} disabled={!!programActionType}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecionar…" />
                     </SelectTrigger>
