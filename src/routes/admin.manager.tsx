@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ChevronDown, Copy, ExternalLink, Pencil, Plus, Shield, Trash2, UserPlus } from "lucide-react";
+import { Ban, ChevronDown, Copy, ExternalLink, Pencil, Plus, Shield, Trash2, UserPlus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -47,7 +47,7 @@ import { useRoles } from "@/hooks/use-roles";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
-import { createInvite, listInvites, revokeInvite, updateInvite } from "@/lib/invites.functions";
+import { createInvite, deleteInvite, listInvites, revokeInvite, updateInvite } from "@/lib/invites.functions";
 import { useQuery } from "@tanstack/react-query";
 
 import { RouteGate } from "@/components/RouteGate";
@@ -520,6 +520,7 @@ function InviteLinksManager() {
   const listFn = useServerFn(listInvites);
   const createFn = useServerFn(createInvite);
   const revokeFn = useServerFn(revokeInvite);
+  const deleteFn = useServerFn(deleteInvite);
   const updateFn = useServerFn(updateInvite);
 
   const invitesQ = useQuery({
@@ -563,6 +564,15 @@ function InviteLinksManager() {
     mutationFn: (id: string) => revokeFn({ data: { id } }),
     onSuccess: () => {
       toast.success("Convite revogado.");
+      qc.invalidateQueries({ queryKey: ["invites"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => deleteFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Convite eliminado.");
       qc.invalidateQueries({ queryKey: ["invites"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -825,9 +835,24 @@ function InviteLinksManager() {
                               if (confirm("Revogar este link?")) revokeMut.mutate(inv.id);
                             }}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Ban className="h-4 w-4" />
                           </Button>
                         )}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Eliminar"
+                          onClick={() => {
+                            if (
+                              confirm(
+                                "Eliminar este link de convite definitivamente? Esta ação não pode ser desfeita.",
+                              )
+                            )
+                              deleteMut.mutate(inv.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>

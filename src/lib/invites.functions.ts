@@ -134,6 +134,19 @@ export const revokeInvite = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const deleteInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ id: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { error } = await supabaseAdmin
+      .from("convites")
+      .delete()
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const getInviteInfo = createServerFn({ method: "GET" })
   .inputValidator((i) => z.object({ token: z.string().min(8).max(80) }).parse(i))
   .handler(async ({ data }) => {
