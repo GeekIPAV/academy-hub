@@ -1847,10 +1847,8 @@ export type Database = {
           education_level: string | null
           email: string | null
           entity_id: string | null
-          escola_educando: string | null
           first_names: string | null
           full_name: string | null
-          funcao_laboral_detalhe: string | null
           gender: string | null
           grupo_recrutamento: string | null
           id: string
@@ -1882,10 +1880,8 @@ export type Database = {
           education_level?: string | null
           email?: string | null
           entity_id?: string | null
-          escola_educando?: string | null
           first_names?: string | null
           full_name?: string | null
-          funcao_laboral_detalhe?: string | null
           gender?: string | null
           grupo_recrutamento?: string | null
           id: string
@@ -1917,10 +1913,8 @@ export type Database = {
           education_level?: string | null
           email?: string | null
           entity_id?: string | null
-          escola_educando?: string | null
           first_names?: string | null
           full_name?: string | null
-          funcao_laboral_detalhe?: string | null
           gender?: string | null
           grupo_recrutamento?: string | null
           id?: string
