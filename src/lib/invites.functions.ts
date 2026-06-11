@@ -19,6 +19,7 @@ const createSchema = z.object({
   label: z.string().trim().max(120).optional(),
   expires_in_days: z.number().int().min(1).max(365).optional(),
   max_uses: z.number().int().min(1).max(1000).optional(),
+  entity_id: z.string().uuid().optional().nullable(),
 });
 
 export const listInvites = createServerFn({ method: "GET" })
@@ -62,6 +63,7 @@ export const createInvite = createServerFn({ method: "POST" })
         created_by: context.userId,
         expires_at,
         max_uses: data.max_uses ?? null,
+        entity_id: data.entity_id ?? null,
       })
       .select()
       .single();

@@ -480,6 +480,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          entity_id: string | null
           expires_at: string | null
           id: string
           is_active: boolean
@@ -492,6 +493,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          entity_id?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
@@ -504,6 +506,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          entity_id?: string | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
@@ -513,7 +516,15 @@ export type Database = {
           token?: string
           uses_count?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "convites_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entidades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_send_log: {
         Row: {
