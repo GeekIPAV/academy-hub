@@ -373,36 +373,61 @@ export function EntityOnboardingFlow() {
 
             <div className="space-y-2 sm:col-span-2 border-t pt-4">
               <p className="text-sm font-medium">Ponto de Contacto</p>
+              {!isCreate && (
+                <p className="text-xs text-muted-foreground">
+                  Será automaticamente o ponto de contacto desta organização.
+                  Apenas pode editar campos ainda por preencher.
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="onb-cname">Nome do Responsável</Label>
-              <Input
-                id="onb-cname"
-                value={form.contact_name}
-                onChange={(e) => setForm({ ...form, contact_name: e.target.value })}
-                maxLength={200}
-              />
+              {!isCreate && locked.contact_name ? (
+                <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                  {form.contact_name}
+                </div>
+              ) : (
+                <Input
+                  id="onb-cname"
+                  value={form.contact_name}
+                  onChange={(e) => setForm({ ...form, contact_name: e.target.value })}
+                  maxLength={200}
+                />
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="onb-cemail">Email</Label>
-              <Input
-                id="onb-cemail"
-                type="email"
-                value={form.contact_email}
-                onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
-                maxLength={255}
-              />
+              {!isCreate && locked.contact_email ? (
+                <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                  {form.contact_email}
+                </div>
+              ) : (
+                <Input
+                  id="onb-cemail"
+                  type="email"
+                  value={form.contact_email}
+                  onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+                  maxLength={255}
+                />
+              )}
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="onb-cphone">Telefone</Label>
-              <Input
-                id="onb-cphone"
-                type="tel"
-                value={form.contact_phone}
-                onChange={(e) => setForm({ ...form, contact_phone: e.target.value })}
-                maxLength={50}
-              />
+              {!isCreate && locked.contact_phone ? (
+                <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                  {form.contact_phone}
+                </div>
+              ) : (
+                <Input
+                  id="onb-cphone"
+                  type="tel"
+                  value={form.contact_phone}
+                  onChange={(e) => setForm({ ...form, contact_phone: e.target.value })}
+                  maxLength={50}
+                />
+              )}
             </div>
+
 
             <div className="sm:col-span-2 flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={back} disabled={submitting}>
