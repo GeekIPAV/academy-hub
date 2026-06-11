@@ -29,7 +29,7 @@ export const listActiveClustersForEnrollment = createServerFn({ method: "GET" })
 
     const { data: clusters, error: cErr } = await supabaseAdmin
       .from("clusters")
-      .select("id, name, description, cover_url, cover_position, cover_scale, sort_order")
+      .select("id, name, description, cover_url, cover_position, cover_scale, sort_order, info_pdf_url")
       .in("id", clusterIds)
       .order("sort_order", { ascending: true });
     if (cErr) throw new Error(cErr.message);
@@ -50,6 +50,7 @@ export const listActiveClustersForEnrollment = createServerFn({ method: "GET" })
         cover_position: c.cover_position,
         cover_scale: c.cover_scale,
         sort_order: c.sort_order ?? 0,
+        info_pdf_url: c.info_pdf_url ?? null,
         has_open_program: progs.some((p) => p.enrollment_open),
         programs: progs,
       };
