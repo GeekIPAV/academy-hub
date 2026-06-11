@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ShieldAlert, Award } from "lucide-react";
 import { useUserBadges } from "@/hooks/use-badges";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,7 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
   const { profile, isComponentVisible } = useApp();
   const qc = useQueryClient();
+  const { user } = useAuth();
   const visible = (id: string) => isComponentVisible("/profile", id);
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -57,25 +59,28 @@ function ProfilePage() {
         </TabsList>
 
         <TabsContent value="dados" className="space-y-6 pt-4">
-          {visible("form") && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Dados</CardTitle>
-                <CardDescription>Informação básica do utilizador</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome completo</Label>
-                  <Input id="name" defaultValue={profile?.full_name ?? ""} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Perfil de acesso</Label>
-                  <Input id="role" value={profile?.role ?? ""} disabled />
-                </div>
-                <Button>Guardar alterações</Button>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>Dados</CardTitle>
+              <CardDescription>Informação básica do utilizador</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo</Label>
+                <Input id="name" defaultValue={profile?.full_name ?? ""} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" value={user?.email ?? ""} disabled />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Perfil de acesso</Label>
+                <Input id="role" value={profile?.role ?? ""} disabled />
+              </div>
+              <Button>Guardar alterações</Button>
+            </CardContent>
+          </Card>
+
         </TabsContent>
 
         <TabsContent value="certificacao" className="space-y-6 pt-4">
