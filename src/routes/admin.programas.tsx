@@ -58,6 +58,7 @@ import {
   createPrograma,
   bulkCreateClusters,
   bulkCreateProgramas,
+  updateProgramaAdmin,
 } from "@/lib/admin-programas.functions";
 import { RouteGate } from "@/components/RouteGate";
 import { slugifyCluster } from "@/lib/cluster-utils";
