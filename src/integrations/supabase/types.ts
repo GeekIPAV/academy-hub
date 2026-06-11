@@ -398,6 +398,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          info_pdf_url: string | null
           name: string
           sort_order: number
           updated_at: string
@@ -409,6 +410,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          info_pdf_url?: string | null
           name: string
           sort_order?: number
           updated_at?: string
@@ -420,6 +422,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          info_pdf_url?: string | null
           name?: string
           sort_order?: number
           updated_at?: string
@@ -780,6 +783,51 @@ export type Database = {
             columns: ["action_id"]
             isOneToOne: false
             referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inscricoes_entidade_programa: {
+        Row: {
+          created_at: string
+          entity_id: string
+          id: string
+          program_id: string
+          requested_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          id?: string
+          program_id: string
+          requested_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          id?: string
+          program_id?: string
+          requested_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inscricoes_entidade_programa_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inscricoes_entidade_programa_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programas"
             referencedColumns: ["id"]
           },
         ]
