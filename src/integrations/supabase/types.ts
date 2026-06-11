@@ -724,6 +724,51 @@ export type Database = {
           },
         ]
       }
+      entidades_projetos: {
+        Row: {
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          entity_id: string
+          id: string
+          is_active: boolean
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          entity_id: string
+          id?: string
+          is_active?: boolean
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          entity_id?: string
+          id?: string
+          is_active?: boolean
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entidades_projetos_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entidades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entidades_projetos_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faqs: {
         Row: {
           answer: string
@@ -1205,6 +1250,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      projetos: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          status: Database["public"]["Enums"]["projeto_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["projeto_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["projeto_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       publicacoes: {
         Row: {
@@ -1872,7 +1944,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      projeto_status: "planeado" | "em_curso" | "concluido" | "suspenso"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1999,6 +2071,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      projeto_status: ["planeado", "em_curso", "concluido", "suspenso"],
+    },
   },
 } as const

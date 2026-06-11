@@ -90,6 +90,7 @@ function EntidadeDashboardPage() {
   const [selectedEntityId, setSelectedEntityId] = useState<string | undefined>(
     undefined,
   );
+  const [dataDialogOpen, setDataDialogOpen] = useState(false);
 
   useEffect(() => {
     if (isAdmin && !selectedEntityId && entidades.length > 0) {
@@ -177,34 +178,48 @@ function EntidadeDashboardPage() {
         </Card>
       )}
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          {visible("tab-overview") && <TabsTrigger value="overview">Visão Geral</TabsTrigger>}
-          {visible("tab-acoes") && <TabsTrigger value="acoes">Marcações</TabsTrigger>}
-          {visible("tab-data") && <TabsTrigger value="data">Dados da Entidade</TabsTrigger>}
-        </TabsList>
+      <Dialog open={dataDialogOpen} onOpenChange={setDataDialogOpen}>
+        <div className="flex items-start justify-between gap-4">
+          <Tabs defaultValue="overview" className="space-y-6 flex-1">
+            <TabsList>
+              {visible("tab-overview") && <TabsTrigger value="overview">Visão Geral</TabsTrigger>}
+              {visible("tab-acoes") && <TabsTrigger value="acoes">Marcações</TabsTrigger>}
+            </TabsList>
 
-        {visible("tab-overview") && (
-          <TabsContent value="overview" className="space-y-6">
-            <ProgramEnrollmentsCard entityId={selectedEntityId} />
-            {visible("invite-card") && <InviteCard entityId={selectedEntityId} />}
-            {visible("trainees-table") && <TraineesTable entityId={selectedEntityId} />}
-          </TabsContent>
-        )}
+            {visible("tab-overview") && (
+              <TabsContent value="overview" className="space-y-6">
+                <ProgramEnrollmentsCard entityId={selectedEntityId} />
+                {visible("invite-card") && <InviteCard entityId={selectedEntityId} />}
+                {visible("trainees-table") && <TraineesTable entityId={selectedEntityId} />}
+              </TabsContent>
+            )}
 
-        {visible("tab-acoes") && (
-          <TabsContent value="acoes">
-            <AcoesTab entityId={selectedEntityId} />
-          </TabsContent>
-        )}
+            {visible("tab-acoes") && (
+              <TabsContent value="acoes">
+                <AcoesTab entityId={selectedEntityId} />
+              </TabsContent>
+            )}
+          </Tabs>
 
-        {visible("tab-data") && (
-          <TabsContent value="data">
-            <EntityDataForm entityId={selectedEntityId} />
-          </TabsContent>
-        )}
-      </Tabs>
+          {visible("tab-data") && (
+            <DialogTrigger asChild>
+              <Button variant="outline" className="shrink-0">
+                Dados da Entidade
+              </Button>
+            </DialogTrigger>
+          )}
+        </div>
 
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Dados da Entidade</DialogTitle>
+            <DialogDescription>
+              Mantenha o nome da entidade, morada e ponto de contacto atualizados.
+            </DialogDescription>
+          </DialogHeader>
+          <EntityDataForm entityId={selectedEntityId} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
