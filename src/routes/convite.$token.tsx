@@ -61,7 +61,6 @@ function ConvitePage() {
   const accept = useMutation({
     mutationFn: () => consumeFn({ data: { token } }),
     onSuccess: async () => {
-      toast.success("Bem-vindo à equipa!");
       // Refresca perfil/roles para que o AppContext reconheça a nova role.
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["current-profile"] }),
@@ -98,16 +97,15 @@ function ConvitePage() {
     }
   }, [authChecked, authedUserId, token, navigate]);
 
-  return (
-    <div className="mx-auto flex min-h-screen max-w-md items-center px-4 py-12">
-      <Card className="w-full">
-        <CardContent className="pt-6">
-          {info.isLoading || !authChecked ? (
-            <div className="space-y-3">
-              <Skeleton className="h-8 w-2/3 mx-auto" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : info.isError ? (
+  if (info.isLoading || !authChecked || accept.isPending || accept.isSuccess) {
+    return <LoadingU />;
+  }
+
+  if (info.isError) {
+    return (
+      <div className="mx-auto flex min-h-screen max-w-md items-center px-4 py-12">
+        <Card className="w-full">
+          <CardContent className="pt-6">
             <div className="space-y-4 text-center">
               <ShieldAlert className="mx-auto h-10 w-10 text-destructive" />
               <p className="font-medium">Não foi possível validar este convite</p>
@@ -118,35 +116,12 @@ function ConvitePage() {
                 Voltar
               </Button>
             </div>
-          ) : (
-            <div className="space-y-6">
-              <h1 className="text-center text-2xl md:text-3xl font-bold text-primary">
-                Aceita o convite para te juntares à plataforma
-              </h1>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-              {authedUserId ? (
-                <Button
-                  className="w-full"
-                  disabled={accept.isPending}
-                  onClick={() => accept.mutate()}
-                >
-                  {accept.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      A aceitar…
-                    </>
-                  ) : (
-                    <>
-                      <Check className="mr-2 h-4 w-4" />
-                      Aceitar Convite
-                    </>
-                  )}
-                </Button>
-              ) : null}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return <LoadingU />;
+}
 }
