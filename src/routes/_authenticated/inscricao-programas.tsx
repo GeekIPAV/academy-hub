@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { CoverImage } from "@/components/CoverImage";
+import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { listActiveClustersForEnrollment } from "@/lib/inscricao-programas.functions";
 import { parseCluster } from "@/lib/cluster-utils";
 
@@ -146,6 +147,8 @@ function InscricaoProgramasPage() {
           </div>
         )}
       </section>
+
+      {isAdmin && <ComponentAccessMatrix pagePath="/inscricao-programas" />}
 
       <Dialog open={editing} onOpenChange={setEditing}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
