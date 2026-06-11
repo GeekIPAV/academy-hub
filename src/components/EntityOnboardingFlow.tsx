@@ -69,6 +69,8 @@ function fuzzyMatch(haystack: string, query: string): boolean {
 
 export function EntityOnboardingFlow() {
   const qc = useQueryClient();
+  const { user } = useAuth();
+  const { profile } = useCurrentProfile();
   const searchFn = useServerFn(searchEntidades);
   const linkFn = useServerFn(linkExistingEntidade);
   const createFn = useServerFn(createPendingEntidade);
