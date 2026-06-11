@@ -9,6 +9,7 @@ export interface ClusterForEnrollment {
   cover_position: string | null;
   cover_scale: number | null;
   sort_order: number;
+  info_pdf_url: string | null;
   has_open_program: boolean;
   programs: Array<{ id: string; title: string | null; enrollment_open: boolean }>;
 }
