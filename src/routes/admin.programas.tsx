@@ -722,7 +722,7 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
     onError: (e: Error) => toast.error(e.message),
   });
   const saveCover = useMutation({
-    mutationFn: (vars: { cover_url?: string | null; cover_position?: string; cover_scale?: number }) =>
+    mutationFn: (vars: { cover_url?: string | null; cover_position?: string; cover_scale?: number; info_pdf_url?: string | null }) =>
       upsertFn({ data: { id: cluster.id, name: cluster.name, ...vars } }),
     onSuccess: invalidate,
     onError: (e: Error) => toast.error(e.message),
