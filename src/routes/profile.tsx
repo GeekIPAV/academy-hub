@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ShieldAlert, Award } from "lucide-react";
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ import { useApp } from "@/lib/app-context";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { supabase } from "@/integrations/supabase/client";
 import { anonimizarUtilizador } from "@/lib/governance.functions";
+import { CertificacaoForm } from "@/components/CertificacaoForm";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "O meu Perfil — Academia Ubuntu" }] }),
@@ -34,37 +36,75 @@ export const Route = createFileRoute("/profile")({
 
 function ProfilePage() {
   const { profile, isComponentVisible } = useApp();
+  const qc = useQueryClient();
   const visible = (id: string) => isComponentVisible("/profile", id);
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6">
       <ComponentAccessMatrix pagePath="/profile" />
       {visible("header") && (
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Editar o meu Perfil</h1>
-          <p className="text-sm text-muted-foreground">Atualize os seus dados pessoais.</p>
+          <h1 className="text-2xl font-semibold tracking-tight">O meu Perfil</h1>
+          <p className="text-sm text-muted-foreground">Gere os seus dados pessoais e de certificação.</p>
         </div>
       )}
-      {visible("form") && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Dados</CardTitle>
-            <CardDescription>Informação básica do utilizador</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nome completo</Label>
-              <Input id="name" defaultValue={profile?.full_name ?? ""} />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="role">Perfil de acesso</Label>
-              <Input id="role" value={profile?.role ?? ""} disabled />
-            </div>
-            <Button>Guardar alterações</Button>
-          </CardContent>
-        </Card>
-      )}
-      <BadgesSection userId={profile?.id ?? null} />
-      <PrivacySection userId={profile?.id ?? null} />
+
+      <Tabs defaultValue="dados">
+        <TabsList>
+          <TabsTrigger value="dados">Dados básicos</TabsTrigger>
+          <TabsTrigger value="certificacao">Dados de certificação</TabsTrigger>
+          <TabsTrigger value="badges">Credenciais</TabsTrigger>
+          <TabsTrigger value="privacidade">Privacidade</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="dados" className="space-y-6 pt-4">
+          {visible("form") && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Dados</CardTitle>
+                <CardDescription>Informação básica do utilizador</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome completo</Label>
+                  <Input id="name" defaultValue={profile?.full_name ?? ""} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="role">Perfil de acesso</Label>
+                  <Input id="role" value={profile?.role ?? ""} disabled />
+                </div>
+                <Button>Guardar alterações</Button>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="certificacao" className="space-y-6 pt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Dados de Certificação</CardTitle>
+              <CardDescription>
+                Dados oficiais utilizados na emissão dos certificados de participação.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CertificacaoForm
+                onSaved={async () => {
+                  await qc.invalidateQueries({ queryKey: ["cert-gate-status"] });
+                  toast.success("Dados de certificação atualizados.");
+                }}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="badges" className="space-y-6 pt-4">
+          <BadgesSection userId={profile?.id ?? null} />
+        </TabsContent>
+
+        <TabsContent value="privacidade" className="space-y-6 pt-4">
+          <PrivacySection userId={profile?.id ?? null} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -21,6 +21,7 @@ import { ImprovingBanner } from "@/components/ImprovingBanner";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyEntidade } from "@/lib/entidade.functions";
+import { getCertGateStatus } from "@/lib/certificacao-perfil.functions";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 function NotFoundComponent() {
@@ -195,6 +196,7 @@ function ShellWithSidebar({
   const { isAdmin } = useApp();
   const { isLoading: profileLoading } = useCurrentProfile();
   const fetchEntidade = useServerFn(getMyEntidade);
+  const fetchCertGate = useServerFn(getCertGateStatus);
   // Run for every non-admin user so we know whether they completed onboarding,
   // regardless of which route they landed on after login.
   const { data: entidade, isFetched } = useQuery({
@@ -204,9 +206,18 @@ function ShellWithSidebar({
     retry: false,
     staleTime: 60_000,
   });
+  const { data: certGate, isFetched: certGateFetched } = useQuery({
+    queryKey: ["cert-gate-status"],
+    queryFn: () => fetchCertGate(undefined as never),
+    enabled: !profileLoading,
+    retry: false,
+    staleTime: 30_000,
+  });
 
   const router = useRouter();
   const needsOnboarding = !isAdmin && isFetched && !entidade;
+  const needsCertificacao =
+    certGateFetched && !!certGate && certGate.enrolled && !certGate.complete;
 
   useEffect(() => {
     if (needsOnboarding && pathname !== "/entidade/dashboard") {
@@ -214,9 +225,18 @@ function ShellWithSidebar({
     }
   }, [needsOnboarding, pathname, router]);
 
+  useEffect(() => {
+    if (!needsOnboarding && needsCertificacao && pathname !== "/dados-certificacao") {
+      router.navigate({ to: "/dados-certificacao", replace: true });
+    }
+  }, [needsOnboarding, needsCertificacao, pathname, router]);
+
   // Avoid flashing the sidebar / dashboard while we still don't know roles
-  // or whether the user already has an entidade.
+  // or whether the user already has an entidade / cert data.
   if (!isAdmin && (profileLoading || !isFetched)) {
+    return <LoadingU />;
+  }
+  if (!profileLoading && !certGateFetched) {
     return <LoadingU />;
   }
 
@@ -226,6 +246,21 @@ function ShellWithSidebar({
       <div className="min-h-screen bg-muted/30">
         <main className="p-4 sm:p-6 lg:p-8">
           {pathname !== "/entidade/dashboard" || isRouterLoading ? (
+            <InlineLoader />
+          ) : (
+            <Outlet />
+          )}
+        </main>
+      </div>
+    );
+  }
+
+  if (needsCertificacao) {
+    // Sidebar hidden — user has an active enrollment but missing certification data.
+    return (
+      <div className="min-h-screen bg-muted/30">
+        <main className="p-4 sm:p-6 lg:p-8">
+          {pathname !== "/dados-certificacao" || isRouterLoading ? (
             <InlineLoader />
           ) : (
             <Outlet />
