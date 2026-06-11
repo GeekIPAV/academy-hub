@@ -206,6 +206,7 @@ export const listMyEntityProgramEnrollments = createServerFn({ method: "GET" })
       id: r.id,
       status: r.status,
       created_at: r.created_at,
+      program_id: r.program_id,
       program_title: r.programas?.title ?? "—",
       cluster_name: r.programas?.clusters?.name ?? null,
     }));
