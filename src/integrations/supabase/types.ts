@@ -769,6 +769,50 @@ export type Database = {
           },
         ]
       }
+      entity_transfer_requests: {
+        Row: {
+          created_at: string
+          current_owner_id: string | null
+          decided_at: string | null
+          decided_by: string | null
+          decision_notes: string | null
+          entity_id: string
+          id: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          current_owner_id?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          entity_id: string
+          id?: string
+          requester_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          current_owner_id?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_notes?: string | null
+          entity_id?: string
+          id?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entity_transfer_requests_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       faqs: {
         Row: {
           answer: string
