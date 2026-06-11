@@ -111,6 +111,29 @@ export function ClusterEnrollDialog({ clusterId, clusterName, open, onOpenChange
               onScroll={onScroll}
               className="flex-1 overflow-y-auto px-6 py-4 space-y-4"
             >
+              {data.is_admin && (data.entities?.length ?? 0) > 0 && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">
+                    Entidade {data.has_entity ? "" : "(obrigatório)"}
+                  </label>
+                  <select
+                    value={adminEntityId ?? data.acting_entity_id ?? ""}
+                    onChange={(e) => setAdminEntityId(e.target.value || undefined)}
+                    className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                  >
+                    <option value="">— escolher entidade —</option>
+                    {data.entities.map((e) => (
+                      <option key={e.id} value={e.id}>{e.name}</option>
+                    ))}
+                  </select>
+                  {!data.has_entity && (
+                    <p className="text-xs text-muted-foreground">
+                      És admin e não tens entidade associada. Escolhe em nome de qual entidade inscrever.
+                    </p>
+                  )}
+                </div>
+              )}
+
               {data.cluster.info_pdf_url ? (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
