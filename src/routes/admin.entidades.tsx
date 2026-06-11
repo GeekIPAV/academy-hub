@@ -332,6 +332,8 @@ function AdminEntidadesPage() {
           )}
         </CardContent>
       </Card>
+
+      <AdminTransferRequestsTable />
     </div>
   );
 }
