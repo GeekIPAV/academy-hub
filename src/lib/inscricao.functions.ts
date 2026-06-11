@@ -11,7 +11,7 @@ export const getCohortByToken = createServerFn({ method: "GET" })
     const { data: row, error } = await supabaseAdmin
       .from("entidades_programas")
       .select(
-        "id, is_active, entity_id, program_id, entidades(name), programas(title)",
+        "id, is_active, entity_id, program_id, entidades(name), programas(title, enrollment_open)",
       )
       .eq("invite_token", data.token)
       .maybeSingle();
@@ -22,6 +22,7 @@ export const getCohortByToken = createServerFn({ method: "GET" })
       is_active: row.is_active,
       entity_name: row.entidades?.name ?? null,
       program_title: row.programas?.title ?? null,
+      enrollment_open: row.programas?.enrollment_open ?? false,
     };
   });
 
@@ -32,7 +33,7 @@ export const enrollWithToken = createServerFn({ method: "POST" })
     const { userId } = context;
     const { data: cohort, error: cErr } = await supabaseAdmin
       .from("entidades_programas")
-      .select("id, is_active")
+      .select("id, is_active, programas(enrollment_open)")
       .eq("invite_token", data.token)
       .maybeSingle();
     if (cErr) throw new Error(cErr.message);
@@ -40,19 +41,35 @@ export const enrollWithToken = createServerFn({ method: "POST" })
     if (cohort.is_active === false)
       throw new Error("Esta inscrição já não está ativa.");
 
+    const enrollmentOpen = cohort.programas?.enrollment_open ?? false;
+    const status = enrollmentOpen ? "pendente" : "lista_espera";
+
     const { data: existing } = await supabaseAdmin
       .from("inscritos_programa")
       .select("id, status")
       .eq("cohort_id", cohort.id)
       .eq("user_id", userId)
       .maybeSingle();
-    if (existing) return { ok: true, alreadyEnrolled: true, id: existing.id };
+    if (existing)
+      return {
+        ok: true,
+        alreadyEnrolled: true,
+        id: existing.id,
+        status: existing.status,
+        waitlisted: existing.status === "lista_espera",
+      };
 
     const { data: inserted, error: iErr } = await supabaseAdmin
       .from("inscritos_programa")
-      .insert({ cohort_id: cohort.id, user_id: userId, status: "pendente" })
+      .insert({ cohort_id: cohort.id, user_id: userId, status })
       .select("id")
       .maybeSingle();
     if (iErr) throw new Error(iErr.message);
-    return { ok: true, alreadyEnrolled: false, id: inserted?.id };
+    return {
+      ok: true,
+      alreadyEnrolled: false,
+      id: inserted?.id,
+      status,
+      waitlisted: !enrollmentOpen,
+    };
   });
