@@ -43,6 +43,7 @@ import {
   adminListEntidades,
   getOrCreateEntidadeInvite,
 } from "@/lib/entidade.functions";
+import { AdminTransferRequestsTable } from "@/components/admin/AdminTransferRequestsTable";
 
 export const Route = createFileRoute("/admin/entidades")({
   head: () => ({ meta: [{ title: "Gestão de Entidades — Admin" }] }),
@@ -331,6 +332,8 @@ function AdminEntidadesPage() {
           )}
         </CardContent>
       </Card>
+
+      <AdminTransferRequestsTable />
     </div>
   );
 }
