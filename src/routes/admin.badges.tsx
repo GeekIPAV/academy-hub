@@ -99,6 +99,7 @@ type BadgeRow = {
   validity_type: string;
   validity_years: number | null;
   validity_fixed_date: string | null;
+  kind: "em_formacao" | "formado";
 };
 
 function AdminBadgesPage() {
