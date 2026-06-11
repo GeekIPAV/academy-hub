@@ -1109,3 +1109,96 @@ export const adminDecideTransferRequest = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+// ─── Transferência direta (o próprio responsável passa o testemunho) ─────────
+
+const transferDirectSchema = z.object({
+  newOwnerEmail: z.string().trim().min(3).max(255).email(),
+});
+
+export const transferEntityOwnershipDirect = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => transferDirectSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+
+    // 1) Caller must currently own an entity AND have the Entidade role.
+    const { data: me, error: meErr } = await supabaseAdmin
+      .from("utilizadores")
+      .select("id, entity_id, full_name, email")
+      .eq("id", userId)
+      .maybeSingle();
+    if (meErr) throw new Error(meErr.message);
+    if (!me?.entity_id) throw new Error("Não está associado a nenhuma entidade.");
+
+    const { data: myRoles, error: rErr } = await supabaseAdmin
+      .from("user_roles")
+      .select("role_name")
+      .eq("user_id", userId);
+    if (rErr) throw new Error(rErr.message);
+    const isEntityOwner = (myRoles ?? []).some((r) => r.role_name === "Entidade");
+    if (!isEntityOwner)
+      throw new Error("Apenas o responsável da entidade pode transferir o contacto.");
+
+    // 2) Find target user by email.
+    const normEmail = data.newOwnerEmail.toLowerCase().trim();
+    const { data: target, error: tErr } = await supabaseAdmin
+      .from("utilizadores")
+      .select("id, full_name, email, entity_id")
+      .eq("email", normEmail)
+      .maybeSingle();
+    if (tErr) throw new Error(tErr.message);
+    if (!target)
+      throw new Error("Não foi encontrado nenhum utilizador com esse email.");
+    if (target.id === userId)
+      throw new Error("Não pode transferir o contacto para si próprio.");
+    if (target.entity_id && target.entity_id !== me.entity_id)
+      throw new Error(
+        "Esse utilizador já está associado a outra entidade. Contacte a Academia.",
+      );
+
+    const entityId = me.entity_id;
+
+    // 3) Remove role Entidade from caller and clear their entity_id.
+    const { error: delRoleErr } = await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .eq("role_name", "Entidade");
+    if (delRoleErr) throw new Error(delRoleErr.message);
+
+    const { error: clearErr } = await supabaseAdmin
+      .from("utilizadores")
+      .update({ entity_id: null })
+      .eq("id", userId);
+    if (clearErr) throw new Error(clearErr.message);
+
+    // 4) Assign target user to the entity and grant Entidade role.
+    const { error: linkErr } = await supabaseAdmin
+      .from("utilizadores")
+      .update({ entity_id: entityId })
+      .eq("id", target.id);
+    if (linkErr) throw new Error(linkErr.message);
+
+    await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: target.id, role_name: "Entidade", assigned_by: userId })
+      .select()
+      .then(
+        () => null,
+        () => null,
+      );
+
+    // 5) Update entity's contact info to reflect new owner.
+    const { error: updErr } = await supabaseAdmin
+      .from("entidades")
+      .update({
+        contact_name: target.full_name ?? null,
+        contact_email: target.email ?? null,
+      })
+      .eq("id", entityId);
+    if (updErr) throw new Error(updErr.message);
+
+    return { ok: true, newOwnerId: target.id };
+  });
+
