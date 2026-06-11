@@ -580,8 +580,7 @@ function ClustersSection() {
                 <TableHead className="w-8" />
                 <TableHead className="min-w-[200px]">Nome</TableHead>
                 <TableHead>Descrição</TableHead>
-                <TableHead className="w-56">Capa</TableHead>
-                <TableHead className="w-20">Programas</TableHead>
+                <TableHead className="w-24">Capa</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -684,7 +683,7 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
             className="h-8"
           />
         </TableCell>
-        <TableCell>
+        <TableCell className="w-24">
           <CoverUploader
             folder="clusters"
             id={slugifyCluster(cluster.name) || cluster.id}
@@ -705,9 +704,6 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
           />
         </TableCell>
         <TableCell>
-          <Badge variant="secondary">{cluster.programs.length}</Badge>
-        </TableCell>
-        <TableCell>
           <button
             type="button"
             onClick={() => {
@@ -726,7 +722,7 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
       </TableRow>
       {expanded && (
         <TableRow>
-          <TableCell colSpan={6} className="bg-muted/30">
+          <TableCell colSpan={5} className="bg-muted/30">
             <ClusterProgramsPanel cluster={cluster} onChanged={invalidate} />
           </TableCell>
         </TableRow>
