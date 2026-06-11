@@ -610,6 +610,8 @@ type ClusterRow = {
   cover_scale: number | null;
   sort_order: number | null;
   info_pdf_url: string | null;
+  formando_badge_id: string | null;
+  final_badge_id: string | null;
   programs: Array<{
     id: string;
     title: string | null;
