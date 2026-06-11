@@ -23,8 +23,10 @@ import {
   listMyAcoes,
   listMyCohorts,
   listMyTrainees,
+  transferEntityOwnershipDirect,
   updateMyEntidade,
 } from "@/lib/entidade.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 import {
   Select,
