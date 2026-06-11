@@ -30,6 +30,7 @@ import {
   listProgramas,
   listProgramaEntidades,
   listProgramaParticipantes,
+  setProgramaEnrollmentOpen,
 } from "@/lib/admin-programas.functions";
 import { RouteGate } from "@/components/RouteGate";
 
