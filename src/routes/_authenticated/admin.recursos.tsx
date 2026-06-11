@@ -1171,19 +1171,20 @@ function useClusters() {
     queryKey: ["clusters"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("programas")
-        .select("cluster")
-        .not("cluster", "is", null);
+        .from("clusters")
+        .select("name")
+        .order("name", { ascending: true });
       if (error) throw error;
       const set = new Set<string>();
       (data ?? []).forEach((r) => {
-        const c = (r as { cluster: string | null }).cluster;
+        const c = (r as { name: string | null }).name;
         if (c && c.trim()) set.add(c.trim());
       });
       return Array.from(set).sort((a, b) => a.localeCompare(b, "pt"));
     },
   });
 }
+
 
 /* ─────────────────────── Tab 2 — Gestão de Temas ─────────────────────── */
 
