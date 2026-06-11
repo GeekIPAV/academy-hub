@@ -145,9 +145,35 @@ function EntidadeDashboardPage() {
     );
   }
 
+  // Onboarding: utilizador Entidade sem entidade associada
+  const needsOnboarding =
+    !isAdmin && entidadeFetched && !entidadeLoading && !entidade;
+  if (needsOnboarding) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <ComponentAccessMatrix pagePath="/entidade/dashboard" />
+        <EntityOnboardingFlow />
+      </div>
+    );
+  }
+
+  const isPending =
+    !!entidade?.status && entidade.status.toLowerCase() === "pendente";
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <ComponentAccessMatrix pagePath="/entidade/dashboard" />
+
+      {isPending && (
+        <Alert className="border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertTitle>Registo pendente de aprovação</AlertTitle>
+          <AlertDescription>
+            O registo da sua organização está a aguardar aprovação pela equipa da
+            Academia Ubuntu. Algumas funcionalidades podem estar limitadas.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {visible("header") && (
         <div className="flex flex-col items-center gap-3 text-center">
@@ -159,6 +185,7 @@ function EntidadeDashboardPage() {
           </h1>
         </div>
       )}
+
 
       {isAdmin && (
         <Card className="p-4">
