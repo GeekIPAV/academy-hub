@@ -69,7 +69,7 @@ export const listClustersWithProgramas = createServerFn({ method: "GET" })
     await assertAdmin(context.userId);
     const { data: clusters, error: cErr } = await supabaseAdmin
       .from("clusters")
-      .select("id, name, description, cover_url, cover_position, cover_scale, sort_order, info_pdf_url")
+      .select("id, name, description, cover_url, cover_position, cover_scale, sort_order, info_pdf_url, formando_badge_id, final_badge_id")
       .order("sort_order", { ascending: true })
       .order("name", { ascending: true });
     if (cErr) throw new Error(cErr.message);
