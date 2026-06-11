@@ -19,6 +19,13 @@ import {
   saveMeuPerfilCertificacao,
   type CertificacaoData,
 } from "@/lib/certificacao-perfil.functions";
+import {
+  COUNTRY_OPTIONS,
+  PORTUGUESE_MUNICIPALITIES,
+  isOlderThanTwoYears,
+  isValidNif,
+  isValidPhone,
+} from "@/lib/certificacao-options";
 
 const GENERO = ["Feminino", "Masculino"];
 const DOC_TIPO = ["Cartão de Cidadão", "Bilhete de Identidade", "Passaporte", "Título de Residência"];
@@ -131,6 +138,18 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        if (!isOlderThanTwoYears(form.birth_date)) {
+          toast.error("A pessoa tem de ter mais de 2 anos de idade.");
+          return;
+        }
+        if (!isValidNif(form.nif)) {
+          toast.error("NIF inválido.");
+          return;
+        }
+        if (!isValidPhone(form.phone)) {
+          toast.error("Telemóvel inválido.");
+          return;
+        }
         if (!form.data_consent) {
           toast.error("Tens de aceitar o tratamento de dados.");
           return;
@@ -153,7 +172,7 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
           <Input type="date" value={form.birth_date} onChange={(e) => set("birth_date", e.target.value)} required />
         </Field>
         <Field label="NIF" required>
-          <Input inputMode="numeric" value={form.nif} onChange={(e) => set("nif", e.target.value)} required />
+          <Input inputMode="numeric" maxLength={9} value={form.nif} onChange={(e) => set("nif", e.target.value.replace(/\D/g, ""))} required />
         </Field>
         <Field label="Tipo de Doc. Identificação" required>
           <SelectInput value={form.id_doc_type} onChange={(v) => set("id_doc_type", v)} options={DOC_TIPO} />
@@ -165,13 +184,13 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
           <Input type="date" value={form.id_doc_expiry} onChange={(e) => set("id_doc_expiry", e.target.value)} required />
         </Field>
         <Field label="País de Nacionalidade" required>
-          <Input value={form.nationality_country} onChange={(e) => set("nationality_country", e.target.value)} required />
+          <SelectInput value={form.nationality_country} onChange={(v) => set("nationality_country", v)} options={COUNTRY_OPTIONS} />
         </Field>
         <Field label="País de Origem" required>
-          <Input value={form.origin_country} onChange={(e) => set("origin_country", e.target.value)} required />
+          <SelectInput value={form.origin_country} onChange={(v) => set("origin_country", v)} options={COUNTRY_OPTIONS} />
         </Field>
         <Field label="Concelho de Naturalidade" required>
-          <Input value={form.birth_concelho} onChange={(e) => set("birth_concelho", e.target.value)} required />
+          <SelectInput value={form.birth_concelho} onChange={(v) => set("birth_concelho", v)} options={PORTUGUESE_MUNICIPALITIES} />
         </Field>
       </Section>
 
@@ -189,7 +208,7 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
           <Input value={form.locality} onChange={(e) => set("locality", e.target.value)} required />
         </Field>
         <Field label="Concelho de Residência" required>
-          <Input value={form.residence_concelho} onChange={(e) => set("residence_concelho", e.target.value)} required />
+          <SelectInput value={form.residence_concelho} onChange={(v) => set("residence_concelho", v)} options={PORTUGUESE_MUNICIPALITIES} />
         </Field>
       </Section>
 
@@ -198,7 +217,7 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
           <Input value={profile?.email ?? ""} disabled />
         </Field>
         <Field label="Telemóvel">
-          <Input value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} />
+          <Input inputMode="tel" value={form.phone ?? ""} onChange={(e) => set("phone", e.target.value)} placeholder="Ex.: 912345678" />
         </Field>
       </Section>
 
@@ -296,13 +315,15 @@ function SelectInput({
   onChange: (v: string) => void;
   options: string[];
 }) {
+  const normalizedOptions = value && !options.includes(value) ? [value, ...options] : options;
+
   return (
     <Select value={value || undefined} onValueChange={onChange}>
       <SelectTrigger>
         <SelectValue placeholder="Selecionar…" />
       </SelectTrigger>
       <SelectContent>
-        {options.map((o) => (
+        {normalizedOptions.map((o) => (
           <SelectItem key={o} value={o}>
             {o}
           </SelectItem>
