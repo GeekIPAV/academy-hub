@@ -211,16 +211,24 @@ function ShellWithSidebar({
   }
 
   const needsOnboarding = !isAdmin && isFetched && !entidade;
+  const router = useRouter();
+
+  useEffect(() => {
+    if (needsOnboarding && pathname !== "/entidade/dashboard") {
+      router.navigate({ to: "/entidade/dashboard", replace: true });
+    }
+  }, [needsOnboarding, pathname, router]);
 
   if (needsOnboarding) {
-    // Force the onboarding route — sidebar stays hidden until forms completed.
-    if (pathname !== "/entidade/dashboard" && typeof window !== "undefined") {
-      window.history.replaceState(null, "", "/entidade/dashboard");
-    }
+    // Sidebar stays hidden until the user completes the onboarding forms.
     return (
       <div className="min-h-screen bg-muted/30">
         <main className="p-4 sm:p-6 lg:p-8">
-          {isRouterLoading ? <InlineLoader /> : <Outlet />}
+          {pathname !== "/entidade/dashboard" || isRouterLoading ? (
+            <InlineLoader />
+          ) : (
+            <Outlet />
+          )}
         </main>
       </div>
     );
