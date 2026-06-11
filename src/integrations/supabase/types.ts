@@ -298,6 +298,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           id: string
+          kind: string
           title: string
           validity_fixed_date: string | null
           validity_type: string
@@ -311,6 +312,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          kind?: string
           title: string
           validity_fixed_date?: string | null
           validity_type?: string
@@ -324,6 +326,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           id?: string
+          kind?: string
           title?: string
           validity_fixed_date?: string | null
           validity_type?: string
