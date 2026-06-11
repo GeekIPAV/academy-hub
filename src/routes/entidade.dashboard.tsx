@@ -867,37 +867,66 @@ function ProgramEnrollmentsCard({ entityId }: { entityId?: string }) {
   });
   const rows = Array.isArray(data) ? data : [];
 
+  const cohortsFn = useServerFn(listMyCohorts);
+  const { data: cohortsRaw } = useQuery({
+    queryKey: ["my-cohorts", entityId ?? "self"],
+    queryFn: () => cohortsFn(entityId ? { data: { entityId } } : (undefined as never)),
+    retry: false,
+  });
+  const cohorts = Array.isArray(cohortsRaw) ? cohortsRaw : [];
+  const tokenByProgram = new Map(
+    cohorts.map((c) => [c.program_id, c.invite_token ?? ""]),
+  );
+
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const copy = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copiado para a área de transferência");
+    } catch {
+      toast.error("Não foi possível copiar o link");
+    }
+  };
+
   return (
     <Card className="border-primary/20 bg-primary/[0.03]">
-      <CardContent className="flex flex-col gap-2 py-3 px-4">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <CalendarPlus className="h-4 w-4 text-primary" />
+      <CardContent className="flex flex-col gap-3 py-4 px-5">
+        <div className="flex items-center gap-2 text-base font-semibold">
+          <CalendarPlus className="h-5 w-5 text-primary" />
           <span>Inscrições em Programas</span>
         </div>
 
         {isLoading ? (
-          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-8 w-40" />
         ) : rows.length === 0 ? (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             Ainda não submeteste nenhuma inscrição.
           </span>
         ) : (
-          rows.map((r) => (
-            <div key={r.id} className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                {r.program_title}
-              </span>
-              <Badge
-                variant={r.status === "pendente" ? "secondary" : "default"}
-                className="text-[10px] px-1.5 py-0"
-              >
-                {r.status}
-              </Badge>
-              <span className="text-[10px] text-muted-foreground">
-                {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
-              </span>
-            </div>
-          ))
+          rows.map((r) => {
+            const token = tokenByProgram.get((r as any).program_id);
+            const url = token ? `${origin}/inscricao/${token}` : "";
+            return (
+              <div key={r.id} className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium">{r.program_title}</span>
+                <Badge
+                  variant={r.status === "pendente" ? "secondary" : "default"}
+                  className="text-xs px-2 py-0.5"
+                >
+                  {r.status}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
+                </span>
+                {url && (
+                  <Button size="sm" variant="outline" onClick={() => copy(url)}>
+                    <Copy className="mr-1.5 h-3 w-3" />
+                    Copiar link
+                  </Button>
+                )}
+              </div>
+            );
+          })
         )}
       </CardContent>
     </Card>
