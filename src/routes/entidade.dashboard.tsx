@@ -368,7 +368,7 @@ function ProgramsMasterTable({
 }
 
 
-function TraineesTable({ entityId }: { entityId?: string }) {
+function TraineesTable({ entityId, programTitle }: { entityId?: string; programTitle?: string | null }) {
   const fetchFn = useServerFn(listMyTrainees);
   const { data, isLoading, error } = useQuery({
     queryKey: ["my-trainees", entityId ?? "self"],
