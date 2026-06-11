@@ -131,6 +131,17 @@ function ProgramasSection() {
   });
   const programas = Array.isArray(programasRaw) ? programasRaw : [];
 
+  const fetchClusters = useServerFn(listClustersWithProgramas);
+  const { data: clustersRaw } = useQuery({
+    queryKey: ["admin-programas-clusters"],
+    queryFn: () => fetchClusters(),
+    retry: false,
+  });
+  const clusters = useMemo(
+    () => (Array.isArray(clustersRaw) ? clustersRaw.map((c) => ({ id: c.id, name: c.name })) : []),
+    [clustersRaw],
+  );
+
   const [programId, setProgramId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
