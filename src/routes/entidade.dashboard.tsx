@@ -22,6 +22,7 @@ import {
   listMyTrainees,
   updateMyEntidade,
 } from "@/lib/entidade.functions";
+import { listMyEntityProgramEnrollments } from "@/lib/inscricao-entidade.functions";
 import {
   Select,
   SelectContent,
