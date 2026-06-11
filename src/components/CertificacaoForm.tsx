@@ -33,14 +33,6 @@ const HABILITACOES = [
   "Mestrado",
   "Doutoramento",
 ];
-const FUNCAO = [
-  "Professor/Educador",
-  "Aluno/Estudante",
-  "Encarregado de Educação",
-  "Técnico",
-  "Voluntário",
-  "Outra",
-];
 
 type Profile = Awaited<ReturnType<typeof getMeuPerfilCertificacao>>;
 
