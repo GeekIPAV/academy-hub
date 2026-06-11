@@ -1,0 +1,1 @@
+ALTER TABLE public.programas ADD COLUMN IF NOT EXISTS enrollment_open boolean NOT NULL DEFAULT false;
