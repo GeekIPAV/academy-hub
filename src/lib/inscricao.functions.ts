@@ -33,7 +33,7 @@ export const enrollWithToken = createServerFn({ method: "POST" })
     const { userId } = context;
     const { data: cohort, error: cErr } = await supabaseAdmin
       .from("entidades_programas")
-      .select("id, is_active, programas(enrollment_open)")
+      .select("id, is_active, program_id, programas(enrollment_open, cluster_id)")
       .eq("invite_token", data.token)
       .maybeSingle();
     if (cErr) throw new Error(cErr.message);
@@ -50,26 +50,48 @@ export const enrollWithToken = createServerFn({ method: "POST" })
       .eq("cohort_id", cohort.id)
       .eq("user_id", userId)
       .maybeSingle();
-    if (existing)
-      return {
-        ok: true,
-        alreadyEnrolled: true,
-        id: existing.id,
-        status: existing.status,
-        waitlisted: existing.status === "lista_espera",
-      };
 
-    const { data: inserted, error: iErr } = await supabaseAdmin
-      .from("inscritos_programa")
-      .insert({ cohort_id: cohort.id, user_id: userId, status })
-      .select("id")
-      .maybeSingle();
-    if (iErr) throw new Error(iErr.message);
+    let enrollmentId = existing?.id;
+    let alreadyEnrolled = false;
+    let finalStatus = existing?.status ?? status;
+
+    if (existing) {
+      alreadyEnrolled = true;
+    } else {
+      const { data: inserted, error: iErr } = await supabaseAdmin
+        .from("inscritos_programa")
+        .insert({ cohort_id: cohort.id, user_id: userId, status })
+        .select("id")
+        .maybeSingle();
+      if (iErr) throw new Error(iErr.message);
+      enrollmentId = inserted?.id;
+      finalStatus = status;
+    }
+
+    // Atribuir o badge de formando do cluster do programa (se configurado)
+    const clusterId = cohort.programas?.cluster_id ?? null;
+    if (clusterId) {
+      const { data: cluster } = await supabaseAdmin
+        .from("clusters")
+        .select("formando_badge_id")
+        .eq("id", clusterId)
+        .maybeSingle();
+      const formandoBadgeId = cluster?.formando_badge_id ?? null;
+      if (formandoBadgeId) {
+        await supabaseAdmin
+          .from("user_badges")
+          .upsert(
+            { user_id: userId, badge_id: formandoBadgeId },
+            { onConflict: "user_id,badge_id", ignoreDuplicates: true },
+          );
+      }
+    }
+
     return {
       ok: true,
-      alreadyEnrolled: false,
-      id: inserted?.id,
-      status,
-      waitlisted: !enrollmentOpen,
+      alreadyEnrolled,
+      id: enrollmentId,
+      status: finalStatus,
+      waitlisted: finalStatus === "lista_espera",
     };
   });
