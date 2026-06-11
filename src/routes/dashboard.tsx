@@ -40,7 +40,7 @@ function DashboardPage() {
       </div>
       {visible("profile-button") && (
         <div className="flex justify-end">
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="border-ubuntu-blue text-ubuntu-blue hover:bg-ubuntu-blue/10">
             <Link to="/profile">
               <User className="h-4 w-4" />
               O meu Perfil
