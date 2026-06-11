@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Copy, Building2 } from "lucide-react";
+import { Copy, Building2, ChevronDown, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -12,6 +16,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -24,6 +39,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RouteGate } from "@/components/RouteGate";
 import {
+  adminCreateEntidades,
   adminListEntidades,
   getOrCreateEntidadeInvite,
 } from "@/lib/entidade.functions";
@@ -36,6 +52,39 @@ export const Route = createFileRoute("/admin/entidades")({
     </RouteGate>
   ),
 });
+
+type NewItem = {
+  name: string;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  locality?: string | null;
+};
+
+function parseBulk(text: string): { items: NewItem[]; errors: string[] } {
+  const errors: string[] = [];
+  const items: NewItem[] = [];
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  lines.forEach((line, idx) => {
+    // Skip header
+    if (idx === 0 && /^nome\b/i.test(line)) return;
+    const parts = line.split(/[\t;,]/).map((p) => p.trim());
+    const [name, contact_name, contact_email, contact_phone, locality] = parts;
+    if (!name) {
+      errors.push(`Linha ${idx + 1}: nome em falta`);
+      return;
+    }
+    items.push({
+      name,
+      contact_name: contact_name || null,
+      contact_email: contact_email || null,
+      contact_phone: contact_phone || null,
+      locality: locality || null,
+    });
+  });
+  return { items, errors };
+}
+
 
 function AdminEntidadesPage() {
   const listFn = useServerFn(adminListEntidades);
