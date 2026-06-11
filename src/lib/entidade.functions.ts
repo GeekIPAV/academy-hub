@@ -758,14 +758,14 @@ export const searchEntidades = createServerFn({ method: "GET" })
       // já tem entidade — devolve apenas a sua para não expor lista
       const { data, error } = await supabaseAdmin
         .from("entidades")
-        .select("id, name, status, locality")
+        .select("id, name, status, locality, contact_name, contact_email, contact_phone")
         .eq("id", me.entity_id);
       if (error) throw new Error(error.message);
       return data ?? [];
     }
     const { data, error } = await supabaseAdmin
       .from("entidades")
-      .select("id, name, status, locality")
+      .select("id, name, status, locality, contact_name, contact_email, contact_phone")
       .order("name", { ascending: true });
     if (error) throw new Error(error.message);
     return data ?? [];
