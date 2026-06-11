@@ -376,7 +376,10 @@ function TraineesTable({ entityId, programTitle }: { entityId?: string; programT
     retry: false,
   });
 
-  const trainees = Array.isArray(data) ? data : [];
+  const allTrainees = Array.isArray(data) ? data : [];
+  const trainees = programTitle
+    ? allTrainees.filter((t) => t.program_title === programTitle)
+    : allTrainees;
 
   const statusVariant = (s: string | null) => {
     const v = (s ?? "").toLowerCase();
