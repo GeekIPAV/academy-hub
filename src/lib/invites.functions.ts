@@ -63,6 +63,7 @@ export const createInvite = createServerFn({ method: "POST" })
         created_by: context.userId,
         expires_at,
         max_uses: data.max_uses ?? null,
+        entity_id: data.entity_id ?? null,
       })
       .select()
       .single();
