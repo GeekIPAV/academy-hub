@@ -338,7 +338,7 @@ function ProgramaRow({
     onSettled: invalidate,
   });
   const update = useMutation({
-    mutationFn: (vars: { title?: string; cluster_id?: string; is_active?: boolean }) =>
+    mutationFn: (vars: { title?: string; cluster_id?: string | null; is_active?: boolean }) =>
       updateFn({ data: { id: p.id, ...vars } }),
     onMutate: (vars) => patchLocal(vars),
     onError: (e: Error) => {
@@ -368,12 +368,13 @@ function ProgramaRow({
       <TableCell onClick={(e) => e.stopPropagation()}>
         <Select
           value={p.cluster_id ?? ""}
-          onValueChange={(v) => update.mutate({ cluster_id: v })}
+          onValueChange={(v) => update.mutate({ cluster_id: v || null })}
         >
           <SelectTrigger className="h-8">
             <SelectValue placeholder="Selecionar cluster…" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="">Nenhum</SelectItem>
             {clusters.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.name}

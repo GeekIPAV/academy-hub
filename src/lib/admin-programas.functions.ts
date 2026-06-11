@@ -42,7 +42,7 @@ export const setProgramaEnrollmentOpen = createServerFn({ method: "POST" })
 const updateProgramaSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1).max(255).optional(),
-  cluster_id: z.string().uuid().optional(),
+  cluster_id: z.string().uuid().nullable().optional(),
   is_active: z.boolean().optional(),
 });
 
@@ -51,7 +51,7 @@ export const updateProgramaAdmin = createServerFn({ method: "POST" })
   .inputValidator((input) => updateProgramaSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const patch: { title?: string; cluster_id?: string; is_active?: boolean } = {};
+    const patch: { title?: string; cluster_id?: string | null; is_active?: boolean } = {};
     if (data.title !== undefined) patch.title = data.title.trim();
     if (data.cluster_id !== undefined) patch.cluster_id = data.cluster_id;
     if (data.is_active !== undefined) patch.is_active = data.is_active;
