@@ -661,14 +661,14 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
             )}
           </button>
         </TableCell>
-        <TableCell>
+        <TableCell className="min-w-[200px]">
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             onBlur={() => {
               if (name.trim() && name.trim() !== cluster.name) saveName.mutate();
             }}
-            className="h-8"
+            className="h-8 w-full"
           />
         </TableCell>
         <TableCell>
