@@ -520,6 +520,7 @@ function InviteLinksManager() {
   const listFn = useServerFn(listInvites);
   const createFn = useServerFn(createInvite);
   const revokeFn = useServerFn(revokeInvite);
+  const deleteFn = useServerFn(deleteInvite);
   const updateFn = useServerFn(updateInvite);
 
   const invitesQ = useQuery({
