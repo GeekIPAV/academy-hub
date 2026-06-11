@@ -687,7 +687,7 @@ export type Database = {
           invite_token: string | null
           is_active: boolean | null
           program_id: string | null
-          project_notion_id: string
+          project_notion_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -696,7 +696,7 @@ export type Database = {
           invite_token?: string | null
           is_active?: boolean | null
           program_id?: string | null
-          project_notion_id: string
+          project_notion_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -705,7 +705,7 @@ export type Database = {
           invite_token?: string | null
           is_active?: boolean | null
           program_id?: string | null
-          project_notion_id?: string
+          project_notion_id?: string | null
         }
         Relationships: [
           {
