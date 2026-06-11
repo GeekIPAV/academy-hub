@@ -869,7 +869,7 @@ function ProgramEnrollmentsCard({ entityId }: { entityId?: string }) {
 
   return (
     <Card className="border-primary/20 bg-primary/[0.03]">
-      <CardContent className="flex flex-wrap items-center gap-3 py-3 px-4">
+      <CardContent className="flex flex-col gap-2 py-3 px-4">
         <div className="flex items-center gap-2 text-sm font-medium">
           <CalendarPlus className="h-4 w-4 text-primary" />
           <span>Inscrições em Programas</span>
