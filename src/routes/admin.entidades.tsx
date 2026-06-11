@@ -47,7 +47,7 @@ function AdminEntidadesPage() {
   });
 
   const copyInvite = useMutation({
-    mutationFn: () => inviteFn({ data: {} as never }),
+    mutationFn: () => inviteFn(),
     onSuccess: async (res) => {
       const url = `${window.location.origin}/convite/${res.token}`;
       try {

@@ -31,6 +31,7 @@ import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicac
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
+import { Route as AdminEntidadesRouteImport } from './routes/admin.entidades'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as AdminBibliotecaRouteImport } from './routes/admin.biblioteca'
 import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
@@ -162,6 +163,11 @@ const AdminManagerRoute = AdminManagerRouteImport.update({
 const AdminGovernacaoRoute = AdminGovernacaoRouteImport.update({
   id: '/admin/governacao',
   path: '/admin/governacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEntidadesRoute = AdminEntidadesRouteImport.update({
+  id: '/admin/entidades',
+  path: '/admin/entidades',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminEmailsRoute = AdminEmailsRouteImport.update({
@@ -296,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
@@ -384,6 +392,7 @@ export interface FileRoutesById {
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
   '/admin/emails': typeof AdminEmailsRoute
+  '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
@@ -430,6 +439,7 @@ export interface FileRouteTypes {
     | '/admin/badges'
     | '/admin/biblioteca'
     | '/admin/emails'
+    | '/admin/entidades'
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/admin/badges'
     | '/admin/biblioteca'
     | '/admin/emails'
+    | '/admin/entidades'
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
@@ -517,6 +528,7 @@ export interface FileRouteTypes {
     | '/admin/badges'
     | '/admin/biblioteca'
     | '/admin/emails'
+    | '/admin/entidades'
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
@@ -561,6 +573,7 @@ export interface RootRouteChildren {
   AdminBadgesRoute: typeof AdminBadgesRoute
   AdminBibliotecaRoute: typeof AdminBibliotecaRoute
   AdminEmailsRoute: typeof AdminEmailsRoute
+  AdminEntidadesRoute: typeof AdminEntidadesRoute
   AdminGovernacaoRoute: typeof AdminGovernacaoRoute
   AdminManagerRoute: typeof AdminManagerRoute
   AdminProgramasRoute: typeof AdminProgramasRoute
@@ -737,6 +750,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/governacao'
       fullPath: '/admin/governacao'
       preLoaderRoute: typeof AdminGovernacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/entidades': {
+      id: '/admin/entidades'
+      path: '/admin/entidades'
+      fullPath: '/admin/entidades'
+      preLoaderRoute: typeof AdminEntidadesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/emails': {
@@ -967,6 +987,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminBadgesRoute: AdminBadgesRoute,
   AdminBibliotecaRoute: AdminBibliotecaRoute,
   AdminEmailsRoute: AdminEmailsRoute,
+  AdminEntidadesRoute: AdminEntidadesRoute,
   AdminGovernacaoRoute: AdminGovernacaoRoute,
   AdminManagerRoute: AdminManagerRoute,
   AdminProgramasRoute: AdminProgramasRoute,
@@ -993,13 +1014,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
