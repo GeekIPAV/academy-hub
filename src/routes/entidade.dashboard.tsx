@@ -3,7 +3,7 @@ import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, CalendarPlus, Copy, Link2, ShieldAlert, Users } from "lucide-react";
+import { Building2, CalendarPlus, Copy, Link2, Pencil, ShieldAlert, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
