@@ -70,6 +70,7 @@ export function useRevokeBadge() {
 }
 
 export type BadgeValidityType = "forever" | "relative_years" | "fixed_date";
+export type BadgeKind = "em_formacao" | "formado";
 
 export interface BadgeInput {
   id?: string;
@@ -82,6 +83,7 @@ export interface BadgeInput {
   validity_type: BadgeValidityType;
   validity_years?: number | null;
   validity_fixed_date?: string | null;
+  kind: BadgeKind;
 }
 
 export function useUpsertBadge() {

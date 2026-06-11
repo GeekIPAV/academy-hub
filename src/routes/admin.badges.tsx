@@ -68,6 +68,7 @@ import {
   useUsersByBadge,
   type BadgeInput,
   type BadgeValidityType,
+  type BadgeKind,
 } from "@/hooks/use-badges";
 import { useClusters } from "@/hooks/use-clusters";
 import { useUsers } from "@/hooks/use-users";
@@ -98,6 +99,7 @@ type BadgeRow = {
   validity_type: string;
   validity_years: number | null;
   validity_fixed_date: string | null;
+  kind: "em_formacao" | "formado";
 };
 
 function AdminBadgesPage() {
@@ -179,6 +181,7 @@ function CatalogoTab() {
                 <TableHead className="w-16"></TableHead>
                 <TableHead>Título</TableHead>
                 <TableHead>Cluster</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead>Validade</TableHead>
                 <TableHead className="w-32 text-right">Ações</TableHead>
               </TableRow>
@@ -210,6 +213,9 @@ function CatalogoTab() {
                     )}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{b.cluster_name}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {b.kind === "em_formacao" ? "Em formação" : "Formado"}
+                  </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatValidity(b.validity_type, b.validity_years, b.validity_fixed_date)}
                   </TableCell>
@@ -296,6 +302,7 @@ function BadgeFormDialog({
     validity_type: "forever",
     validity_years: null,
     validity_fixed_date: null,
+    kind: "formado",
   });
   const [adjustOpen, setAdjustOpen] = useState(false);
 
@@ -312,6 +319,7 @@ function BadgeFormDialog({
         validity_type: (editing?.validity_type as BadgeValidityType) ?? "forever",
         validity_years: editing?.validity_years ?? null,
         validity_fixed_date: editing?.validity_fixed_date ?? null,
+        kind: (editing?.kind as BadgeKind) ?? "formado",
       });
     }
   }, [open, editing]);
@@ -372,6 +380,21 @@ function BadgeFormDialog({
                     {c.name}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label>Tipo</Label>
+            <Select
+              value={form.kind}
+              onValueChange={(v) => setForm((f) => ({ ...f, kind: v as BadgeKind }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="em_formacao">Em formação</SelectItem>
+                <SelectItem value="formado">Formado</SelectItem>
               </SelectContent>
             </Select>
           </div>

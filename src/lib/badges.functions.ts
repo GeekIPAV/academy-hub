@@ -21,6 +21,7 @@ type BadgeListRow = {
   validity_type: string;
   validity_years: number | null;
   validity_fixed_date: string | null;
+  kind: string | null;
   clusters: { name: string } | null;
 };
 
@@ -30,7 +31,7 @@ export const listAllBadges = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("badges")
       .select(
-        "id, title, description, cluster_id, cover_url, cover_position, cover_scale, created_at, validity_type, validity_years, validity_fixed_date, clusters!badges_cluster_id_fkey(name)",
+        "id, title, description, cluster_id, cover_url, cover_position, cover_scale, created_at, validity_type, validity_years, validity_fixed_date, kind, clusters!badges_cluster_id_fkey(name)",
       )
       .order("title", { ascending: true });
     if (error) throw new Error(error.message);
@@ -49,6 +50,7 @@ export const listAllBadges = createServerFn({ method: "GET" })
         validity_type: row.validity_type,
         validity_years: row.validity_years,
         validity_fixed_date: row.validity_fixed_date,
+        kind: (row.kind ?? "formado") as "em_formacao" | "formado",
       };
     });
   });
@@ -183,6 +185,7 @@ const upsertSchema = z.object({
   validity_type: z.enum(["forever", "relative_years", "fixed_date"]).default("forever"),
   validity_years: z.number().int().min(1).max(99).nullable().optional(),
   validity_fixed_date: z.string().nullable().optional(),
+  kind: z.enum(["em_formacao", "formado"]).default("formado"),
 });
 
 export const upsertBadge = createServerFn({ method: "POST" })
@@ -199,6 +202,7 @@ export const upsertBadge = createServerFn({ method: "POST" })
       validity_years: data.validity_type === "relative_years" ? data.validity_years ?? null : null,
       validity_fixed_date:
         data.validity_type === "fixed_date" ? data.validity_fixed_date ?? null : null,
+      kind: data.kind,
       ...(data.cover_position !== undefined ? { cover_position: data.cover_position } : {}),
       ...(data.cover_scale !== undefined ? { cover_scale: data.cover_scale } : {}),
     };
