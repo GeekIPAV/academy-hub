@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Building2, Search, ArrowLeft, PlusCircle, ShieldAlert, Clock } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +27,9 @@ type EntityRow = {
   name: string;
   status: string | null;
   locality: string | null;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
 };
 
 type FormState = {
@@ -64,6 +69,8 @@ function fuzzyMatch(haystack: string, query: string): boolean {
 
 export function EntityOnboardingFlow() {
   const qc = useQueryClient();
+  const { user } = useAuth();
+  const { profile } = useCurrentProfile();
   const searchFn = useServerFn(searchEntidades);
   const linkFn = useServerFn(linkExistingEntidade);
   const createFn = useServerFn(createPendingEntidade);
@@ -89,6 +96,11 @@ export function EntityOnboardingFlow() {
   const [selected, setSelected] = useState<EntityRow | null>(null);
   const [owner, setOwner] = useState<{ id: string; full_name: string | null; email: string | null } | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [locked, setLocked] = useState<{ contact_name: boolean; contact_email: boolean; contact_phone: boolean }>({
+    contact_name: false,
+    contact_email: false,
+    contact_phone: false,
+  });
 
   const list = (Array.isArray(entidades) ? entidades : []) as EntityRow[];
   const filtered = useMemo(() => {
@@ -168,14 +180,22 @@ export function EntityOnboardingFlow() {
       return;
     }
     setOwner(null);
+    const cName = e.contact_name?.trim() || profile?.full_name?.trim() || "";
+    const cEmail = e.contact_email?.trim() || user?.email?.trim() || "";
+    const cPhone = e.contact_phone?.trim() || "";
     setForm({
       name: e.name,
-      contact_name: "",
-      contact_email: "",
-      contact_phone: "",
+      contact_name: cName,
+      contact_email: cEmail,
+      contact_phone: cPhone,
       address: "",
       postal_code: "",
       locality: e.locality ?? "",
+    });
+    setLocked({
+      contact_name: cName.length > 0,
+      contact_email: cEmail.length > 0,
+      contact_phone: cPhone.length > 0,
     });
     setMode("link");
   };
@@ -353,36 +373,61 @@ export function EntityOnboardingFlow() {
 
             <div className="space-y-2 sm:col-span-2 border-t pt-4">
               <p className="text-sm font-medium">Ponto de Contacto</p>
+              {!isCreate && (
+                <p className="text-xs text-muted-foreground">
+                  Será automaticamente o ponto de contacto desta organização.
+                  Apenas pode editar campos ainda por preencher.
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="onb-cname">Nome do Responsável</Label>
-              <Input
-                id="onb-cname"
-                value={form.contact_name}
-                onChange={(e) => setForm({ ...form, contact_name: e.target.value })}
-                maxLength={200}
-              />
+              {!isCreate && locked.contact_name ? (
+                <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                  {form.contact_name}
+                </div>
+              ) : (
+                <Input
+                  id="onb-cname"
+                  value={form.contact_name}
+                  onChange={(e) => setForm({ ...form, contact_name: e.target.value })}
+                  maxLength={200}
+                />
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="onb-cemail">Email</Label>
-              <Input
-                id="onb-cemail"
-                type="email"
-                value={form.contact_email}
-                onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
-                maxLength={255}
-              />
+              {!isCreate && locked.contact_email ? (
+                <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                  {form.contact_email}
+                </div>
+              ) : (
+                <Input
+                  id="onb-cemail"
+                  type="email"
+                  value={form.contact_email}
+                  onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+                  maxLength={255}
+                />
+              )}
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="onb-cphone">Telefone</Label>
-              <Input
-                id="onb-cphone"
-                type="tel"
-                value={form.contact_phone}
-                onChange={(e) => setForm({ ...form, contact_phone: e.target.value })}
-                maxLength={50}
-              />
+              {!isCreate && locked.contact_phone ? (
+                <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+                  {form.contact_phone}
+                </div>
+              ) : (
+                <Input
+                  id="onb-cphone"
+                  type="tel"
+                  value={form.contact_phone}
+                  onChange={(e) => setForm({ ...form, contact_phone: e.target.value })}
+                  maxLength={50}
+                />
+              )}
             </div>
+
 
             <div className="sm:col-span-2 flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={back} disabled={submitting}>
