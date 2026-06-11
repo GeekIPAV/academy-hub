@@ -47,7 +47,7 @@ import { useRoles } from "@/hooks/use-roles";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
-import { createInvite, listInvites, revokeInvite, updateInvite } from "@/lib/invites.functions";
+import { createInvite, deleteInvite, listInvites, revokeInvite, updateInvite } from "@/lib/invites.functions";
 import { useQuery } from "@tanstack/react-query";
 
 import { RouteGate } from "@/components/RouteGate";
