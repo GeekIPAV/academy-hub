@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Pencil, Lock, BellRing, ArrowRight } from "lucide-react";
+import { Pencil, Lock, BellRing } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
@@ -20,6 +20,7 @@ import {
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { CoverImage } from "@/components/CoverImage";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+import { ClusterEnrollDialog } from "@/components/ClusterEnrollDialog";
 import { listActiveClustersForEnrollment } from "@/lib/inscricao-programas.functions";
 import { parseCluster } from "@/lib/cluster-utils";
 
