@@ -179,6 +179,40 @@ function AppShell() {
   }
 
   return (
+    <ShellWithSidebar pathname={pathname} isRouterLoading={isRouterLoading} />
+  );
+}
+
+function ShellWithSidebar({
+  pathname,
+  isRouterLoading,
+}: {
+  pathname: string;
+  isRouterLoading: boolean;
+}) {
+  const { isAdmin } = useApp();
+  const fetchEntidade = useServerFn(getMyEntidade);
+  const isOnboardingRoute = pathname === "/entidade/dashboard";
+  const { data: entidade, isFetched } = useQuery({
+    queryKey: ["my-entidade", "self"],
+    queryFn: () => fetchEntidade(undefined as never),
+    enabled: isOnboardingRoute && !isAdmin,
+    retry: false,
+  });
+
+  const hideSidebar = isOnboardingRoute && !isAdmin && isFetched && !entidade;
+
+  if (hideSidebar) {
+    return (
+      <div className="min-h-screen bg-muted/30">
+        <main className="p-4 sm:p-6 lg:p-8">
+          {isRouterLoading ? <InlineLoader /> : <Outlet />}
+        </main>
+      </div>
+    );
+  }
+
+  return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-muted/30">
         <AppSidebar />
