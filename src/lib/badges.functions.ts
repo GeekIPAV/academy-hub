@@ -64,7 +64,7 @@ export const getUserBadges = createServerFn({ method: "POST" })
     const { data: rows, error } = await supabaseAdmin
       .from("user_badges")
       .select(
-        "id, granted_at, expires_at, badge:badges(id, title, description, cluster_id, cover_url, clusters(name))",
+        "id, granted_at, expires_at, badge:badges(id, title, description, cluster_id, cover_url, clusters!badges_cluster_id_fkey(name))",
       )
       .eq("user_id", data.userId)
       .order("granted_at", { ascending: false });
