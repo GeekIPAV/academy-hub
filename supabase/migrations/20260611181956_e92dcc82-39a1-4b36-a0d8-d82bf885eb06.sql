@@ -1,0 +1,1 @@
+ALTER TABLE public.utilizadores DROP COLUMN IF EXISTS escola_educando; ALTER TABLE public.utilizadores DROP COLUMN IF EXISTS funcao_laboral_detalhe;
