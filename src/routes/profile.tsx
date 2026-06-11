@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ShieldAlert, Award } from "lucide-react";
 import { useUserBadges } from "@/hooks/use-badges";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
