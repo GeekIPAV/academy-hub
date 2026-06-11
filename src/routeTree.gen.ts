@@ -36,6 +36,7 @@ import { Route as AdminBibliotecaRouteImport } from './routes/admin.biblioteca'
 import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
+import { Route as AuthenticatedInscricaoProgramasRouteImport } from './routes/_authenticated/inscricao-programas'
 import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
 import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -188,6 +189,12 @@ const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
   path: '/recursos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedInscricaoProgramasRoute =
+  AuthenticatedInscricaoProgramasRouteImport.update({
+    id: '/inscricao-programas',
+    path: '/inscricao-programas',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedRecursosIndexRoute =
   AuthenticatedRecursosIndexRouteImport.update({
     id: '/',
@@ -283,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
@@ -326,6 +334,7 @@ export interface FileRoutesByTo {
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
@@ -369,6 +378,7 @@ export interface FileRoutesById {
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
@@ -414,6 +424,7 @@ export interface FileRouteTypes {
     | '/faqs'
     | '/profile'
     | '/reset-password'
+    | '/inscricao-programas'
     | '/recursos'
     | '/admin/acoes'
     | '/admin/badges'
@@ -457,6 +468,7 @@ export interface FileRouteTypes {
     | '/faqs'
     | '/profile'
     | '/reset-password'
+    | '/inscricao-programas'
     | '/admin/acoes'
     | '/admin/badges'
     | '/admin/biblioteca'
@@ -499,6 +511,7 @@ export interface FileRouteTypes {
     | '/faqs'
     | '/profile'
     | '/reset-password'
+    | '/_authenticated/inscricao-programas'
     | '/_authenticated/recursos'
     | '/admin/acoes'
     | '/admin/badges'
@@ -761,6 +774,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/inscricao-programas': {
+      id: '/_authenticated/inscricao-programas'
+      path: '/inscricao-programas'
+      fullPath: '/inscricao-programas'
+      preLoaderRoute: typeof AuthenticatedInscricaoProgramasRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/recursos/': {
       id: '/_authenticated/recursos/'
       path: '/'
@@ -904,12 +924,14 @@ const AuthenticatedRecursosRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedInscricaoProgramasRoute: typeof AuthenticatedInscricaoProgramasRoute
   AuthenticatedRecursosRoute: typeof AuthenticatedRecursosRouteWithChildren
   AuthenticatedActionsIdRoute: typeof AuthenticatedActionsIdRoute
   AuthenticatedAdminRecursosRoute: typeof AuthenticatedAdminRecursosRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedInscricaoProgramasRoute: AuthenticatedInscricaoProgramasRoute,
   AuthenticatedRecursosRoute: AuthenticatedRecursosRouteWithChildren,
   AuthenticatedActionsIdRoute: AuthenticatedActionsIdRoute,
   AuthenticatedAdminRecursosRoute: AuthenticatedAdminRecursosRoute,
