@@ -124,4 +124,3 @@ function ConvitePage() {
 
   return <LoadingU />;
 }
-}
