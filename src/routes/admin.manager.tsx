@@ -835,9 +835,24 @@ function InviteLinksManager() {
                               if (confirm("Revogar este link?")) revokeMut.mutate(inv.id);
                             }}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Ban className="h-4 w-4" />
                           </Button>
                         )}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          title="Eliminar"
+                          onClick={() => {
+                            if (
+                              confirm(
+                                "Eliminar este link de convite definitivamente? Esta ação não pode ser desfeita.",
+                              )
+                            )
+                              deleteMut.mutate(inv.id);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
