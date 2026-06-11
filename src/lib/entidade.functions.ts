@@ -896,3 +896,216 @@ export const createPendingEntidade = createServerFn({ method: "POST" })
 
     return { ok: true, entityId: ent.id };
   });
+
+// ─── Transferência de responsável (conflito de proprietário) ──────────────────
+
+async function getEntityOwnerInternal(entityId: string) {
+  const { data: candidates, error } = await supabaseAdmin
+    .from("utilizadores")
+    .select("id, full_name, email")
+    .eq("entity_id", entityId);
+  if (error) throw new Error(error.message);
+  const ids = (candidates ?? []).map((c) => c.id);
+  if (ids.length === 0) return null;
+  const { data: roles, error: rErr } = await supabaseAdmin
+    .from("user_roles")
+    .select("user_id")
+    .in("user_id", ids)
+    .eq("role_name", "Entidade");
+  if (rErr) throw new Error(rErr.message);
+  const ownerId = roles?.[0]?.user_id;
+  if (!ownerId) return null;
+  const owner = candidates!.find((c) => c.id === ownerId);
+  return owner
+    ? { id: owner.id, full_name: owner.full_name, email: owner.email }
+    : null;
+}
+
+export const getEntidadeOwner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ entityId: z.string().uuid() }).parse(i))
+  .handler(async ({ data }) => {
+    return await getEntityOwnerInternal(data.entityId);
+  });
+
+export const getMyPendingTransferRequest = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await supabaseAdmin
+      .from("entity_transfer_requests")
+      .select("id, entity_id, status, created_at, entidades(name)")
+      .eq("requester_id", context.userId)
+      .eq("status", "pendente")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return null;
+    return {
+      id: data.id,
+      entity_id: data.entity_id,
+      entity_name:
+        (data as { entidades?: { name?: string | null } }).entidades?.name ?? null,
+      created_at: data.created_at,
+    };
+  });
+
+export const requestEntityTransfer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ entityId: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { data: me, error: meErr } = await supabaseAdmin
+      .from("utilizadores")
+      .select("entity_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (meErr) throw new Error(meErr.message);
+    if (me?.entity_id) throw new Error("Já está associado a uma entidade.");
+
+    const owner = await getEntityOwnerInternal(data.entityId);
+    if (!owner)
+      throw new Error("Esta organização não tem responsável — pode vincular-se diretamente.");
+
+    const { data: existing } = await supabaseAdmin
+      .from("entity_transfer_requests")
+      .select("id")
+      .eq("entity_id", data.entityId)
+      .eq("requester_id", userId)
+      .eq("status", "pendente")
+      .maybeSingle();
+    if (existing) return { ok: true, id: existing.id };
+
+    const { data: inserted, error } = await supabaseAdmin
+      .from("entity_transfer_requests")
+      .insert({
+        entity_id: data.entityId,
+        requester_id: userId,
+        current_owner_id: owner.id,
+        status: "pendente",
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { ok: true, id: inserted.id };
+  });
+
+export const adminListTransferRequests = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdminUser(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("entity_transfer_requests")
+      .select(
+        "id, entity_id, requester_id, current_owner_id, status, created_at, entidades(name)",
+      )
+      .eq("status", "pendente")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+
+    const userIds = Array.from(
+      new Set(
+        (data ?? []).flatMap(
+          (r) => [r.requester_id, r.current_owner_id].filter(Boolean) as string[],
+        ),
+      ),
+    );
+    const nameMap = new Map<string, { full_name: string | null; email: string | null }>();
+    if (userIds.length > 0) {
+      const { data: users } = await supabaseAdmin
+        .from("utilizadores")
+        .select("id, full_name, email")
+        .in("id", userIds);
+      for (const u of users ?? [])
+        nameMap.set(u.id, { full_name: u.full_name, email: u.email });
+    }
+
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      entity_id: r.entity_id,
+      entity_name:
+        (r as { entidades?: { name?: string | null } }).entidades?.name ?? null,
+      created_at: r.created_at,
+      requester: {
+        id: r.requester_id,
+        ...(nameMap.get(r.requester_id) ?? { full_name: null, email: null }),
+      },
+      current_owner: r.current_owner_id
+        ? {
+            id: r.current_owner_id,
+            ...(nameMap.get(r.current_owner_id) ?? { full_name: null, email: null }),
+          }
+        : null,
+    }));
+  });
+
+export const adminDecideTransferRequest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z
+      .object({
+        requestId: z.string().uuid(),
+        decision: z.enum(["aprovado", "recusado"]),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdminUser(context.userId);
+
+    const { data: req, error: rErr } = await supabaseAdmin
+      .from("entity_transfer_requests")
+      .select("id, entity_id, requester_id, current_owner_id, status")
+      .eq("id", data.requestId)
+      .maybeSingle();
+    if (rErr) throw new Error(rErr.message);
+    if (!req) throw new Error("Pedido não encontrado.");
+    if (req.status !== "pendente") throw new Error("Pedido já foi decidido.");
+
+    if (data.decision === "aprovado") {
+      const currentOwner = await getEntityOwnerInternal(req.entity_id);
+      const oldOwnerId = currentOwner?.id ?? req.current_owner_id;
+
+      if (oldOwnerId && oldOwnerId !== req.requester_id) {
+        await supabaseAdmin
+          .from("user_roles")
+          .delete()
+          .eq("user_id", oldOwnerId)
+          .eq("role_name", "Entidade");
+        await supabaseAdmin
+          .from("utilizadores")
+          .update({ entity_id: null })
+          .eq("id", oldOwnerId);
+      }
+
+      const { error: linkErr } = await supabaseAdmin
+        .from("utilizadores")
+        .update({ entity_id: req.entity_id })
+        .eq("id", req.requester_id);
+      if (linkErr) throw new Error(linkErr.message);
+
+      await supabaseAdmin
+        .from("user_roles")
+        .insert({
+          user_id: req.requester_id,
+          role_name: "Entidade",
+          assigned_by: context.userId,
+        })
+        .select()
+        .then(
+          () => null,
+          () => null,
+        );
+    }
+
+    const { error: uErr } = await supabaseAdmin
+      .from("entity_transfer_requests")
+      .update({
+        status: data.decision,
+        decided_at: new Date().toISOString(),
+        decided_by: context.userId,
+      })
+      .eq("id", data.requestId);
+    if (uErr) throw new Error(uErr.message);
+
+    return { ok: true };
+  });
