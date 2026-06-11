@@ -214,6 +214,9 @@ function CatalogoTab() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">{b.cluster_name}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
+                    {b.kind === "em_formacao" ? "Em formação" : "Formado"}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {formatValidity(b.validity_type, b.validity_years, b.validity_fixed_date)}
                   </TableCell>
                   <TableCell className="text-right">
