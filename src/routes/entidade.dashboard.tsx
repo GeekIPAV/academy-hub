@@ -689,7 +689,7 @@ function formatDate(d: string | null) {
   return `${day}/${m}/${y}`;
 }
 
-function AcoesTab({ entityId }: { entityId?: string }) {
+function AcoesTab({ entityId, programTitle }: { entityId?: string; programTitle?: string | null }) {
   const qc = useQueryClient();
   const listFn = useServerFn(listMyAcoes);
   const createFn = useServerFn(createAcaoProposta);
@@ -700,12 +700,29 @@ function AcoesTab({ entityId }: { entityId?: string }) {
     queryFn: () => listFn(entityId ? { data: { entityId } } : (undefined as never)),
     retry: false,
   });
-  const acoes = Array.isArray(data) ? data : [];
+  const allAcoes = Array.isArray(data) ? data : [];
+
+  // Match this program to a known action type (loose: contains, case/accents-insensitive)
+  const normalize = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const programActionType = useMemo(() => {
+    if (!programTitle) return null;
+    const np = normalize(programTitle);
+    return ACTION_TYPES.find((t) => np.includes(normalize(t))) ?? null;
+  }, [programTitle]);
+
+  const acoes = programActionType
+    ? allAcoes.filter((a) => a.action_type === programActionType)
+    : allAcoes;
 
   const [open, setOpen] = useState(false);
-  const [actionType, setActionType] = useState<string>("");
+  const [actionType, setActionType] = useState<string>(programActionType ?? "");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  useEffect(() => {
+    if (programActionType) setActionType(programActionType);
+  }, [programActionType]);
 
   const userBadgeClusters = useUserBadgeClusterSlugs();
   const allowedActionTypes = useMemo(() => {
