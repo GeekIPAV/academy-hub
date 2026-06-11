@@ -68,6 +68,7 @@ import {
   useUsersByBadge,
   type BadgeInput,
   type BadgeValidityType,
+  type BadgeKind,
 } from "@/hooks/use-badges";
 import { useClusters } from "@/hooks/use-clusters";
 import { useUsers } from "@/hooks/use-users";
