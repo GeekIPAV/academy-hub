@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { attachSupabaseAuth } from "@/integrations/supabase/attach-auth-client";
+import { isOlderThanTwoYears, isValidNif, isValidPhone } from "@/lib/certificacao-options";
 
 export const getCertGateStatus = createServerFn({ method: "GET" })
   .middleware([attachSupabaseAuth, requireSupabaseAuth])
@@ -26,8 +27,8 @@ const certSchema = z.object({
   first_names: z.string().trim().min(1).max(120),
   last_names: z.string().trim().min(1).max(120),
   gender: z.string().trim().min(1).max(40),
-  birth_date: z.string().trim().min(1),
-  nif: z.string().trim().min(1).max(20),
+  birth_date: z.string().trim().min(1).refine(isOlderThanTwoYears, "A pessoa tem de ter mais de 2 anos de idade."),
+  nif: z.string().trim().min(1).max(20).refine(isValidNif, "NIF inválido."),
   id_doc_type: z.string().trim().min(1).max(40),
   id_doc_number: z.string().trim().min(1).max(40),
   id_doc_expiry: z.string().trim().min(1),
@@ -42,7 +43,7 @@ const certSchema = z.object({
   education_level: z.string().trim().min(1).max(120),
   job_title: z.string().trim().min(1).max(255),
   work_institution: z.string().trim().min(1).max(255),
-  phone: z.string().trim().max(40).optional().nullable(),
+  phone: z.string().trim().max(40).optional().nullable().refine(isValidPhone, "Telemóvel inválido."),
   cedula_profissional: z.string().trim().max(60).optional().nullable(),
   grupo_recrutamento: z.string().trim().max(120).optional().nullable(),
   data_consent: z.boolean(),
