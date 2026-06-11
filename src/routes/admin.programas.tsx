@@ -61,6 +61,7 @@ import {
   bulkCreateProgramas,
   updateProgramaAdmin,
 } from "@/lib/admin-programas.functions";
+import { listAllBadges } from "@/lib/badges.functions";
 import { RouteGate } from "@/components/RouteGate";
 import { slugifyCluster } from "@/lib/cluster-utils";
 
