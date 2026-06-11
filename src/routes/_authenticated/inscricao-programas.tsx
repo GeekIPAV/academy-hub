@@ -196,14 +196,16 @@ function ClusterCard({ cluster }: { cluster: ClusterRow }) {
         {open ? (
           <div className="flex items-center justify-between gap-2">
             <Badge variant="default">Inscrições abertas</Badge>
-            <Button size="sm" asChild>
-              <Link
-                to="/inscricao-programas/$clusterId"
-                params={{ clusterId: cluster.id }}
-              >
-                Inscrever entidade
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
+            <Button
+              size="sm"
+              onClick={() =>
+                toast.info(
+                  "Em breve: formulário de inscrição da entidade neste cluster.",
+                )
+              }
+            >
+              Inscrever entidade
+              <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
         ) : (
