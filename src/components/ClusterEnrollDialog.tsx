@@ -89,7 +89,9 @@ export function ClusterEnrollDialog({ clusterId, clusterName, open, onOpenChange
   });
 
   const selectedCount = Object.values(selected).filter(Boolean).length;
-  const canConfirm = scrolledToEnd && selectedCount > 0 && !enroll.isPending;
+  const effectiveEntityId = adminEntityId ?? data?.acting_entity_id ?? null;
+  const canConfirm =
+    scrolledToEnd && selectedCount > 0 && !enroll.isPending && !!effectiveEntityId;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
