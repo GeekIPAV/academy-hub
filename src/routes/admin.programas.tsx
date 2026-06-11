@@ -683,7 +683,7 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
             className="h-8"
           />
         </TableCell>
-        <TableCell>
+        <TableCell className="w-24">
           <CoverUploader
             folder="clusters"
             id={slugifyCluster(cluster.name) || cluster.id}
@@ -702,9 +702,6 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
             }}
             aspectRatio={16 / 9}
           />
-        </TableCell>
-        <TableCell>
-          <Badge variant="secondary">{cluster.programs.length}</Badge>
         </TableCell>
         <TableCell>
           <button
