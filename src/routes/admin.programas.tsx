@@ -47,6 +47,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CoverUploader } from "@/components/CoverUploader";
+import { PdfUploader } from "@/components/PdfUploader";
 import {
   listProgramas,
   listProgramaEntidades,
@@ -608,6 +609,7 @@ type ClusterRow = {
   cover_position: string | null;
   cover_scale: number | null;
   sort_order: number | null;
+  info_pdf_url: string | null;
   programs: Array<{
     id: string;
     title: string | null;
@@ -669,6 +671,7 @@ function ClustersSection() {
                 <TableHead className="min-w-[200px]">Nome</TableHead>
                 <TableHead>Descrição</TableHead>
                 <TableHead className="w-24">Capa</TableHead>
+                <TableHead className="w-48">PDF informativo</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
@@ -720,7 +723,7 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
     onError: (e: Error) => toast.error(e.message),
   });
   const saveCover = useMutation({
-    mutationFn: (vars: { cover_url?: string | null; cover_position?: string; cover_scale?: number }) =>
+    mutationFn: (vars: { cover_url?: string | null; cover_position?: string; cover_scale?: number; info_pdf_url?: string | null }) =>
       upsertFn({ data: { id: cluster.id, name: cluster.name, ...vars } }),
     onSuccess: invalidate,
     onError: (e: Error) => toast.error(e.message),
@@ -791,6 +794,19 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
             aspectRatio={16 / 9}
           />
         </TableCell>
+        <TableCell className="w-48">
+          <PdfUploader
+            folder="clusters-pdf"
+            id={slugifyCluster(cluster.name) || cluster.id}
+            currentUrl={cluster.info_pdf_url}
+            onUploaded={async (url) => {
+              await saveCover.mutateAsync({ info_pdf_url: url });
+            }}
+            onCleared={async () => {
+              await saveCover.mutateAsync({ info_pdf_url: null });
+            }}
+          />
+        </TableCell>
         <TableCell>
           <button
             type="button"
@@ -810,7 +826,7 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
       </TableRow>
       {expanded && (
         <TableRow>
-          <TableCell colSpan={5} className="bg-muted/30">
+          <TableCell colSpan={6} className="bg-muted/30">
             <ClusterProgramsPanel cluster={cluster} onChanged={invalidate} />
           </TableCell>
         </TableRow>

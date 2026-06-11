@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Pencil, Lock, BellRing, ArrowRight } from "lucide-react";
+import { Pencil, Lock, BellRing } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
@@ -20,6 +20,7 @@ import {
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { CoverImage } from "@/components/CoverImage";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+import { ClusterEnrollDialog } from "@/components/ClusterEnrollDialog";
 import { listActiveClustersForEnrollment } from "@/lib/inscricao-programas.functions";
 import { parseCluster } from "@/lib/cluster-utils";
 
@@ -175,6 +176,7 @@ type ClusterRow = Awaited<ReturnType<typeof listActiveClustersForEnrollment>>[nu
 function ClusterCard({ cluster }: { cluster: ClusterRow }) {
   const display = parseCluster(cluster.name);
   const open = cluster.has_open_program;
+  const [enrollOpen, setEnrollOpen] = useState(false);
 
   return (
     <Card className="overflow-hidden">
@@ -205,17 +207,15 @@ function ClusterCard({ cluster }: { cluster: ClusterRow }) {
             <Badge className="border-transparent bg-slate-500/15 text-slate-700 hover:bg-slate-500/20 dark:text-slate-300">
               Inscrições abertas
             </Badge>
-            <Button
-              size="sm"
-              className="w-full"
-              onClick={() =>
-                toast.info(
-                  "Em breve: formulário de inscrição da entidade neste cluster.",
-                )
-              }
-            >
+            <Button size="sm" className="w-full" onClick={() => setEnrollOpen(true)}>
               Inscrever a minha organização
             </Button>
+            <ClusterEnrollDialog
+              clusterId={cluster.id}
+              clusterName={display.title}
+              open={enrollOpen}
+              onOpenChange={setEnrollOpen}
+            />
           </div>
         ) : (
           <div className="space-y-2">
