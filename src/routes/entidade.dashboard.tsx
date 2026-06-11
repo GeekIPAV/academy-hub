@@ -107,12 +107,13 @@ function EntidadeDashboardPage() {
   }, [selectedEntityId]);
 
   const fetchEntidade = useServerFn(getMyEntidade);
-  const { data: entidade } = useQuery({
+  const { data: entidade, isLoading: entidadeLoading, isFetched: entidadeFetched } = useQuery({
     queryKey: ["my-entidade", selectedEntityId ?? "self"],
     queryFn: () =>
       fetchEntidade(selectedEntityId ? { data: { entityId: selectedEntityId } } : undefined as never),
     enabled: hasAccess && (!isAdmin || !!selectedEntityId),
   });
+
 
   const fetchCohorts = useServerFn(listMyCohorts);
   const { data: cohortsRaw, isLoading: cohortsLoading } = useQuery({
