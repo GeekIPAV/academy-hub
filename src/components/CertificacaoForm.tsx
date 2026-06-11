@@ -218,11 +218,13 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
         <Field label="Habilitações Literárias" required>
           <SelectInput value={form.education_level} onChange={(v) => set("education_level", v)} options={HABILITACOES} />
         </Field>
-        <Field label="Função Laboral" required>
-          <SelectInput value={form.job_title} onChange={(v) => set("job_title", v)} options={FUNCAO} />
-        </Field>
-        <Field label="Detalhe da Função (opcional)">
-          <Input value={form.funcao_laboral_detalhe ?? ""} onChange={(e) => set("funcao_laboral_detalhe", e.target.value)} />
+        <Field label="Função Laboral" required className="sm:col-span-2">
+          <Input
+            value={form.job_title}
+            onChange={(e) => set("job_title", e.target.value)}
+            placeholder="Ex.: Professor do 1.º ciclo, Encarregado de Educação, Técnico…"
+            required
+          />
         </Field>
         <Field label="Instituição onde trabalha/estuda" required className="sm:col-span-2">
           <Input value={form.work_institution} onChange={(e) => set("work_institution", e.target.value)} required />
@@ -236,11 +238,6 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
               <Input value={form.cedula_profissional ?? ""} onChange={(e) => set("cedula_profissional", e.target.value)} />
             </Field>
           </>
-        )}
-        {isEncEducacao && (
-          <Field label="Escola/AE que o educando frequenta" className="sm:col-span-2">
-            <Input value={form.escola_educando ?? ""} onChange={(e) => set("escola_educando", e.target.value)} />
-          </Field>
         )}
       </Section>
 
