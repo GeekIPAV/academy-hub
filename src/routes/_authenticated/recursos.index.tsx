@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
-import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-utils";
+import { parseCluster, clusterComponentId } from "@/lib/cluster-utils";
 import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { Loader2, Lock, Pencil, Check, X } from "lucide-react";
