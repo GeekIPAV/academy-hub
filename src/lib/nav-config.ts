@@ -40,8 +40,8 @@ export type NavGroup = {
 export const NAV_GROUPS: NavGroup[] = [
   {
     items: [
-      { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard, gated: true },
-      { path: "/entidade/dashboard", label: "Painel da Entidade", icon: Building2, gated: true },
+      { path: "/dashboard", label: "Página Inicial", icon: LayoutDashboard, gated: true },
+      { path: "/entidade/dashboard", label: "Página da Organização", icon: Building2, gated: true },
       { path: "/actions", label: "Eventos e Formações", icon: ListChecks, gated: true },
     ],
   },
