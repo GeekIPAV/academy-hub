@@ -722,7 +722,7 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
       </TableRow>
       {expanded && (
         <TableRow>
-          <TableCell colSpan={6} className="bg-muted/30">
+          <TableCell colSpan={5} className="bg-muted/30">
             <ClusterProgramsPanel cluster={cluster} onChanged={invalidate} />
           </TableCell>
         </TableRow>
