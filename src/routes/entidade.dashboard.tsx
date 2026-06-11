@@ -3,7 +3,7 @@ import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, CalendarPlus, Copy, Link2, Pencil, ShieldAlert, Users } from "lucide-react";
+import { Building2, CalendarPlus, Copy, Pencil, ShieldAlert, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -90,6 +90,9 @@ function EntidadeDashboardPage() {
   const [selectedEntityId, setSelectedEntityId] = useState<string | undefined>(
     undefined,
   );
+  const [selectedProgramId, setSelectedProgramId] = useState<string | undefined>(
+    undefined,
+  );
   const [dataDialogOpen, setDataDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -98,6 +101,11 @@ function EntidadeDashboardPage() {
     }
   }, [isAdmin, entidades, selectedEntityId]);
 
+  // Reset program selection when entity changes
+  useEffect(() => {
+    setSelectedProgramId(undefined);
+  }, [selectedEntityId]);
+
   const fetchEntidade = useServerFn(getMyEntidade);
   const { data: entidade } = useQuery({
     queryKey: ["my-entidade", selectedEntityId ?? "self"],
@@ -105,6 +113,24 @@ function EntidadeDashboardPage() {
       fetchEntidade(selectedEntityId ? { data: { entityId: selectedEntityId } } : undefined as never),
     enabled: hasAccess && (!isAdmin || !!selectedEntityId),
   });
+
+  const fetchCohorts = useServerFn(listMyCohorts);
+  const { data: cohortsRaw, isLoading: cohortsLoading } = useQuery({
+    queryKey: ["my-cohorts", selectedEntityId ?? "self"],
+    queryFn: () => fetchCohorts(selectedEntityId ? { data: { entityId: selectedEntityId } } : (undefined as never)),
+    enabled: hasAccess && (!isAdmin || !!selectedEntityId),
+    retry: false,
+  });
+  const cohorts = (Array.isArray(cohortsRaw) ? cohortsRaw : []) as CohortRow[];
+
+  useEffect(() => {
+    if (!selectedProgramId && cohorts.length === 1) {
+      setSelectedProgramId(cohorts[0].id);
+    }
+  }, [cohorts, selectedProgramId]);
+
+  const selectedCohort = cohorts.find((c) => c.id === selectedProgramId);
+  const selectedProgramTitle = selectedCohort?.programas?.title ?? null;
 
   if (!hasAccess) {
     return (
@@ -180,26 +206,49 @@ function EntidadeDashboardPage() {
           )}
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList>
-            {visible("tab-overview") && <TabsTrigger value="overview">Visão Geral</TabsTrigger>}
-            {visible("tab-acoes") && <TabsTrigger value="acoes">Marcações</TabsTrigger>}
-          </TabsList>
+        <ProgramEnrollmentsCard entityId={selectedEntityId} />
 
-          {visible("tab-overview") && (
-            <TabsContent value="overview" className="space-y-6">
-              <ProgramEnrollmentsCard entityId={selectedEntityId} />
-              {visible("invite-card") && <InviteCard entityId={selectedEntityId} />}
-              {visible("trainees-table") && <TraineesTable entityId={selectedEntityId} />}
-            </TabsContent>
-          )}
+        <ProgramsMasterTable
+          cohorts={cohorts}
+          isLoading={cohortsLoading}
+          selectedProgramId={selectedProgramId}
+          onSelect={setSelectedProgramId}
+        />
 
-          {visible("tab-acoes") && (
-            <TabsContent value="acoes">
-              <AcoesTab entityId={selectedEntityId} />
-            </TabsContent>
-          )}
-        </Tabs>
+        {selectedProgramId ? (
+          <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList>
+              {visible("tab-overview") && <TabsTrigger value="overview">Visão Geral</TabsTrigger>}
+              {visible("tab-acoes") && <TabsTrigger value="acoes">Marcações</TabsTrigger>}
+            </TabsList>
+
+            {visible("tab-overview") && (
+              <TabsContent value="overview" className="space-y-6">
+                {visible("trainees-table") && (
+                  <TraineesTable
+                    entityId={selectedEntityId}
+                    programTitle={selectedProgramTitle}
+                  />
+                )}
+              </TabsContent>
+            )}
+
+            {visible("tab-acoes") && (
+              <TabsContent value="acoes">
+                <AcoesTab
+                  entityId={selectedEntityId}
+                  programTitle={selectedProgramTitle}
+                />
+              </TabsContent>
+            )}
+          </Tabs>
+        ) : (
+          !cohortsLoading && cohorts.length > 1 && (
+            <Card className="p-6 text-center text-sm text-muted-foreground">
+              Selecione um programa na tabela acima para gerir os formandos e marcações correspondentes.
+            </Card>
+          )
+        )}
 
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
@@ -215,18 +264,29 @@ function EntidadeDashboardPage() {
   );
 }
 
-function InviteCard({ entityId }: { entityId?: string }) {
-  const fetchFn = useServerFn(listMyCohorts);
-  const { data: rawData, isLoading } = useQuery({
-    queryKey: ["my-cohorts", entityId ?? "self"],
-    queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
-    retry: false,
-  });
-  const data = Array.isArray(rawData) ? rawData : [];
+type CohortRow = {
+  id: string;
+  invite_token: string | null;
+  is_active: boolean | null;
+  program_id: string | null;
+  programas: { title: string | null } | null;
+};
 
+function ProgramsMasterTable({
+  cohorts,
+  isLoading,
+  selectedProgramId,
+  onSelect,
+}: {
+  cohorts: CohortRow[];
+  isLoading: boolean;
+  selectedProgramId?: string;
+  onSelect: (id: string) => void;
+}) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
-  const copy = async (url: string) => {
+  const copy = async (e: React.MouseEvent, url: string) => {
+    e.stopPropagation();
     try {
       await navigator.clipboard.writeText(url);
       toast.success("Link copiado para a área de transferência");
@@ -236,46 +296,79 @@ function InviteCard({ entityId }: { entityId?: string }) {
   };
 
   return (
-    <Card className="border-primary/20 bg-primary/[0.03]">
-      <CardContent className="flex flex-wrap items-center gap-3 py-3 px-4">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Link2 className="h-4 w-4 text-primary" />
-          <span>Link de inscrição para Formandos</span>
-        </div>
-
-        {isLoading && <Skeleton className="h-7 w-32" />}
-
-        {!isLoading && data.length === 0 && (
-          <span className="text-xs text-muted-foreground">
-            Ainda não há programas.
-          </span>
-        )}
-
-        {data.map((c) => {
-          const url = `${origin}/inscricao/${c.invite_token ?? ""}`;
-          return (
-            <div key={c.id} className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                {(c.programas?.title ?? "Programa") === "F.F - 3º ciclo e Secundário_25-26" ? "\n" : (c.programas?.title ?? "Programa")}
-              </span>
-              {!c.is_active && (
-                <Badge variant="outline" className="text-[10px] px-1 py-0">
-                  Inativo
-                </Badge>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Os Meus Programas</CardTitle>
+        <CardDescription>
+          Selecione um programa para gerir os respetivos formandos e marcações.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Programa</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Link de Inscrição</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading && (
+                <TableRow>
+                  <TableCell colSpan={3}>
+                    <Skeleton className="h-5 w-full" />
+                  </TableCell>
+                </TableRow>
               )}
-              <Button size="sm" variant="outline" onClick={() => copy(url)}>
-                <Copy className="mr-1.5 h-3 w-3" />
-                Copiar
-              </Button>
-            </div>
-          );
-        })}
+              {!isLoading && cohorts.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={3} className="text-center text-muted-foreground">
+                    Ainda não há programas associados a esta entidade.
+                  </TableCell>
+                </TableRow>
+              )}
+              {cohorts.map((c) => {
+                const isSelected = c.id === selectedProgramId;
+                const url = `${origin}/inscricao/${c.invite_token ?? ""}`;
+                return (
+                  <TableRow
+                    key={c.id}
+                    onClick={() => onSelect(c.id)}
+                    className={`cursor-pointer ${isSelected ? "bg-primary/[0.06] border-l-4 border-primary" : ""}`}
+                  >
+                    <TableCell className="font-medium">
+                      {c.programas?.title ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={c.is_active ? "default" : "outline"}>
+                        {c.is_active ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={!c.invite_token}
+                        onClick={(e) => copy(e, url)}
+                      >
+                        <Copy className="mr-1.5 h-3 w-3" />
+                        Copiar Link
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );
 }
 
-function TraineesTable({ entityId }: { entityId?: string }) {
+
+function TraineesTable({ entityId, programTitle }: { entityId?: string; programTitle?: string | null }) {
   const fetchFn = useServerFn(listMyTrainees);
   const { data, isLoading, error } = useQuery({
     queryKey: ["my-trainees", entityId ?? "self"],
@@ -283,7 +376,10 @@ function TraineesTable({ entityId }: { entityId?: string }) {
     retry: false,
   });
 
-  const trainees = Array.isArray(data) ? data : [];
+  const allTrainees = Array.isArray(data) ? data : [];
+  const trainees = programTitle
+    ? allTrainees.filter((t) => t.program_title === programTitle)
+    : allTrainees;
 
   const statusVariant = (s: string | null) => {
     const v = (s ?? "").toLowerCase();
@@ -593,7 +689,7 @@ function formatDate(d: string | null) {
   return `${day}/${m}/${y}`;
 }
 
-function AcoesTab({ entityId }: { entityId?: string }) {
+function AcoesTab({ entityId, programTitle }: { entityId?: string; programTitle?: string | null }) {
   const qc = useQueryClient();
   const listFn = useServerFn(listMyAcoes);
   const createFn = useServerFn(createAcaoProposta);
@@ -604,12 +700,29 @@ function AcoesTab({ entityId }: { entityId?: string }) {
     queryFn: () => listFn(entityId ? { data: { entityId } } : (undefined as never)),
     retry: false,
   });
-  const acoes = Array.isArray(data) ? data : [];
+  const allAcoes = Array.isArray(data) ? data : [];
+
+  // Match this program to a known action type (loose: contains, case/accents-insensitive)
+  const normalize = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const programActionType = useMemo(() => {
+    if (!programTitle) return null;
+    const np = normalize(programTitle);
+    return ACTION_TYPES.find((t) => np.includes(normalize(t))) ?? null;
+  }, [programTitle]);
+
+  const acoes = programActionType
+    ? allAcoes.filter((a) => a.action_type === programActionType)
+    : allAcoes;
 
   const [open, setOpen] = useState(false);
-  const [actionType, setActionType] = useState<string>("");
+  const [actionType, setActionType] = useState<string>(programActionType ?? "");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  useEffect(() => {
+    if (programActionType) setActionType(programActionType);
+  }, [programActionType]);
 
   const userBadgeClusters = useUserBadgeClusterSlugs();
   const allowedActionTypes = useMemo(() => {
@@ -698,7 +811,7 @@ function AcoesTab({ entityId }: { entityId?: string }) {
               >
                 <div className="space-y-2">
                   <Label>Tipo de ação</Label>
-                  <Select value={actionType} onValueChange={setActionType}>
+                  <Select value={actionType} onValueChange={setActionType} disabled={!!programActionType}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecionar…" />
                     </SelectTrigger>
