@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+
 import { GraduationCap } from "lucide-react";
 import { getMeusProgramas } from "@/lib/meus-programas.functions";
 import { parseCluster } from "@/lib/cluster-utils";
@@ -37,11 +37,6 @@ export function WidgetMeusProgramas() {
                     </p>
                   )}
                 </div>
-                {p.status && (
-                  <Badge variant="secondary" className="shrink-0 text-xs capitalize">
-                    {p.status}
-                  </Badge>
-                )}
               </li>
             );
           })}
@@ -50,3 +45,4 @@ export function WidgetMeusProgramas() {
     </Card>
   );
 }
+
