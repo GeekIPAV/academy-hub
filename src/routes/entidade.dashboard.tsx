@@ -129,15 +129,9 @@ function EntidadeDashboardPage() {
               <Building2 className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                Painel da Entidade
-              </p>
               <h1 className="text-2xl font-semibold tracking-tight">
                 Bem-vindo{entidade?.name ? `, ${entidade.name}` : ""}
               </h1>
-              <p className="text-sm text-muted-foreground">
-                Acompanhe os seus formandos e mantenha os dados institucionais atualizados.
-              </p>
             </div>
           </div>
           <Button asChild className="w-full sm:w-auto">
