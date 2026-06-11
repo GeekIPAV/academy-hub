@@ -25,6 +25,9 @@ type EntityRow = {
   name: string;
   status: string | null;
   locality: string | null;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
 };
 
 type FormState = {
