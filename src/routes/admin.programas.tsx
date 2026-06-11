@@ -47,6 +47,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { CoverUploader } from "@/components/CoverUploader";
+import { PdfUploader } from "@/components/PdfUploader";
 import {
   listProgramas,
   listProgramaEntidades,
