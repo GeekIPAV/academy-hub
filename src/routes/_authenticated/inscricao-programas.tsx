@@ -191,9 +191,9 @@ function ClusterCard({ cluster }: { cluster: ClusterRow }) {
       </div>
       <CardContent className="space-y-3 p-4">
         <div>
-          <h3 className="font-semibold leading-tight">{display.title}</h3>
+          <h3 className="text-lg font-semibold leading-tight">{display.title}</h3>
           {display.subtitle && (
-            <p className="text-xs text-muted-foreground">{display.subtitle}</p>
+            <p className="text-base font-medium text-foreground">{display.subtitle}</p>
           )}
         </div>
 
