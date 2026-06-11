@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Building2, Search, ArrowLeft, PlusCircle } from "lucide-react";
+import { Building2, Search, ArrowLeft, PlusCircle, ShieldAlert, Clock } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,9 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   createPendingEntidade,
+  getEntidadeOwner,
+  getMyPendingTransferRequest,
   linkExistingEntidade,
+  requestEntityTransfer,
   searchEntidades,
 } from "@/lib/entidade.functions";
 
@@ -63,15 +67,27 @@ export function EntityOnboardingFlow() {
   const searchFn = useServerFn(searchEntidades);
   const linkFn = useServerFn(linkExistingEntidade);
   const createFn = useServerFn(createPendingEntidade);
+  const ownerFn = useServerFn(getEntidadeOwner);
+  const transferFn = useServerFn(requestEntityTransfer);
+  const pendingFn = useServerFn(getMyPendingTransferRequest);
+
+  // 1) Bloqueio global: se já existe pedido pendente, mostra waiting screen
+  const { data: pending, isLoading: pendingLoading } = useQuery({
+    queryKey: ["my-transfer-request"],
+    queryFn: () => pendingFn(),
+    refetchOnWindowFocus: true,
+  });
 
   const { data: entidades, isLoading } = useQuery({
     queryKey: ["onboarding", "entidades"],
     queryFn: () => searchFn(),
+    enabled: !pending,
   });
 
   const [query, setQuery] = useState("");
-  const [mode, setMode] = useState<"search" | "link" | "create">("search");
+  const [mode, setMode] = useState<"search" | "link" | "create" | "conflict">("search");
   const [selected, setSelected] = useState<EntityRow | null>(null);
+  const [owner, setOwner] = useState<{ id: string; full_name: string | null; email: string | null } | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
   const list = (Array.isArray(entidades) ? entidades : []) as EntityRow[];
@@ -85,7 +101,12 @@ export function EntityOnboardingFlow() {
     qc.invalidateQueries({ queryKey: ["current-profile"] });
     qc.invalidateQueries({ queryKey: ["my-cohorts"] });
     qc.invalidateQueries({ queryKey: ["onboarding"] });
+    qc.invalidateQueries({ queryKey: ["my-transfer-request"] });
   };
+
+  const ownerCheck = useMutation({
+    mutationFn: (entityId: string) => ownerFn({ data: { entityId } }),
+  });
 
   const linkMut = useMutation({
     mutationFn: () =>
@@ -124,8 +145,29 @@ export function EntityOnboardingFlow() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const startLink = (e: EntityRow) => {
+  const transferMut = useMutation({
+    mutationFn: () => transferFn({ data: { entityId: selected!.id } }),
+    onSuccess: () => {
+      toast.success("Pedido de transferência enviado.");
+      qc.invalidateQueries({ queryKey: ["my-transfer-request"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const startLink = async (e: EntityRow) => {
     setSelected(e);
+    try {
+      const o = await ownerCheck.mutateAsync(e.id);
+      if (o) {
+        setOwner(o);
+        setMode("conflict");
+        return;
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro a verificar responsável.");
+      return;
+    }
+    setOwner(null);
     setForm({
       name: e.name,
       contact_name: "",
@@ -140,6 +182,7 @@ export function EntityOnboardingFlow() {
 
   const startCreate = () => {
     setSelected(null);
+    setOwner(null);
     setForm({ ...EMPTY_FORM, name: query.trim() });
     setMode("create");
   };
@@ -147,7 +190,79 @@ export function EntityOnboardingFlow() {
   const back = () => {
     setMode("search");
     setSelected(null);
+    setOwner(null);
   };
+
+  // ── Estados terminais ───────────────────────────────────────────────────────
+
+  if (pendingLoading) {
+    return (
+      <Card className="mx-auto max-w-2xl p-8">
+        <Skeleton className="h-8 w-48 mb-3" />
+        <Skeleton className="h-4 w-full" />
+      </Card>
+    );
+  }
+
+  if (pending) {
+    return (
+      <Card className="mx-auto max-w-2xl">
+        <CardHeader className="text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+            <Clock className="h-6 w-6" />
+          </div>
+          <CardTitle className="text-2xl">Pedido de transferência enviado</CardTitle>
+          <CardDescription>
+            O seu pedido para assumir a responsabilidade de{" "}
+            <strong>{pending.entity_name ?? "uma organização"}</strong> está a aguardar
+            aprovação pela equipa da Academia Ubuntu.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center text-sm text-muted-foreground">
+          Receberá acesso à organização assim que o pedido for aprovado.
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (mode === "conflict" && selected && owner) {
+    return (
+      <Card className="mx-auto max-w-2xl">
+        <CardHeader>
+          <Button variant="ghost" size="sm" onClick={back} className="w-fit">
+            <ArrowLeft className="mr-1 h-4 w-4" /> Voltar
+          </Button>
+          <CardTitle className="text-xl">{selected.name}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert variant="destructive">
+            <ShieldAlert className="h-4 w-4" />
+            <AlertTitle>Organização já tem responsável</AlertTitle>
+            <AlertDescription>
+              Esta organização já tem um responsável associado:{" "}
+              <strong>{owner.full_name ?? "—"}</strong>{" "}
+              {owner.email && <span>({owner.email})</span>}.
+            </AlertDescription>
+          </Alert>
+          <div className="rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">
+            Pode pedir para assumir a responsabilidade desta organização. O pedido será
+            analisado por um administrador da Academia Ubuntu antes de tomar efeito.
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={back} disabled={transferMut.isPending}>
+              Escolher outra
+            </Button>
+            <Button
+              onClick={() => transferMut.mutate()}
+              disabled={transferMut.isPending}
+            >
+              {transferMut.isPending ? "A enviar…" : "Pedir para trocar de responsável"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (mode !== "search") {
     const submitting = linkMut.isPending || createMut.isPending;
@@ -328,7 +443,8 @@ export function EntityOnboardingFlow() {
                   <button
                     type="button"
                     onClick={() => startLink(e)}
-                    className="flex w-full items-center justify-between gap-3 p-3 text-left hover:bg-muted/50"
+                    disabled={ownerCheck.isPending}
+                    className="flex w-full items-center justify-between gap-3 p-3 text-left hover:bg-muted/50 disabled:opacity-60"
                   >
                     <div className="min-w-0">
                       <div className="truncate font-medium">{e.name}</div>
