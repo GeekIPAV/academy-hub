@@ -343,7 +343,7 @@ function ProgramsMasterTable({
               <TableRow>
                 <TableHead>Programa</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Link de Inscrição</TableHead>
+                <TableHead className="text-right">Link de Inscrição Formandos</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
