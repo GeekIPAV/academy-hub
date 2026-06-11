@@ -1,10 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Copy, Building2 } from "lucide-react";
+import { Copy, Building2, ChevronDown, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -12,6 +16,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -24,6 +39,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RouteGate } from "@/components/RouteGate";
 import {
+  adminCreateEntidades,
   adminListEntidades,
   getOrCreateEntidadeInvite,
 } from "@/lib/entidade.functions";
@@ -37,9 +53,44 @@ export const Route = createFileRoute("/admin/entidades")({
   ),
 });
 
+type NewItem = {
+  name: string;
+  contact_name?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  locality?: string | null;
+};
+
+function parseBulk(text: string): { items: NewItem[]; errors: string[] } {
+  const errors: string[] = [];
+  const items: NewItem[] = [];
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  lines.forEach((line, idx) => {
+    // Skip header
+    if (idx === 0 && /^nome\b/i.test(line)) return;
+    const parts = line.split(/[\t;,]/).map((p) => p.trim());
+    const [name, contact_name, contact_email, contact_phone, locality] = parts;
+    if (!name) {
+      errors.push(`Linha ${idx + 1}: nome em falta`);
+      return;
+    }
+    items.push({
+      name,
+      contact_name: contact_name || null,
+      contact_email: contact_email || null,
+      contact_phone: contact_phone || null,
+      locality: locality || null,
+    });
+  });
+  return { items, errors };
+}
+
+
 function AdminEntidadesPage() {
+  const qc = useQueryClient();
   const listFn = useServerFn(adminListEntidades);
   const inviteFn = useServerFn(getOrCreateEntidadeInvite);
+  const createFn = useServerFn(adminCreateEntidades);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "entidades"],
@@ -61,7 +112,42 @@ function AdminEntidadesPage() {
       toast.error(e instanceof Error ? e.message : "Erro a gerar convite."),
   });
 
+  const create = useMutation({
+    mutationFn: (items: NewItem[]) => createFn({ data: { items } }),
+    onSuccess: (res) => {
+      toast.success(
+        `${res.created} ${res.created === 1 ? "entidade criada" : "entidades criadas"}.`,
+      );
+      qc.invalidateQueries({ queryKey: ["admin", "entidades"] });
+    },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Erro a criar entidades."),
+  });
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [single, setSingle] = useState<NewItem>({ name: "" });
+  const [bulk, setBulk] = useState("");
+
+  const submitSingle = () => {
+    if (!single.name.trim()) {
+      toast.error("Nome é obrigatório.");
+      return;
+    }
+    create.mutate([single], {
+      onSuccess: () => setSingle({ name: "" }),
+    });
+  };
+
+  const submitBulk = () => {
+    const { items, errors } = parseBulk(bulk);
+    if (errors.length) toast.error(errors.join(" • "));
+    if (!items.length) return;
+    create.mutate(items, { onSuccess: () => setBulk("") });
+  };
+
   const entidades = data ?? [];
+
+
 
   return (
     <div className="container mx-auto max-w-6xl space-y-6 p-6">
@@ -83,7 +169,117 @@ function AdminEntidadesPage() {
         </Button>
       </div>
 
+      <Collapsible open={addOpen} onOpenChange={setAddOpen}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center justify-between p-6 text-left"
+            >
+              <div className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                <div>
+                  <div className="font-semibold">Adicionar entidades</div>
+                  <div className="text-sm text-muted-foreground">
+                    Individualmente ou em massa
+                  </div>
+                </div>
+              </div>
+              <ChevronDown
+                className={`h-5 w-5 transition-transform ${addOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <Tabs defaultValue="single">
+                <TabsList>
+                  <TabsTrigger value="single">Individual</TabsTrigger>
+                  <TabsTrigger value="bulk">Em massa</TabsTrigger>
+                </TabsList>
+                <TabsContent value="single" className="space-y-3 pt-4">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <Label htmlFor="ent-name">Nome *</Label>
+                      <Input
+                        id="ent-name"
+                        value={single.name}
+                        onChange={(e) =>
+                          setSingle({ ...single, name: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ent-contact">Pessoa de contacto</Label>
+                      <Input
+                        id="ent-contact"
+                        value={single.contact_name ?? ""}
+                        onChange={(e) =>
+                          setSingle({ ...single, contact_name: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ent-email">Email</Label>
+                      <Input
+                        id="ent-email"
+                        type="email"
+                        value={single.contact_email ?? ""}
+                        onChange={(e) =>
+                          setSingle({ ...single, contact_email: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ent-phone">Telefone</Label>
+                      <Input
+                        id="ent-phone"
+                        value={single.contact_phone ?? ""}
+                        onChange={(e) =>
+                          setSingle({ ...single, contact_phone: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="ent-locality">Localidade</Label>
+                      <Input
+                        id="ent-locality"
+                        value={single.locality ?? ""}
+                        onChange={(e) =>
+                          setSingle({ ...single, locality: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={submitSingle} disabled={create.isPending}>
+                    {create.isPending ? "A guardar…" : "Adicionar entidade"}
+                  </Button>
+                </TabsContent>
+                <TabsContent value="bulk" className="space-y-3 pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Uma entidade por linha. Colunas separadas por vírgula,
+                    ponto-e-vírgula ou tabulação, pela ordem:
+                    <br />
+                    <code>nome, contacto, email, telefone, localidade</code>
+                  </p>
+                  <Textarea
+                    rows={8}
+                    placeholder={"ACME Lda, Maria Silva, maria@acme.pt, 912345678, Lisboa\nBeta SA;;info@beta.pt;;Porto"}
+                    value={bulk}
+                    onChange={(e) => setBulk(e.target.value)}
+                  />
+                  <Button onClick={submitBulk} disabled={create.isPending}>
+                    {create.isPending ? "A importar…" : "Importar entidades"}
+                  </Button>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
       <Card>
+
         <CardHeader>
           <CardTitle>Entidades</CardTitle>
           <CardDescription>
