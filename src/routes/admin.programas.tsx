@@ -193,10 +193,21 @@ function ProgramasTable({
   const toggleFn = useServerFn(setProgramaEnrollmentOpen);
   const toggle = useMutation({
     mutationFn: (vars: { programId: string; open: boolean }) => toggleFn({ data: vars }),
-    onSuccess: () => {
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey: ["admin-programas"] });
+      const prev = qc.getQueryData<any[]>(["admin-programas"]);
+      qc.setQueryData<any[]>(["admin-programas"], (old) =>
+        (old ?? []).map((p) => (p.id === vars.programId ? { ...p, enrollment_open: vars.open } : p)),
+      );
+      return { prev };
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["admin-programas"], ctx.prev);
+      toast.error(e.message);
+    },
+    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["admin-programas"] });
     },
-    onError: (e: Error) => toast.error(e.message),
   });
 
   if (rows.length === 0) {
@@ -252,8 +263,19 @@ function EnrollmentToggle({ programId, open }: { programId: string; open: boolea
   const toggleFn = useServerFn(setProgramaEnrollmentOpen);
   const m = useMutation({
     mutationFn: (vars: { programId: string; open: boolean }) => toggleFn({ data: vars }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-programas"] }),
-    onError: (e: Error) => toast.error(e.message),
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey: ["admin-programas"] });
+      const prev = qc.getQueryData<any[]>(["admin-programas"]);
+      qc.setQueryData<any[]>(["admin-programas"], (old) =>
+        (old ?? []).map((p) => (p.id === vars.programId ? { ...p, enrollment_open: vars.open } : p)),
+      );
+      return { prev };
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["admin-programas"], ctx.prev);
+      toast.error(e.message);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["admin-programas"] }),
   });
   return (
     <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
