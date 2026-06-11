@@ -1071,6 +1071,12 @@ export const adminDecideTransferRequest = createServerFn({ method: "POST" })
           .delete()
           .eq("user_id", oldOwnerId)
           .eq("role_name", "Entidade");
+        // Garante que o antigo responsável mantém o role "Utilizador".
+        await supabaseAdmin
+          .from("user_roles")
+          .insert({ user_id: oldOwnerId, role_name: "Utilizador", assigned_by: context.userId })
+          .select()
+          .then(() => null, () => null);
         await supabaseAdmin
           .from("utilizadores")
           .update({ entity_id: null })
@@ -1160,12 +1166,20 @@ export const transferEntityOwnershipDirect = createServerFn({ method: "POST" })
     const entityId = me.entity_id;
 
     // 3) Remove role Entidade from caller and clear their entity_id.
+    // Garante que o utilizador mantém pelo menos o role "Utilizador" — os
+    // restantes roles que tenha são preservados (apenas removemos "Entidade").
     const { error: delRoleErr } = await supabaseAdmin
       .from("user_roles")
       .delete()
       .eq("user_id", userId)
       .eq("role_name", "Entidade");
     if (delRoleErr) throw new Error(delRoleErr.message);
+
+    await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: userId, role_name: "Utilizador", assigned_by: userId })
+      .select()
+      .then(() => null, () => null);
 
     const { error: clearErr } = await supabaseAdmin
       .from("utilizadores")
