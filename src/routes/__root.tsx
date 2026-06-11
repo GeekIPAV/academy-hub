@@ -194,23 +194,29 @@ function ShellWithSidebar({
   const { isAdmin } = useApp();
   const { isLoading: profileLoading } = useCurrentProfile();
   const fetchEntidade = useServerFn(getMyEntidade);
-  const isOnboardingRoute = pathname === "/entidade/dashboard";
+  // Run for every non-admin user so we know whether they completed onboarding,
+  // regardless of which route they landed on after login.
   const { data: entidade, isFetched } = useQuery({
     queryKey: ["my-entidade", "self"],
     queryFn: () => fetchEntidade(undefined as never),
-    enabled: isOnboardingRoute && !isAdmin && !profileLoading,
+    enabled: !isAdmin && !profileLoading,
     retry: false,
+    staleTime: 60_000,
   });
 
   // Avoid flashing the sidebar / dashboard while we still don't know roles
   // or whether the user already has an entidade.
-  if (isOnboardingRoute && !isAdmin && (profileLoading || !isFetched)) {
+  if (!isAdmin && (profileLoading || !isFetched)) {
     return <LoadingU />;
   }
 
-  const hideSidebar = isOnboardingRoute && !isAdmin && isFetched && !entidade;
+  const needsOnboarding = !isAdmin && isFetched && !entidade;
 
-  if (hideSidebar) {
+  if (needsOnboarding) {
+    // Force the onboarding route — sidebar stays hidden until forms completed.
+    if (pathname !== "/entidade/dashboard" && typeof window !== "undefined") {
+      window.history.replaceState(null, "", "/entidade/dashboard");
+    }
     return (
       <div className="min-h-screen bg-muted/30">
         <main className="p-4 sm:p-6 lg:p-8">
