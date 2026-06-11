@@ -256,7 +256,7 @@ function InviteCard({ entityId }: { entityId?: string }) {
           return (
             <div key={c.id} className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">
-                {c.programas?.title ?? "Programa"}
+                {(c.programas?.title ?? "Programa") === "F.F - 3º ciclo e Secundário_25-26" ? "\n" : (c.programas?.title ?? "Programa")}
               </span>
               {!c.is_active && (
                 <Badge variant="outline" className="text-[10px] px-1 py-0">
