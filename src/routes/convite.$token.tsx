@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ShieldAlert, Check, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { LoadingU } from "@/components/LoadingU";
 import {
   Card,
   CardContent,
