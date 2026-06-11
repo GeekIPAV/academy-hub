@@ -175,16 +175,20 @@ function ClusterCard({ cluster }: { cluster: ClusterRow }) {
 
   return (
     <Card className="overflow-hidden">
-      {cluster.cover_url && (
-        <div className="relative h-32 w-full overflow-hidden bg-muted">
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800">
+        {cluster.cover_url ? (
           <CoverImage
             src={cluster.cover_url}
             alt={display.title}
             position={cluster.cover_position}
             scale={cluster.cover_scale ?? undefined}
           />
-        </div>
-      )}
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
+            Sem capa
+          </div>
+        )}
+      </div>
       <CardContent className="space-y-3 p-4">
         <div>
           <h3 className="font-semibold leading-tight">{display.title}</h3>
@@ -194,10 +198,13 @@ function ClusterCard({ cluster }: { cluster: ClusterRow }) {
         </div>
 
         {open ? (
-          <div className="flex items-center justify-between gap-2">
-            <Badge variant="default">Inscrições abertas</Badge>
+          <div className="space-y-2">
+            <Badge className="border-transparent bg-slate-500/15 text-slate-700 hover:bg-slate-500/20 dark:text-slate-300">
+              Inscrições abertas
+            </Badge>
             <Button
               size="sm"
+              className="w-full"
               onClick={() =>
                 toast.info(
                   "Em breve: formulário de inscrição da entidade neste cluster.",
