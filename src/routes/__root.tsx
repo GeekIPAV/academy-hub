@@ -21,6 +21,7 @@ import { ImprovingBanner } from "@/components/ImprovingBanner";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyEntidade } from "@/lib/entidade.functions";
+import { getCertGateStatus } from "@/lib/certificacao-perfil.functions";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 function NotFoundComponent() {
