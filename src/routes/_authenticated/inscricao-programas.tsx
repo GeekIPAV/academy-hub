@@ -108,6 +108,8 @@ function InscricaoProgramasPage() {
         )}
       </div>
 
+      {isAdmin && <ComponentAccessMatrix pagePath="/inscricao-programas" />}
+
       {loadingContent ? (
         <Skeleton className="h-24 w-full" />
       ) : html ? (
