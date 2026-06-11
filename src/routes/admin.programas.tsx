@@ -608,6 +608,7 @@ type ClusterRow = {
   cover_position: string | null;
   cover_scale: number | null;
   sort_order: number | null;
+  info_pdf_url: string | null;
   programs: Array<{
     id: string;
     title: string | null;
