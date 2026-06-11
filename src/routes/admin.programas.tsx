@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { GraduationCap, Users, Building2 } from "lucide-react";
+import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -27,6 +30,7 @@ import {
   listProgramas,
   listProgramaEntidades,
   listProgramaParticipantes,
+  setProgramaEnrollmentOpen,
 } from "@/lib/admin-programas.functions";
 import { RouteGate } from "@/components/RouteGate";
 
@@ -121,18 +125,26 @@ function AdminProgramasPage() {
         {loadingProgramas ? (
           <Skeleton className="h-10 max-w-md" />
         ) : (
-          <Select value={programId ?? ""} onValueChange={(v) => setProgramId(v)}>
-            <SelectTrigger className="max-w-md">
-              <SelectValue placeholder="Selecionar programa…" />
-            </SelectTrigger>
-            <SelectContent>
-              {programas.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.title ?? "(sem título)"}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-4">
+            <Select value={programId ?? ""} onValueChange={(v) => setProgramId(v)}>
+              <SelectTrigger className="max-w-md">
+                <SelectValue placeholder="Selecionar programa…" />
+              </SelectTrigger>
+              <SelectContent>
+                {programas.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.title ?? "(sem título)"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {programId && (
+              <EnrollmentToggle
+                programId={programId}
+                open={!!programas.find((p) => p.id === programId)?.enrollment_open}
+              />
+            )}
+          </div>
         )}
         {programasError && (
           <p className="mt-2 text-xs text-destructive">
@@ -173,10 +185,20 @@ function ProgramasTable({
   selectedId,
   onSelect,
 }: {
-  rows: Array<{ id: string; title: string | null; is_active: boolean | null }>;
+  rows: Array<{ id: string; title: string | null; is_active: boolean | null; enrollment_open?: boolean | null }>;
   selectedId?: string;
   onSelect: (id: string) => void;
 }) {
+  const qc = useQueryClient();
+  const toggleFn = useServerFn(setProgramaEnrollmentOpen);
+  const toggle = useMutation({
+    mutationFn: (vars: { programId: string; open: boolean }) => toggleFn({ data: vars }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-programas"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (rows.length === 0) {
     return (
       <p className="py-6 text-center text-sm text-muted-foreground">
@@ -190,6 +212,7 @@ function ProgramasTable({
         <TableHeader>
           <TableRow>
             <TableHead>Título</TableHead>
+            <TableHead className="w-40">Inscrições abertas</TableHead>
             <TableHead className="w-32">Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -202,6 +225,15 @@ function ProgramasTable({
               className="cursor-pointer"
             >
               <TableCell className="font-medium">{p.title ?? "(sem título)"}</TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={!!p.enrollment_open}
+                  onCheckedChange={(v) =>
+                    toggle.mutate({ programId: p.id, open: v === true })
+                  }
+                  aria-label="Inscrições abertas"
+                />
+              </TableCell>
               <TableCell>
                 <Badge variant={p.is_active ? "default" : "outline"}>
                   {p.is_active ? "Ativo" : "Inativo"}
@@ -211,6 +243,28 @@ function ProgramasTable({
           ))}
         </TableBody>
       </Table>
+    </div>
+  );
+}
+
+function EnrollmentToggle({ programId, open }: { programId: string; open: boolean }) {
+  const qc = useQueryClient();
+  const toggleFn = useServerFn(setProgramaEnrollmentOpen);
+  const m = useMutation({
+    mutationFn: (vars: { programId: string; open: boolean }) => toggleFn({ data: vars }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-programas"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
+      <Switch
+        checked={open}
+        onCheckedChange={(v) => m.mutate({ programId, open: v })}
+        aria-label="Inscrições abertas"
+      />
+      <span className="text-sm">
+        Inscrições {open ? "abertas" : "fechadas"}
+      </span>
     </div>
   );
 }

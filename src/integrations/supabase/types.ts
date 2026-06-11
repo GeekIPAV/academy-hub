@@ -1096,6 +1096,7 @@ export type Database = {
           cluster: string | null
           cluster_id: string | null
           description: string | null
+          enrollment_open: boolean
           id: string
           is_active: boolean | null
           last_synced_at: string | null
@@ -1110,6 +1111,7 @@ export type Database = {
           cluster?: string | null
           cluster_id?: string | null
           description?: string | null
+          enrollment_open?: boolean
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
@@ -1124,6 +1126,7 @@ export type Database = {
           cluster?: string | null
           cluster_id?: string | null
           description?: string | null
+          enrollment_open?: boolean
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
