@@ -868,46 +868,36 @@ function ProgramEnrollmentsCard({ entityId }: { entityId?: string }) {
   const rows = Array.isArray(data) ? data : [];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">Inscrições em Programas</CardTitle>
-        <CardDescription>Estado das inscrições da tua organização.</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Card className="border-primary/20 bg-primary/[0.03]">
+      <CardContent className="flex flex-wrap items-center gap-3 py-3 px-4">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <CalendarPlus className="h-4 w-4 text-primary" />
+          <span>Inscrições em Programas</span>
+        </div>
+
         {isLoading ? (
-          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-6 w-32" />
         ) : rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Ainda não submeteste nenhuma inscrição.{" "}
-            <Link to="/inscricao-programas" className="underline">Inscrever em Programas</Link>.
-          </p>
+          <span className="text-xs text-muted-foreground">
+            Ainda não submeteste nenhuma inscrição.
+          </span>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Programa</TableHead>
-                <TableHead>Cluster</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead>Submetido</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.program_title}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.cluster_name ?? "—"}</TableCell>
-                  <TableCell>
-                    <Badge variant={r.status === "pendente" ? "secondary" : "default"}>
-                      {r.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          rows.map((r) => (
+            <div key={r.id} className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {r.program_title}
+              </span>
+              <Badge
+                variant={r.status === "pendente" ? "secondary" : "default"}
+                className="text-[10px] px-1.5 py-0"
+              >
+                {r.status}
+              </Badge>
+              <span className="text-[10px] text-muted-foreground">
+                {r.created_at ? new Date(r.created_at).toLocaleDateString("pt-PT") : "—"}
+              </span>
+            </div>
+          ))
         )}
       </CardContent>
     </Card>
