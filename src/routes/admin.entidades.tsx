@@ -169,7 +169,117 @@ function AdminEntidadesPage() {
         </Button>
       </div>
 
+      <Collapsible open={addOpen} onOpenChange={setAddOpen}>
+        <Card>
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-center justify-between p-6 text-left"
+            >
+              <div className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                <div>
+                  <div className="font-semibold">Adicionar entidades</div>
+                  <div className="text-sm text-muted-foreground">
+                    Individualmente ou em massa
+                  </div>
+                </div>
+              </div>
+              <ChevronDown
+                className={`h-5 w-5 transition-transform ${addOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <Tabs defaultValue="single">
+                <TabsList>
+                  <TabsTrigger value="single">Individual</TabsTrigger>
+                  <TabsTrigger value="bulk">Em massa</TabsTrigger>
+                </TabsList>
+                <TabsContent value="single" className="space-y-3 pt-4">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <div>
+                      <Label htmlFor="ent-name">Nome *</Label>
+                      <Input
+                        id="ent-name"
+                        value={single.name}
+                        onChange={(e) =>
+                          setSingle({ ...single, name: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ent-contact">Pessoa de contacto</Label>
+                      <Input
+                        id="ent-contact"
+                        value={single.contact_name ?? ""}
+                        onChange={(e) =>
+                          setSingle({ ...single, contact_name: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ent-email">Email</Label>
+                      <Input
+                        id="ent-email"
+                        type="email"
+                        value={single.contact_email ?? ""}
+                        onChange={(e) =>
+                          setSingle({ ...single, contact_email: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="ent-phone">Telefone</Label>
+                      <Input
+                        id="ent-phone"
+                        value={single.contact_phone ?? ""}
+                        onChange={(e) =>
+                          setSingle({ ...single, contact_phone: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <Label htmlFor="ent-locality">Localidade</Label>
+                      <Input
+                        id="ent-locality"
+                        value={single.locality ?? ""}
+                        onChange={(e) =>
+                          setSingle({ ...single, locality: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <Button onClick={submitSingle} disabled={create.isPending}>
+                    {create.isPending ? "A guardar…" : "Adicionar entidade"}
+                  </Button>
+                </TabsContent>
+                <TabsContent value="bulk" className="space-y-3 pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Uma entidade por linha. Colunas separadas por vírgula,
+                    ponto-e-vírgula ou tabulação, pela ordem:
+                    <br />
+                    <code>nome, contacto, email, telefone, localidade</code>
+                  </p>
+                  <Textarea
+                    rows={8}
+                    placeholder={"ACME Lda, Maria Silva, maria@acme.pt, 912345678, Lisboa\nBeta SA;;info@beta.pt;;Porto"}
+                    value={bulk}
+                    onChange={(e) => setBulk(e.target.value)}
+                  />
+                  <Button onClick={submitBulk} disabled={create.isPending}>
+                    {create.isPending ? "A importar…" : "Importar entidades"}
+                  </Button>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
+
       <Card>
+
         <CardHeader>
           <CardTitle>Entidades</CardTitle>
           <CardDescription>
