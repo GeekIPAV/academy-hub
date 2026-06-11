@@ -240,7 +240,7 @@ function InviteCard({ entityId }: { entityId?: string }) {
       <CardContent className="flex flex-wrap items-center gap-3 py-3 px-4">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Link2 className="h-4 w-4 text-primary" />
-          <span>Links de Acesso para Formandos</span>
+          <span>Link de inscrição para Formandos</span>
         </div>
 
         {isLoading && <Skeleton className="h-7 w-32" />}
@@ -256,7 +256,7 @@ function InviteCard({ entityId }: { entityId?: string }) {
           return (
             <div key={c.id} className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">
-                {c.programas?.title ?? "Programa"}
+                {(c.programas?.title ?? "Programa") === "F.F - 3º ciclo e Secundário_25-26" ? "\n" : (c.programas?.title ?? "Programa")}
               </span>
               {!c.is_active && (
                 <Badge variant="outline" className="text-[10px] px-1 py-0">
