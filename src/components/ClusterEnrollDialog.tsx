@@ -31,9 +31,14 @@ export function ClusterEnrollDialog({ clusterId, clusterName, open, onOpenChange
   const fetchFn = useServerFn(getClusterEnrollmentInfo);
   const enrollFn = useServerFn(enrollEntityInPrograms);
 
+  const [adminEntityId, setAdminEntityId] = useState<string | undefined>(undefined);
+
   const { data, isLoading } = useQuery({
-    queryKey: ["cluster-enrollment-info", clusterId],
-    queryFn: () => fetchFn({ data: { cluster_id: clusterId } }),
+    queryKey: ["cluster-enrollment-info", clusterId, adminEntityId ?? "self"],
+    queryFn: () =>
+      fetchFn({
+        data: { cluster_id: clusterId, ...(adminEntityId ? { entity_id: adminEntityId } : {}) },
+      }),
     enabled: open,
   });
 
@@ -70,6 +75,7 @@ export function ClusterEnrollDialog({ clusterId, clusterName, open, onOpenChange
         data: {
           cluster_id: clusterId,
           program_ids: Object.entries(selected).filter(([, v]) => v).map(([k]) => k),
+          ...(adminEntityId ? { entity_id: adminEntityId } : {}),
         },
       }),
     onSuccess: () => {
@@ -94,7 +100,7 @@ export function ClusterEnrollDialog({ clusterId, clusterName, open, onOpenChange
 
         {isLoading || !data ? (
           <div className="p-6"><Skeleton className="h-[60vh] w-full" /></div>
-        ) : !data.has_entity ? (
+        ) : !data.has_entity && !data.is_admin ? (
           <div className="p-6 text-sm text-muted-foreground">
             Não estás associado/a a nenhuma entidade. Contacta o administrador.
           </div>
