@@ -125,18 +125,26 @@ function AdminProgramasPage() {
         {loadingProgramas ? (
           <Skeleton className="h-10 max-w-md" />
         ) : (
-          <Select value={programId ?? ""} onValueChange={(v) => setProgramId(v)}>
-            <SelectTrigger className="max-w-md">
-              <SelectValue placeholder="Selecionar programa…" />
-            </SelectTrigger>
-            <SelectContent>
-              {programas.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.title ?? "(sem título)"}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-4">
+            <Select value={programId ?? ""} onValueChange={(v) => setProgramId(v)}>
+              <SelectTrigger className="max-w-md">
+                <SelectValue placeholder="Selecionar programa…" />
+              </SelectTrigger>
+              <SelectContent>
+                {programas.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.title ?? "(sem título)"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {programId && (
+              <EnrollmentToggle
+                programId={programId}
+                open={!!programas.find((p) => p.id === programId)?.enrollment_open}
+              />
+            )}
+          </div>
         )}
         {programasError && (
           <p className="mt-2 text-xs text-destructive">
