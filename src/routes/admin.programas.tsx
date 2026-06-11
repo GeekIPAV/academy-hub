@@ -793,6 +793,19 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
             aspectRatio={16 / 9}
           />
         </TableCell>
+        <TableCell className="w-48">
+          <PdfUploader
+            folder="clusters-pdf"
+            id={slugifyCluster(cluster.name) || cluster.id}
+            currentUrl={cluster.info_pdf_url}
+            onUploaded={async (url) => {
+              await saveCover.mutateAsync({ info_pdf_url: url });
+            }}
+            onCleared={async () => {
+              await saveCover.mutateAsync({ info_pdf_url: null });
+            }}
+          />
+        </TableCell>
         <TableCell>
           <button
             type="button"
@@ -812,7 +825,7 @@ function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
       </TableRow>
       {expanded && (
         <TableRow>
-          <TableCell colSpan={5} className="bg-muted/30">
+          <TableCell colSpan={6} className="bg-muted/30">
             <ClusterProgramsPanel cluster={cluster} onChanged={invalidate} />
           </TableCell>
         </TableRow>
