@@ -1841,14 +1841,18 @@ export type Database = {
           address_cp4: string | null
           birth_concelho: string | null
           birth_date: string | null
+          cedula_profissional: string | null
           created_at: string | null
           data_consent: boolean | null
           education_level: string | null
           email: string | null
           entity_id: string | null
+          escola_educando: string | null
           first_names: string | null
           full_name: string | null
+          funcao_laboral_detalhe: string | null
           gender: string | null
+          grupo_recrutamento: string | null
           id: string
           id_doc_expiry: string | null
           id_doc_number: string | null
@@ -1856,10 +1860,12 @@ export type Database = {
           is_active: boolean
           job_title: string | null
           last_names: string | null
+          locality: string | null
           nationality_country: string | null
           nif: string | null
           origin_country: string | null
           passport_num: string | null
+          phone: string | null
           residence_concelho: string | null
           role: string | null
           work_institution: string | null
@@ -1870,14 +1876,18 @@ export type Database = {
           address_cp4?: string | null
           birth_concelho?: string | null
           birth_date?: string | null
+          cedula_profissional?: string | null
           created_at?: string | null
           data_consent?: boolean | null
           education_level?: string | null
           email?: string | null
           entity_id?: string | null
+          escola_educando?: string | null
           first_names?: string | null
           full_name?: string | null
+          funcao_laboral_detalhe?: string | null
           gender?: string | null
+          grupo_recrutamento?: string | null
           id: string
           id_doc_expiry?: string | null
           id_doc_number?: string | null
@@ -1885,10 +1895,12 @@ export type Database = {
           is_active?: boolean
           job_title?: string | null
           last_names?: string | null
+          locality?: string | null
           nationality_country?: string | null
           nif?: string | null
           origin_country?: string | null
           passport_num?: string | null
+          phone?: string | null
           residence_concelho?: string | null
           role?: string | null
           work_institution?: string | null
@@ -1899,14 +1911,18 @@ export type Database = {
           address_cp4?: string | null
           birth_concelho?: string | null
           birth_date?: string | null
+          cedula_profissional?: string | null
           created_at?: string | null
           data_consent?: boolean | null
           education_level?: string | null
           email?: string | null
           entity_id?: string | null
+          escola_educando?: string | null
           first_names?: string | null
           full_name?: string | null
+          funcao_laboral_detalhe?: string | null
           gender?: string | null
+          grupo_recrutamento?: string | null
           id?: string
           id_doc_expiry?: string | null
           id_doc_number?: string | null
@@ -1914,10 +1930,12 @@ export type Database = {
           is_active?: boolean
           job_title?: string | null
           last_names?: string | null
+          locality?: string | null
           nationality_country?: string | null
           nif?: string | null
           origin_country?: string | null
           passport_num?: string | null
+          phone?: string | null
           residence_concelho?: string | null
           role?: string | null
           work_institution?: string | null
