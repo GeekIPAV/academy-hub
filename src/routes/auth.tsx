@@ -31,8 +31,11 @@ function AuthPage() {
   const { redirect } = Route.useSearch();
   const safeRedirect =
     redirect && /^\/(?!\/)/.test(redirect) ? redirect : null;
-  const target = safeRedirect ?? "/dashboard";
   const inviteToken = safeRedirect?.match(/^\/convite\/([^/?#]+)/)?.[1] ?? null;
+  // Após o login, manda sempre para a home (/dashboard) para evitar abrir
+  // uma página sem permissão. Convites são a única exceção (precisam de
+  // consumir o token).
+  const target = inviteToken ? safeRedirect! : "/dashboard";
 
   const verifyEmail = useServerFn(verifyAuthEmail);
 
