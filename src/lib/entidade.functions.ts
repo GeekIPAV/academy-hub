@@ -623,3 +623,76 @@ export const generateAllCertificates = createServerFn({ method: "POST" })
     }
     return { generated, failed: errors.length, errors };
   });
+
+// ─── Admin: gestão de entidades ──────────────────────────────────────────────
+
+async function assertAdminUser(userId: string) {
+  const { data, error } = await supabaseAdmin
+    .from("utilizadores")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (data?.role !== "Admin") throw new Error("Acesso restrito.");
+}
+
+export const adminListEntidades = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdminUser(context.userId);
+    const { data, error } = await supabaseAdmin
+      .from("entidades")
+      .select(
+        "id, name, status, contact_name, contact_email, contact_phone, locality",
+      )
+      .order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+/**
+ * Retorna (ou cria, se ainda não existir) um convite reutilizável para
+ * registo com role "Entidade", sem entidade associada.
+ */
+export const getOrCreateEntidadeInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdminUser(context.userId);
+
+    const LABEL = "Convite genérico — Entidade";
+
+    const { data: existing, error: fErr } = await supabaseAdmin
+      .from("convites")
+      .select("token, is_active, expires_at, roles, entity_id, label")
+      .eq("label", LABEL)
+      .is("entity_id", null)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (fErr) throw new Error(fErr.message);
+
+    if (
+      existing &&
+      Array.isArray(existing.roles) &&
+      existing.roles.includes("Entidade") &&
+      (!existing.expires_at || new Date(existing.expires_at).getTime() > Date.now())
+    ) {
+      return { token: existing.token as string };
+    }
+
+    const { data: created, error: cErr } = await supabaseAdmin
+      .from("convites")
+      .insert({
+        roles: ["Entidade"],
+        label: LABEL,
+        created_by: context.userId,
+        expires_at: null,
+        max_uses: null,
+        entity_id: null,
+      })
+      .select("token")
+      .single();
+    if (cErr) throw new Error(cErr.message);
+    return { token: created.token as string };
+  });
