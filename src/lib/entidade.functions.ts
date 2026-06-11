@@ -1160,12 +1160,20 @@ export const transferEntityOwnershipDirect = createServerFn({ method: "POST" })
     const entityId = me.entity_id;
 
     // 3) Remove role Entidade from caller and clear their entity_id.
+    // Garante que o utilizador mantém pelo menos o role "Utilizador" — os
+    // restantes roles que tenha são preservados (apenas removemos "Entidade").
     const { error: delRoleErr } = await supabaseAdmin
       .from("user_roles")
       .delete()
       .eq("user_id", userId)
       .eq("role_name", "Entidade");
     if (delRoleErr) throw new Error(delRoleErr.message);
+
+    await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: userId, role_name: "Utilizador", assigned_by: userId })
+      .select()
+      .then(() => null, () => null);
 
     const { error: clearErr } = await supabaseAdmin
       .from("utilizadores")
