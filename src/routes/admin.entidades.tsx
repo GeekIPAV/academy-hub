@@ -87,8 +87,10 @@ function parseBulk(text: string): { items: NewItem[]; errors: string[] } {
 
 
 function AdminEntidadesPage() {
+  const qc = useQueryClient();
   const listFn = useServerFn(adminListEntidades);
   const inviteFn = useServerFn(getOrCreateEntidadeInvite);
+  const createFn = useServerFn(adminCreateEntidades);
 
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "entidades"],
@@ -110,7 +112,42 @@ function AdminEntidadesPage() {
       toast.error(e instanceof Error ? e.message : "Erro a gerar convite."),
   });
 
+  const create = useMutation({
+    mutationFn: (items: NewItem[]) => createFn({ data: { items } }),
+    onSuccess: (res) => {
+      toast.success(
+        `${res.created} ${res.created === 1 ? "entidade criada" : "entidades criadas"}.`,
+      );
+      qc.invalidateQueries({ queryKey: ["admin", "entidades"] });
+    },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : "Erro a criar entidades."),
+  });
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [single, setSingle] = useState<NewItem>({ name: "" });
+  const [bulk, setBulk] = useState("");
+
+  const submitSingle = () => {
+    if (!single.name.trim()) {
+      toast.error("Nome é obrigatório.");
+      return;
+    }
+    create.mutate([single], {
+      onSuccess: () => setSingle({ name: "" }),
+    });
+  };
+
+  const submitBulk = () => {
+    const { items, errors } = parseBulk(bulk);
+    if (errors.length) toast.error(errors.join(" • "));
+    if (!items.length) return;
+    create.mutate(items, { onSuccess: () => setBulk("") });
+  };
+
   const entidades = data ?? [];
+
+
 
   return (
     <div className="container mx-auto max-w-6xl space-y-6 p-6">
