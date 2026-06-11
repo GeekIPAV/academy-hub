@@ -113,7 +113,7 @@ function ResourcesIndex() {
                 key={c.slug}
                 cluster={c}
                 description={row?.description ?? null}
-                allowed={isComponentVisible("/recursos", clusterComponentId(c.slug))}
+                allowed={isAdmin || isComponentVisible("/recursos", clusterComponentId(c.slug)) || badgeSlugs.has(c.slug)}
                 isAdmin={isAdmin}
                 onSaveDescription={(d) => setDescription(c.name, d)}
               />
