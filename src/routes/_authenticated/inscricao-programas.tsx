@@ -150,8 +150,6 @@ function InscricaoProgramasPage() {
         )}
       </section>
 
-      {isAdmin && <ComponentAccessMatrix pagePath="/inscricao-programas" />}
-
       <Dialog open={editing} onOpenChange={setEditing}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
