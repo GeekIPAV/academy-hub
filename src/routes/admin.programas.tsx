@@ -177,6 +177,7 @@ function ProgramasSection() {
             <TabsContent value="ativos">
               <ProgramasTable
                 rows={programas.filter((p) => p.is_active)}
+                clusters={clusters}
                 selectedId={programId}
                 onSelect={setProgramId}
               />
@@ -184,6 +185,7 @@ function ProgramasSection() {
             <TabsContent value="geral">
               <ProgramasTable
                 rows={programas}
+                clusters={clusters}
                 selectedId={programId}
                 onSelect={setProgramId}
               />
