@@ -42,7 +42,7 @@ export const getMeuPerfilCertificacao = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("utilizadores")
       .select(
-        "first_names,last_names,full_name,email,gender,birth_date,nif,id_doc_type,id_doc_number,id_doc_expiry,nationality_country,origin_country,birth_concelho,residence_concelho,address,address_cp4,address_cp3,locality,education_level,job_title,funcao_laboral_detalhe,work_institution,phone,cedula_profissional,grupo_recrutamento,escola_educando,data_consent",
+        "first_names,last_names,full_name,email,gender,birth_date,nif,id_doc_type,id_doc_number,id_doc_expiry,nationality_country,origin_country,birth_concelho,residence_concelho,address,address_cp4,address_cp3,locality,education_level,job_title,work_institution,phone,cedula_profissional,grupo_recrutamento,data_consent",
       )
       .eq("id", context.userId)
       .maybeSingle();
