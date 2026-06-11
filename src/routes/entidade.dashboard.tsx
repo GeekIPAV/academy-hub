@@ -367,65 +367,6 @@ function ProgramsMasterTable({
   );
 }
 
-function InviteCard({ entityId }: { entityId?: string }) {
-  const fetchFn = useServerFn(listMyCohorts);
-  const { data: rawData, isLoading } = useQuery({
-    queryKey: ["my-cohorts", entityId ?? "self"],
-    queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
-    retry: false,
-  });
-  const data = Array.isArray(rawData) ? rawData : [];
-
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-
-  const copy = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("Link copiado para a área de transferência");
-    } catch {
-      toast.error("Não foi possível copiar o link");
-    }
-  };
-
-  return (
-    <Card className="border-primary/20 bg-primary/[0.03]">
-      <CardContent className="flex flex-wrap items-center gap-3 py-3 px-4">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <Link2 className="h-4 w-4 text-primary" />
-          <span>Link de inscrição para Formandos</span>
-        </div>
-
-        {isLoading && <Skeleton className="h-7 w-32" />}
-
-        {!isLoading && data.length === 0 && (
-          <span className="text-xs text-muted-foreground">
-            Ainda não há programas.
-          </span>
-        )}
-
-        {data.map((c) => {
-          const url = `${origin}/inscricao/${c.invite_token ?? ""}`;
-          return (
-            <div key={c.id} className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">
-                {(c.programas?.title ?? "Programa") === "F.F - 3º ciclo e Secundário_25-26" ? "\n" : (c.programas?.title ?? "Programa")}
-              </span>
-              {!c.is_active && (
-                <Badge variant="outline" className="text-[10px] px-1 py-0">
-                  Inativo
-                </Badge>
-              )}
-              <Button size="sm" variant="outline" onClick={() => copy(url)}>
-                <Copy className="mr-1.5 h-3 w-3" />
-                Copiar
-              </Button>
-            </div>
-          );
-        })}
-      </CardContent>
-    </Card>
-  );
-}
 
 function TraineesTable({ entityId }: { entityId?: string }) {
   const fetchFn = useServerFn(listMyTrainees);
