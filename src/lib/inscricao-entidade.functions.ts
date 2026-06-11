@@ -12,7 +12,11 @@ const clusterIdSchema = z.object({
 async function resolveActingEntityId(
   userId: string,
   requested: string | undefined,
-): Promise<{ entityId: string | null; isAdmin: boolean; user: { full_name: string | null; email: string | null } | null }> {
+): Promise<{
+  entityId: string | null;
+  isAdmin: boolean;
+  user: { full_name: string | null; email: string | null } | null;
+}> {
   const { data: user } = await supabaseAdmin
     .from("utilizadores")
     .select("entity_id, full_name, email, role")
@@ -27,63 +31,6 @@ async function resolveActingEntityId(
     user: user ? { full_name: user.full_name ?? null, email: user.email ?? null } : null,
   };
 }
-
-export const getClusterEnrollmentInfo = createServerFn({ method: "GET" })
-  .middleware([attachSupabaseAuth, requireSupabaseAuth])
-  .inputValidator((i) => clusterIdSchema.parse(i))
-  .handler(async ({ data, context }) => {
-    const { userId } = context;
-
-    const { data: user } = await supabaseAdmin
-      .from("utilizadores")
-      .select("entity_id, full_name, email")
-      .eq("id", userId)
-      .maybeSingle();
-
-    const { data: cluster, error: cErr } = await supabaseAdmin
-      .from("clusters")
-      .select("id, name, info_pdf_url")
-      .eq("id", data.cluster_id)
-      .maybeSingle();
-    if (cErr) throw new Error(cErr.message);
-    if (!cluster) throw new Error("Cluster não encontrado.");
-
-    const { data: programs, error: pErr } = await supabaseAdmin
-      .from("programas")
-      .select("id, title, enrollment_open, is_active")
-      .eq("cluster_id", data.cluster_id)
-      .eq("is_active", true);
-    if (pErr) throw new Error(pErr.message);
-
-    let existing: Array<{ program_id: string; status: string }> = [];
-    if (user?.entity_id) {
-      const { data: enr } = await supabaseAdmin
-        .from("inscricoes_entidade_programa")
-        .select("program_id, status")
-        .eq("entity_id", user.entity_id)
-        .in("program_id", (programs ?? []).map((p) => p.id));
-      existing = (enr ?? []).map((e) => ({ program_id: e.program_id, status: e.status }));
-    }
-
-    return {
-      cluster: { id: cluster.id, name: cluster.name, info_pdf_url: cluster.info_pdf_url },
-      programs: (programs ?? []).map((p) => {
-        const e = existing.find((x) => x.program_id === p.id);
-        return {
-          id: p.id,
-          title: p.title,
-          enrollment_open: p.enrollment_open ?? false,
-          enrollment_status: e?.status ?? null,
-        };
-      }),
-      has_entity: !!user?.entity_id,
-    };
-  });
-
-const enrollSchema = z.object({
-  cluster_id: z.string().uuid(),
-  program_ids: z.array(z.string().uuid()).min(1).max(20),
-});
 
 export const getClusterEnrollmentInfo = createServerFn({ method: "GET" })
   .middleware([attachSupabaseAuth, requireSupabaseAuth])
@@ -117,7 +64,6 @@ export const getClusterEnrollmentInfo = createServerFn({ method: "GET" })
       existing = (enr ?? []).map((e) => ({ program_id: e.program_id, status: e.status }));
     }
 
-    // Provide list of entities for admin chooser
     let entities: Array<{ id: string; name: string }> = [];
     if (acting.isAdmin) {
       const { data: ents } = await supabaseAdmin
@@ -162,6 +108,12 @@ export const enrollEntityInPrograms = createServerFn({ method: "POST" })
     const userFullName = acting.user?.full_name ?? null;
     const userEmail = acting.user?.email ?? null;
 
+    const { data: entity } = await supabaseAdmin
+      .from("entidades")
+      .select("name, contact_email")
+      .eq("id", entityId)
+      .maybeSingle();
+
     const { data: programs, error: pErr } = await supabaseAdmin
       .from("programas")
       .select("id, title, enrollment_open, cluster_id")
@@ -173,23 +125,22 @@ export const enrollEntityInPrograms = createServerFn({ method: "POST" })
     );
     if (valid.length === 0) throw new Error("Nenhum programa válido selecionado.");
 
-    // Check duplicates
     const { data: existing } = await supabaseAdmin
       .from("inscricoes_entidade_programa")
       .select("program_id")
-      .eq("entity_id", user.entity_id)
+      .eq("entity_id", entityId)
       .in("program_id", valid.map((p) => p.id));
     const already = new Set((existing ?? []).map((e) => e.program_id));
     const toInsert = valid.filter((p) => !already.has(p.id));
     if (toInsert.length === 0) {
-      throw new Error("Já existe inscrição da tua organização para todos os programas selecionados.");
+      throw new Error("Já existe inscrição da organização para todos os programas selecionados.");
     }
 
     const { error: iErr } = await supabaseAdmin
       .from("inscricoes_entidade_programa")
       .insert(
         toInsert.map((p) => ({
-          entity_id: user.entity_id!,
+          entity_id: entityId,
           program_id: p.id,
           requested_by: userId,
           status: "pendente",
@@ -197,37 +148,29 @@ export const enrollEntityInPrograms = createServerFn({ method: "POST" })
       );
     if (iErr) throw new Error(iErr.message);
 
-    // Notification in-app
     await supabaseAdmin.from("notificacoes").insert({
       user_id: userId,
       title: "Inscrição em programa submetida",
-      message: `A inscrição da ${entity?.name ?? "tua organização"} em ${toInsert.length} programa(s) está pendente de validação.`,
+      message: `A inscrição da ${entity?.name ?? "organização"} em ${toInsert.length} programa(s) está pendente de validação.`,
       link: "/entidade/dashboard",
     });
 
-    // Send confirmation email (best-effort)
-    const recipientEmail = user.email ?? entity?.contact_email ?? null;
+    const recipientEmail = userEmail ?? entity?.contact_email ?? null;
     if (recipientEmail) {
       try {
-        const origin = process.env.SITE_URL ?? "https://app.ipav.pt";
-        const authHeader = `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`;
-        // Use service-role token only when there's no user token; the send endpoint validates auth.
-        // Prefer relaying the user's session via a direct insert in queue:
         await supabaseAdmin.rpc("enqueue_email", {
           queue_name: "transactional_emails",
           payload: {
             template_name: "program-enrollment-pending",
             recipient_email: recipientEmail,
-            idempotency_key: `enroll-${user.entity_id}-${toInsert.map((p) => p.id).sort().join("-")}`,
+            idempotency_key: `enroll-${entityId}-${toInsert.map((p) => p.id).sort().join("-")}`,
             template_data: {
-              recipientName: user.full_name ?? null,
+              recipientName: userFullName,
               entityName: entity?.name ?? "",
               programTitles: toInsert.map((p) => p.title ?? "Programa"),
             },
           },
         });
-        void origin;
-        void authHeader;
       } catch (err) {
         console.error("[enrollEntity] email enqueue failed", err);
       }
