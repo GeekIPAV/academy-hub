@@ -123,23 +123,13 @@ function EntidadeDashboardPage() {
       <ComponentAccessMatrix pagePath="/entidade/dashboard" />
 
       {visible("header") && (
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Building2 className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Bem-vindo{entidade?.name ? `, ${entidade.name}` : ""}
-              </h1>
-            </div>
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Building2 className="h-6 w-6" />
           </div>
-          <Button asChild className="w-full sm:w-auto">
-            <Link to="/inscricao-programas">
-              <CalendarPlus className="mr-2 h-4 w-4" />
-              Inscrever em Programas
-            </Link>
-          </Button>
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Bem-vindo{entidade?.name ? `, ${entidade.name}` : ""}
+          </h1>
         </div>
       )}
 
@@ -173,36 +163,42 @@ function EntidadeDashboardPage() {
       )}
 
       <Dialog open={dataDialogOpen} onOpenChange={setDataDialogOpen}>
-        <div className="flex items-start justify-between gap-4">
-          <Tabs defaultValue="overview" className="space-y-6 flex-1">
-            <TabsList>
-              {visible("tab-overview") && <TabsTrigger value="overview">Visão Geral</TabsTrigger>}
-              {visible("tab-acoes") && <TabsTrigger value="acoes">Marcações</TabsTrigger>}
-            </TabsList>
-
-            {visible("tab-overview") && (
-              <TabsContent value="overview" className="space-y-6">
-                <ProgramEnrollmentsCard entityId={selectedEntityId} />
-                {visible("invite-card") && <InviteCard entityId={selectedEntityId} />}
-                {visible("trainees-table") && <TraineesTable entityId={selectedEntityId} />}
-              </TabsContent>
-            )}
-
-            {visible("tab-acoes") && (
-              <TabsContent value="acoes">
-                <AcoesTab entityId={selectedEntityId} />
-              </TabsContent>
-            )}
-          </Tabs>
-
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button asChild>
+            <Link to="/inscricao-programas">
+              <CalendarPlus className="mr-2 h-4 w-4" />
+              Inscrever em Programas
+            </Link>
+          </Button>
           {visible("tab-data") && (
             <DialogTrigger asChild>
-              <Button variant="outline" className="shrink-0">
+              <Button variant="outline">
                 Dados da Entidade
               </Button>
             </DialogTrigger>
           )}
         </div>
+
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList>
+            {visible("tab-overview") && <TabsTrigger value="overview">Visão Geral</TabsTrigger>}
+            {visible("tab-acoes") && <TabsTrigger value="acoes">Marcações</TabsTrigger>}
+          </TabsList>
+
+          {visible("tab-overview") && (
+            <TabsContent value="overview" className="space-y-6">
+              <ProgramEnrollmentsCard entityId={selectedEntityId} />
+              {visible("invite-card") && <InviteCard entityId={selectedEntityId} />}
+              {visible("trainees-table") && <TraineesTable entityId={selectedEntityId} />}
+            </TabsContent>
+          )}
+
+          {visible("tab-acoes") && (
+            <TabsContent value="acoes">
+              <AcoesTab entityId={selectedEntityId} />
+            </TabsContent>
+          )}
+        </Tabs>
 
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
