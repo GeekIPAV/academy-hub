@@ -20,13 +20,11 @@ const certSchema = z.object({
   address_cp3: z.string().trim().regex(/^\d{3}$/, "3 dígitos"),
   locality: z.string().trim().min(1).max(120),
   education_level: z.string().trim().min(1).max(120),
-  job_title: z.string().trim().min(1).max(120),
-  funcao_laboral_detalhe: z.string().trim().max(255).optional().nullable(),
+  job_title: z.string().trim().min(1).max(255),
   work_institution: z.string().trim().min(1).max(255),
   phone: z.string().trim().max(40).optional().nullable(),
   cedula_profissional: z.string().trim().max(60).optional().nullable(),
   grupo_recrutamento: z.string().trim().max(120).optional().nullable(),
-  escola_educando: z.string().trim().max(255).optional().nullable(),
   data_consent: z.boolean(),
 });
 
