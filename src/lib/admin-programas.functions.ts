@@ -15,10 +15,28 @@ export const listProgramas = createServerFn({ method: "GET" })
     await assertAdmin(context.userId);
     const { data, error } = await supabaseAdmin
       .from("programas")
-      .select("id, title, is_active")
+      .select("id, title, is_active, enrollment_open, cluster_id")
       .order("title", { ascending: true });
     if (error) throw new Error(error.message);
     return data ?? [];
+  });
+
+const toggleEnrollmentSchema = z.object({
+  programId: z.string().uuid(),
+  open: z.boolean(),
+});
+
+export const setProgramaEnrollmentOpen = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => toggleEnrollmentSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { error } = await supabaseAdmin
+      .from("programas")
+      .update({ enrollment_open: data.open })
+      .eq("id", data.programId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 const programIdSchema = z.object({ programId: z.string().uuid() });
