@@ -181,6 +181,7 @@ function CatalogoTab() {
                 <TableHead className="w-16"></TableHead>
                 <TableHead>Título</TableHead>
                 <TableHead>Cluster</TableHead>
+                <TableHead>Tipo</TableHead>
                 <TableHead>Validade</TableHead>
                 <TableHead className="w-32 text-right">Ações</TableHead>
               </TableRow>
