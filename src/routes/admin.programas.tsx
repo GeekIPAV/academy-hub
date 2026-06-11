@@ -247,6 +247,28 @@ function ProgramasTable({
   );
 }
 
+function EnrollmentToggle({ programId, open }: { programId: string; open: boolean }) {
+  const qc = useQueryClient();
+  const toggleFn = useServerFn(setProgramaEnrollmentOpen);
+  const m = useMutation({
+    mutationFn: (vars: { programId: string; open: boolean }) => toggleFn({ data: vars }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-programas"] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
+      <Switch
+        checked={open}
+        onCheckedChange={(v) => m.mutate({ programId, open: v })}
+        aria-label="Inscrições abertas"
+      />
+      <span className="text-sm">
+        Inscrições {open ? "abertas" : "fechadas"}
+      </span>
+    </div>
+  );
+}
+
 function EmptyState() {
   return (
     <Card className="border-dashed">
