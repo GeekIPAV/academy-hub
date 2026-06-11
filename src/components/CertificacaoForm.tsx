@@ -77,12 +77,10 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
     locality: "",
     education_level: "",
     job_title: "",
-    funcao_laboral_detalhe: "",
     work_institution: "",
     phone: "",
     cedula_profissional: "",
     grupo_recrutamento: "",
-    escola_educando: "",
     data_consent: false,
   });
 
