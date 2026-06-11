@@ -20,7 +20,7 @@ import {
   type CertificacaoData,
 } from "@/lib/certificacao-perfil.functions";
 
-const GENERO = ["Feminino", "Masculino", "Outro", "Prefiro não responder"];
+const GENERO = ["Feminino", "Masculino"];
 const DOC_TIPO = ["Cartão de Cidadão", "Bilhete de Identidade", "Passaporte", "Título de Residência"];
 const HABILITACOES = [
   "Ensino Básico (1.º Ciclo)",
