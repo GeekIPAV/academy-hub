@@ -124,7 +124,7 @@ function InscricaoProgramasPage() {
       ) : null}
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Clusters ativos</h2>
+        <h2 className="text-lg font-semibold">Programas ativos</h2>
 
         {loadingClusters ? (
           <div className="grid gap-4 sm:grid-cols-2">
