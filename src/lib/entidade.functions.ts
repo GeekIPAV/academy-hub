@@ -808,7 +808,11 @@ export const linkExistingEntidade = createServerFn({ method: "POST" })
     if (!ent) throw new Error("Entidade não encontrada.");
 
     // Atualiza apenas pontos de contacto se foram preenchidos
-    const updates: Record<string, string | null> = {};
+    const updates: {
+      contact_name?: string | null;
+      contact_email?: string | null;
+      contact_phone?: string | null;
+    } = {};
     if (data.contact_name !== undefined) updates.contact_name = data.contact_name ?? null;
     if (data.contact_email !== undefined) updates.contact_email = data.contact_email ?? null;
     if (data.contact_phone !== undefined) updates.contact_phone = data.contact_phone ?? null;
@@ -819,6 +823,7 @@ export const linkExistingEntidade = createServerFn({ method: "POST" })
         .eq("id", data.entityId);
       if (uErr) throw new Error(uErr.message);
     }
+
 
     const { error: linkErr } = await supabaseAdmin
       .from("utilizadores")
