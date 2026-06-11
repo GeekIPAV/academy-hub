@@ -185,6 +185,7 @@ const upsertSchema = z.object({
   validity_type: z.enum(["forever", "relative_years", "fixed_date"]).default("forever"),
   validity_years: z.number().int().min(1).max(99).nullable().optional(),
   validity_fixed_date: z.string().nullable().optional(),
+  kind: z.enum(["em_formacao", "formado"]).default("formado"),
 });
 
 export const upsertBadge = createServerFn({ method: "POST" })
