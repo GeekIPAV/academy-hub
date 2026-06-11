@@ -580,8 +580,7 @@ function ClustersSection() {
                 <TableHead className="w-8" />
                 <TableHead className="min-w-[200px]">Nome</TableHead>
                 <TableHead>Descrição</TableHead>
-                <TableHead className="w-56">Capa</TableHead>
-                <TableHead className="w-20">Programas</TableHead>
+                <TableHead className="w-24">Capa</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
             </TableHeader>
