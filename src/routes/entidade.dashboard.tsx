@@ -202,7 +202,7 @@ function EntidadeDashboardPage() {
 
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Dados da Entidade</DialogTitle>
+            <DialogTitle>Editar Dados da Organização</DialogTitle>
             <DialogDescription>
               Mantenha o nome da entidade, morada e ponto de contacto atualizados.
             </DialogDescription>
