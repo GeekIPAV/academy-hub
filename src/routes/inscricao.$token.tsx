@@ -53,15 +53,15 @@ function InscricaoPage() {
 
   // Auto-enroll após login se vier do redirect
   useEffect(() => {
-    let mounted = true;
+    let cancelled = false;
     supabase.auth.getSession().then(({ data }) => {
-      if (mounted && data.session && cohort && !done && !submitting) {
-        // não auto-submeter; deixar o user clicar.
-      }
+      if (cancelled || !data.session || !cohort || done || submitting) return;
+      handleEnroll();
     });
     return () => {
-      mounted = false;
+      cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cohort, done, submitting]);
 
   return (
