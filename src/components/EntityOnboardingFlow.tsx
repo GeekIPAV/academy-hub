@@ -96,6 +96,11 @@ export function EntityOnboardingFlow() {
   const [selected, setSelected] = useState<EntityRow | null>(null);
   const [owner, setOwner] = useState<{ id: string; full_name: string | null; email: string | null } | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [locked, setLocked] = useState<{ contact_name: boolean; contact_email: boolean; contact_phone: boolean }>({
+    contact_name: false,
+    contact_email: false,
+    contact_phone: false,
+  });
 
   const list = (Array.isArray(entidades) ? entidades : []) as EntityRow[];
   const filtered = useMemo(() => {
