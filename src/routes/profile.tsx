@@ -37,6 +37,7 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
   const { profile, isComponentVisible } = useApp();
   const qc = useQueryClient();
+  const { user } = useAuth();
   const visible = (id: string) => isComponentVisible("/profile", id);
   return (
     <div className="mx-auto max-w-3xl space-y-6">
