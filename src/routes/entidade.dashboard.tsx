@@ -489,6 +489,7 @@ function TraineesTable({ entityId, programTitle }: { entityId?: string; programT
 function EntityDataForm({ entityId }: { entityId?: string }) {
   const fetchFn = useServerFn(getMyEntidade);
   const updateFn = useServerFn(updateMyEntidade);
+  const transferFn = useServerFn(transferEntityOwnershipDirect);
   const qc = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
@@ -497,19 +498,15 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
   });
 
   const [name, setName] = useState("");
-  const [contactName, setContactName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
   const [address, setAddress] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [locality, setLocality] = useState("");
+  const [transferOpen, setTransferOpen] = useState(false);
+  const [newOwnerEmail, setNewOwnerEmail] = useState("");
 
   useEffect(() => {
     if (!data) return;
     setName(data.name ?? "");
-    setContactName(data.contact_name ?? "");
-    setContactEmail(data.contact_email ?? "");
-    setContactPhone(data.contact_phone ?? "");
     setAddress(data.address ?? "");
     setPostalCode(data.postal_code ?? "");
     setLocality(data.locality ?? "");
@@ -521,9 +518,9 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
         data: {
           ...(entityId ? { entityId } : {}),
           name,
-          contact_name: contactName || null,
-          contact_email: contactEmail || null,
-          contact_phone: contactPhone || null,
+          contact_name: data?.contact_name ?? null,
+          contact_email: data?.contact_email ?? null,
+          contact_phone: data?.contact_phone ?? null,
           address: address || null,
           postal_code: postalCode || null,
           locality: locality || null,
@@ -532,6 +529,23 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
     onSuccess: () => {
       toast.success("Dados atualizados");
       qc.invalidateQueries({ queryKey: ["my-entidade"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const transferMutation = useMutation({
+    mutationFn: () => transferFn({ data: { newOwnerEmail } }),
+    onSuccess: async () => {
+      toast.success("Contacto transferido. Vai sair desta conta…");
+      // O utilizador atual perdeu a role de Entidade — terminar sessão e recarregar.
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        /* ignore */
+      }
+      setTimeout(() => {
+        window.location.replace("/");
+      }, 800);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -572,7 +586,7 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
       <CardHeader>
         <CardTitle className="text-base">Dados Institucionais</CardTitle>
         <CardDescription>
-          Mantenha o nome da entidade, morada e ponto de contacto atualizados.
+          Mantenha o nome da entidade e a morada atualizados.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -636,44 +650,92 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
             <div className="border-t pt-4">
               <p className="text-sm font-medium">Ponto de Contacto</p>
               <p className="text-xs text-muted-foreground">
-                Pessoa responsável pela ligação com a Academia.
+                Estes dados refletem a pessoa responsável pela ligação com a Academia.
+                Para os alterar, transfira o contacto para outro utilizador.
               </p>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contact-name">Nome do Responsável</Label>
-            <Input
-              id="contact-name"
-              value={contactName}
-              onChange={(e) => setContactName(e.target.value)}
-              maxLength={200}
-            />
+            <Label>Nome do Responsável</Label>
+            <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+              {data.contact_name || "—"}
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contact-email">Email de Contacto</Label>
-            <Input
-              id="contact-email"
-              type="email"
-              value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
-              maxLength={255}
-            />
+            <Label>Email de Contacto</Label>
+            <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+              {data.contact_email || "—"}
+            </div>
           </div>
 
           <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="contact-phone">Telefone da Entidade</Label>
-            <Input
-              id="contact-phone"
-              type="tel"
-              value={contactPhone}
-              onChange={(e) => setContactPhone(e.target.value)}
-              maxLength={50}
-            />
+            <Label>Telefone da Entidade</Label>
+            <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+              {data.contact_phone || "—"}
+            </div>
           </div>
 
-          <div className="sm:col-span-2 flex justify-end">
+          <div className="sm:col-span-2 flex flex-wrap items-center justify-between gap-2">
+            <AlertDialog open={transferOpen} onOpenChange={setTransferOpen}>
+              <AlertDialogTrigger asChild>
+                <Button type="button" variant="outline">
+                  Trocar pessoa de contacto
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Transferir contacto da entidade</AlertDialogTitle>
+                  <AlertDialogDescription asChild>
+                    <div className="space-y-2 text-sm">
+                      <p>
+                        Ao confirmar, a pessoa indicada passa a ser o novo responsável
+                        desta organização. <strong>Você perde imediatamente o acesso</strong>{" "}
+                        à área da entidade e a sessão será terminada.
+                      </p>
+                      <p>
+                        Esta ação <strong>não requer aprovação</strong> e é imediata.
+                        Indique o email do novo responsável (tem de já ter conta na
+                        plataforma).
+                      </p>
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <div className="space-y-2 py-2">
+                  <Label htmlFor="new-owner-email">Email do novo responsável</Label>
+                  <Input
+                    id="new-owner-email"
+                    type="email"
+                    value={newOwnerEmail}
+                    onChange={(e) => setNewOwnerEmail(e.target.value)}
+                    placeholder="responsavel@exemplo.pt"
+                    autoComplete="off"
+                  />
+                </div>
+                <AlertDialogFooter>
+                  <AlertDialogCancel disabled={transferMutation.isPending}>
+                    Cancelar
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (!newOwnerEmail.trim()) {
+                        toast.error("Indique o email do novo responsável.");
+                        return;
+                      }
+                      transferMutation.mutate();
+                    }}
+                    disabled={transferMutation.isPending}
+                  >
+                    {transferMutation.isPending
+                      ? "A transferir…"
+                      : "Confirmar e sair"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
             <Button type="submit" disabled={mutation.isPending}>
               {mutation.isPending ? "A guardar…" : "Guardar Alterações"}
             </Button>
@@ -683,6 +745,7 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
     </Card>
   );
 }
+
 
 // ============== Tab: Marcações (ações propostas pela Entidade) ==============
 
