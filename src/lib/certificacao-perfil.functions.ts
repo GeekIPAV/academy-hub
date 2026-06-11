@@ -1,6 +1,26 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { attachSupabaseAuth } from "@/integrations/supabase/attach-auth-client";
+
+export const getCertGateStatus = createServerFn({ method: "GET" })
+  .middleware([attachSupabaseAuth, requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ enrolled: boolean; complete: boolean }> => {
+    const { supabase, userId } = context;
+    const { count } = await supabase
+      .from("inscritos_programa")
+      .select("user_id", { count: "exact", head: true })
+      .eq("user_id", userId);
+    const enrolled = (count ?? 0) > 0;
+    if (!enrolled) return { enrolled: false, complete: true };
+    const { data } = await supabase
+      .from("utilizadores")
+      .select("first_names,last_names,gender,birth_date,nif,id_doc_type,id_doc_number,id_doc_expiry,nationality_country,origin_country,birth_concelho,residence_concelho,address,address_cp4,address_cp3,locality,education_level,job_title,work_institution,data_consent")
+      .eq("id", userId)
+      .maybeSingle();
+    return { enrolled: true, complete: isCertCompleto(data as Record<string, unknown> | null) };
+  });
+
 
 const certSchema = z.object({
   first_names: z.string().trim().min(1).max(120),
