@@ -28,6 +28,7 @@ export const Route = createFileRoute("/convite/$token")({
 function ConvitePage() {
   const { token } = Route.useParams();
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const validateFn = useServerFn(validateStaffInvite);
   const consumeFn = useServerFn(consumeStaffInvite);
 
@@ -59,9 +60,17 @@ function ConvitePage() {
 
   const accept = useMutation({
     mutationFn: () => consumeFn({ data: { token } }),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Bem-vindo à equipa!");
-      navigate({ to: "/dashboard" });
+      // Refresca perfil/roles para que o AppContext reconheça a nova role.
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["current-profile"] }),
+        qc.invalidateQueries({ queryKey: ["my-entidade"] }),
+        qc.invalidateQueries({ queryKey: ["my-transfer-request"] }),
+      ]);
+      const roles = (info.data?.roles ?? []) as string[];
+      const dest = roles.includes("Entidade") ? "/entidade/dashboard" : "/dashboard";
+      navigate({ to: dest });
     },
     onError: (e: Error) => toast.error(e.message),
   });
