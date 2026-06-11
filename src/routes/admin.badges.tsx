@@ -298,6 +298,7 @@ function BadgeFormDialog({
     validity_type: "forever",
     validity_years: null,
     validity_fixed_date: null,
+    kind: "formado",
   });
   const [adjustOpen, setAdjustOpen] = useState(false);
 
@@ -314,6 +315,7 @@ function BadgeFormDialog({
         validity_type: (editing?.validity_type as BadgeValidityType) ?? "forever",
         validity_years: editing?.validity_years ?? null,
         validity_fixed_date: editing?.validity_fixed_date ?? null,
+        kind: (editing?.kind as BadgeKind) ?? "formado",
       });
     }
   }, [open, editing]);
