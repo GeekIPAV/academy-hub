@@ -21,6 +21,7 @@ type BadgeListRow = {
   validity_type: string;
   validity_years: number | null;
   validity_fixed_date: string | null;
+  kind: string | null;
   clusters: { name: string } | null;
 };
 
