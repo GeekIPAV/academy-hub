@@ -42,7 +42,7 @@ export const setProgramaEnrollmentOpen = createServerFn({ method: "POST" })
 const updateProgramaSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1).max(255).optional(),
-  cluster_id: z.string().uuid().optional(),
+  cluster_id: z.string().uuid().nullable().optional(),
   is_active: z.boolean().optional(),
 });
 
