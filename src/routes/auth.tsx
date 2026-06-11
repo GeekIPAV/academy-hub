@@ -32,10 +32,12 @@ function AuthPage() {
   const safeRedirect =
     redirect && /^\/(?!\/)/.test(redirect) ? redirect : null;
   const inviteToken = safeRedirect?.match(/^\/convite\/([^/?#]+)/)?.[1] ?? null;
-  // Após o login, manda sempre para a home (/dashboard) para evitar abrir
-  // uma página sem permissão. Convites são a única exceção (precisam de
-  // consumir o token).
-  const target = inviteToken ? safeRedirect! : "/dashboard";
+  const shouldReturnToPublicFlow =
+    !!inviteToken || safeRedirect?.startsWith("/inscricao/");
+  // Após o login, manda por defeito para a home (/dashboard) para evitar abrir
+  // uma página sem permissão. Convites e inscrições públicas são exceções
+  // porque precisam de consumir o respetivo token após autenticação.
+  const target = shouldReturnToPublicFlow ? safeRedirect! : "/dashboard";
 
   const verifyEmail = useServerFn(verifyAuthEmail);
 
