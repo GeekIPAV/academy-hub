@@ -1071,6 +1071,12 @@ export const adminDecideTransferRequest = createServerFn({ method: "POST" })
           .delete()
           .eq("user_id", oldOwnerId)
           .eq("role_name", "Entidade");
+        // Garante que o antigo responsável mantém o role "Utilizador".
+        await supabaseAdmin
+          .from("user_roles")
+          .insert({ user_id: oldOwnerId, role_name: "Utilizador", assigned_by: context.userId })
+          .select()
+          .then(() => null, () => null);
         await supabaseAdmin
           .from("utilizadores")
           .update({ entity_id: null })
