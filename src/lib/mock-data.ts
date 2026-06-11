@@ -83,7 +83,7 @@ export const PAGE_COMPONENTS: Record<string, PageComponent[]> = {
     { id: "header", label: "Cabeçalho" },
     { id: "tab-overview", label: "Aba Visão Geral" },
     { id: "tab-acoes", label: "Aba Marcações" },
-    { id: "tab-data", label: "Aba Dados da Entidade" },
+    { id: "tab-data", label: "Botão Editar Dados da Organização" },
     { id: "invite-card", label: "Card Link de Convite" },
     { id: "trainees-table", label: "Tabela de Formandos" },
     { id: "improving-banner", label: "Banner a melhorar" },
