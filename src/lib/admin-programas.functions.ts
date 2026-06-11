@@ -39,6 +39,28 @@ export const setProgramaEnrollmentOpen = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const updateProgramaSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1).max(255).optional(),
+  cluster_id: z.string().uuid().optional(),
+  is_active: z.boolean().optional(),
+});
+
+export const updateProgramaAdmin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => updateProgramaSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const patch: Record<string, unknown> = {};
+    if (data.title !== undefined) patch.title = data.title.trim();
+    if (data.cluster_id !== undefined) patch.cluster_id = data.cluster_id;
+    if (data.is_active !== undefined) patch.is_active = data.is_active;
+    if (Object.keys(patch).length === 0) return { ok: true };
+    const { error } = await supabaseAdmin.from("programas").update(patch).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 // ===== Clusters management (scoped to programas admin) =====
 
 export const listClustersWithProgramas = createServerFn({ method: "GET" })
