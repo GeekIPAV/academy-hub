@@ -1,8 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { GraduationCap, Users, Building2 } from "lucide-react";
+import {
+  GraduationCap,
+  Users,
+  Building2,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Trash2,
+  Layers,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +20,17 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -26,13 +46,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CoverUploader } from "@/components/CoverUploader";
 import {
   listProgramas,
   listProgramaEntidades,
   listProgramaParticipantes,
   setProgramaEnrollmentOpen,
+  listClustersWithProgramas,
+  upsertClusterAdmin,
+  deleteClusterAdmin,
+  createPrograma,
+  bulkCreateClusters,
+  bulkCreateProgramas,
 } from "@/lib/admin-programas.functions";
 import { RouteGate } from "@/components/RouteGate";
+import { slugifyCluster } from "@/lib/cluster-utils";
 
 export const Route = createFileRoute("/admin/programas")({
   head: () => ({ meta: [{ title: "Gestão de Programas — Admin" }] }),
@@ -43,8 +71,57 @@ export const Route = createFileRoute("/admin/programas")({
   ),
 });
 
+function currentAcademicYear(): string {
+  const d = new Date();
+  const m = d.getMonth() + 1; // 1-12
+  const y = d.getFullYear();
+  const start = m >= 8 ? y : y - 1;
+  const end = start + 1;
+  return `${String(start).slice(-2)}/${String(end).slice(-2)}`;
+}
 
 function AdminProgramasPage() {
+  return (
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div className="flex items-start gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <GraduationCap className="h-6 w-6" />
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
+          <h1 className="text-2xl font-semibold tracking-tight">Gestão de Programas</h1>
+          <p className="text-sm text-muted-foreground">
+            Visão centralizada de instituições, participantes e clusters.
+          </p>
+        </div>
+      </div>
+
+      <Tabs defaultValue="programas" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="programas">
+            <GraduationCap className="mr-2 h-4 w-4" />
+            Programas
+          </TabsTrigger>
+          <TabsTrigger value="clusters">
+            <Layers className="mr-2 h-4 w-4" />
+            Clusters
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="programas">
+          <ProgramasSection />
+        </TabsContent>
+        <TabsContent value="clusters">
+          <ClustersSection />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// ================== Tab 1: Programas (existing UI) ==================
+
+function ProgramasSection() {
   const fetchProgramas = useServerFn(listProgramas);
   const { data: programasRaw, isLoading: loadingProgramas, error: programasError } = useQuery({
     queryKey: ["admin-programas"],
@@ -59,23 +136,8 @@ function AdminProgramasPage() {
     if (!programId && programas.length > 0) setProgramId(programas[0].id);
   }, [programas, programId]);
 
-
-
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <GraduationCap className="h-6 w-6" />
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Gestão de Programas</h1>
-          <p className="text-sm text-muted-foreground">
-            Visão centralizada de instituições e participantes por programa.
-          </p>
-        </div>
-      </div>
-
+    <div className="space-y-6">
       <Card className="p-4">
         <div className="mb-3 flex items-center justify-between">
           <div>
@@ -445,5 +507,533 @@ function ParticipantesTab({ programId }: { programId: string }) {
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// ================== Tab 2: Clusters ==================
+
+type ClusterRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
+  sort_order: number | null;
+  programs: Array<{
+    id: string;
+    title: string | null;
+    is_active: boolean | null;
+    enrollment_open: boolean | null;
+    cluster_id: string | null;
+  }>;
+};
+
+function ClustersSection() {
+  const fetchFn = useServerFn(listClustersWithProgramas);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["admin-programas-clusters"],
+    queryFn: () => fetchFn(),
+    retry: false,
+  });
+  const rows: ClusterRow[] = Array.isArray(data) ? (data as ClusterRow[]) : [];
+
+  const [addOpen, setAddOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+
+  return (
+    <Card className="p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium">Clusters de programas</p>
+          <p className="text-xs text-muted-foreground">
+            Edita o nome, descrição e capa. Expande para ver e criar programas do cluster.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">{rows.length}</Badge>
+          <Button size="sm" variant="outline" onClick={() => setBulkOpen(true)}>
+            Adicionar em massa
+          </Button>
+          <Button size="sm" onClick={() => setAddOpen(true)}>
+            <Plus className="mr-1 h-4 w-4" />
+            Adicionar cluster
+          </Button>
+        </div>
+      </div>
+
+      {error && (
+        <p className="mb-2 text-sm text-destructive">Erro: {(error as Error).message}</p>
+      )}
+
+      {isLoading ? (
+        <Skeleton className="h-40 w-full" />
+      ) : rows.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">
+          Nenhum cluster registado.
+        </p>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-8" />
+                <TableHead>Nome</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead className="w-56">Capa</TableHead>
+                <TableHead className="w-20">Programas</TableHead>
+                <TableHead className="w-12" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((c) => (
+                <ClusterTableRow key={c.id} cluster={c} />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      <AddClusterDialog open={addOpen} onOpenChange={setAddOpen} />
+      <BulkClustersDialog open={bulkOpen} onOpenChange={setBulkOpen} />
+    </Card>
+  );
+}
+
+function ClusterTableRow({ cluster }: { cluster: ClusterRow }) {
+  const qc = useQueryClient();
+  const [expanded, setExpanded] = useState(false);
+  const [name, setName] = useState(cluster.name);
+  const [description, setDescription] = useState(cluster.description ?? "");
+
+  useEffect(() => {
+    setName(cluster.name);
+    setDescription(cluster.description ?? "");
+  }, [cluster.name, cluster.description]);
+
+  const upsertFn = useServerFn(upsertClusterAdmin);
+  const deleteFn = useServerFn(deleteClusterAdmin);
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin-programas-clusters"] });
+    qc.invalidateQueries({ queryKey: ["admin-programas"] });
+  };
+
+  const saveName = useMutation({
+    mutationFn: () => upsertFn({ data: { id: cluster.id, name: name.trim() || cluster.name } }),
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const saveDescription = useMutation({
+    mutationFn: () =>
+      upsertFn({
+        data: { id: cluster.id, name: cluster.name, description: description.trim() || null },
+      }),
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const saveCover = useMutation({
+    mutationFn: (vars: { cover_url?: string | null; cover_position?: string; cover_scale?: number }) =>
+      upsertFn({ data: { id: cluster.id, name: cluster.name, ...vars } }),
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const removeCluster = useMutation({
+    mutationFn: () => deleteFn({ data: { id: cluster.id } }),
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <>
+      <TableRow>
+        <TableCell>
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className="rounded p-1 hover:bg-muted"
+            aria-label={expanded ? "Recolher" : "Expandir"}
+          >
+            {expanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </button>
+        </TableCell>
+        <TableCell>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => {
+              if (name.trim() && name.trim() !== cluster.name) saveName.mutate();
+            }}
+            className="h-8"
+          />
+        </TableCell>
+        <TableCell>
+          <Input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            onBlur={() => {
+              if ((description.trim() || null) !== (cluster.description ?? null)) {
+                saveDescription.mutate();
+              }
+            }}
+            placeholder="Sem descrição"
+            className="h-8"
+          />
+        </TableCell>
+        <TableCell>
+          <CoverUploader
+            folder="clusters"
+            id={slugifyCluster(cluster.name) || cluster.id}
+            currentUrl={cluster.cover_url}
+            variant="inline"
+            position={cluster.cover_position}
+            scale={cluster.cover_scale ?? undefined}
+            onUploaded={(url) => saveCover.mutateAsync({ cover_url: url })}
+            onCleared={() => saveCover.mutateAsync({ cover_url: null })}
+            onAdjusted={(pos, sc) =>
+              saveCover.mutateAsync({ cover_position: pos, cover_scale: sc })
+            }
+            aspectRatio={16 / 9}
+          />
+        </TableCell>
+        <TableCell>
+          <Badge variant="secondary">{cluster.programs.length}</Badge>
+        </TableCell>
+        <TableCell>
+          <button
+            type="button"
+            onClick={() => {
+              if (cluster.programs.length > 0) {
+                toast.error("Remove primeiro os programas deste cluster.");
+                return;
+              }
+              if (confirm(`Eliminar o cluster "${cluster.name}"?`)) removeCluster.mutate();
+            }}
+            className="rounded p-1 text-destructive hover:bg-destructive/10"
+            aria-label="Eliminar cluster"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </TableCell>
+      </TableRow>
+      {expanded && (
+        <TableRow>
+          <TableCell colSpan={6} className="bg-muted/30">
+            <ClusterProgramsPanel cluster={cluster} onChanged={invalidate} />
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  );
+}
+
+function ClusterProgramsPanel({
+  cluster,
+  onChanged,
+}: {
+  cluster: ClusterRow;
+  onChanged: () => void;
+}) {
+  const [addOpen, setAddOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+
+  return (
+    <div className="space-y-3 py-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-medium">Programas do cluster</p>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setBulkOpen(true)}>
+            Adicionar em massa
+          </Button>
+          <Button size="sm" onClick={() => setAddOpen(true)}>
+            <Plus className="mr-1 h-4 w-4" />
+            Criar programa
+          </Button>
+        </div>
+      </div>
+
+      {cluster.programs.length === 0 ? (
+        <p className="py-4 text-center text-sm text-muted-foreground">
+          Sem programas neste cluster.
+        </p>
+      ) : (
+        <div className="rounded-md border bg-background">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Título</TableHead>
+                <TableHead className="w-32">Status</TableHead>
+                <TableHead className="w-40">Inscrições</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {cluster.programs.map((p) => (
+                <TableRow key={p.id}>
+                  <TableCell className="font-medium">{p.title ?? "(sem título)"}</TableCell>
+                  <TableCell>
+                    <Badge variant={p.is_active ? "default" : "outline"}>
+                      {p.is_active ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={p.enrollment_open ? "default" : "outline"}>
+                      {p.enrollment_open ? "Abertas" : "Fechadas"}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+
+      <AddProgramaDialog
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        clusterId={cluster.id}
+        defaultTitle={`${cluster.name} ${currentAcademicYear()}`}
+        onCreated={onChanged}
+      />
+      <BulkProgramasDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        clusterId={cluster.id}
+        clusterName={cluster.name}
+        onCreated={onChanged}
+      />
+    </div>
+  );
+}
+
+// ================== Dialogs ==================
+
+function AddClusterDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const qc = useQueryClient();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const upsertFn = useServerFn(upsertClusterAdmin);
+  const m = useMutation({
+    mutationFn: () =>
+      upsertFn({ data: { name: name.trim(), description: description.trim() || null } }),
+    onSuccess: () => {
+      toast.success("Cluster criado.");
+      qc.invalidateQueries({ queryKey: ["admin-programas-clusters"] });
+      setName("");
+      setDescription("");
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Adicionar cluster</DialogTitle>
+          <DialogDescription>Cria um novo cluster de programas.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          <div>
+            <Label htmlFor="cl-name">Nome</Label>
+            <Input id="cl-name" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div>
+            <Label htmlFor="cl-desc">Descrição</Label>
+            <Textarea
+              id="cl-desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button disabled={!name.trim() || m.isPending} onClick={() => m.mutate()}>
+            Criar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function BulkClustersDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const qc = useQueryClient();
+  const [text, setText] = useState("");
+  const bulkFn = useServerFn(bulkCreateClusters);
+  const names = useMemo(
+    () =>
+      text
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0),
+    [text],
+  );
+  const m = useMutation({
+    mutationFn: () => bulkFn({ data: { names } }),
+    onSuccess: (r) => {
+      toast.success(`${r.inserted} clusters criados.`);
+      qc.invalidateQueries({ queryKey: ["admin-programas-clusters"] });
+      setText("");
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Adicionar clusters em massa</DialogTitle>
+          <DialogDescription>
+            Um nome por linha. {names.length} será(ão) criado(s).
+          </DialogDescription>
+        </DialogHeader>
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={8}
+          placeholder={"Cluster A\nCluster B\nCluster C"}
+        />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button disabled={names.length === 0 || m.isPending} onClick={() => m.mutate()}>
+            Criar {names.length || ""}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AddProgramaDialog({
+  open,
+  onOpenChange,
+  clusterId,
+  defaultTitle,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  clusterId: string;
+  defaultTitle: string;
+  onCreated: () => void;
+}) {
+  const [title, setTitle] = useState(defaultTitle);
+  useEffect(() => {
+    if (open) setTitle(defaultTitle);
+  }, [open, defaultTitle]);
+  const createFn = useServerFn(createPrograma);
+  const m = useMutation({
+    mutationFn: () => createFn({ data: { title: title.trim(), cluster_id: clusterId } }),
+    onSuccess: () => {
+      toast.success("Programa criado.");
+      onCreated();
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Criar programa</DialogTitle>
+          <DialogDescription>O programa fica ativo por defeito.</DialogDescription>
+        </DialogHeader>
+        <div>
+          <Label htmlFor="pg-title">Título</Label>
+          <Input id="pg-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button disabled={!title.trim() || m.isPending} onClick={() => m.mutate()}>
+            Criar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function BulkProgramasDialog({
+  open,
+  onOpenChange,
+  clusterId,
+  clusterName,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  clusterId: string;
+  clusterName: string;
+  onCreated: () => void;
+}) {
+  const ay = currentAcademicYear();
+  const [text, setText] = useState("");
+  const bulkFn = useServerFn(bulkCreateProgramas);
+  const titles = useMemo(
+    () =>
+      text
+        .split("\n")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0),
+    [text],
+  );
+  const m = useMutation({
+    mutationFn: () => bulkFn({ data: { cluster_id: clusterId, titles } }),
+    onSuccess: (r) => {
+      toast.success(`${r.inserted} programas criados.`);
+      onCreated();
+      setText("");
+      onOpenChange(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Adicionar programas em massa</DialogTitle>
+          <DialogDescription>
+            Um título por linha. Sugestão por defeito: <code>{clusterName} {ay}</code>.
+          </DialogDescription>
+        </DialogHeader>
+        <Textarea
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          rows={8}
+          placeholder={`${clusterName} ${ay}\n${clusterName} ${ay} — turma B`}
+        />
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button disabled={titles.length === 0 || m.isPending} onClick={() => m.mutate()}>
+            Criar {titles.length || ""}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
