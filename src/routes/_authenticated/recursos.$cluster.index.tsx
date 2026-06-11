@@ -66,13 +66,15 @@ function ClusterTemas() {
   });
 
   const cluster = clusterQuery.data;
-  const allowed = cluster
+  const allowedByRole = cluster
     ? isComponentVisible("/recursos", clusterComponentId(cluster.slug))
     : true;
+  const hasBadge = useHasBadgeForCluster(cluster?.name ?? "");
+  const canAccess = isAdmin || allowedByRole || hasBadge;
 
   const temasQuery = useQuery({
     queryKey: ["temas", cluster?.name],
-    enabled: !!cluster && allowed,
+    enabled: !!cluster && canAccess,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos")
