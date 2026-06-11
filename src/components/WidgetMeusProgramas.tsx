@@ -37,11 +37,6 @@ export function WidgetMeusProgramas() {
                     </p>
                   )}
                 </div>
-                {p.status && (
-                  <Badge variant="secondary" className="shrink-0 text-xs capitalize">
-                    {p.status}
-                  </Badge>
-                )}
               </li>
             );
           })}
@@ -50,3 +45,4 @@ export function WidgetMeusProgramas() {
     </Card>
   );
 }
+
