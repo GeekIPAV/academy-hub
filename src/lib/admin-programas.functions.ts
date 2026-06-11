@@ -85,9 +85,13 @@ export const upsertClusterAdmin = createServerFn({ method: "POST" })
   .inputValidator((input) => clusterUpsertSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const payload: Record<string, unknown> = {
-      name: data.name.trim(),
-    };
+    const payload: {
+      name: string;
+      description?: string | null;
+      cover_url?: string | null;
+      cover_position?: string;
+      cover_scale?: number;
+    } = { name: data.name.trim() };
     if (data.description !== undefined) payload.description = data.description;
     if (data.cover_url !== undefined) payload.cover_url = data.cover_url;
     if (data.cover_position !== undefined) payload.cover_position = data.cover_position ?? "50% 50%";
