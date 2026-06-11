@@ -205,20 +205,20 @@ function ShellWithSidebar({
     staleTime: 60_000,
   });
 
-  // Avoid flashing the sidebar / dashboard while we still don't know roles
-  // or whether the user already has an entidade.
-  if (!isAdmin && (profileLoading || !isFetched)) {
-    return <LoadingU />;
-  }
-
-  const needsOnboarding = !isAdmin && isFetched && !entidade;
   const router = useRouter();
+  const needsOnboarding = !isAdmin && isFetched && !entidade;
 
   useEffect(() => {
     if (needsOnboarding && pathname !== "/entidade/dashboard") {
       router.navigate({ to: "/entidade/dashboard", replace: true });
     }
   }, [needsOnboarding, pathname, router]);
+
+  // Avoid flashing the sidebar / dashboard while we still don't know roles
+  // or whether the user already has an entidade.
+  if (!isAdmin && (profileLoading || !isFetched)) {
+    return <LoadingU />;
+  }
 
   if (needsOnboarding) {
     // Sidebar stays hidden until the user completes the onboarding forms.
