@@ -42,7 +42,7 @@ export const enrollWithToken = createServerFn({ method: "POST" })
       throw new Error("Esta inscrição já não está ativa.");
 
     const enrollmentOpen = cohort.programas?.enrollment_open ?? false;
-    const status = enrollmentOpen ? "pendente" : "lista_espera";
+    const status = enrollmentOpen ? "aprovada" : "lista_espera";
 
     const { data: existing } = await supabaseAdmin
       .from("inscritos_programa")
