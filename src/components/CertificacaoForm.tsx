@@ -108,12 +108,10 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
       locality: profile.locality ?? "",
       education_level: profile.education_level ?? "",
       job_title: profile.job_title ?? "",
-      funcao_laboral_detalhe: profile.funcao_laboral_detalhe ?? "",
       work_institution: profile.work_institution ?? "",
       phone: profile.phone ?? "",
       cedula_profissional: profile.cedula_profissional ?? "",
       grupo_recrutamento: profile.grupo_recrutamento ?? "",
-      escola_educando: profile.escola_educando ?? "",
       data_consent: !!profile.data_consent,
     }));
   }, [profile]);
