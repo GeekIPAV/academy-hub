@@ -211,7 +211,7 @@ function ClusterCard({ cluster }: { cluster: ClusterRow }) {
                 )
               }
             >
-              Inscrever entidade
+              Inscrever a minha organização
               <ArrowRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
