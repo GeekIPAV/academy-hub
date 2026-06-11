@@ -739,3 +739,160 @@ export const adminCreateEntidades = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { created: inserted?.length ?? 0 };
   });
+
+// ─── Onboarding de Entidade (utilizador com role Entidade sem entity_id) ──────
+
+export const searchEntidades = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { data: me, error: meErr } = await supabaseAdmin
+      .from("utilizadores")
+      .select("entity_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (meErr) throw new Error(meErr.message);
+    // Permitido a qualquer utilizador autenticado sem entidade associada
+    // (incluindo Admin, para diagnóstico).
+    if (me?.entity_id) {
+      // já tem entidade — devolve apenas a sua para não expor lista
+      const { data, error } = await supabaseAdmin
+        .from("entidades")
+        .select("id, name, status, locality")
+        .eq("id", me.entity_id);
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    }
+    const { data, error } = await supabaseAdmin
+      .from("entidades")
+      .select("id, name, status, locality")
+      .order("name", { ascending: true });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+const linkExistingSchema = z.object({
+  entityId: z.string().uuid(),
+  contact_name: z.string().trim().max(200).optional().nullable(),
+  contact_email: z
+    .string()
+    .trim()
+    .max(255)
+    .email()
+    .optional()
+    .nullable()
+    .or(z.literal("").transform(() => null)),
+  contact_phone: z.string().trim().max(50).optional().nullable(),
+});
+
+export const linkExistingEntidade = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => linkExistingSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { data: me, error: meErr } = await supabaseAdmin
+      .from("utilizadores")
+      .select("entity_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (meErr) throw new Error(meErr.message);
+    if (me?.entity_id) throw new Error("Já está associado a uma entidade.");
+
+    // Garante que a entidade existe
+    const { data: ent, error: eErr } = await supabaseAdmin
+      .from("entidades")
+      .select("id, contact_name, contact_email, contact_phone")
+      .eq("id", data.entityId)
+      .maybeSingle();
+    if (eErr) throw new Error(eErr.message);
+    if (!ent) throw new Error("Entidade não encontrada.");
+
+    // Atualiza apenas pontos de contacto se foram preenchidos
+    const updates: {
+      contact_name?: string | null;
+      contact_email?: string | null;
+      contact_phone?: string | null;
+    } = {};
+    if (data.contact_name !== undefined) updates.contact_name = data.contact_name ?? null;
+    if (data.contact_email !== undefined) updates.contact_email = data.contact_email ?? null;
+    if (data.contact_phone !== undefined) updates.contact_phone = data.contact_phone ?? null;
+    if (Object.keys(updates).length > 0) {
+      const { error: uErr } = await supabaseAdmin
+        .from("entidades")
+        .update(updates)
+        .eq("id", data.entityId);
+      if (uErr) throw new Error(uErr.message);
+    }
+
+
+    const { error: linkErr } = await supabaseAdmin
+      .from("utilizadores")
+      .update({ entity_id: data.entityId })
+      .eq("id", userId);
+    if (linkErr) throw new Error(linkErr.message);
+
+    return { ok: true, entityId: data.entityId };
+  });
+
+const createPendingSchema = z.object({
+  name: z.string().trim().min(3).max(200),
+  contact_name: z.string().trim().max(200).optional().nullable(),
+  contact_email: z
+    .string()
+    .trim()
+    .max(255)
+    .email()
+    .optional()
+    .nullable()
+    .or(z.literal("").transform(() => null)),
+  contact_phone: z.string().trim().max(50).optional().nullable(),
+  address: z.string().trim().max(300).optional().nullable(),
+  postal_code: z
+    .string()
+    .trim()
+    .max(20)
+    .regex(/^\d{4}-\d{3}$/, "Formato esperado: 1234-567")
+    .optional()
+    .nullable()
+    .or(z.literal("").transform(() => null)),
+  locality: z.string().trim().max(150).optional().nullable(),
+});
+
+export const createPendingEntidade = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => createPendingSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { data: me, error: meErr } = await supabaseAdmin
+      .from("utilizadores")
+      .select("entity_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (meErr) throw new Error(meErr.message);
+    if (me?.entity_id) throw new Error("Já está associado a uma entidade.");
+
+    const { data: ent, error: insErr } = await supabaseAdmin
+      .from("entidades")
+      .insert({
+        id: crypto.randomUUID(),
+        name: data.name,
+        status: "pendente",
+        contact_name: data.contact_name ?? null,
+        contact_email: data.contact_email ?? null,
+        contact_phone: data.contact_phone ?? null,
+        address: data.address ?? null,
+        postal_code: data.postal_code ?? null,
+        locality: data.locality ?? null,
+      })
+      .select("id")
+      .single();
+    if (insErr) throw new Error(insErr.message);
+
+    const { error: linkErr } = await supabaseAdmin
+      .from("utilizadores")
+      .update({ entity_id: ent.id })
+      .eq("id", userId);
+    if (linkErr) throw new Error(linkErr.message);
+
+    return { ok: true, entityId: ent.id };
+  });

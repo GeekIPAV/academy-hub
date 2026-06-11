@@ -3,7 +3,10 @@ import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, CalendarPlus, Copy, Pencil, ShieldAlert, Users } from "lucide-react";
+import { AlertTriangle, Building2, CalendarPlus, Copy, Pencil, ShieldAlert, Users } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { EntityOnboardingFlow } from "@/components/EntityOnboardingFlow";
+
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -107,12 +110,13 @@ function EntidadeDashboardPage() {
   }, [selectedEntityId]);
 
   const fetchEntidade = useServerFn(getMyEntidade);
-  const { data: entidade } = useQuery({
+  const { data: entidade, isLoading: entidadeLoading, isFetched: entidadeFetched } = useQuery({
     queryKey: ["my-entidade", selectedEntityId ?? "self"],
     queryFn: () =>
       fetchEntidade(selectedEntityId ? { data: { entityId: selectedEntityId } } : undefined as never),
     enabled: hasAccess && (!isAdmin || !!selectedEntityId),
   });
+
 
   const fetchCohorts = useServerFn(listMyCohorts);
   const { data: cohortsRaw, isLoading: cohortsLoading } = useQuery({
@@ -144,9 +148,35 @@ function EntidadeDashboardPage() {
     );
   }
 
+  // Onboarding: utilizador Entidade sem entidade associada
+  const needsOnboarding =
+    !isAdmin && entidadeFetched && !entidadeLoading && !entidade;
+  if (needsOnboarding) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-6">
+        <ComponentAccessMatrix pagePath="/entidade/dashboard" />
+        <EntityOnboardingFlow />
+      </div>
+    );
+  }
+
+  const isPending =
+    !!entidade?.status && entidade.status.toLowerCase() === "pendente";
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <ComponentAccessMatrix pagePath="/entidade/dashboard" />
+
+      {isPending && (
+        <Alert className="border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertTitle>Registo pendente de aprovação</AlertTitle>
+          <AlertDescription>
+            O registo da sua organização está a aguardar aprovação pela equipa da
+            Academia Ubuntu. Algumas funcionalidades podem estar limitadas.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {visible("header") && (
         <div className="flex flex-col items-center gap-3 text-center">
@@ -158,6 +188,7 @@ function EntidadeDashboardPage() {
           </h1>
         </div>
       )}
+
 
       {isAdmin && (
         <Card className="p-4">
