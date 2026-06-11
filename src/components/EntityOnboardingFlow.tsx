@@ -180,14 +180,22 @@ export function EntityOnboardingFlow() {
       return;
     }
     setOwner(null);
+    const cName = e.contact_name?.trim() || profile?.full_name?.trim() || "";
+    const cEmail = e.contact_email?.trim() || user?.email?.trim() || "";
+    const cPhone = e.contact_phone?.trim() || "";
     setForm({
       name: e.name,
-      contact_name: "",
-      contact_email: "",
-      contact_phone: "",
+      contact_name: cName,
+      contact_email: cEmail,
+      contact_phone: cPhone,
       address: "",
       postal_code: "",
       locality: e.locality ?? "",
+    });
+    setLocked({
+      contact_name: cName.length > 0,
+      contact_email: cEmail.length > 0,
+      contact_phone: cPhone.length > 0,
     });
     setMode("link");
   };
