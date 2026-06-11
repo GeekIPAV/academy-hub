@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Building2, Search, ArrowLeft, PlusCircle, ShieldAlert, Clock } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
