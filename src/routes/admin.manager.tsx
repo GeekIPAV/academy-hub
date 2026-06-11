@@ -569,6 +569,15 @@ function InviteLinksManager() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => deleteFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Convite eliminado.");
+      qc.invalidateQueries({ queryKey: ["invites"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   // ── Edição ───────────────────────────────────────────────────────────
   const [editId, setEditId] = useState<string | null>(null);
   const [eRoles, setERoles] = useState<Set<string>>(new Set());
