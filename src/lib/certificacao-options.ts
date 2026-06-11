@@ -34,5 +34,5 @@ export function isOlderThanTwoYears(value: string) {
 export function isValidPhone(value: string | null | undefined) {
   const phone = (value ?? "").trim();
   if (!phone) return true;
-  return /^(?:\+351\s?)?(?:9\d{8}|2\d{8})$/.test(phone.replace(/[\s.-]/g, ""));
+  return /^(?:\+351)?9\d{8}$/.test(phone.replace(/[\s.-]/g, ""));
 }
