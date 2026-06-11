@@ -9,7 +9,7 @@ import { RouteGate } from "@/components/RouteGate";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
-    meta: [{ title: "Dashboard — Academia Ubuntu" }],
+    meta: [{ title: "Página Inicial — Academia Ubuntu" }],
   }),
   component: () => (
     <RouteGate path="/dashboard">
