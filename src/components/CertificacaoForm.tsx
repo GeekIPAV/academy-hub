@@ -19,6 +19,13 @@ import {
   saveMeuPerfilCertificacao,
   type CertificacaoData,
 } from "@/lib/certificacao-perfil.functions";
+import {
+  COUNTRY_OPTIONS,
+  PORTUGUESE_MUNICIPALITIES,
+  isOlderThanTwoYears,
+  isValidNif,
+  isValidPhone,
+} from "@/lib/certificacao-options";
 
 const GENERO = ["Feminino", "Masculino"];
 const DOC_TIPO = ["Cartão de Cidadão", "Bilhete de Identidade", "Passaporte", "Título de Residência"];
@@ -131,6 +138,18 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
     <form
       onSubmit={(e) => {
         e.preventDefault();
+        if (!isOlderThanTwoYears(form.birth_date)) {
+          toast.error("A pessoa tem de ter mais de 2 anos de idade.");
+          return;
+        }
+        if (!isValidNif(form.nif)) {
+          toast.error("NIF inválido.");
+          return;
+        }
+        if (!isValidPhone(form.phone)) {
+          toast.error("Telemóvel inválido.");
+          return;
+        }
         if (!form.data_consent) {
           toast.error("Tens de aceitar o tratamento de dados.");
           return;
