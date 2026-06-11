@@ -236,45 +236,37 @@ function InviteCard({ entityId }: { entityId?: string }) {
   };
 
   return (
-    <Card className="border-primary/30 bg-primary/[0.03]">
-      <CardHeader>
-        <div className="flex items-center gap-2">
+    <Card className="border-primary/20 bg-primary/[0.03]">
+      <CardContent className="flex flex-wrap items-center gap-3 py-3 px-4">
+        <div className="flex items-center gap-2 text-sm font-medium">
           <Link2 className="h-4 w-4 text-primary" />
-          <CardTitle className="text-base">Links de Acesso para Formandos</CardTitle>
+          <span>Links de Acesso para Formandos</span>
         </div>
-        <CardDescription>
-          Partilhe estes links com os formandos da sua entidade para que se possam
-          inscrever automaticamente associados ao seu grupo.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {isLoading && <Skeleton className="h-9 w-full" />}
+
+        {isLoading && <Skeleton className="h-7 w-32" />}
+
         {!isLoading && data.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            Ainda não há programas associados à sua entidade.
-          </p>
+          <span className="text-xs text-muted-foreground">
+            Ainda não há programas.
+          </span>
         )}
+
         {data.map((c) => {
           const url = `${origin}/inscricao/${c.invite_token ?? ""}`;
           return (
-            <div key={c.id} className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <p className="text-xs font-medium">
-                  {c.programas?.title ?? "Programa"}
-                </p>
-                {!c.is_active && (
-                  <Badge variant="outline" className="text-xs">
-                    Inativo
-                  </Badge>
-                )}
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Input readOnly value={url} className="font-mono text-xs" />
-                <Button onClick={() => copy(url)} className="shrink-0">
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copiar
-                </Button>
-              </div>
+            <div key={c.id} className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {c.programas?.title ?? "Programa"}
+              </span>
+              {!c.is_active && (
+                <Badge variant="outline" className="text-[10px] px-1 py-0">
+                  Inativo
+                </Badge>
+              )}
+              <Button size="sm" variant="outline" onClick={() => copy(url)}>
+                <Copy className="mr-1.5 h-3 w-3" />
+                Copiar
+              </Button>
             </div>
           );
         })}
