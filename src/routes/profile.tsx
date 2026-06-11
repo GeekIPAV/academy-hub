@@ -59,25 +59,28 @@ function ProfilePage() {
         </TabsList>
 
         <TabsContent value="dados" className="space-y-6 pt-4">
-          {visible("form") && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Dados</CardTitle>
-                <CardDescription>Informação básica do utilizador</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome completo</Label>
-                  <Input id="name" defaultValue={profile?.full_name ?? ""} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="role">Perfil de acesso</Label>
-                  <Input id="role" value={profile?.role ?? ""} disabled />
-                </div>
-                <Button>Guardar alterações</Button>
-              </CardContent>
-            </Card>
-          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>Dados</CardTitle>
+              <CardDescription>Informação básica do utilizador</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome completo</Label>
+                <Input id="name" defaultValue={profile?.full_name ?? ""} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" value={user?.email ?? ""} disabled />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Perfil de acesso</Label>
+                <Input id="role" value={profile?.role ?? ""} disabled />
+              </div>
+              <Button>Guardar alterações</Button>
+            </CardContent>
+          </Card>
+
         </TabsContent>
 
         <TabsContent value="certificacao" className="space-y-6 pt-4">
