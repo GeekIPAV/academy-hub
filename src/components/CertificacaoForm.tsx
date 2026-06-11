@@ -129,10 +129,6 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
     () => /professor|educador/i.test(form.job_title ?? ""),
     [form.job_title],
   );
-  const isEncEducacao = useMemo(
-    () => /encarregado/i.test(form.job_title ?? ""),
-    [form.job_title],
-  );
 
   const set = <K extends keyof CertificacaoData>(k: K, v: CertificacaoData[K]) =>
     setForm((s) => ({ ...s, [k]: v }));
