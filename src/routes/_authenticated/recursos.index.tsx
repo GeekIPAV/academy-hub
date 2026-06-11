@@ -29,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/recursos/")({
 
 function ResourcesIndex() {
   const { isComponentVisible, isAdmin } = useApp();
+  const badgeSlugs = useUserBadgeClusterSlugs();
   const qc = useQueryClient();
 
   const clustersQuery = useQuery({
