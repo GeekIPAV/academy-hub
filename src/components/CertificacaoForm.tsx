@@ -315,13 +315,15 @@ function SelectInput({
   onChange: (v: string) => void;
   options: string[];
 }) {
+  const normalizedOptions = value && !options.includes(value) ? [value, ...options] : options;
+
   return (
     <Select value={value || undefined} onValueChange={onChange}>
       <SelectTrigger>
         <SelectValue placeholder="Selecionar…" />
       </SelectTrigger>
       <SelectContent>
-        {options.map((o) => (
+        {normalizedOptions.map((o) => (
           <SelectItem key={o} value={o}>
             {o}
           </SelectItem>
