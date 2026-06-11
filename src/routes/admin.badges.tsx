@@ -380,6 +380,21 @@ function BadgeFormDialog({
             </Select>
           </div>
           <div className="space-y-1">
+            <Label>Tipo</Label>
+            <Select
+              value={form.kind}
+              onValueChange={(v) => setForm((f) => ({ ...f, kind: v as BadgeKind }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="em_formacao">Em formação</SelectItem>
+                <SelectItem value="formado">Formado</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
             <Label>Descrição</Label>
             <Textarea
               rows={3}
