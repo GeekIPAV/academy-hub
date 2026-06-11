@@ -10,13 +10,16 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { AppProvider } from "@/lib/app-context";
+import { AppProvider, useApp } from "@/lib/app-context";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingU, LoadingUInline } from "@/components/LoadingU";
 import { ImprovingBanner } from "@/components/ImprovingBanner";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getMyEntidade } from "@/lib/entidade.functions";
 
 function NotFoundComponent() {
   return (
@@ -171,6 +174,40 @@ function AppShell() {
     return (
       <div className="min-h-screen bg-muted/30">
         {isRouterLoading ? <InlineLoader /> : <Outlet />}
+      </div>
+    );
+  }
+
+  return (
+    <ShellWithSidebar pathname={pathname} isRouterLoading={isRouterLoading} />
+  );
+}
+
+function ShellWithSidebar({
+  pathname,
+  isRouterLoading,
+}: {
+  pathname: string;
+  isRouterLoading: boolean;
+}) {
+  const { isAdmin } = useApp();
+  const fetchEntidade = useServerFn(getMyEntidade);
+  const isOnboardingRoute = pathname === "/entidade/dashboard";
+  const { data: entidade, isFetched } = useQuery({
+    queryKey: ["my-entidade", "self"],
+    queryFn: () => fetchEntidade(undefined as never),
+    enabled: isOnboardingRoute && !isAdmin,
+    retry: false,
+  });
+
+  const hideSidebar = isOnboardingRoute && !isAdmin && isFetched && !entidade;
+
+  if (hideSidebar) {
+    return (
+      <div className="min-h-screen bg-muted/30">
+        <main className="p-4 sm:p-6 lg:p-8">
+          {isRouterLoading ? <InlineLoader /> : <Outlet />}
+        </main>
       </div>
     );
   }
