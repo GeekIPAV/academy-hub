@@ -173,7 +173,7 @@ function EntidadeDashboardPage() {
           {visible("tab-data") && (
             <DialogTrigger asChild>
               <Button variant="outline">
-                Dados da Entidade
+                Editar Dados da Organização
               </Button>
             </DialogTrigger>
           )}
