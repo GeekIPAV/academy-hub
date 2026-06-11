@@ -100,6 +100,7 @@ const clusterUpsertSchema = z.object({
   cover_url: z.string().max(1024).nullable().optional(),
   cover_position: z.string().max(32).nullable().optional(),
   cover_scale: z.number().min(1).max(4).nullable().optional(),
+  info_pdf_url: z.string().max(1024).nullable().optional(),
 });
 
 export const upsertClusterAdmin = createServerFn({ method: "POST" })
@@ -113,11 +114,13 @@ export const upsertClusterAdmin = createServerFn({ method: "POST" })
       cover_url?: string | null;
       cover_position?: string;
       cover_scale?: number;
+      info_pdf_url?: string | null;
     } = { name: data.name.trim() };
     if (data.description !== undefined) payload.description = data.description;
     if (data.cover_url !== undefined) payload.cover_url = data.cover_url;
     if (data.cover_position !== undefined) payload.cover_position = data.cover_position ?? "50% 50%";
     if (data.cover_scale !== undefined) payload.cover_scale = data.cover_scale ?? 1;
+    if (data.info_pdf_url !== undefined) payload.info_pdf_url = data.info_pdf_url;
 
     if (data.id) {
       const { error } = await supabaseAdmin.from("clusters").update(payload).eq("id", data.id);
