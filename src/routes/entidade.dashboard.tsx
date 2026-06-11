@@ -206,7 +206,7 @@ function EntidadeDashboardPage() {
           )}
         </div>
 
-        <ProgramEnrollmentsCard entityId={selectedEntityId} />
+        
 
         <ProgramsMasterTable
           cohorts={cohorts}
