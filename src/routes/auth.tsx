@@ -34,10 +34,12 @@ function AuthPage() {
   const inviteToken = safeRedirect?.match(/^\/convite\/([^/?#]+)/)?.[1] ?? null;
   const shouldReturnToPublicFlow =
     !!inviteToken || safeRedirect?.startsWith("/inscricao/");
-  // Após o login, manda por defeito para a home (/dashboard) para evitar abrir
-  // uma página sem permissão. Convites e inscrições públicas são exceções
-  // porque precisam de consumir o respetivo token após autenticação.
-  const target = shouldReturnToPublicFlow ? safeRedirect! : "/dashboard";
+  // Após qualquer login/registo, mandamos sempre para a página inicial ("/")
+  // — independentemente do link que abriu o /auth — para evitar que o
+  // utilizador caia numa página onde não tem acesso. As únicas exceções são
+  // convites e inscrições públicas, que precisam de consumir o token após
+  // autenticação.
+  const target = shouldReturnToPublicFlow ? safeRedirect! : "/";
 
   const verifyEmail = useServerFn(verifyAuthEmail);
 
