@@ -193,16 +193,18 @@ function ShellWithSidebar({
   pathname: string;
   isRouterLoading: boolean;
 }) {
-  const { isAdmin } = useApp();
+  const { isAdmin, activeRoles } = useApp();
   const { isLoading: profileLoading } = useCurrentProfile();
+  const isEntidadeRep = activeRoles.includes("Entidade");
   const fetchEntidade = useServerFn(getMyEntidade);
   const fetchCertGate = useServerFn(getCertGateStatus);
-  // Run for every non-admin user so we know whether they completed onboarding,
-  // regardless of which route they landed on after login.
+  // Só corre para Representantes de Entidade — só esses precisam de onboarding
+  // de entidade. Outros roles (Utilizador, Teste, ...) não devem ser empurrados
+  // para /entidade/dashboard.
   const { data: entidade, isFetched } = useQuery({
     queryKey: ["my-entidade", "self"],
     queryFn: () => fetchEntidade(undefined as never),
-    enabled: !isAdmin && !profileLoading,
+    enabled: !isAdmin && isEntidadeRep && !profileLoading,
     retry: false,
     staleTime: 60_000,
   });
@@ -215,7 +217,8 @@ function ShellWithSidebar({
   });
 
   const router = useRouter();
-  const needsOnboarding = !isAdmin && isFetched && !entidade;
+  const needsOnboarding =
+    !isAdmin && isEntidadeRep && isFetched && !entidade;
   const needsCertificacao =
     certGateFetched && !!certGate && certGate.enrolled && !certGate.complete;
 
