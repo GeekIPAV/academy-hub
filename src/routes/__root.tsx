@@ -236,7 +236,7 @@ function ShellWithSidebar({
 
   // Avoid flashing the sidebar / dashboard while we still don't know roles
   // or whether the user already has an entidade / cert data.
-  if (!isAdmin && (profileLoading || !isFetched)) {
+  if (!isAdmin && (profileLoading || (isEntidadeRep && !isFetched))) {
     return <LoadingU />;
   }
   if (!profileLoading && !certGateFetched) {
