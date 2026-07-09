@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Ban, ChevronDown, Copy, ExternalLink, Pencil, Plus, Shield, Trash2, UserPlus } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Ban, ChevronDown, Copy, ExternalLink, Pencil, Plus, Shield, Trash2, UserPlus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -114,10 +114,15 @@ function AdminManagerPage() {
   );
 }
 
+type SortKey = "full_name" | "email" | "roles" | "is_active" | "created_at";
+type SortDirection = "asc" | "desc";
+
 function UsersManager() {
   const { users, isLoading, assign, remove, setActive, removeUser } = useUsers();
   const { roles } = useRoles();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection } | null>(null);
   const activeRoles = roles.filter((r) => r.is_active);
 
   useEffect(() => {
@@ -126,6 +131,78 @@ function UsersManager() {
     });
   }, []);
 
+  const filteredUsers = users.filter((u) => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return true;
+    const name = (u.full_name ?? "").toLowerCase();
+    const email = (u.email ?? "").toLowerCase();
+    const rolesText = u.roles.join(" ").toLowerCase();
+    return name.includes(term) || email.includes(term) || rolesText.includes(term);
+  });
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (!sort) return 0;
+    const { key, direction } = sort;
+    const multiplier = direction === "asc" ? 1 : -1;
+
+    if (key === "full_name") {
+      return multiplier * ((a.full_name ?? "").localeCompare(b.full_name ?? "", "pt-PT"));
+    }
+    if (key === "email") {
+      return multiplier * ((a.email ?? "").localeCompare(b.email ?? "", "pt-PT"));
+    }
+    if (key === "roles") {
+      return multiplier * (a.roles.join(", ").localeCompare(b.roles.join(", "), "pt-PT"));
+    }
+    if (key === "is_active") {
+      return multiplier * (Number(a.is_active) - Number(b.is_active));
+    }
+    if (key === "created_at") {
+      const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return multiplier * (da - db);
+    }
+    return 0;
+  });
+
+  const toggleSort = (key: SortKey) => {
+    setSort((prev) => {
+      if (!prev || prev.key !== key) return { key, direction: "asc" };
+      if (prev.direction === "asc") return { key, direction: "desc" };
+      return null;
+    });
+  };
+
+  const SortIcon = ({ column }: { column: SortKey }) => {
+    if (sort?.key !== column) return <ArrowUpDown className="ml-1 h-3.5 w-3.5 text-muted-foreground/60" />;
+    return sort.direction === "asc" ? (
+      <ArrowUp className="ml-1 h-3.5 w-3.5" />
+    ) : (
+      <ArrowDown className="ml-1 h-3.5 w-3.5" />
+    );
+  };
+
+  const SortHeader = ({
+    column,
+    children,
+    className,
+  }: {
+    column: SortKey;
+    children: React.ReactNode;
+    className?: string;
+  }) => (
+    <TableHead className={className}>
+      <button
+        type="button"
+        onClick={() => toggleSort(column)}
+        className="flex items-center gap-0.5 font-medium hover:text-foreground focus:outline-none"
+        aria-label={`Ordenar por ${children}`}
+      >
+        {children}
+        <SortIcon column={column} />
+      </button>
+    </TableHead>
+  );
 
   return (
     <Card>
@@ -135,29 +212,38 @@ function UsersManager() {
           Atribui perfis, inativa ou apaga utilizadores. Inativos não conseguem fazer login.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
+        <Input
+          placeholder="Pesquisar por nome, email ou perfil..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-md"
+          aria-label="Pesquisar utilizadores"
+        />
         {isLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
           </div>
-        ) : users.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sem utilizadores registados.</p>
+        ) : sortedUsers.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {searchTerm ? "Nenhum utilizador corresponde à pesquisa." : "Sem utilizadores registados."}
+          </p>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Perfis de Acesso</TableHead>
-                <TableHead className="w-[90px] text-center">Ativo</TableHead>
-                <TableHead className="w-[120px]">Criado em</TableHead>
+                <SortHeader column="full_name">Nome</SortHeader>
+                <SortHeader column="email">Email</SortHeader>
+                <SortHeader column="roles">Perfis de Acesso</SortHeader>
+                <SortHeader column="is_active" className="w-[90px] text-center justify-center">Ativo</SortHeader>
+                <SortHeader column="created_at" className="w-[120px]">Criado em</SortHeader>
                 <TableHead className="w-[60px]" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {users.map((u) => {
+              {sortedUsers.map((u) => {
                 const isSelf = u.id === currentUserId;
                 const userRoles = new Set(u.roles);
                 return (

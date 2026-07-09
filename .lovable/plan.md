@@ -1,21 +1,22 @@
-## Adicionar login com Microsoft
+Adicionar ordenação por coluna e uma barra de pesquisa na tabela de utilizadores da página /admin/manager.
 
-Adicionar um botão "Continuar com Microsoft" no ecrã `/auth`, a par dos existentes Email/Password e Google, usando o fluxo OAuth gerido da Lovable Cloud.
+### O que vai ser alterado
+- Ficheiro: `src/routes/admin.manager.tsx`
+- Secção: `UsersManager` (tabela de utilizadores)
 
-### Passos
+### Alterações
+1. **Barra de pesquisa**
+   - Adicionar um campo de input acima da tabela.
+   - Filtrar os utilizadores por nome, email ou perfis de acesso (roles).
+   - A pesquisa é case-insensitive e atualiza em tempo real.
 
-1. **Ativar o provider Microsoft na Lovable Cloud**
-   - Chamar `supabase--configure_social_auth` com `providers: ["google", "microsoft"]` (mantém Google já configurado, adiciona Microsoft).
-   - Isto regista o provider no backend para que `lovable.auth.signInWithOAuth("microsoft", ...)` funcione.
+2. **Ordenação por coluna**
+   - Tornar os cabeçalhos das colunas clicáveis: Nome, Email, Perfis de Acesso, Ativo, Criado em.
+   - Clicar uma vez ordena ascendente, clicar novamente ordena descendente, clicar uma terceira vez remove a ordenação.
+   - Mostrar ícone visual (seta para cima/baixo) na coluna ativa.
+   - Ordenação local sobre os dados já carregados.
 
-2. **`src/routes/auth.tsx` — adicionar handler e botão**
-   - Novo `handleMicrosoft` análogo a `handleGoogle`, a chamar `lovable.auth.signInWithOAuth("microsoft", { redirect_uri: window.location.origin + target })`.
-   - Adicionar um segundo `<Button variant="outline">` por baixo do botão Google, com o logótipo Microsoft (4 quadrados coloridos em SVG inline) e o texto "Continuar com Microsoft".
-   - Ambos os botões partilham o mesmo separador "ou" e ficam empilhados (`space-y-2`).
-
-### Notas
-
-- Não toca em `src/integrations/lovable/index.ts` (já suporta `"microsoft"` no tipo).
-- Não altera lógica de email/password, recuperação, nem o fluxo de `verifyAuthEmail`.
-- Sem alterações de backend para além do `configure_social_auth`. As callbacks OAuth da Lovable tratam do resto.
-- Caso `configure_social_auth` não aceite `microsoft` no workspace, paro e reporto antes de mudar o frontend.
+### Resultado esperado
+- A tabela de utilizadores passa a ter uma barra de pesquisa no topo.
+- Cada coluna do cabeçalho permite ordenar os dados.
+- A experiência mantém-se rápida e funciona com os dados já carregados pelo `useUsers`.
