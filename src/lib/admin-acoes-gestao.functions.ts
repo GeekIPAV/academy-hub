@@ -50,6 +50,9 @@ export type AcaoRow = {
   avaliacao_impacto: number | null;
   avaliacao_impacto_link: string | null;
   conteudo_pagina_inscricao: JsonValue | null;
+  cover_url: string | null;
+  cover_position: string | null;
+  cover_scale: number | null;
   required_fields: RequiredFieldDef[];
   programa_title?: string | null;
   entidade_nome?: string | null;
@@ -62,7 +65,7 @@ export const listAcoesFull = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("acoes")
       .select(
-        "id, title, description, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, formato, localizacao, produto, projeto, pais, email_responsavel, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, required_fields, programas(title), entidades(name)",
+        "id, title, description, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, formato, localizacao, produto, projeto, pais, email_responsavel, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, cover_url, cover_position, cover_scale, required_fields, programas(title), entidades(name)",
       )
       .order("start_date", { ascending: false, nullsFirst: false })
       .limit(1000);
@@ -104,6 +107,9 @@ const patchSchema = z.object({
       avaliacao_satisfacao_link: z.string().nullable().optional(),
       avaliacao_impacto: z.number().nullable().optional(),
       avaliacao_impacto_link: z.string().nullable().optional(),
+      cover_url: z.string().nullable().optional(),
+      cover_position: z.string().optional(),
+      cover_scale: z.number().optional(),
       required_fields: z
         .array(
           z.object({

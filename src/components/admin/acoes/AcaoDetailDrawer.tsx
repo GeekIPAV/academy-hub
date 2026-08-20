@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { CoverUploader } from "@/components/CoverUploader";
+import { CoverImage } from "@/components/CoverImage";
 import {
   Collapsible,
   CollapsibleContent,
@@ -177,6 +179,15 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
       { name: "", label: "", type: "text", required: false },
     ]);
 
+  const persistCover = async (fields: {
+    cover_url?: string | null;
+    cover_position?: string;
+    cover_scale?: number;
+  }) => {
+    await patchFn({ data: { actionId: acao.id, fields } });
+    qc.invalidateQueries({ queryKey: ["admin-acoes-full"] });
+  };
+
   return (
     <form
       className="space-y-4"
@@ -185,6 +196,37 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
         mut.mutate();
       }}
     >
+      <div className="space-y-2">
+        <Label>Capa</Label>
+        <div className="flex items-start gap-3">
+          <div className="aspect-[4/3] w-40 shrink-0 overflow-hidden rounded-md border bg-muted">
+            {acao.cover_url ? (
+              <CoverImage
+                src={acao.cover_url}
+                position={acao.cover_position}
+                scale={acao.cover_scale}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+                Sem capa
+              </div>
+            )}
+          </div>
+          <CoverUploader
+            variant="inline"
+            folder="acoes"
+            id={acao.id}
+            currentUrl={acao.cover_url}
+            position={acao.cover_position}
+            scale={acao.cover_scale}
+            aspectRatio={4 / 3}
+            onUploaded={(url) => persistCover({ cover_url: url })}
+            onCleared={() => persistCover({ cover_url: null })}
+            onAdjusted={(pos, sc) => persistCover({ cover_position: pos, cover_scale: sc })}
+          />
+        </div>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Título" className="sm:col-span-2">
           <Input value={form.title} onChange={(e) => set("title", e.target.value)} />

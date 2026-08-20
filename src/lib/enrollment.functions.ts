@@ -18,11 +18,14 @@ export const enrollInAction = createServerFn({ method: "POST" })
     // Carrega ação
     const { data: action, error: aErr } = await supabase
       .from("acoes")
-      .select("id, max_capacity, title")
+      .select("id, max_capacity, title, registration_status")
       .eq("id", data.action_id)
       .maybeSingle();
     if (aErr) throw new Error(aErr.message);
     if (!action) throw new Error("Ação não encontrada.");
+    if ((action.registration_status ?? "").trim().toLowerCase() !== "aberto") {
+      throw new Error("As inscrições para esta ação não estão abertas.");
+    }
 
     // Verifica se já existe inscrição deste utilizador para esta ação
     const { data: existing, error: eErr } = await supabase
