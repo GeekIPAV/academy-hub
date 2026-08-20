@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.is_equipa(uuid) TO authenticated, anon, service_role;
