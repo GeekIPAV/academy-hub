@@ -99,11 +99,12 @@ export const getRoadmap = createServerFn({ method: "GET" })
 
     const all = [...(ftcActions ?? []), ...entityActions];
 
-    return PHASES.map(({ phase, label }) => {
+    const items: RoadmapItem[] = PHASES.map(({ phase, label }) => {
       const action = all.find((a) => a.action_type === phase) ?? null;
       return {
         phase,
         label,
+        achieved: false,
         action: action
           ? {
               id: action.id,
@@ -114,4 +115,9 @@ export const getRoadmap = createServerFn({ method: "GET" })
           : null,
       };
     });
+
+    items.push({ ...FORMADOR_PHASE, achieved: isFormador, action: null });
+
+    return items;
   });
+
