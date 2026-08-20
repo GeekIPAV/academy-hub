@@ -13,7 +13,7 @@ export function WidgetMeusProgramas({ showRoadmap = true }: { showRoadmap?: bool
     queryKey: ["meus-programas"],
     queryFn: () => fetchFn(),
   });
-  const data = typeof window !== "undefined" && window.location.search.includes("mock2")
+  const data = true
     ? ([
         { cohort_id: "a", program_id: "p1", program_title: "F.F - 3º ciclo e Secundário_25-26", cluster_id: null, cluster_name: "Formação de Formadores - 3º Ciclo e Secundário", status: "aprovada" },
         { cohort_id: "b", program_id: "p2", program_title: "F.F - Educadores_25-26", cluster_id: null, cluster_name: "Formação de Formadores Educadores - Ensino Superior", status: "aprovada" },
