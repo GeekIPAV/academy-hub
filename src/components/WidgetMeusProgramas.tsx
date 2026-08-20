@@ -9,16 +9,10 @@ import { WidgetRoadmap } from "@/components/WidgetRoadmap";
 
 export function WidgetMeusProgramas({ showRoadmap = true }: { showRoadmap?: boolean }) {
   const fetchFn = useServerFn(getMeusProgramas);
-  const { data: real, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["meus-programas"],
     queryFn: () => fetchFn(),
   });
-  const data = true
-    ? ([
-        { cohort_id: "747741c8-5bbe-4ceb-97d4-13526593b0de", program_id: "p1", program_title: "F.F - 3º ciclo e Secundário_25-26", cluster_id: null, cluster_name: "Formação de Formadores - 3º Ciclo e Secundário", status: "aprovada" },
-        { cohort_id: "aa8a51d8-9cb8-4ee4-bca0-fa1e1a172b94", program_id: "p2", program_title: "F.F - Educadores_25-26", cluster_id: null, cluster_name: "Formação de Formadores Educadores - Ensino Superior", status: "aprovada" },
-      ] as typeof real)
-    : real;
   const [selected, setSelected] = useState<string | null>(null);
 
   // Com um único programa não há ambiguidade: abre logo.
