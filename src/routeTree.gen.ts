@@ -22,7 +22,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PublicacoesRevistasRouteImport } from './routes/publicacoes.revistas'
 import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
+import { Route as InscricaoEntidadeTokenRouteImport } from './routes/inscricao-entidade.$token'
 import { Route as EventoIdRouteImport } from './routes/evento.$id'
+import { Route as EquipaProgramasRouteImport } from './routes/equipa.programas'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
@@ -118,9 +120,19 @@ const InscricaoTokenRoute = InscricaoTokenRouteImport.update({
   path: '/inscricao/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InscricaoEntidadeTokenRoute = InscricaoEntidadeTokenRouteImport.update({
+  id: '/inscricao-entidade/$token',
+  path: '/inscricao-entidade/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventoIdRoute = EventoIdRouteImport.update({
   id: '/evento/$id',
   path: '/evento/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipaProgramasRoute = EquipaProgramasRouteImport.update({
+  id: '/equipa/programas',
+  path: '/equipa/programas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
@@ -311,7 +323,9 @@ export interface FileRoutesByFullPath {
   '/convite/$token': typeof ConviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/equipa/programas': typeof EquipaProgramasRoute
   '/evento/$id': typeof EventoIdRoute
+  '/inscricao-entidade/$token': typeof InscricaoEntidadeTokenRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
@@ -355,7 +369,9 @@ export interface FileRoutesByTo {
   '/convite/$token': typeof ConviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/equipa/programas': typeof EquipaProgramasRoute
   '/evento/$id': typeof EventoIdRoute
+  '/inscricao-entidade/$token': typeof InscricaoEntidadeTokenRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
@@ -401,7 +417,9 @@ export interface FileRoutesById {
   '/convite/$token': typeof ConviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/equipa/programas': typeof EquipaProgramasRoute
   '/evento/$id': typeof EventoIdRoute
+  '/inscricao-entidade/$token': typeof InscricaoEntidadeTokenRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
@@ -448,7 +466,9 @@ export interface FileRouteTypes {
     | '/convite/$token'
     | '/email/unsubscribe'
     | '/entidade/dashboard'
+    | '/equipa/programas'
     | '/evento/$id'
+    | '/inscricao-entidade/$token'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
     | '/publicacoes/revistas'
@@ -492,7 +512,9 @@ export interface FileRouteTypes {
     | '/convite/$token'
     | '/email/unsubscribe'
     | '/entidade/dashboard'
+    | '/equipa/programas'
     | '/evento/$id'
+    | '/inscricao-entidade/$token'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
     | '/publicacoes/revistas'
@@ -537,7 +559,9 @@ export interface FileRouteTypes {
     | '/convite/$token'
     | '/email/unsubscribe'
     | '/entidade/dashboard'
+    | '/equipa/programas'
     | '/evento/$id'
+    | '/inscricao-entidade/$token'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
     | '/publicacoes/revistas'
@@ -582,7 +606,9 @@ export interface RootRouteChildren {
   ConviteTokenRoute: typeof ConviteTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
+  EquipaProgramasRoute: typeof EquipaProgramasRoute
   EventoIdRoute: typeof EventoIdRoute
+  InscricaoEntidadeTokenRoute: typeof InscricaoEntidadeTokenRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
   PublicacoesRevistasRoute: typeof PublicacoesRevistasRouteWithChildren
@@ -689,11 +715,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InscricaoTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inscricao-entidade/$token': {
+      id: '/inscricao-entidade/$token'
+      path: '/inscricao-entidade/$token'
+      fullPath: '/inscricao-entidade/$token'
+      preLoaderRoute: typeof InscricaoEntidadeTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/evento/$id': {
       id: '/evento/$id'
       path: '/evento/$id'
       fullPath: '/evento/$id'
       preLoaderRoute: typeof EventoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipa/programas': {
+      id: '/equipa/programas'
+      path: '/equipa/programas'
+      fullPath: '/equipa/programas'
+      preLoaderRoute: typeof EquipaProgramasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entidade/dashboard': {
@@ -997,7 +1037,9 @@ const rootRouteChildren: RootRouteChildren = {
   ConviteTokenRoute: ConviteTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
+  EquipaProgramasRoute: EquipaProgramasRoute,
   EventoIdRoute: EventoIdRoute,
+  InscricaoEntidadeTokenRoute: InscricaoEntidadeTokenRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
   PublicacoesRevistasRoute: PublicacoesRevistasRouteWithChildren,

@@ -706,30 +706,39 @@ export type Database = {
       entidades_programas: {
         Row: {
           created_at: string | null
+          created_by: string | null
           entity_id: string | null
           id: string
           invite_token: string | null
           is_active: boolean | null
           program_id: string | null
           project_notion_id: string | null
+          status: string
+          updated_at: string
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
           entity_id?: string | null
           id?: string
           invite_token?: string | null
           is_active?: boolean | null
           program_id?: string | null
           project_notion_id?: string | null
+          status?: string
+          updated_at?: string
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
           entity_id?: string | null
           id?: string
           invite_token?: string | null
           is_active?: boolean | null
           program_id?: string | null
           project_notion_id?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -907,51 +916,6 @@ export type Database = {
             columns: ["action_id"]
             isOneToOne: false
             referencedRelation: "acoes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      inscricoes_entidade_programa: {
-        Row: {
-          created_at: string
-          entity_id: string
-          id: string
-          program_id: string
-          requested_by: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          entity_id: string
-          id?: string
-          program_id: string
-          requested_by?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          entity_id?: string
-          id?: string
-          program_id?: string
-          requested_by?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "inscricoes_entidade_programa_entity_id_fkey"
-            columns: ["entity_id"]
-            isOneToOne: false
-            referencedRelation: "entidades"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "inscricoes_entidade_programa_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programas"
             referencedColumns: ["id"]
           },
         ]
@@ -1275,6 +1239,7 @@ export type Database = {
           max_capacity: number | null
           metadata: Json | null
           notion_id: string | null
+          public_enroll_token: string | null
           required_fields: Json | null
           sync_status: string | null
           title: string | null
@@ -1290,6 +1255,7 @@ export type Database = {
           max_capacity?: number | null
           metadata?: Json | null
           notion_id?: string | null
+          public_enroll_token?: string | null
           required_fields?: Json | null
           sync_status?: string | null
           title?: string | null
@@ -1305,6 +1271,7 @@ export type Database = {
           max_capacity?: number | null
           metadata?: Json | null
           notion_id?: string | null
+          public_enroll_token?: string | null
           required_fields?: Json | null
           sync_status?: string | null
           title?: string | null
@@ -1991,6 +1958,7 @@ export type Database = {
       get_next_in_line: { Args: { target_action_id: string }; Returns: string }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_equipa: { Args: { _user_id: string }; Returns: boolean }
       list_utilizadores_columns: {
         Args: never
         Returns: {

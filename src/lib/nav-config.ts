@@ -15,6 +15,7 @@ import {
   Medal,
   Megaphone,
   Shield,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -65,6 +66,13 @@ export const NAV_GROUPS: NavGroup[] = [
       { path: "/comunicacao/press-media-kit", label: "Press Media Kit", icon: Megaphone, gated: true },
       { path: "/comunicacao/propriedade-intelectual", label: "Propriedade Intelectual", icon: Copyright, gated: true },
       { path: "/faqs", label: "FAQs", icon: HelpCircle, gated: true },
+    ],
+  },
+
+  {
+    label: "Equipa",
+    items: [
+      { path: "/equipa/programas", label: "Programas", icon: Users, gated: true },
     ],
   },
 
