@@ -24,6 +24,7 @@ import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
 import { Route as InscricaoEntidadeTokenRouteImport } from './routes/inscricao-entidade.$token'
 import { Route as EventoIdRouteImport } from './routes/evento.$id'
+import { Route as EquipaProgramasRouteImport } from './routes/equipa.programas'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
@@ -127,6 +128,11 @@ const InscricaoEntidadeTokenRoute = InscricaoEntidadeTokenRouteImport.update({
 const EventoIdRoute = EventoIdRouteImport.update({
   id: '/evento/$id',
   path: '/evento/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipaProgramasRoute = EquipaProgramasRouteImport.update({
+  id: '/equipa/programas',
+  path: '/equipa/programas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
@@ -317,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/convite/$token': typeof ConviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/equipa/programas': typeof EquipaProgramasRoute
   '/evento/$id': typeof EventoIdRoute
   '/inscricao-entidade/$token': typeof InscricaoEntidadeTokenRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
@@ -362,6 +369,7 @@ export interface FileRoutesByTo {
   '/convite/$token': typeof ConviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/equipa/programas': typeof EquipaProgramasRoute
   '/evento/$id': typeof EventoIdRoute
   '/inscricao-entidade/$token': typeof InscricaoEntidadeTokenRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
@@ -409,6 +417,7 @@ export interface FileRoutesById {
   '/convite/$token': typeof ConviteTokenRoute
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
+  '/equipa/programas': typeof EquipaProgramasRoute
   '/evento/$id': typeof EventoIdRoute
   '/inscricao-entidade/$token': typeof InscricaoEntidadeTokenRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
@@ -457,6 +466,7 @@ export interface FileRouteTypes {
     | '/convite/$token'
     | '/email/unsubscribe'
     | '/entidade/dashboard'
+    | '/equipa/programas'
     | '/evento/$id'
     | '/inscricao-entidade/$token'
     | '/inscricao/$token'
@@ -502,6 +512,7 @@ export interface FileRouteTypes {
     | '/convite/$token'
     | '/email/unsubscribe'
     | '/entidade/dashboard'
+    | '/equipa/programas'
     | '/evento/$id'
     | '/inscricao-entidade/$token'
     | '/inscricao/$token'
@@ -548,6 +559,7 @@ export interface FileRouteTypes {
     | '/convite/$token'
     | '/email/unsubscribe'
     | '/entidade/dashboard'
+    | '/equipa/programas'
     | '/evento/$id'
     | '/inscricao-entidade/$token'
     | '/inscricao/$token'
@@ -594,6 +606,7 @@ export interface RootRouteChildren {
   ConviteTokenRoute: typeof ConviteTokenRoute
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
+  EquipaProgramasRoute: typeof EquipaProgramasRoute
   EventoIdRoute: typeof EventoIdRoute
   InscricaoEntidadeTokenRoute: typeof InscricaoEntidadeTokenRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
@@ -714,6 +727,13 @@ declare module '@tanstack/react-router' {
       path: '/evento/$id'
       fullPath: '/evento/$id'
       preLoaderRoute: typeof EventoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipa/programas': {
+      id: '/equipa/programas'
+      path: '/equipa/programas'
+      fullPath: '/equipa/programas'
+      preLoaderRoute: typeof EquipaProgramasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entidade/dashboard': {
@@ -1017,6 +1037,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConviteTokenRoute: ConviteTokenRoute,
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
+  EquipaProgramasRoute: EquipaProgramasRoute,
   EventoIdRoute: EventoIdRoute,
   InscricaoEntidadeTokenRoute: InscricaoEntidadeTokenRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
