@@ -44,22 +44,23 @@ function InscricaoPage() {
     queryFn: () => fetchCohort({ data: { token } }),
   });
 
-  const { data: perfil } = useQuery({
+  const { data: perfil, isFetched: perfilFetched } = useQuery({
     queryKey: ["meu-perfil-certificacao"],
     queryFn: () => fetchPerfil(),
     enabled: authed === true,
   });
 
+  // Só é seguro decidir depois de o perfil ter sido efetivamente carregado.
+  const certCompleto = perfilFetched && isCertCompleto(perfil ?? null);
+
   // Decide step inicial uma vez carregado tudo
   useEffect(() => {
-    if (!cohort || authed !== true) return;
+    if (!cohort || authed !== true || !perfilFetched) return;
     if (!cohort.info_pdf_url) {
       setScrolledToEnd(true);
-      setStep(isCertCompleto(perfil ?? null) ? "confirm" : "form");
-    } else if (step === "pdf" && isCertCompleto(perfil ?? null) && scrolledToEnd) {
-      // permanece no PDF até confirmar
+      setStep((s) => (s === "done" ? s : certCompleto ? "confirm" : "form"));
     }
-  }, [cohort, authed, perfil]); // eslint-disable-line
+  }, [cohort, authed, perfilFetched, certCompleto]);
 
   const onScrollPdf = () => {
     const el = scrollerRef.current;
@@ -68,7 +69,7 @@ function InscricaoPage() {
   };
 
   const goAfterPdf = () => {
-    setStep(isCertCompleto(perfil ?? null) ? "confirm" : "form");
+    setStep(certCompleto ? "confirm" : "form");
   };
 
   const handleEnroll = async () => {
