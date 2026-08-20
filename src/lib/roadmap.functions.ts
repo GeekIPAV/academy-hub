@@ -156,8 +156,8 @@ export const getRoadmap = createServerFn({ method: "GET" })
       };
     });
 
-    items.push({ ...FORMADOR_PHASE, achieved: isFormador, action: null });
+    items.push({ ...FORMADOR_PHASE, achieved: preview ? false : isFormador, action: null });
 
-    return items;
+    return { items, preview };
   });
 
