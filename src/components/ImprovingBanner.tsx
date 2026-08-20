@@ -29,7 +29,7 @@ export function ImprovingBanner() {
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true" />
           Em construção
         </span>
-        <h2 className="mt-3 text-xl font-semibold tracking-tight sm:text-2xl">Estamos a melhorar esta página</h2>
+        <h2 className="mt-3 text-secondary-foreground text-xl font-semibold tracking-tight sm:text-2xl">Estamos a melhorar esta página</h2>
         <p className="mt-1 text-sm text-secondary-foreground/70">
           Estamos a construir a ponte — volta em breve para ver as novidades.
         </p>
@@ -263,7 +263,7 @@ function ConstructionBridge({ className }: { className?: string }) {
       </g>
 
       {/* Água em movimento constante */}
-      <g className="anim-water" strokeDasharray="20 15" stroke="var(--color-ubuntu-yellow)">
+      <g className="anim-water" strokeDasharray="20 15" stroke="var(--color-ubuntu-yellow)" opacity="0.5">
         <path
           d="M -40 166 Q -20 163, 0 166 T 40 166 T 80 166 T 120 166 T 160 166 T 200 166 T 240 166 T 280 166 T 320 166 T 360 166 T 400 166 T 440 166 T 480 166 T 520 166 T 560 166 T 600 166 T 640 166"
           opacity="0.4"
