@@ -60,11 +60,38 @@ function InscricaoPage() {
     setStep(cohort.info_pdf_url ? "pdf" : "form");
   }, [cohort]);
 
-  const onScrollPdf = () => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 24) setScrolledToEnd(true);
-  };
+  // Deteta o fim do documento com um sentinela no fim do scroller.
+  // Se o conteúdo não chegar a ter scroll, o sentinela já está visível
+  // e o botão fica ativo de imediato.
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (step !== "pdf") return;
+    const root = scrollerRef.current;
+    const target = sentinelRef.current;
+    if (!root || !target) return;
+
+    const check = () => {
+      if (root.scrollHeight - root.clientHeight <= 24) setScrolledToEnd(true);
+    };
+    check();
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setScrolledToEnd(true);
+      },
+      { root, threshold: 0.01 },
+    );
+    io.observe(target);
+
+    const ro = new ResizeObserver(check);
+    ro.observe(root);
+
+    return () => {
+      io.disconnect();
+      ro.disconnect();
+    };
+  }, [step, cohort?.info_pdf_url]);
+
 
   const goAfterPdf = () => {
     setStep(certCompleto ? "confirm" : "form");
