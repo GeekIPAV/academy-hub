@@ -377,6 +377,34 @@ function OrganizacoesTab({
                           <X className="h-3.5 w-3.5" />
                         </Button>
                       </div>
+                    ) : r.status === "rejeitada" ? (
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          disabled={mutation.isPending}
+                          onClick={() =>
+                            mutation.mutate({
+                              cohortId: r.cohort_id,
+                              decision: "aprovada",
+                            })
+                          }
+                        >
+                          <Check className="mr-1 h-3.5 w-3.5" /> Aprovar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={mutation.isPending}
+                          onClick={() =>
+                            mutation.mutate({
+                              cohortId: r.cohort_id,
+                              decision: "pendente",
+                            })
+                          }
+                        >
+                          Repor como pendente
+                        </Button>
+                      </div>
                     ) : (
                       <Button
                         size="sm"
@@ -387,6 +415,7 @@ function OrganizacoesTab({
                       </Button>
                     )}
                   </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>
