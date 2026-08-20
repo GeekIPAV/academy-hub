@@ -1,8 +1,9 @@
 import { useRouterState } from "@tanstack/react-router";
 import { useApp } from "@/lib/app-context";
+import mandela from "@/assets/mandela-traced.svg";
 
 /**
- * Banner "Estamos a melhorar esta página" — estilo Notion em construção.
+ * Banner "Estamos a melhorar esta página" — em construção, com identidade Ubuntu.
  */
 export function ImprovingBanner() {
   const { isComponentVisible } = useApp();
@@ -13,12 +14,31 @@ export function ImprovingBanner() {
   }
 
   return (
-    <div className="mt-8 overflow-hidden rounded-xl border border-ubuntu-blue/15 bg-linear-to-b from-ubuntu-yellow/10 to-ubuntu-blue/5 text-ubuntu-blue shadow-sm">
-      <p className="px-6 pt-6 pb-8 text-center text-base font-semibold tracking-wide">Estamos a melhorar esta página</p>
-      <ConstructionBridge className="block w-full h-auto max-h-40" />
+    <div className="relative mt-8 overflow-hidden rounded-3xl bg-secondary text-secondary-foreground shadow-sm">
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-contain bg-right bg-no-repeat opacity-10 invert"
+        style={{ backgroundImage: `url(${mandela})` }}
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 bg-linear-to-r from-secondary via-secondary/95 to-secondary/60"
+        aria-hidden="true"
+      />
+      <div className="relative px-6 pt-8 sm:px-10">
+        <span className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-3 py-1 text-xs font-medium tracking-wide text-secondary-foreground">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true" />
+          Em construção
+        </span>
+        <h2 className="mt-3 !text-secondary-foreground text-xl font-semibold tracking-tight sm:text-2xl">Estamos a melhorar esta página</h2>
+        <p className="mt-1 text-sm text-secondary-foreground/70">
+          Estamos a construir a ponte — volta em breve para ver as novidades.
+        </p>
+      </div>
+      <ConstructionBridge className="relative block w-full h-auto max-h-44 text-secondary-foreground/70" />
     </div>
   );
 }
+
 
 /* ----------------------------- Desenho da Ponte ----------------------------- */
 
@@ -152,7 +172,7 @@ function ConstructionBridge({ className }: { className?: string }) {
       </g>
 
       {/* O GUINDASTE (Estilo minimalista do Notion) */}
-      <g strokeWidth="2.5">
+      <g strokeWidth="2.5" stroke="var(--color-ubuntu-orange)" color="var(--color-ubuntu-orange)">
         {/* Base / Torre */}
         <path d="M 360 140 L 360 25 L 372 25 L 372 140" fill="currentColor" opacity="0.05" />
         <line x1="360" y1="25" x2="372" y2="25" />
@@ -181,7 +201,7 @@ function ConstructionBridge({ className }: { className?: string }) {
       </g>
 
       {/* Tijolos / Materiais empilhados */}
-      <g opacity="0.7" strokeWidth="1.5">
+      <g opacity="0.9" strokeWidth="1.5" stroke="var(--color-ubuntu-orange)" color="var(--color-ubuntu-orange)">
         <rect x="105" y="103" width="12" height="6" rx="1" fill="currentColor" />
         <rect x="118" y="101" width="12" height="6" rx="1" fill="currentColor" />
         <rect x="110" y="95" width="12" height="6" rx="1" fill="currentColor" />
@@ -192,7 +212,7 @@ function ConstructionBridge({ className }: { className?: string }) {
       {/* Trabalhador 1: Esquerda, a martelar */}
       <g transform="translate(150, 102)">
         <circle cx="0" cy="-14" r="3.5" fill="currentColor" />
-        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="currentColor" /> {/* Capacete */}
+        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="var(--color-ubuntu-yellow)" stroke="none" /> {/* Capacete */}
         <line x1="0" y1="-11" x2="0" y2="-3" strokeWidth="2.5" /> {/* Corpo */}
         <line x1="0" y1="-3" x2="-4" y2="5" strokeWidth="2.5" /> {/* Pernas */}
         <line x1="0" y1="-3" x2="4" y2="5" strokeWidth="2.5" />
@@ -206,7 +226,7 @@ function ConstructionBridge({ className }: { className?: string }) {
       {/* Trabalhador 2: Centro-Esquerda, a martelar invertido */}
       <g transform="translate(210, 96)">
         <circle cx="0" cy="-14" r="3.5" fill="currentColor" />
-        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="currentColor" />
+        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="var(--color-ubuntu-yellow)" stroke="none" />
         <line x1="0" y1="-11" x2="0" y2="-3" strokeWidth="2.5" />
         <line x1="0" y1="-3" x2="-3" y2="5" strokeWidth="2.5" />
         <line x1="0" y1="-3" x2="3" y2="5" strokeWidth="2.5" />
@@ -219,7 +239,7 @@ function ConstructionBridge({ className }: { className?: string }) {
       {/* Trabalhador 3: Direita, a correr (Looping) */}
       <g className="anim-runner-1">
         <circle cx="0" cy="-14" r="3.5" fill="currentColor" />
-        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="currentColor" />
+        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="var(--color-ubuntu-yellow)" stroke="none" />
         <line x1="0" y1="-11" x2="1" y2="-4" strokeWidth="2.5" />
         {/* Pernas em passada */}
         <line x1="1" y1="-4" x2="-3" y2="4" className="leg-l" strokeWidth="2.5" />
@@ -232,7 +252,7 @@ function ConstructionBridge({ className }: { className?: string }) {
       {/* Trabalhador 4: Direita, a correr noutra direção (Looping) */}
       <g className="anim-runner-2">
         <circle cx="0" cy="-14" r="3.5" fill="currentColor" />
-        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="currentColor" />
+        <path d="M -4.5 -15.5 A 4.5 4 0 0 1 4.5 -15.5 Z" fill="var(--color-ubuntu-yellow)" stroke="none" />
         <line x1="0" y1="-11" x2="1" y2="-4" strokeWidth="2.5" />
         <line x1="1" y1="-4" x2="-4" y2="4" className="leg-l" strokeWidth="2.5" />
         <line x1="1" y1="-4" x2="4" y2="4" className="leg-r" strokeWidth="2.5" />
@@ -243,7 +263,7 @@ function ConstructionBridge({ className }: { className?: string }) {
       </g>
 
       {/* Água em movimento constante */}
-      <g className="anim-water" strokeDasharray="20 15">
+      <g className="anim-water" strokeDasharray="20 15" stroke="var(--color-ubuntu-yellow)" opacity="0.5">
         <path
           d="M -40 166 Q -20 163, 0 166 T 40 166 T 80 166 T 120 166 T 160 166 T 200 166 T 240 166 T 280 166 T 320 166 T 360 166 T 400 166 T 440 166 T 480 166 T 520 166 T 560 166 T 600 166 T 640 166"
           opacity="0.4"
