@@ -12,7 +12,12 @@ export function WidgetMeusProgramas() {
     queryFn: () => fetchFn(),
   });
 
-  if (isLoading || !data || data.length === 0) return null;
+  const mock = typeof window !== "undefined" && window.location.search.includes("mock");
+  const rows = mock ? ([
+    { cohort_id: "a", cluster_name: "Formação de Formadores - 3º Ciclo e Secundário", program_title: "Edição 2026" },
+    { cohort_id: "b", cluster_name: "Formação de Formadores Educadores - Ensino Superior", program_title: "Edição 2026" },
+  ] as any) : data;
+  if (!mock && (isLoading || !data || data.length === 0)) return null;
 
   return (
     <section aria-labelledby="meus-programas-title">
@@ -23,7 +28,7 @@ export function WidgetMeusProgramas() {
         <span className="h-px flex-1 bg-border" aria-hidden="true" />
       </div>
       <ul className="grid gap-3 sm:grid-cols-2">
-        {data.map((p) => {
+        {rows.map((p: any) => {
           const display = p.cluster_name ? parseCluster(p.cluster_name) : null;
           return (
             <li

@@ -40,7 +40,7 @@ type NodeState = "done" | "active" | "pending";
 
 export function WidgetRoadmap() {
   const fetchRoadmap = useServerFn(getRoadmap);
-  const [items, setItems] = useState<RoadmapItem[] | null>(null);
+  let [items, setItems] = useState<RoadmapItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -63,7 +63,17 @@ export function WidgetRoadmap() {
     };
   }, [fetchRoadmap]);
 
-  if (error) return null;
+  const mock = typeof window !== "undefined" && window.location.search.includes("mock");
+  if (mock) {
+    items = [
+      { phase: "FTC", label: "Formação Teórico-Conceptual", achieved: true, action: { id: "1", title: "FTC Lisboa 2026", registration_status: "fechado", start_date: null } },
+      { phase: "FTP", label: "Formação Teórico-Prática", achieved: true, action: { id: "2", title: "FTP Lisboa 2026", registration_status: "aberto", start_date: null } },
+      { phase: "SU", label: "Semana Ubuntu", action: { id: "3", title: "Semana Ubuntu — Julho", registration_status: "agendado", start_date: null } },
+      { phase: "SF", label: "Sessão Final", action: null },
+      { phase: "FORMADOR", label: "Formador", action: null },
+    ] as RoadmapItem[];
+  }
+  if (error && !mock) return null;
   if (items && items.length === 0) return null;
 
   const nodeState = (item: RoadmapItem): NodeState => {
