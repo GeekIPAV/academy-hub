@@ -260,18 +260,21 @@ function OrganizacoesTab({
   const rows = Array.isArray(data) ? data : [];
 
   const mutation = useMutation({
-    mutationFn: (vars: { cohortId: string; decision: "aprovada" | "rejeitada" }) =>
+    mutationFn: (vars: { cohortId: string; decision: "aprovada" | "rejeitada" | "pendente" }) =>
       decide({ data: vars }),
     onSuccess: (_r, vars) => {
       toast.success(
         vars.decision === "aprovada"
           ? "Organização aprovada — convite enviado por email."
-          : "Inscrição rejeitada.",
+          : vars.decision === "pendente"
+            ? "Inscrição reposta como pendente."
+            : "Inscrição rejeitada.",
       );
       qc.invalidateQueries({ queryKey: ["equipa-organizacoes", programId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <Card>
@@ -374,6 +377,34 @@ function OrganizacoesTab({
                           <X className="h-3.5 w-3.5" />
                         </Button>
                       </div>
+                    ) : r.status === "rejeitada" ? (
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          disabled={mutation.isPending}
+                          onClick={() =>
+                            mutation.mutate({
+                              cohortId: r.cohort_id,
+                              decision: "aprovada",
+                            })
+                          }
+                        >
+                          <Check className="mr-1 h-3.5 w-3.5" /> Aprovar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={mutation.isPending}
+                          onClick={() =>
+                            mutation.mutate({
+                              cohortId: r.cohort_id,
+                              decision: "pendente",
+                            })
+                          }
+                        >
+                          Repor como pendente
+                        </Button>
+                      </div>
                     ) : (
                       <Button
                         size="sm"
@@ -384,6 +415,7 @@ function OrganizacoesTab({
                       </Button>
                     )}
                   </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>
