@@ -143,8 +143,8 @@ function DashboardPage() {
         </section>
       )}
 
-      <WidgetMeusProgramas />
-      {visible("roadmap") && <WidgetRoadmap />}
+      <WidgetMeusProgramas showRoadmap={visible("roadmap")} />
+
     </div>
   );
 }
