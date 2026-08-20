@@ -159,11 +159,7 @@ function AcoesPublicPage() {
           onOpen={(id) => navigate({ to: "/evento/$id", params: { id } })}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((a) => (
-            <AcaoCard key={a.id} acao={a} />
-          ))}
-        </div>
+        <GaleriaAcoes acoes={filtered} />
       )}
     </div>
   );
