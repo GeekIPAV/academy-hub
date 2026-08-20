@@ -126,14 +126,14 @@ export const getRoadmap = createServerFn({ method: "GET" })
       .order("start_date", { ascending: true, nullsFirst: false });
 
     let entityActions: typeof ftcActions = [];
-    if (entityId) {
-      const { data } = await supabaseAdmin
+    if (entityId || preview) {
+      let q = supabaseAdmin
         .from("acoes")
         .select("id, title, action_type, registration_status, start_date, program_id, entity_id")
         .eq("program_id", programId)
-        .eq("entity_id", entityId)
-        .in("action_type", ["FTP", "SU", "SF"])
-        .order("start_date", { ascending: true, nullsFirst: false });
+        .in("action_type", ["FTP", "SU", "SF"]);
+      if (entityId) q = q.eq("entity_id", entityId);
+      const { data } = await q.order("start_date", { ascending: true, nullsFirst: false });
       entityActions = data ?? [];
     }
 
