@@ -3,6 +3,7 @@ import {
   BookOpen,
   Building2,
   CalendarCog,
+  CalendarDays,
   Copyright,
   FolderCog,
   GraduationCap,
