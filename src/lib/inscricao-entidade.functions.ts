@@ -57,7 +57,7 @@ export const getClusterEnrollmentInfo = createServerFn({ method: "GET" })
     let existing: Array<{ program_id: string; status: string }> = [];
     if (acting.entityId) {
       const { data: enr } = await supabaseAdmin
-        .from("inscricoes_entidade_programa")
+        .from("entidades_programas")
         .select("program_id, status")
         .eq("entity_id", acting.entityId)
         .in("program_id", (programs ?? []).map((p) => p.id));
@@ -126,7 +126,7 @@ export const enrollEntityInPrograms = createServerFn({ method: "POST" })
     if (valid.length === 0) throw new Error("Nenhum programa válido selecionado.");
 
     const { data: existing } = await supabaseAdmin
-      .from("inscricoes_entidade_programa")
+      .from("entidades_programas")
       .select("program_id")
       .eq("entity_id", entityId)
       .in("program_id", valid.map((p) => p.id));
@@ -137,13 +137,14 @@ export const enrollEntityInPrograms = createServerFn({ method: "POST" })
     }
 
     const { error: iErr } = await supabaseAdmin
-      .from("inscricoes_entidade_programa")
+      .from("entidades_programas")
       .insert(
         toInsert.map((p) => ({
           entity_id: entityId,
           program_id: p.id,
-          requested_by: userId,
+          created_by: userId,
           status: "pendente",
+          is_active: false,
         })),
       );
     if (iErr) throw new Error(iErr.message);
@@ -196,7 +197,7 @@ export const listMyEntityProgramEnrollments = createServerFn({ method: "GET" })
     if (!entityId) return [];
 
     const { data: rows, error } = await supabaseAdmin
-      .from("inscricoes_entidade_programa")
+      .from("entidades_programas")
       .select("id, status, created_at, program_id, programas(title, cluster_id, clusters(name))")
       .eq("entity_id", entityId)
       .order("created_at", { ascending: false });
