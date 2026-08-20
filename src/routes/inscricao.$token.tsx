@@ -73,6 +73,11 @@ function InscricaoPage() {
   };
 
   const handleEnroll = async () => {
+    if (!certCompleto) {
+      setStep("form");
+      toast.error("Preenche os dados de certificação antes de te inscreveres.");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await enroll({ data: { token } });
