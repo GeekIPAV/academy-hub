@@ -13,7 +13,7 @@ export function ImprovingBanner() {
   }
 
   return (
-    <div className="mt-8 overflow-hidden rounded-xl border border-[#008DD5]/20 bg-[#E8F4FC] text-[#193B69] shadow-sm">
+    <div className="mt-8 overflow-hidden rounded-xl border border-ubuntu-blue/15 bg-linear-to-b from-ubuntu-yellow/10 to-ubuntu-blue/5 text-ubuntu-blue shadow-sm">
       <p className="px-6 pt-6 pb-8 text-center text-base font-semibold tracking-wide">Estamos a melhorar esta página</p>
       <ConstructionBridge className="block w-full h-auto max-h-40" />
     </div>
