@@ -361,7 +361,7 @@ export const decidirOrganizacaoInscricao = createServerFn({ method: "POST" })
           roles: ["Entidade"],
           label: `Acesso — ${cohort.entidades?.name ?? "Organização"}`,
           created_by: context.userId,
-          entity_id: cohort.entity_id,
+          entity_id: entityId,
           expires_at: null,
           max_uses: null,
         })
