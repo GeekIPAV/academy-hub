@@ -40,7 +40,7 @@ type NodeState = "done" | "active" | "pending";
 
 export function WidgetRoadmap() {
   const fetchRoadmap = useServerFn(getRoadmap);
-  let [items, setItems] = useState<RoadmapItem[] | null>(null);
+  const [items, setItems] = useState<RoadmapItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -63,17 +63,7 @@ export function WidgetRoadmap() {
     };
   }, [fetchRoadmap]);
 
-  const mock = typeof window !== "undefined" && window.location.search.includes("mock");
-  if (mock) {
-    items = [
-      { phase: "FTC", label: "Formação Teórico-Conceptual", achieved: true, action: { id: "1", title: "FTC Lisboa 2026", registration_status: "fechado", start_date: null } },
-      { phase: "FTP", label: "Formação Teórico-Prática", achieved: true, action: { id: "2", title: "FTP Lisboa 2026", registration_status: "aberto", start_date: null } },
-      { phase: "SU", label: "Semana Ubuntu", action: { id: "3", title: "Semana Ubuntu — Julho", registration_status: "agendado", start_date: null } },
-      { phase: "SF", label: "Sessão Final", action: null },
-      { phase: "FORMADOR", label: "Formador", action: null },
-    ] as RoadmapItem[];
-  }
-  if (error && !mock) return null;
+  if (error) return null;
   if (items && items.length === 0) return null;
 
   const nodeState = (item: RoadmapItem): NodeState => {
@@ -108,7 +98,7 @@ export function WidgetRoadmap() {
           <ol className="relative flex flex-col gap-6 sm:flex-row sm:gap-2">
             {/* Linha de progresso (desktop) */}
             <div
-              className="pointer-events-none absolute left-0 right-0 top-6 hidden h-1 rounded-full bg-muted sm:block"
+              className="pointer-events-none absolute left-[10%] right-[10%] top-6 hidden h-1 rounded-full bg-muted sm:block"
               aria-hidden="true"
             >
               <div
@@ -154,9 +144,11 @@ export function WidgetRoadmap() {
                     <p className="text-xs font-bold uppercase tracking-wide text-secondary">
                       {SHORT[item.phase]}
                     </p>
-                    <p className="mt-0.5 text-sm font-medium leading-snug text-foreground">
-                      {item.label}
-                    </p>
+                    {item.label !== SHORT[item.phase] && (
+                      <p className="mt-0.5 text-sm font-medium leading-snug text-foreground">
+                        {item.label}
+                      </p>
+                    )}
                     {item.action?.title && (
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">
                         {item.action.title}
