@@ -190,7 +190,7 @@ function InscricaoPage() {
                 <div className="h-2" />
               </div>
               <div className="border-t p-4 flex justify-end">
-                <Button onClick={goAfterPdf} disabled={!scrolledToEnd}>
+                <Button onClick={goAfterPdf} disabled={!scrolledToEnd || !perfilFetched}>
                   Li e percebi — continuar
                 </Button>
               </div>
