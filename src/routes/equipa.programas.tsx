@@ -349,63 +349,42 @@ function OrganizacoesTab({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                    {r.status === "pendente" ? (
-                      <div className="flex justify-end gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      {r.status !== "aprovada" && (
                         <Button
                           size="sm"
                           disabled={mutation.isPending}
                           onClick={() =>
-                            mutation.mutate({
-                              cohortId: r.cohort_id,
-                              decision: "aprovada",
-                            })
+                            mutation.mutate({ cohortId: r.cohort_id, decision: "aprovada" })
                           }
                         >
                           <Check className="mr-1 h-3.5 w-3.5" /> Aprovar
                         </Button>
+                      )}
+                      {r.status !== "pendente" && (
                         <Button
                           size="sm"
                           variant="outline"
                           disabled={mutation.isPending}
                           onClick={() =>
-                            mutation.mutate({
-                              cohortId: r.cohort_id,
-                              decision: "rejeitada",
-                            })
-                          }
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    ) : r.status === "rejeitada" ? (
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          size="sm"
-                          disabled={mutation.isPending}
-                          onClick={() =>
-                            mutation.mutate({
-                              cohortId: r.cohort_id,
-                              decision: "aprovada",
-                            })
-                          }
-                        >
-                          <Check className="mr-1 h-3.5 w-3.5" /> Aprovar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={mutation.isPending}
-                          onClick={() =>
-                            mutation.mutate({
-                              cohortId: r.cohort_id,
-                              decision: "pendente",
-                            })
+                            mutation.mutate({ cohortId: r.cohort_id, decision: "pendente" })
                           }
                         >
                           Repor como pendente
                         </Button>
-                      </div>
-                    ) : (
+                      )}
+                      {r.status !== "rejeitada" && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={mutation.isPending}
+                          onClick={() =>
+                            mutation.mutate({ cohortId: r.cohort_id, decision: "rejeitada" })
+                          }
+                        >
+                          <X className="mr-1 h-3.5 w-3.5" /> Rejeitar
+                        </Button>
+                      )}
                       <Button
                         size="sm"
                         variant="ghost"
@@ -413,8 +392,9 @@ function OrganizacoesTab({
                       >
                         Ver
                       </Button>
-                    )}
+                    </div>
                   </TableCell>
+
 
                 </TableRow>
               ))}
