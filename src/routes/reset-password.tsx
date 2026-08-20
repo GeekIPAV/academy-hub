@@ -10,12 +10,17 @@ import aluLogo from "@/assets/alu-logo.svg";
 import authBackground from "@/assets/auth-background.png";
 
 export const Route = createFileRoute("/reset-password")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    redirect: typeof s.redirect === "string" ? s.redirect : undefined,
+  }),
   head: () => ({ meta: [{ title: "Redefinir password — Academia Ubuntu" }] }),
   component: ResetPasswordPage,
 });
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch();
+  const safeRedirect = redirect && /^\/(?!\/)/.test(redirect) ? redirect : null;
   const [ready, setReady] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -44,7 +49,10 @@ function ResetPasswordPage() {
     if (error) return toast.error(error.message);
     toast.success("Password atualizada. Já podes entrar.");
     await supabase.auth.signOut();
-    navigate({ to: "/auth" });
+    navigate({
+      to: "/auth",
+      search: safeRedirect ? { redirect: safeRedirect } : {},
+    });
   };
 
   return (

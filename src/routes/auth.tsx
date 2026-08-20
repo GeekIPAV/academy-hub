@@ -165,7 +165,7 @@ function AuthPage() {
     }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(normalized, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/reset-password?redirect=${encodeURIComponent(safeRedirect ?? "/")}`,
     });
     setLoading(false);
     if (error) return toast.error(error.message);

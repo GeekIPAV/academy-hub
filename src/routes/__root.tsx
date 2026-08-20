@@ -172,9 +172,10 @@ function AppShell() {
     );
   }
 
-  // /reset-password must always render as a standalone page (sem sidebar),
-  // mesmo quando o Supabase já criou uma sessão a partir do token de recovery.
-  if (pathname === "/reset-password") {
+  // /reset-password e /inscricao/:token renderizam sempre como páginas
+  // autónomas (sem sidebar), mesmo com sessão iniciada — para não permitir
+  // sair do fluxo a meio.
+  if (pathname === "/reset-password" || pathname.startsWith("/inscricao/")) {
     return (
       <div className="min-h-screen bg-muted/30">
         {isRouterLoading ? <InlineLoader /> : <Outlet />}
