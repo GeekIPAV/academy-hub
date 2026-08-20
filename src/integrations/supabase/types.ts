@@ -22,6 +22,9 @@ export type Database = {
           avaliacao_satisfacao: number | null
           avaliacao_satisfacao_link: string | null
           conteudo_pagina_inscricao: Json | null
+          cover_position: string
+          cover_scale: number
+          cover_url: string | null
           created_at: string | null
           created_by: string | null
           description: string | null
@@ -51,6 +54,9 @@ export type Database = {
           avaliacao_satisfacao?: number | null
           avaliacao_satisfacao_link?: string | null
           conteudo_pagina_inscricao?: Json | null
+          cover_position?: string
+          cover_scale?: number
+          cover_url?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
@@ -80,6 +86,9 @@ export type Database = {
           avaliacao_satisfacao?: number | null
           avaliacao_satisfacao_link?: string | null
           conteudo_pagina_inscricao?: Json | null
+          cover_position?: string
+          cover_scale?: number
+          cover_url?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
