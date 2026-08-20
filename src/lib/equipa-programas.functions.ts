@@ -336,19 +336,17 @@ export const decidirOrganizacaoInscricao = createServerFn({ method: "POST" })
       .eq("id", data.cohortId);
     if (uErr) throw new Error(uErr.message);
 
-    if (cohort.entity_id) {
-      await supabaseAdmin
-        .from("entidades")
-        .update({ status: "Ativo" })
-        .eq("id", cohort.entity_id);
-    }
+    const entityId = cohort.entity_id;
+    if (!entityId) throw new Error("Inscrição sem organização associada.");
+
+    await supabaseAdmin.from("entidades").update({ status: "Ativo" }).eq("id", entityId);
 
     // Convite de acesso para a pessoa de contacto (role Entidade)
     let conviteToken: string | null = null;
     const { data: existingInvite } = await supabaseAdmin
       .from("convites")
       .select("token, is_active")
-      .eq("entity_id", cohort.entity_id)
+      .eq("entity_id", entityId)
       .eq("is_active", true)
       .order("created_at", { ascending: false })
       .limit(1)
