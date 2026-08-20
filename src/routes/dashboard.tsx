@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useApp } from "@/lib/app-context";
-import { WidgetRoadmap } from "@/components/WidgetRoadmap";
 import { WidgetMeusProgramas } from "@/components/WidgetMeusProgramas";
 import { BookMarked, User, ArrowRight } from "lucide-react";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
@@ -143,8 +142,8 @@ function DashboardPage() {
         </section>
       )}
 
-      <WidgetMeusProgramas />
-      {visible("roadmap") && <WidgetRoadmap />}
+      <WidgetMeusProgramas showRoadmap={visible("roadmap")} />
+
     </div>
   );
 }
