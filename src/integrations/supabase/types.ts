@@ -981,6 +981,7 @@ export type Database = {
           cohort_id: string | null
           created_at: string | null
           id: string
+          is_formador: boolean
           status: string | null
           user_id: string | null
         }
@@ -988,6 +989,7 @@ export type Database = {
           cohort_id?: string | null
           created_at?: string | null
           id?: string
+          is_formador?: boolean
           status?: string | null
           user_id?: string | null
         }
@@ -995,6 +997,7 @@ export type Database = {
           cohort_id?: string | null
           created_at?: string | null
           id?: string
+          is_formador?: boolean
           status?: string | null
           user_id?: string | null
         }
