@@ -46,16 +46,21 @@ export interface RoadmapResult {
 
 export const getRoadmap = createServerFn({ method: "GET" })
   .middleware([attachSupabaseAuth, requireSupabaseAuth])
-  .handler(async ({ context }): Promise<RoadmapResult> => {
+  .inputValidator((data: { cohortId?: string } | undefined) => ({
+    cohortId: typeof data?.cohortId === "string" ? data.cohortId : undefined,
+  }))
+  .handler(async ({ context, data }): Promise<RoadmapResult> => {
     const { supabase, userId } = context;
     const empty: RoadmapResult = { items: [], preview: false };
 
-    const { data: enrollments, error: eErr } = await supabase
+    let query = supabase
       .from("inscritos_programa")
       .select("cohort_id, is_formador, entidades_programas(program_id, entity_id)")
-      .eq("user_id", userId)
-      .limit(1);
+      .eq("user_id", userId);
+    if (data?.cohortId) query = query.eq("cohort_id", data.cohortId);
+    const { data: enrollments, error: eErr } = await query.limit(1);
     if (eErr) throw new Error(eErr.message);
+
 
     const enrollment = enrollments?.[0] as
       | {
