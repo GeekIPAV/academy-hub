@@ -129,7 +129,8 @@ export const listMyCohorts = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("entidades_programas")
       .select("id, invite_token, is_active, program_id, programas(title)")
-      .eq("entity_id", entityId);
+      .eq("entity_id", entityId)
+      .eq("status", "aprovada");
     if (error) throw new Error(error.message);
     return rows ?? [];
   });
