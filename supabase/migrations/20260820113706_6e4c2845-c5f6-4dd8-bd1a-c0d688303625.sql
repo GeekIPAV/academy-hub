@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public.inscricoes_entidade_programa CASCADE;

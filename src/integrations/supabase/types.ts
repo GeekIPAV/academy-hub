@@ -920,51 +920,6 @@ export type Database = {
           },
         ]
       }
-      inscricoes_entidade_programa: {
-        Row: {
-          created_at: string
-          entity_id: string
-          id: string
-          program_id: string
-          requested_by: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          entity_id: string
-          id?: string
-          program_id: string
-          requested_by?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          entity_id?: string
-          id?: string
-          program_id?: string
-          requested_by?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "inscricoes_entidade_programa_entity_id_fkey"
-            columns: ["entity_id"]
-            isOneToOne: false
-            referencedRelation: "entidades"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "inscricoes_entidade_programa_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "programas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       inscritos_acoes: {
         Row: {
           action_id: string | null
