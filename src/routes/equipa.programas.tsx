@@ -260,18 +260,21 @@ function OrganizacoesTab({
   const rows = Array.isArray(data) ? data : [];
 
   const mutation = useMutation({
-    mutationFn: (vars: { cohortId: string; decision: "aprovada" | "rejeitada" }) =>
+    mutationFn: (vars: { cohortId: string; decision: "aprovada" | "rejeitada" | "pendente" }) =>
       decide({ data: vars }),
     onSuccess: (_r, vars) => {
       toast.success(
         vars.decision === "aprovada"
           ? "Organização aprovada — convite enviado por email."
-          : "Inscrição rejeitada.",
+          : vars.decision === "pendente"
+            ? "Inscrição reposta como pendente."
+            : "Inscrição rejeitada.",
       );
       qc.invalidateQueries({ queryKey: ["equipa-organizacoes", programId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <Card>
