@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Building2, CheckCircle2, Loader2, Search } from "lucide-react";
@@ -65,7 +65,7 @@ function InscricaoEntidadePage() {
     queryFn: () => fetchProg({ data: { token } }),
   });
 
-  useMemo(() => {
+  useEffect(() => {
     const t = setTimeout(() => setDebounced(query.trim()), 300);
     return () => clearTimeout(t);
   }, [query]);

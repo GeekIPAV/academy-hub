@@ -22,6 +22,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PublicacoesRevistasRouteImport } from './routes/publicacoes.revistas'
 import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
 import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
+import { Route as InscricaoEntidadeTokenRouteImport } from './routes/inscricao-entidade.$token'
 import { Route as EventoIdRouteImport } from './routes/evento.$id'
 import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
 import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
@@ -116,6 +117,11 @@ const PublicacoesBibliotecaRoute = PublicacoesBibliotecaRouteImport.update({
 const InscricaoTokenRoute = InscricaoTokenRouteImport.update({
   id: '/inscricao/$token',
   path: '/inscricao/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InscricaoEntidadeTokenRoute = InscricaoEntidadeTokenRouteImport.update({
+  id: '/inscricao-entidade/$token',
+  path: '/inscricao-entidade/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventoIdRoute = EventoIdRouteImport.update({
@@ -312,6 +318,7 @@ export interface FileRoutesByFullPath {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/evento/$id': typeof EventoIdRoute
+  '/inscricao-entidade/$token': typeof InscricaoEntidadeTokenRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
@@ -356,6 +363,7 @@ export interface FileRoutesByTo {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/evento/$id': typeof EventoIdRoute
+  '/inscricao-entidade/$token': typeof InscricaoEntidadeTokenRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
@@ -402,6 +410,7 @@ export interface FileRoutesById {
   '/email/unsubscribe': typeof EmailUnsubscribeRoute
   '/entidade/dashboard': typeof EntidadeDashboardRoute
   '/evento/$id': typeof EventoIdRoute
+  '/inscricao-entidade/$token': typeof InscricaoEntidadeTokenRoute
   '/inscricao/$token': typeof InscricaoTokenRoute
   '/publicacoes/biblioteca': typeof PublicacoesBibliotecaRoute
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
@@ -449,6 +458,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/entidade/dashboard'
     | '/evento/$id'
+    | '/inscricao-entidade/$token'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
     | '/publicacoes/revistas'
@@ -493,6 +503,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/entidade/dashboard'
     | '/evento/$id'
+    | '/inscricao-entidade/$token'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
     | '/publicacoes/revistas'
@@ -538,6 +549,7 @@ export interface FileRouteTypes {
     | '/email/unsubscribe'
     | '/entidade/dashboard'
     | '/evento/$id'
+    | '/inscricao-entidade/$token'
     | '/inscricao/$token'
     | '/publicacoes/biblioteca'
     | '/publicacoes/revistas'
@@ -583,6 +595,7 @@ export interface RootRouteChildren {
   EmailUnsubscribeRoute: typeof EmailUnsubscribeRoute
   EntidadeDashboardRoute: typeof EntidadeDashboardRoute
   EventoIdRoute: typeof EventoIdRoute
+  InscricaoEntidadeTokenRoute: typeof InscricaoEntidadeTokenRoute
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
   PublicacoesRevistasRoute: typeof PublicacoesRevistasRouteWithChildren
@@ -687,6 +700,13 @@ declare module '@tanstack/react-router' {
       path: '/inscricao/$token'
       fullPath: '/inscricao/$token'
       preLoaderRoute: typeof InscricaoTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inscricao-entidade/$token': {
+      id: '/inscricao-entidade/$token'
+      path: '/inscricao-entidade/$token'
+      fullPath: '/inscricao-entidade/$token'
+      preLoaderRoute: typeof InscricaoEntidadeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/evento/$id': {
@@ -998,6 +1018,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmailUnsubscribeRoute: EmailUnsubscribeRoute,
   EntidadeDashboardRoute: EntidadeDashboardRoute,
   EventoIdRoute: EventoIdRoute,
+  InscricaoEntidadeTokenRoute: InscricaoEntidadeTokenRoute,
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
   PublicacoesRevistasRoute: PublicacoesRevistasRouteWithChildren,
