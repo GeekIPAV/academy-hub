@@ -112,8 +112,8 @@ function DashboardPage() {
             ) : null}
           </h1>
           <p className="mt-3 max-w-xl text-sm text-secondary-foreground/75 sm:text-base">
-            «Eu sou porque tu és.» Acompanha aqui os teus programas, o teu percurso de formação e
-            todos os recursos da comunidade.
+            Acompanha aqui os teus programas, o teu percurso de formação e todos os recursos da
+            comunidade.
           </p>
         </div>
       </section>
