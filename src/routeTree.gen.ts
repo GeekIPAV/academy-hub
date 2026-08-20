@@ -40,6 +40,7 @@ import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
 import { Route as AuthenticatedInscricaoProgramasRouteImport } from './routes/_authenticated/inscricao-programas'
+import { Route as AuthenticatedAcoesRouteImport } from './routes/_authenticated/acoes'
 import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
 import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -213,6 +214,11 @@ const AuthenticatedInscricaoProgramasRoute =
     path: '/inscricao-programas',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedAcoesRoute = AuthenticatedAcoesRouteImport.update({
+  id: '/acoes',
+  path: '/acoes',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedRecursosIndexRoute =
   AuthenticatedRecursosIndexRouteImport.update({
     id: '/',
@@ -308,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/acoes': typeof AuthenticatedAcoesRoute
   '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
@@ -355,6 +362,7 @@ export interface FileRoutesByTo {
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/acoes': typeof AuthenticatedAcoesRoute
   '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
@@ -402,6 +410,7 @@ export interface FileRoutesById {
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/acoes': typeof AuthenticatedAcoesRoute
   '/_authenticated/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
@@ -451,6 +460,7 @@ export interface FileRouteTypes {
     | '/faqs'
     | '/profile'
     | '/reset-password'
+    | '/acoes'
     | '/inscricao-programas'
     | '/recursos'
     | '/admin/acoes'
@@ -498,6 +508,7 @@ export interface FileRouteTypes {
     | '/faqs'
     | '/profile'
     | '/reset-password'
+    | '/acoes'
     | '/inscricao-programas'
     | '/admin/acoes'
     | '/admin/badges'
@@ -544,6 +555,7 @@ export interface FileRouteTypes {
     | '/faqs'
     | '/profile'
     | '/reset-password'
+    | '/_authenticated/acoes'
     | '/_authenticated/inscricao-programas'
     | '/_authenticated/recursos'
     | '/admin/acoes'
@@ -841,6 +853,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInscricaoProgramasRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/acoes': {
+      id: '/_authenticated/acoes'
+      path: '/acoes'
+      fullPath: '/acoes'
+      preLoaderRoute: typeof AuthenticatedAcoesRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/recursos/': {
       id: '/_authenticated/recursos/'
       path: '/'
@@ -984,6 +1003,7 @@ const AuthenticatedRecursosRouteWithChildren =
   )
 
 interface AuthenticatedRouteChildren {
+  AuthenticatedAcoesRoute: typeof AuthenticatedAcoesRoute
   AuthenticatedInscricaoProgramasRoute: typeof AuthenticatedInscricaoProgramasRoute
   AuthenticatedRecursosRoute: typeof AuthenticatedRecursosRouteWithChildren
   AuthenticatedActionsIdRoute: typeof AuthenticatedActionsIdRoute
@@ -991,6 +1011,7 @@ interface AuthenticatedRouteChildren {
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAcoesRoute: AuthenticatedAcoesRoute,
   AuthenticatedInscricaoProgramasRoute: AuthenticatedInscricaoProgramasRoute,
   AuthenticatedRecursosRoute: AuthenticatedRecursosRouteWithChildren,
   AuthenticatedActionsIdRoute: AuthenticatedActionsIdRoute,
