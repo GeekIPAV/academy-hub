@@ -3,6 +3,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import ptLocale from "@fullcalendar/core/locales/pt";
+
 import type { AcaoRow } from "@/lib/admin-acoes-gestao.functions";
 
 export interface CardFieldsConfig {
@@ -43,11 +45,19 @@ export function AcoesCalendar({ data, cardFields, onOpen }: Props) {
   );
 
   return (
-    <div className="rounded-md border bg-card p-3 [&_.fc]:font-sans [&_.fc_.fc-button]:bg-primary [&_.fc_.fc-button]:border-primary [&_.fc_.fc-button:hover]:bg-primary/90">
+    <div className="alu-calendar rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
       <FullCalendar
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        locale={ptLocale}
         initialView="dayGridMonth"
         height="auto"
+        dayMaxEvents={3}
+        firstDay={1}
+        buttonText={{
+          today: "Hoje",
+          month: "Mês",
+          week: "Semana",
+        }}
         headerToolbar={{
           left: "prev,next today",
           center: "title",
@@ -59,24 +69,32 @@ export function AcoesCalendar({ data, cardFields, onOpen }: Props) {
         }}
         eventContent={(info) => {
           const a = info.event.extendedProps as AcaoRow;
+          const aberto = a.registration_status === "Aberto";
           return (
-            <div className="px-1 py-0.5 text-xs leading-tight">
-              <div className="truncate font-medium">{info.event.title}</div>
-              {cardFields.showDate && a.start_date && (
-                <div className="opacity-80">{a.start_date}</div>
-              )}
-              {cardFields.showCategory && a.formato && (
-                <div className="opacity-80">{a.formato}</div>
-              )}
-              {cardFields.showStatus && a.registration_status && (
-                <div className="opacity-80">{a.registration_status}</div>
-              )}
-              {cardFields.showCapacity && a.max_capacity != null && (
-                <div className="opacity-80">cap: {a.max_capacity}</div>
-              )}
-              {cardFields.showPrograma && a.programa_title && (
-                <div className="truncate opacity-80">{a.programa_title}</div>
-              )}
+            <div className="flex items-start gap-1.5 px-1.5 py-1 text-xs leading-tight">
+              <span
+                aria-hidden
+                className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
+                style={{ background: aberto ? "var(--accent)" : "rgba(255,255,255,0.5)" }}
+              />
+              <div className="min-w-0">
+                <div className="truncate font-semibold">{info.event.title}</div>
+                {cardFields.showDate && a.start_date && (
+                  <div className="truncate opacity-80">{a.start_date}</div>
+                )}
+                {cardFields.showCategory && a.formato && (
+                  <div className="truncate opacity-80">{a.formato}</div>
+                )}
+                {cardFields.showStatus && a.registration_status && (
+                  <div className="truncate opacity-80">{a.registration_status}</div>
+                )}
+                {cardFields.showCapacity && a.max_capacity != null && (
+                  <div className="truncate opacity-80">cap: {a.max_capacity}</div>
+                )}
+                {cardFields.showPrograma && a.programa_title && (
+                  <div className="truncate opacity-80">{a.programa_title}</div>
+                )}
+              </div>
             </div>
           );
         }}
@@ -84,3 +102,4 @@ export function AcoesCalendar({ data, cardFields, onOpen }: Props) {
     </div>
   );
 }
+
