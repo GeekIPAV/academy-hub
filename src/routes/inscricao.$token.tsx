@@ -54,29 +54,11 @@ function InscricaoPage() {
   // Só é seguro decidir depois de o perfil ter sido efetivamente carregado.
   const certCompleto = perfilFetched && isCertCompleto(perfil ?? null);
 
-  // Decide/corrige o passo sempre que o estado dos dados muda
+  // Sempre que o link é aberto, começa no primeiro passo aplicável.
   useEffect(() => {
-    if (!cohort || authed !== true || !perfilFetched) return;
-
-    const noPdf = !cohort.info_pdf_url;
-    if (noPdf) setScrolledToEnd(true);
-
-    setStep((s) => {
-      if (s === "done") return s;
-      // Dados incompletos: nunca deixar ficar preso em "confirm"
-      if (!certCompleto) {
-        if (s === "confirm") {
-          toast.info("Faltam dados de certificação — completa o formulário para continuares.");
-          return "form";
-        }
-        if (noPdf) return "form";
-        return s;
-      }
-      // Dados completos: se o PDF já foi validado (ou não existe), avança
-      if (s === "pdf" && (noPdf || scrolledToEnd)) return "confirm";
-      return s;
-    });
-  }, [cohort, authed, perfilFetched, certCompleto, scrolledToEnd]);
+    if (!cohort) return;
+    setStep(cohort.info_pdf_url ? "pdf" : "form");
+  }, [cohort]);
 
   const onScrollPdf = () => {
     const el = scrollerRef.current;
