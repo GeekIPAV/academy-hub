@@ -209,9 +209,11 @@ function InscricaoPage() {
                       className="w-full h-[60vh] rounded-md border bg-muted"
                       title="PDF do programa"
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Faz scroll até ao fim desta página para continuares.
-                    </p>
+                    {!scrolledToEnd && (
+                      <p className="text-xs text-muted-foreground">
+                        Faz scroll até ao fim desta página para continuares.
+                      </p>
+                    )}
                   </>
                 ) : (
                   <div className="rounded-md border border-dashed p-6 text-sm text-center text-muted-foreground">
