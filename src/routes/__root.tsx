@@ -144,6 +144,7 @@ function AppShell() {
     pathname === "/auth" ||
     pathname === "/reset-password" ||
     pathname.startsWith("/inscricao/") ||
+    pathname.startsWith("/inscricao-entidade/") ||
     pathname.startsWith("/evento/") ||
     pathname.startsWith("/convite/");
 
