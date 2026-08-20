@@ -103,7 +103,7 @@ function DashboardPage() {
             <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
             Academia de Líderes Ubuntu
           </span>
-          <h1 className="mt-4 text-3xl font-semibold leading-tight sm:text-4xl">
+          <h1 className="mt-4 text-3xl font-semibold leading-tight text-secondary-foreground sm:text-4xl">
             {getGreeting()}
             {firstName ? (
               <>
