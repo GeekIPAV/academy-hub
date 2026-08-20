@@ -9,6 +9,7 @@ import {
   Check,
   ShieldAlert,
   Sparkles,
+  ArrowLeft,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -319,6 +320,18 @@ function PublicEventPage() {
         <div className="pointer-events-none absolute inset-0 bg-white" style={{ opacity: 1 - bgOpacity }} />
       )}
       <div className="relative mx-auto flex max-w-xl flex-col items-center gap-6">
+        <div className="flex w-full items-center justify-start">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="-ml-2 text-muted-foreground hover:text-foreground"
+            onClick={() => navigate({ to: "/acoes" })}
+          >
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Voltar às ações
+          </Button>
+        </div>
         <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-12 w-auto" />
 
         {event.isLoading ? (

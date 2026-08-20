@@ -159,11 +159,7 @@ function AcoesPublicPage() {
           onOpen={(id) => navigate({ to: "/evento/$id", params: { id } })}
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((a) => (
-            <AcaoCard key={a.id} acao={a} />
-          ))}
-        </div>
+        <GaleriaAcoes acoes={filtered} />
       )}
     </div>
   );
@@ -210,6 +206,45 @@ function Pill({ children, tone = "muted" }: { children: React.ReactNode; tone?: 
     >
       {children}
     </span>
+  );
+}
+
+function GaleriaAcoes({ acoes }: { acoes: AcaoPublicaRow[] }) {
+  const grouped = useMemo(() => {
+    const byProgram = new Map<string, AcaoPublicaRow[]>();
+    const withoutProgram: AcaoPublicaRow[] = [];
+    for (const a of acoes) {
+      const title = a.programa_title?.trim();
+      if (title) {
+        if (!byProgram.has(title)) byProgram.set(title, []);
+        byProgram.get(title)!.push(a);
+      } else {
+        withoutProgram.push(a);
+      }
+    }
+    return { sections: Array.from(byProgram.entries()), withoutProgram };
+  }, [acoes]);
+
+  return (
+    <div className="space-y-8">
+      {grouped.sections.map(([title, items]) => (
+        <section key={title}>
+          <h2 className="mb-3 text-lg font-semibold tracking-tight text-secondary">{title}</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map((a) => (
+              <AcaoCard key={a.id} acao={a} />
+            ))}
+          </div>
+        </section>
+      ))}
+      {grouped.withoutProgram.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {grouped.withoutProgram.map((a) => (
+            <AcaoCard key={a.id} acao={a} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
