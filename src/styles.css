@@ -207,8 +207,9 @@
   font-weight: 700;
   color: var(--secondary);
   letter-spacing: -0.01em;
-  text-transform: capitalize;
+  text-transform: none;
 }
+.alu-calendar .fc .fc-toolbar-title::first-letter { text-transform: uppercase; }
 .alu-calendar .fc .fc-button {
   background: var(--card);
   border: 1px solid var(--border);
