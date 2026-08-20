@@ -210,7 +210,7 @@ function InscricaoPage() {
                       title="PDF do programa"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Faz scroll até ao fim do documento para continuares.
+                      Faz scroll até ao fim desta página para continuares.
                     </p>
                   </>
                 ) : (
@@ -218,7 +218,7 @@ function InscricaoPage() {
                     Sem documento informativo para este programa.
                   </div>
                 )}
-                <div className="h-2" />
+                <div ref={sentinelRef} className="h-2" />
               </div>
               <div className="border-t p-4 flex justify-end">
                 <Button onClick={goAfterPdf} disabled={!scrolledToEnd || !perfilFetched}>
