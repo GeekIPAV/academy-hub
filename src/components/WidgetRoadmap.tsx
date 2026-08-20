@@ -48,15 +48,16 @@ export function WidgetRoadmap() {
     };
   }, [fetchRoadmap]);
 
+  if (error) return null;
+  if (items && items.length === 0) return null;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-base">O Meu Percurso</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        {error ? (
-          <p className="px-6 pb-6 text-sm text-destructive">{error}</p>
-        ) : !items ? (
+        {!items ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           </div>
@@ -64,10 +65,16 @@ export function WidgetRoadmap() {
           <ul className="divide-y">
             {items.map((item) => {
               const Icon = ICONS[item.phase];
+              const isFormadorPhase = item.phase === "FORMADOR";
               const disabled = !item.action;
-              const badge = disabled
-                ? { label: "A aguardar agendamento", variant: "outline" as const }
-                : statusBadge(item.action!.registration_status);
+              const badge = isFormadorPhase
+                ? item.achieved
+                  ? { label: "Atingido", variant: "default" as const }
+                  : { label: "Por atingir", variant: "outline" as const }
+                : disabled
+                  ? { label: "A aguardar agendamento", variant: "outline" as const }
+                  : statusBadge(item.action!.registration_status);
+
 
               const row = (
                 <div
