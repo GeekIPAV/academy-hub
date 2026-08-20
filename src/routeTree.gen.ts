@@ -15,6 +15,7 @@ import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as ElearningRouteImport } from './routes/elearning'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DadosCertificacaoRouteImport } from './routes/dados-certificacao'
+import { Route as BannerPreviewRouteImport } from './routes/banner-preview'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ActionsRouteImport } from './routes/actions'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -84,6 +85,11 @@ const DashboardRoute = DashboardRouteImport.update({
 const DadosCertificacaoRoute = DadosCertificacaoRouteImport.update({
   id: '/dados-certificacao',
   path: '/dados-certificacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BannerPreviewRoute = BannerPreviewRouteImport.update({
+  id: '/banner-preview',
+  path: '/banner-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -302,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/actions': typeof ActionsRoute
   '/auth': typeof AuthRoute
+  '/banner-preview': typeof BannerPreviewRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
   '/elearning': typeof ElearningRoute
@@ -349,6 +356,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/actions': typeof ActionsRoute
   '/auth': typeof AuthRoute
+  '/banner-preview': typeof BannerPreviewRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
   '/elearning': typeof ElearningRoute
@@ -396,6 +404,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/actions': typeof ActionsRoute
   '/auth': typeof AuthRoute
+  '/banner-preview': typeof BannerPreviewRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
   '/elearning': typeof ElearningRoute
@@ -445,6 +454,7 @@ export interface FileRouteTypes {
     | '/'
     | '/actions'
     | '/auth'
+    | '/banner-preview'
     | '/dados-certificacao'
     | '/dashboard'
     | '/elearning'
@@ -492,6 +502,7 @@ export interface FileRouteTypes {
     | '/'
     | '/actions'
     | '/auth'
+    | '/banner-preview'
     | '/dados-certificacao'
     | '/dashboard'
     | '/elearning'
@@ -538,6 +549,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/actions'
     | '/auth'
+    | '/banner-preview'
     | '/dados-certificacao'
     | '/dashboard'
     | '/elearning'
@@ -587,6 +599,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   ActionsRoute: typeof ActionsRoute
   AuthRoute: typeof AuthRoute
+  BannerPreviewRoute: typeof BannerPreviewRoute
   DadosCertificacaoRoute: typeof DadosCertificacaoRoute
   DashboardRoute: typeof DashboardRoute
   ElearningRoute: typeof ElearningRoute
@@ -664,6 +677,13 @@ declare module '@tanstack/react-router' {
       path: '/dados-certificacao'
       fullPath: '/dados-certificacao'
       preLoaderRoute: typeof DadosCertificacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/banner-preview': {
+      id: '/banner-preview'
+      path: '/banner-preview'
+      fullPath: '/banner-preview'
+      preLoaderRoute: typeof BannerPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -1017,6 +1037,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ActionsRoute: ActionsRoute,
   AuthRoute: AuthRoute,
+  BannerPreviewRoute: BannerPreviewRoute,
   DadosCertificacaoRoute: DadosCertificacaoRoute,
   DashboardRoute: DashboardRoute,
   ElearningRoute: ElearningRoute,
