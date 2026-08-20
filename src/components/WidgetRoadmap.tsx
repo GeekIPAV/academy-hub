@@ -54,7 +54,13 @@ function unwrap(r: unknown): { items: RoadmapItem[]; preview: boolean } {
   };
 }
 
-export function WidgetRoadmap() {
+export function WidgetRoadmap({
+  cohortId,
+  programLabel,
+}: {
+  cohortId?: string;
+  programLabel?: string | null;
+} = {}) {
   const fetchRoadmap = useServerFn(getRoadmap);
   const [items, setItems] = useState<RoadmapItem[] | null>(null);
   const [preview, setPreview] = useState(false);
@@ -62,7 +68,8 @@ export function WidgetRoadmap() {
 
   useEffect(() => {
     let mounted = true;
-    fetchRoadmap()
+    setItems(null);
+    fetchRoadmap({ data: { cohortId } } as never)
       .then((r: unknown) => {
         if (!mounted) return;
         const { items: arr, preview: isPreview } = unwrap(r);
@@ -73,7 +80,7 @@ export function WidgetRoadmap() {
     return () => {
       mounted = false;
     };
-  }, [fetchRoadmap]);
+  }, [fetchRoadmap, cohortId]);
 
   if (error) return null;
   if (items && items.length === 0) return null;
@@ -91,13 +98,18 @@ export function WidgetRoadmap() {
 
   return (
     <section aria-labelledby="percurso-title">
-      <div className="mb-3 flex items-center gap-3">
+      <div className="mb-3 flex items-center gap-2">
         <h2
           id="percurso-title"
           className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
         >
           O Meu Percurso
         </h2>
+        {programLabel && (
+          <span className="min-w-0 truncate text-xs text-muted-foreground/80">
+            · {programLabel}
+          </span>
+        )}
         <span className="h-px flex-1 bg-border" aria-hidden="true" />
         {preview && (
           <Badge variant="outline" className="shrink-0 text-[11px] font-medium">
@@ -105,6 +117,7 @@ export function WidgetRoadmap() {
           </Badge>
         )}
       </div>
+
 
       <div className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-7">
         {!items ? (
