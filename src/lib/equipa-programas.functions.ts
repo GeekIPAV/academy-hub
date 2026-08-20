@@ -47,6 +47,45 @@ function randomToken(): string {
     .join("");
 }
 
+/**
+ * Revoga o acesso concedido por uma aprovação anterior:
+ * desativa convites da entidade e remove o role "Entidade" + entity_id
+ * das contas ligadas, mantendo a conta e os restantes roles.
+ */
+async function revokeEntityAccess(entityId: string) {
+  await supabaseAdmin
+    .from("convites")
+    .update({ is_active: false })
+    .eq("entity_id", entityId)
+    .eq("is_active", true);
+
+  const { data: owners } = await supabaseAdmin
+    .from("utilizadores")
+    .select("id")
+    .eq("entity_id", entityId);
+
+  for (const owner of owners ?? []) {
+    await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", owner.id)
+      .eq("role_name", "Entidade");
+
+    await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: owner.id, role_name: "Utilizador" })
+      .then(
+        () => null,
+        () => null,
+      );
+
+    await supabaseAdmin
+      .from("utilizadores")
+      .update({ entity_id: null })
+      .eq("id", owner.id);
+  }
+}
+
 // ───────────────────────── Público (link de inscrição) ─────────────────────────
 
 const tokenSchema = z.object({ token: z.string().trim().min(4).max(128) });
@@ -321,11 +360,25 @@ export const decidirOrganizacaoInscricao = createServerFn({ method: "POST" })
     if (!cohort) throw new Error("Inscrição não encontrada.");
 
     if (data.decision === "rejeitada" || data.decision === "pendente") {
+      const previousStatus = (
+        await supabaseAdmin
+          .from("entidades_programas")
+          .select("status")
+          .eq("id", data.cohortId)
+          .maybeSingle()
+      ).data?.status;
+
       const { error } = await supabaseAdmin
         .from("entidades_programas")
         .update({ status: data.decision, is_active: false })
         .eq("id", data.cohortId);
       if (error) throw new Error(error.message);
+
+      // Reverter uma aprovação revoga o acesso já concedido.
+      if (previousStatus === "aprovada" && cohort.entity_id) {
+        await revokeEntityAccess(cohort.entity_id);
+      }
+
       return { ok: true, decision: data.decision };
     }
 
