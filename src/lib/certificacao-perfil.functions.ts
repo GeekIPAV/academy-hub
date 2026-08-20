@@ -79,11 +79,17 @@ export const saveMeuPerfilCertificacao = createServerFn({ method: "POST" })
       throw new Error("É necessário consentir o tratamento de dados.");
     }
     const full_name = `${data.first_names} ${data.last_names}`.trim();
-    const { error } = await context.supabase
+    const { data: rows, error } = await context.supabase
       .from("utilizadores")
       .update({ ...data, full_name })
-      .eq("id", context.userId);
+      .eq("id", context.userId)
+      .select("id");
     if (error) throw new Error(error.message);
+    if (!rows || rows.length === 0) {
+      throw new Error(
+        "Não foi possível guardar os dados (nenhum registo atualizado). Volta a iniciar sessão e tenta novamente.",
+      );
+    }
     return { ok: true };
   });
 
