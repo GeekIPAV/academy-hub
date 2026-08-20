@@ -15,11 +15,7 @@ export function ImprovingBanner() {
   return (
     <div className="relative mt-6 flex items-center gap-4 overflow-hidden rounded-2xl border border-primary/10 bg-card p-4 shadow-sm sm:p-5">
       <div className="flex-1">
-        <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium tracking-wide text-primary">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true" />
-          Em construção
-        </span>
-        <h2 className="mt-2 text-base font-semibold tracking-tight text-foreground sm:text-lg">
+        <h2 className="text-base font-semibold tracking-tight text-foreground sm:text-lg">
           Estamos a melhorar esta página
         </h2>
         <p className="mt-0.5 text-sm text-muted-foreground">
