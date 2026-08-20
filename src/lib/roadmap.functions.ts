@@ -38,10 +38,17 @@ const ROADMAP_CLUSTERS = [
   "Formação de Formadores Educadores - Ensino Superior",
 ];
 
+export interface RoadmapResult {
+  items: RoadmapItem[];
+  /** true quando é uma pré-visualização de admin (sem inscrição própria) */
+  preview: boolean;
+}
+
 export const getRoadmap = createServerFn({ method: "GET" })
   .middleware([attachSupabaseAuth, requireSupabaseAuth])
-  .handler(async ({ context }): Promise<RoadmapItem[]> => {
+  .handler(async ({ context }): Promise<RoadmapResult> => {
     const { supabase, userId } = context;
+    const empty: RoadmapResult = { items: [], preview: false };
 
     const { data: enrollments, error: eErr } = await supabase
       .from("inscritos_programa")
@@ -57,25 +64,58 @@ export const getRoadmap = createServerFn({ method: "GET" })
         }
       | undefined;
     const cohort = enrollment?.entidades_programas;
-    const programId = cohort?.program_id ?? null;
-    const entityId = cohort?.entity_id ?? null;
+    let programId = cohort?.program_id ?? null;
+    let entityId = cohort?.entity_id ?? null;
     const isFormador = enrollment?.is_formador === true;
+    let preview = false;
 
-    if (!programId) {
-      return [];
-    }
+    // Admins veem sempre o widget: se não tiverem inscrição própria num cluster
+    // de Formação de Formadores, mostramos uma pré-visualização do primeiro
+    // programa ativo desses clusters.
+    const { data: isAdmin } = await supabaseAdmin.rpc("is_admin", { _user_id: userId });
 
-    // Só mostra o percurso para programas dos clusters de Formação de Formadores.
-    const { data: programa } = await supabaseAdmin
-      .from("programas")
-      .select("cluster_id, clusters(name)")
-      .eq("id", programId)
-      .maybeSingle();
-    const clusterName =
-      (programa as { clusters?: { name?: string | null } | null } | null)?.clusters?.name ?? null;
+    const clusterOf = async (id: string) => {
+      const { data } = await supabaseAdmin
+        .from("programas")
+        .select("cluster_id, clusters(name)")
+        .eq("id", id)
+        .maybeSingle();
+      return (
+        (data as { clusters?: { name?: string | null } | null } | null)?.clusters?.name ?? null
+      );
+    };
+
+    let clusterName = programId ? await clusterOf(programId) : null;
+
     if (!clusterName || !ROADMAP_CLUSTERS.includes(clusterName)) {
-      return [];
+      if (!isAdmin) return empty;
+
+      const { data: clusterRows } = await supabaseAdmin
+        .from("clusters")
+        .select("id, name")
+        .in("name", ROADMAP_CLUSTERS);
+      const clusterIds = (clusterRows ?? []).map((c) => c.id);
+      if (clusterIds.length === 0) return empty;
+
+      const { data: fallback } = await supabaseAdmin
+        .from("programas")
+        .select("id, cluster_id")
+        .in("cluster_id", clusterIds)
+        .eq("is_active", true)
+        .limit(1);
+      const fallbackProgram = fallback?.[0];
+      if (!fallbackProgram) return empty;
+
+      programId = fallbackProgram.id;
+      entityId = null;
+      preview = true;
+      clusterName =
+        (clusterRows ?? []).find((c) => c.id === fallbackProgram.cluster_id)?.name ?? null;
     }
+
+    if (!programId) return empty;
+
+
 
 
     const { data: ftcActions } = await supabaseAdmin
