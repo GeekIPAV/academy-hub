@@ -31,7 +31,7 @@ export function ImprovingBanner() {
         </span>
         <h2 className="mt-3 !text-secondary-foreground text-xl font-semibold tracking-tight sm:text-2xl">Estamos a melhorar esta página</h2>
         <p className="mt-1 text-sm text-secondary-foreground/70">
-          Estamos a construir a ponte — volta em breve para ver as novidades.
+          Volta em breve para ver as novidades.
         </p>
       </div>
       <ConstructionBridge className="relative block w-full h-auto max-h-44 text-secondary-foreground/70" />
