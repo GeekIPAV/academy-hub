@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -158,6 +159,13 @@ function InscricaoPage() {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6">
       <div className="mx-auto max-w-3xl">
+        <div className="mb-3 flex items-center justify-end">
+          <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+            <Link to="/dashboard">
+              <X className="mr-1 h-4 w-4" /> Sair
+            </Link>
+          </Button>
+        </div>
         <Card className="flex flex-col max-h-[92vh]">
           <CardHeader className="border-b">
             <CardTitle>{cohort.program_title ?? "Programa"}</CardTitle>
