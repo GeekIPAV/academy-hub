@@ -303,7 +303,7 @@ export const decidirOrganizacaoInscricao = createServerFn({ method: "POST" })
     z
       .object({
         cohortId: z.string().uuid(),
-        decision: z.enum(["aprovada", "rejeitada"]),
+        decision: z.enum(["aprovada", "rejeitada", "pendente"]),
       })
       .parse(i),
   )
@@ -320,14 +320,15 @@ export const decidirOrganizacaoInscricao = createServerFn({ method: "POST" })
     if (cErr) throw new Error(cErr.message);
     if (!cohort) throw new Error("Inscrição não encontrada.");
 
-    if (data.decision === "rejeitada") {
+    if (data.decision === "rejeitada" || data.decision === "pendente") {
       const { error } = await supabaseAdmin
         .from("entidades_programas")
-        .update({ status: "rejeitada", is_active: false })
+        .update({ status: data.decision, is_active: false })
         .eq("id", data.cohortId);
       if (error) throw new Error(error.message);
-      return { ok: true, decision: "rejeitada" as const };
+      return { ok: true, decision: data.decision };
     }
+
 
     const inviteToken = cohort.invite_token ?? randomToken();
     const { error: uErr } = await supabaseAdmin
