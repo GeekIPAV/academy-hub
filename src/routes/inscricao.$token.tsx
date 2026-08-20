@@ -218,7 +218,7 @@ function InscricaoPage() {
                 <Button variant="ghost" onClick={() => setStep("form")}>
                   Editar dados
                 </Button>
-                <Button onClick={handleEnroll} disabled={submitting}>
+                <Button onClick={handleEnroll} disabled={submitting || !certCompleto}>
                   {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Confirmar inscrição
                 </Button>
