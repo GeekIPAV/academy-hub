@@ -321,11 +321,25 @@ export const decidirOrganizacaoInscricao = createServerFn({ method: "POST" })
     if (!cohort) throw new Error("Inscrição não encontrada.");
 
     if (data.decision === "rejeitada" || data.decision === "pendente") {
+      const previousStatus = (
+        await supabaseAdmin
+          .from("entidades_programas")
+          .select("status")
+          .eq("id", data.cohortId)
+          .maybeSingle()
+      ).data?.status;
+
       const { error } = await supabaseAdmin
         .from("entidades_programas")
         .update({ status: data.decision, is_active: false })
         .eq("id", data.cohortId);
       if (error) throw new Error(error.message);
+
+      // Reverter uma aprovação revoga o acesso já concedido.
+      if (previousStatus === "aprovada" && cohort.entity_id) {
+        await revokeEntityAccess(cohort.entity_id);
+      }
+
       return { ok: true, decision: data.decision };
     }
 
