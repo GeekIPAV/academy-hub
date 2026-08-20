@@ -38,9 +38,26 @@ function statusBadge(status: string | null | undefined) {
 
 type NodeState = "done" | "active" | "pending";
 
+function unwrap(r: unknown): { items: RoadmapItem[]; preview: boolean } {
+  const candidate =
+    (r as { items?: RoadmapItem[] } | null)?.items !== undefined
+      ? (r as { items: RoadmapItem[]; preview?: boolean })
+      : ((r as { data?: unknown } | null)?.data as
+          | { items: RoadmapItem[]; preview?: boolean }
+          | undefined) ??
+        ((r as { result?: unknown } | null)?.result as
+          | { items: RoadmapItem[]; preview?: boolean }
+          | undefined);
+  return {
+    items: Array.isArray(candidate?.items) ? candidate.items : [],
+    preview: candidate?.preview === true,
+  };
+}
+
 export function WidgetRoadmap() {
   const fetchRoadmap = useServerFn(getRoadmap);
   const [items, setItems] = useState<RoadmapItem[] | null>(null);
+  const [preview, setPreview] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -48,14 +65,9 @@ export function WidgetRoadmap() {
     fetchRoadmap()
       .then((r: unknown) => {
         if (!mounted) return;
-        const arr = Array.isArray(r)
-          ? (r as RoadmapItem[])
-          : Array.isArray((r as { data?: RoadmapItem[] } | null)?.data)
-            ? (r as { data: RoadmapItem[] }).data
-            : Array.isArray((r as { result?: RoadmapItem[] } | null)?.result)
-              ? (r as { result: RoadmapItem[] }).result
-              : [];
+        const { items: arr, preview: isPreview } = unwrap(r);
         setItems(arr);
+        setPreview(isPreview);
       })
       .catch((e: Error) => mounted && setError(e.message));
     return () => {
@@ -65,6 +77,7 @@ export function WidgetRoadmap() {
 
   if (error) return null;
   if (items && items.length === 0) return null;
+
 
   const nodeState = (item: RoadmapItem): NodeState => {
     if (item.achieved) return "done";
