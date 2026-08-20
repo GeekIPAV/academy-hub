@@ -10,6 +10,7 @@ import {
   listProgramaParticipantesEquipa,
   decidirOrganizacaoInscricao,
   atualizarEstadoParticipante,
+  setProgramaEnrollmentOpenEquipa,
 } from "@/lib/equipa-programas.functions";
 import { RouteGate } from "@/components/RouteGate";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -75,6 +77,40 @@ const PART_STATUS: Array<{ value: string; label: string }> = [
 function copy(text: string) {
   navigator.clipboard.writeText(text);
   toast.success("Link copiado");
+}
+
+function EnrollmentToggle({ programId, open }: { programId: string; open: boolean }) {
+  const qc = useQueryClient();
+  const toggleFn = useServerFn(setProgramaEnrollmentOpenEquipa);
+  const m = useMutation({
+    mutationFn: (vars: { programId: string; open: boolean }) => toggleFn({ data: vars }),
+    onMutate: async (vars) => {
+      await qc.cancelQueries({ queryKey: ["equipa-programas"] });
+      const prev = qc.getQueryData<any[]>(["equipa-programas"]);
+      qc.setQueryData<any[]>(["equipa-programas"], (old) =>
+        (old ?? []).map((p) =>
+          p.id === vars.programId ? { ...p, enrollment_open: vars.open } : p,
+        ),
+      );
+      return { prev };
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["equipa-programas"], ctx.prev);
+      toast.error(e.message);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["equipa-programas"] }),
+  });
+  return (
+    <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
+      <Switch
+        checked={open}
+        disabled={m.isPending}
+        onCheckedChange={(v) => m.mutate({ programId, open: v })}
+        aria-label="Inscrições abertas"
+      />
+      <span className="text-sm">Inscrições {open ? "abertas" : "fechadas"}</span>
+    </div>
+  );
 }
 
 function EquipaProgramasPage() {
@@ -146,6 +182,9 @@ function EquipaProgramasPage() {
             >
               {onlyActive ? "Ver todos" : "Ver só ativos"}
             </Button>
+            {selected && (
+              <EnrollmentToggle programId={selected.id} open={!!selected.enrollment_open} />
+            )}
           </div>
         )}
 

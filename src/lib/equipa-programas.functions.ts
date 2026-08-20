@@ -461,3 +461,21 @@ export const atualizarEstadoParticipante = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+const toggleEnrollmentEquipaSchema = z.object({
+  programId: z.string().uuid(),
+  open: z.boolean(),
+});
+
+export const setProgramaEnrollmentOpenEquipa = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => toggleEnrollmentEquipaSchema.parse(i))
+  .handler(async ({ data, context }) => {
+    await assertEquipa(context.userId);
+    const { error } = await supabaseAdmin
+      .from("programas")
+      .update({ enrollment_open: data.open })
+      .eq("id", data.programId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
