@@ -1,8 +1,9 @@
 import { useRouterState } from "@tanstack/react-router";
 import { useApp } from "@/lib/app-context";
+import mandela from "@/assets/mandela-traced.svg";
 
 /**
- * Banner "Estamos a melhorar esta página" — estilo Notion em construção.
+ * Banner "Estamos a melhorar esta página" — em construção, com identidade Ubuntu.
  */
 export function ImprovingBanner() {
   const { isComponentVisible } = useApp();
@@ -13,12 +14,31 @@ export function ImprovingBanner() {
   }
 
   return (
-    <div className="mt-8 overflow-hidden rounded-xl border border-ubuntu-blue/15 bg-linear-to-b from-ubuntu-yellow/10 to-ubuntu-blue/5 text-ubuntu-blue shadow-sm">
-      <p className="px-6 pt-6 pb-8 text-center text-base font-semibold tracking-wide">Estamos a melhorar esta página</p>
-      <ConstructionBridge className="block w-full h-auto max-h-40" />
+    <div className="relative mt-8 overflow-hidden rounded-3xl bg-secondary text-secondary-foreground shadow-sm">
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-contain bg-right bg-no-repeat opacity-10 invert"
+        style={{ backgroundImage: `url(${mandela})` }}
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 bg-linear-to-r from-secondary via-secondary/95 to-secondary/60"
+        aria-hidden="true"
+      />
+      <div className="relative px-6 pt-8 sm:px-10">
+        <span className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-3 py-1 text-xs font-medium tracking-wide text-secondary-foreground">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true" />
+          Em construção
+        </span>
+        <h2 className="mt-3 text-xl font-semibold tracking-tight sm:text-2xl">Estamos a melhorar esta página</h2>
+        <p className="mt-1 text-sm text-secondary-foreground/70">
+          Estamos a construir a ponte — volta em breve para ver as novidades.
+        </p>
+      </div>
+      <ConstructionBridge className="relative block w-full h-auto max-h-44 text-secondary-foreground/70" />
     </div>
   );
 }
+
 
 /* ----------------------------- Desenho da Ponte ----------------------------- */
 
