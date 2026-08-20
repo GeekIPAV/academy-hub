@@ -10,9 +10,6 @@ export function PlaceholderPage({ title, description }: PlaceholderPageProps) {
       <p className="text-muted-foreground">
         {description ?? "Esta secção está em construção."}
       </p>
-      <div className="rounded-lg border border-dashed bg-muted/30 p-12 text-center text-sm text-muted-foreground">
-        Conteúdo em breve.
-      </div>
     </div>
   );
 }
