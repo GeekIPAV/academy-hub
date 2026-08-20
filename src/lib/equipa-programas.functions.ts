@@ -47,6 +47,45 @@ function randomToken(): string {
     .join("");
 }
 
+/**
+ * Revoga o acesso concedido por uma aprovação anterior:
+ * desativa convites da entidade e remove o role "Entidade" + entity_id
+ * das contas ligadas, mantendo a conta e os restantes roles.
+ */
+async function revokeEntityAccess(entityId: string) {
+  await supabaseAdmin
+    .from("convites")
+    .update({ is_active: false })
+    .eq("entity_id", entityId)
+    .eq("is_active", true);
+
+  const { data: owners } = await supabaseAdmin
+    .from("utilizadores")
+    .select("id")
+    .eq("entity_id", entityId);
+
+  for (const owner of owners ?? []) {
+    await supabaseAdmin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", owner.id)
+      .eq("role_name", "Entidade");
+
+    await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: owner.id, role_name: "Utilizador" })
+      .then(
+        () => null,
+        () => null,
+      );
+
+    await supabaseAdmin
+      .from("utilizadores")
+      .update({ entity_id: null })
+      .eq("id", owner.id);
+  }
+}
+
 // ───────────────────────── Público (link de inscrição) ─────────────────────────
 
 const tokenSchema = z.object({ token: z.string().trim().min(4).max(128) });
