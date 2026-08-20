@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.is_equipa(uuid) FROM anon, public;
