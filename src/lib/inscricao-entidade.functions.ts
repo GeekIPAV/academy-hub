@@ -61,7 +61,9 @@ export const getClusterEnrollmentInfo = createServerFn({ method: "GET" })
         .select("program_id, status")
         .eq("entity_id", acting.entityId)
         .in("program_id", (programs ?? []).map((p) => p.id));
-      existing = (enr ?? []).map((e) => ({ program_id: e.program_id, status: e.status }));
+      existing = (enr ?? [])
+        .filter((e): e is { program_id: string; status: string } => !!e.program_id)
+        .map((e) => ({ program_id: e.program_id, status: e.status }));
     }
 
     let entities: Array<{ id: string; name: string }> = [];
