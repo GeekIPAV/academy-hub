@@ -325,7 +325,7 @@ function PublicEventPage() {
             type="button"
             variant="ghost"
             size="sm"
-            className="-ml-2 text-muted-foreground hover:text-foreground"
+            className="-ml-2 bg-card/95 text-foreground shadow-sm ring-1 ring-border backdrop-blur hover:bg-card hover:text-foreground"
             onClick={() => navigate({ to: "/acoes" })}
           >
             <ArrowLeft className="mr-1 h-4 w-4" />
