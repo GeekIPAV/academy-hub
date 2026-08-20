@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { GraduationCap, Briefcase, Sparkles, HeartHandshake, Loader2 } from "lucide-react";
+import { GraduationCap, Briefcase, Sparkles, HeartHandshake, Award, Loader2 } from "lucide-react";
 import { getRoadmap, type RoadmapItem, type RoadmapPhase } from "@/lib/roadmap.functions";
 
 const ICONS: Record<RoadmapPhase, React.ComponentType<{ className?: string }>> = {
@@ -11,7 +11,9 @@ const ICONS: Record<RoadmapPhase, React.ComponentType<{ className?: string }>> =
   FTP: Briefcase,
   SU: Sparkles,
   SF: HeartHandshake,
+  FORMADOR: Award,
 };
+
 
 function statusBadge(status: string | null | undefined) {
   const s = (status ?? "").toLowerCase();
