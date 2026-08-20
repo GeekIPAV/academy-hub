@@ -20,7 +20,9 @@ export function WidgetMeusProgramas({ showRoadmap = true }: { showRoadmap?: bool
     if (data && data.length === 1) setSelected(data[0].cohort_id);
   }, [data]);
 
-  if (isLoading || !data || data.length === 0) return null;
+  if (isLoading || !data) return null;
+  // Sem programas: mantém a pré-visualização de admin do percurso.
+  if (data.length === 0) return showRoadmap ? <WidgetRoadmap /> : null;
 
   const selectedPrograma = data.find((p) => p.cohort_id === selected) ?? null;
   const labelOf = (p: (typeof data)[number]) => {
