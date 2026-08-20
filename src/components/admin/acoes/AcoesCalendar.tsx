@@ -3,6 +3,8 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import ptLocale from "@fullcalendar/core/locales/pt";
+
 import type { AcaoRow } from "@/lib/admin-acoes-gestao.functions";
 
 export interface CardFieldsConfig {
