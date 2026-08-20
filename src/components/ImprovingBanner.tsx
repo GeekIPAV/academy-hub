@@ -29,7 +29,7 @@ export function ImprovingBanner() {
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" aria-hidden="true" />
           Em construção
         </span>
-        <h2 className="mt-3 text-secondary-foreground text-xl font-semibold tracking-tight sm:text-2xl">Estamos a melhorar esta página</h2>
+        <h2 className="mt-3 !text-secondary-foreground text-xl font-semibold tracking-tight sm:text-2xl">Estamos a melhorar esta página</h2>
         <p className="mt-1 text-sm text-secondary-foreground/70">
           Estamos a construir a ponte — volta em breve para ver as novidades.
         </p>
