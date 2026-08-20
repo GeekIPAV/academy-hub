@@ -150,16 +150,14 @@ function EquipaProgramasPage() {
         )}
 
         {publicLink && (
-          <div className="mt-4 rounded-md border bg-muted/40 p-3">
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Link de inscrição de organizações
-            </p>
-            <div className="mt-1 flex items-center gap-2">
-              <code className="flex-1 truncate text-xs">{publicLink}</code>
-              <Button size="sm" variant="outline" onClick={() => copy(publicLink)}>
-                <Copy className="mr-1 h-3.5 w-3.5" /> Copiar
-              </Button>
-            </div>
+          <div className="mt-3 flex items-center gap-2 rounded-md border bg-muted/40 px-2 py-1.5">
+            <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+              Link orgs
+            </span>
+            <code className="flex-1 truncate text-[10px]">{publicLink}</code>
+            <Button size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={() => copy(publicLink)}>
+              <Copy className="h-3 w-3" />
+            </Button>
           </div>
         )}
       </Card>
