@@ -118,7 +118,10 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
 
   const save = useMutation({
     mutationFn: () => saveFn({ data: form }),
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Garantir que o perfil recarregado (fonte de verdade) reflete o que foi
+      // gravado antes de avançar para a confirmação.
+      await qc.refetchQueries({ queryKey: ["meu-perfil-certificacao"] });
       toast.success("Dados guardados.");
       onSaved();
     },
