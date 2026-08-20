@@ -11,7 +11,7 @@ export const Route = createFileRoute("/elearning")({
         <ComponentAccessMatrix pagePath="/elearning" />
         <PlaceholderPage
           title="E-learning"
-          description="Plataforma de formação online. Em breve."
+          description="Plataforma de formação online."
         />
       </div>
     </RouteGate>
