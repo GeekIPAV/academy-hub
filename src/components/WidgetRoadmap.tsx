@@ -99,6 +99,11 @@ export function WidgetRoadmap() {
           O Meu Percurso
         </h2>
         <span className="h-px flex-1 bg-border" aria-hidden="true" />
+        {preview && (
+          <Badge variant="outline" className="shrink-0 text-[11px] font-medium">
+            Pré-visualização — não estás inscrito
+          </Badge>
+        )}
       </div>
 
       <div className="rounded-3xl border border-border bg-card p-5 shadow-sm sm:p-7">
