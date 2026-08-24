@@ -45,7 +45,6 @@ export const NAV_GROUPS: NavGroup[] = [
       { path: "/dashboard", label: "Página Inicial", icon: LayoutDashboard, gated: true },
       { path: "/entidade/dashboard", label: "Página da Organização", icon: Building2, gated: true },
       { path: "/acoes", label: "Ações", icon: CalendarDays, gated: true },
-      { path: "/actions", label: "Eventos e Formações", icon: ListChecks, gated: true },
     ],
   },
   {
