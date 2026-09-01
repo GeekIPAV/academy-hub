@@ -83,4 +83,3 @@ export function renderRichText(content: unknown) {
 }
 
 export function blockClassName(type: PageBlock["type"]) { return cn(type === "table" && "overflow-x-auto"); }
-EOF
