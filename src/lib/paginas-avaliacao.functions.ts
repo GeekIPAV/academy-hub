@@ -68,8 +68,11 @@ export const getPaginaAvaliacao = createServerFn({ method: "GET" })
       .eq("slug", data.slug)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    return (page ?? null) as unknown as AvaliacaoPage | null;
+    if (!page) return null;
+    const [seeded] = await ensureSeeded([page as unknown as AvaliacaoPage]);
+    return seeded;
   });
+
 
 export const updatePaginaAvaliacao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
