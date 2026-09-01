@@ -9,7 +9,7 @@ import { Bold, GripVertical, Italic, List, ListOrdered, Plus, Trash2 } from "luc
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { newRichTextBlock, newTableBlock, type PageBlock, type PageDoc } from "@/lib/avaliacao-types";
+import { newRichTextBlock, newTableBlock, type PageBlock, type PageDoc, type RichTextContent } from "@/lib/avaliacao-types";
 
 export function PaginaAvaliacaoEditor({ value, onChange }: { value: PageDoc; onChange: (value: PageDoc) => void }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -70,8 +70,8 @@ function TableEditor({ block, onPatch }: { block: PageBlock; onPatch: (changes: 
   );
 }
 
-function RichTextEditor({ value, onChange }: { value: unknown; onChange: (value: Record<string, unknown>) => void }) {
-  const editor = useEditor({ extensions: [StarterKit], content: (value as object) ?? { type: "doc", content: [{ type: "paragraph" }] }, onUpdate: ({ editor: current }) => onChange(current.getJSON() as Record<string, unknown>) });
+function RichTextEditor({ value, onChange }: { value: RichTextContent | undefined; onChange: (value: RichTextContent) => void }) {
+  const editor = useEditor({ extensions: [StarterKit], content: value ?? { type: "doc", content: [{ type: "paragraph" }] }, onUpdate: ({ editor: current }) => onChange(current.getJSON() as RichTextContent) });
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!editor) return null;
@@ -83,4 +83,3 @@ export function renderRichText(content: unknown) {
 }
 
 export function blockClassName(type: PageBlock["type"]) { return cn(type === "table" && "overflow-x-auto"); }
-EOF
