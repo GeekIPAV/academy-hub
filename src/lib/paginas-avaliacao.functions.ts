@@ -25,6 +25,27 @@ async function assertAvaliacaoEditor(userId: string) {
   }
 }
 
+/**
+ * Garante que os recursos têm o conteúdo base carregado. As páginas são criadas
+ * vazias na base de dados; na primeira leitura o conteúdo integral é escrito.
+ */
+async function ensureSeeded(pages: AvaliacaoPage[]) {
+  const empty = pages.filter((page) => !page.blocks || !Array.isArray(page.blocks.blocks) || page.blocks.blocks.length === 0);
+  if (empty.length === 0) return pages;
+  const { AVALIACAO_PAGES } = await import("@/lib/avaliacao-pages.server");
+  const filled = await Promise.all(
+    pages.map(async (page) => {
+      const seed = AVALIACAO_PAGES.find((item) => item.slug === page.slug);
+      const isEmpty = empty.some((item) => item.id === page.id);
+      if (!seed || !isEmpty) return page;
+      const blocks = { blocks: seed.blocks } as unknown as PageDoc;
+      await supabaseAdmin.from("paginas_avaliacao").update({ blocks }).eq("id", page.id);
+      return { ...page, blocks };
+    }),
+  );
+  return filled;
+}
+
 export const listPaginasAvaliacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
@@ -33,8 +54,9 @@ export const listPaginasAvaliacao = createServerFn({ method: "GET" })
       .select(pageSelect)
       .order("sort_order", { ascending: true });
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as AvaliacaoPage[];
+    return await ensureSeeded((data ?? []) as unknown as AvaliacaoPage[]);
   });
+
 
 export const getPaginaAvaliacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
