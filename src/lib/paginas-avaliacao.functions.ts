@@ -32,6 +32,7 @@ async function assertAvaliacaoEditor(userId: string) {
 async function ensureSeeded(pages: AvaliacaoPage[]) {
   const empty = pages.filter((page) => !page.blocks || !Array.isArray(page.blocks.blocks) || page.blocks.blocks.length === 0);
   if (empty.length === 0) return pages;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { AVALIACAO_PAGES } = await import("@/lib/avaliacao-pages.server");
   const filled = await Promise.all(
     pages.map(async (page) => {
@@ -39,7 +40,8 @@ async function ensureSeeded(pages: AvaliacaoPage[]) {
       const isEmpty = empty.some((item) => item.id === page.id);
       if (!seed || !isEmpty) return page;
       const blocks = { blocks: seed.blocks } as unknown as PageDoc;
-      await supabaseAdmin.from("paginas_avaliacao").update({ blocks }).eq("id", page.id);
+      const { error } = await supabaseAdmin.from("paginas_avaliacao").update({ blocks }).eq("id", page.id);
+      if (error) throw new Error(error.message);
       return { ...page, blocks };
     }),
   );
