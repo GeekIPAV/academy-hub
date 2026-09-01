@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { AvaliacaoPage, PageDoc } from "@/lib/avaliacao-types";
 
 const pageSelect = "id, slug, title, sort_order, blocks, cover_url, cover_position, cover_scale, created_at, updated_at";
@@ -15,6 +14,7 @@ const editorSchema = z.object({
 });
 
 async function assertAvaliacaoEditor(userId: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("user_roles")
     .select("role_name")
@@ -49,6 +49,7 @@ async function ensureSeeded(pages: AvaliacaoPage[]) {
 export const listPaginasAvaliacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("paginas_avaliacao")
       .select(pageSelect)
@@ -62,6 +63,7 @@ export const getPaginaAvaliacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ slug: z.string().min(1) }).parse(input))
   .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: page, error } = await supabaseAdmin
       .from("paginas_avaliacao")
       .select(pageSelect)
@@ -79,6 +81,7 @@ export const updatePaginaAvaliacao = createServerFn({ method: "POST" })
   .inputValidator((input) => editorSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAvaliacaoEditor(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("paginas_avaliacao")
       .update({
@@ -98,6 +101,7 @@ export const reorderPaginasAvaliacao = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ firstId: z.string().uuid(), secondId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     await assertAvaliacaoEditor(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("paginas_avaliacao")
       .select("id, sort_order")
