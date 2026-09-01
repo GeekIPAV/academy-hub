@@ -1089,6 +1089,45 @@ export type Database = {
           },
         ]
       }
+      paginas_avaliacao: {
+        Row: {
+          blocks: Json
+          cover_position: string
+          cover_scale: number
+          cover_url: string | null
+          created_at: string
+          id: string
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          blocks?: Json
+          cover_position?: string
+          cover_scale?: number
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          blocks?: Json
+          cover_position?: string
+          cover_scale?: number
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       paginas_conteudo: {
         Row: {
           content: Json
