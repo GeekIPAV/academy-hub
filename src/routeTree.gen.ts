@@ -40,12 +40,14 @@ import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
 import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
 import { Route as AuthenticatedInscricaoProgramasRouteImport } from './routes/_authenticated/inscricao-programas'
+import { Route as AuthenticatedCulturaUbuntuRouteImport } from './routes/_authenticated/cultura-ubuntu'
 import { Route as AuthenticatedAcoesRouteImport } from './routes/_authenticated/acoes'
 import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
 import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
 import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
+import { Route as AuthenticatedCulturaUbuntuAvaliacaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 import { Route as AuthenticatedRecursosClusterIndexRouteImport } from './routes/_authenticated/recursos.$cluster.index'
@@ -56,6 +58,8 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './routes/api/certificates.$actionId.$participanteId'
 import { Route as AuthenticatedRecursosClusterTemaIdRouteImport } from './routes/_authenticated/recursos.$cluster.$temaId'
+import { Route as AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/gestao'
+import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -214,6 +218,12 @@ const AuthenticatedInscricaoProgramasRoute =
     path: '/inscricao-programas',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedCulturaUbuntuRoute =
+  AuthenticatedCulturaUbuntuRouteImport.update({
+    id: '/cultura-ubuntu',
+    path: '/cultura-ubuntu',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAcoesRoute = AuthenticatedAcoesRouteImport.update({
   id: '/acoes',
   path: '/acoes',
@@ -245,6 +255,12 @@ const AuthenticatedRecursosClusterRoute =
     id: '/$cluster',
     path: '/$cluster',
     getParentRoute: () => AuthenticatedRecursosRoute,
+  } as any)
+const AuthenticatedCulturaUbuntuAvaliacaoRoute =
+  AuthenticatedCulturaUbuntuAvaliacaoRouteImport.update({
+    id: '/avaliacao',
+    path: '/avaliacao',
+    getParentRoute: () => AuthenticatedCulturaUbuntuRoute,
   } as any)
 const AuthenticatedAdminRecursosRoute =
   AuthenticatedAdminRecursosRouteImport.update({
@@ -303,6 +319,18 @@ const AuthenticatedRecursosClusterTemaIdRoute =
     path: '/$temaId',
     getParentRoute: () => AuthenticatedRecursosClusterRoute,
   } as any)
+const AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute =
+  AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport.update({
+    id: '/gestao',
+    path: '/gestao',
+    getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoRoute,
+  } as any)
+const AuthenticatedCulturaUbuntuAvaliacaoSlugRoute =
+  AuthenticatedCulturaUbuntuAvaliacaoSlugRouteImport.update({
+    id: '/$slug',
+    path: '/$slug',
+    getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -315,6 +343,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/acoes': typeof AuthenticatedAcoesRoute
+  '/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
@@ -338,11 +367,14 @@ export interface FileRoutesByFullPath {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/recursos/': typeof AuthenticatedRecursosIndexRoute
+  '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+  '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -363,6 +395,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/acoes': typeof AuthenticatedAcoesRoute
+  '/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/admin/acoes': typeof AdminAcoesRoute
   '/admin/badges': typeof AdminBadgesRoute
@@ -385,10 +418,13 @@ export interface FileRoutesByTo {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/recursos': typeof AuthenticatedRecursosIndexRoute
+  '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+  '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -411,6 +447,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/acoes': typeof AuthenticatedAcoesRoute
+  '/_authenticated/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/_authenticated/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRouteWithChildren
   '/admin/acoes': typeof AdminAcoesRoute
@@ -434,11 +471,14 @@ export interface FileRoutesById {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/_authenticated/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
   '/_authenticated/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
+  '/_authenticated/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+  '/_authenticated/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/_authenticated/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -461,6 +501,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/acoes'
+    | '/cultura-ubuntu'
     | '/inscricao-programas'
     | '/recursos'
     | '/admin/acoes'
@@ -484,11 +525,14 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
+    | '/cultura-ubuntu/avaliacao'
     | '/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
     | '/recursos/'
+    | '/cultura-ubuntu/avaliacao/$slug'
+    | '/cultura-ubuntu/avaliacao/gestao'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
     | '/lovable/email/auth/preview'
@@ -509,6 +553,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/acoes'
+    | '/cultura-ubuntu'
     | '/inscricao-programas'
     | '/admin/acoes'
     | '/admin/badges'
@@ -531,10 +576,13 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
+    | '/cultura-ubuntu/avaliacao'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
     | '/recursos'
+    | '/cultura-ubuntu/avaliacao/$slug'
+    | '/cultura-ubuntu/avaliacao/gestao'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
     | '/lovable/email/auth/preview'
@@ -556,6 +604,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/reset-password'
     | '/_authenticated/acoes'
+    | '/_authenticated/cultura-ubuntu'
     | '/_authenticated/inscricao-programas'
     | '/_authenticated/recursos'
     | '/admin/acoes'
@@ -579,11 +628,14 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
+    | '/_authenticated/cultura-ubuntu/avaliacao'
     | '/_authenticated/recursos/$cluster'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
     | '/_authenticated/recursos/'
+    | '/_authenticated/cultura-ubuntu/avaliacao/$slug'
+    | '/_authenticated/cultura-ubuntu/avaliacao/gestao'
     | '/_authenticated/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
     | '/lovable/email/auth/preview'
@@ -853,6 +905,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInscricaoProgramasRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/cultura-ubuntu': {
+      id: '/_authenticated/cultura-ubuntu'
+      path: '/cultura-ubuntu'
+      fullPath: '/cultura-ubuntu'
+      preLoaderRoute: typeof AuthenticatedCulturaUbuntuRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/acoes': {
       id: '/_authenticated/acoes'
       path: '/acoes'
@@ -894,6 +953,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/recursos/$cluster'
       preLoaderRoute: typeof AuthenticatedRecursosClusterRouteImport
       parentRoute: typeof AuthenticatedRecursosRoute
+    }
+    '/_authenticated/cultura-ubuntu/avaliacao': {
+      id: '/_authenticated/cultura-ubuntu/avaliacao'
+      path: '/avaliacao'
+      fullPath: '/cultura-ubuntu/avaliacao'
+      preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRouteImport
+      parentRoute: typeof AuthenticatedCulturaUbuntuRoute
     }
     '/_authenticated/admin/recursos': {
       id: '/_authenticated/admin/recursos'
@@ -965,8 +1031,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosClusterTemaIdRouteImport
       parentRoute: typeof AuthenticatedRecursosClusterRoute
     }
+    '/_authenticated/cultura-ubuntu/avaliacao/gestao': {
+      id: '/_authenticated/cultura-ubuntu/avaliacao/gestao'
+      path: '/gestao'
+      fullPath: '/cultura-ubuntu/avaliacao/gestao'
+      preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport
+      parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRoute
+    }
+    '/_authenticated/cultura-ubuntu/avaliacao/$slug': {
+      id: '/_authenticated/cultura-ubuntu/avaliacao/$slug'
+      path: '/$slug'
+      fullPath: '/cultura-ubuntu/avaliacao/$slug'
+      preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteImport
+      parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRoute
+    }
   }
 }
+
+interface AuthenticatedCulturaUbuntuAvaliacaoRouteChildren {
+  AuthenticatedCulturaUbuntuAvaliacaoSlugRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+  AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
+}
+
+const AuthenticatedCulturaUbuntuAvaliacaoRouteChildren: AuthenticatedCulturaUbuntuAvaliacaoRouteChildren =
+  {
+    AuthenticatedCulturaUbuntuAvaliacaoSlugRoute:
+      AuthenticatedCulturaUbuntuAvaliacaoSlugRoute,
+    AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute:
+      AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute,
+  }
+
+const AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren =
+  AuthenticatedCulturaUbuntuAvaliacaoRoute._addFileChildren(
+    AuthenticatedCulturaUbuntuAvaliacaoRouteChildren,
+  )
+
+interface AuthenticatedCulturaUbuntuRouteChildren {
+  AuthenticatedCulturaUbuntuAvaliacaoRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
+}
+
+const AuthenticatedCulturaUbuntuRouteChildren: AuthenticatedCulturaUbuntuRouteChildren =
+  {
+    AuthenticatedCulturaUbuntuAvaliacaoRoute:
+      AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren,
+  }
+
+const AuthenticatedCulturaUbuntuRouteWithChildren =
+  AuthenticatedCulturaUbuntuRoute._addFileChildren(
+    AuthenticatedCulturaUbuntuRouteChildren,
+  )
 
 interface AuthenticatedRecursosClusterRouteChildren {
   AuthenticatedRecursosClusterTemaIdRoute: typeof AuthenticatedRecursosClusterTemaIdRoute
@@ -1004,6 +1117,7 @@ const AuthenticatedRecursosRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAcoesRoute: typeof AuthenticatedAcoesRoute
+  AuthenticatedCulturaUbuntuRoute: typeof AuthenticatedCulturaUbuntuRouteWithChildren
   AuthenticatedInscricaoProgramasRoute: typeof AuthenticatedInscricaoProgramasRoute
   AuthenticatedRecursosRoute: typeof AuthenticatedRecursosRouteWithChildren
   AuthenticatedActionsIdRoute: typeof AuthenticatedActionsIdRoute
@@ -1012,6 +1126,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAcoesRoute: AuthenticatedAcoesRoute,
+  AuthenticatedCulturaUbuntuRoute: AuthenticatedCulturaUbuntuRouteWithChildren,
   AuthenticatedInscricaoProgramasRoute: AuthenticatedInscricaoProgramasRoute,
   AuthenticatedRecursosRoute: AuthenticatedRecursosRouteWithChildren,
   AuthenticatedActionsIdRoute: AuthenticatedActionsIdRoute,
