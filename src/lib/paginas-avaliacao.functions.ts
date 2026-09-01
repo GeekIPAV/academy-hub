@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import type { AvaliacaoPage, PageDoc } from "@/lib/avaliacao-types";
 
 const pageSelect = "id, slug, title, sort_order, blocks, cover_url, cover_position, cover_scale, created_at, updated_at";
@@ -39,7 +40,7 @@ async function ensureSeeded(pages: AvaliacaoPage[]) {
       const seed = AVALIACAO_PAGES.find((item) => item.slug === page.slug);
       const isEmpty = empty.some((item) => item.id === page.id);
       if (!seed || !isEmpty) return page;
-      const blocks = { blocks: seed.blocks } as unknown as PageDoc;
+      const blocks = { blocks: seed.blocks } as unknown as Database["public"]["Tables"]["paginas_avaliacao"]["Update"]["blocks"];
       const { error } = await supabaseAdmin.from("paginas_avaliacao").update({ blocks }).eq("id", page.id);
       if (error) throw new Error(error.message);
       return { ...page, blocks };
@@ -88,7 +89,7 @@ export const updatePaginaAvaliacao = createServerFn({ method: "POST" })
       .from("paginas_avaliacao")
       .update({
         title: data.title,
-        blocks: data.blocks as PageDoc,
+        blocks: data.blocks as Database["public"]["Tables"]["paginas_avaliacao"]["Update"]["blocks"],
         cover_url: data.cover_url ?? null,
         ...(data.cover_position ? { cover_position: data.cover_position } : {}),
         ...(data.cover_scale ? { cover_scale: data.cover_scale } : {}),
@@ -112,12 +113,14 @@ export const reorderPaginasAvaliacao = createServerFn({ method: "POST" })
     const first = rows?.find((row) => row.id === data.firstId);
     const second = rows?.find((row) => row.id === data.secondId);
     if (!first || !second) throw new Error("Página não encontrada.");
-    const { error: updateError } = await supabaseAdmin
+    const { error: firstError } = await supabaseAdmin
       .from("paginas_avaliacao")
-      .upsert([
-        { id: first.id, sort_order: second.sort_order },
-        { id: second.id, sort_order: first.sort_order },
-      ], { onConflict: "id" });
-    if (updateError) throw new Error(updateError.message);
+      .update({ sort_order: second.sort_order })
+      .eq("id", first.id);
+    if (firstError) throw new Error(firstError.message);
+    const { error: secondError } = await supabaseAdmin
+      .from("paginas_avaliacao")
+      .update({ sort_order: first.sort_order })
+      .eq("id", second.id);
     return { ok: true };
   });

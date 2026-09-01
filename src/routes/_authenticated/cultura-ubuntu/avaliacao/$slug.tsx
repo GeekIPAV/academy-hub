@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { getPaginaAvaliacao } from "@/lib/paginas-avaliacao.functions";
-import { loadAvaliacaoDoc } from "@/lib/avaliacao-types";
+import { loadAvaliacaoDoc, type AvaliacaoPage } from "@/lib/avaliacao-types";
 import { renderRichText } from "@/components/admin/PaginaAvaliacaoEditor";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { CoverImage } from "@/components/CoverImage";
@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/cultura-ubuntu/avaliacao/$
 function AvaliacaoDocument() {
   const { slug } = Route.useParams();
   const fetchPage = useServerFn(getPaginaAvaliacao);
-  const { data: page, isLoading, error } = useQuery({ queryKey: ["pagina-avaliacao", slug], queryFn: () => fetchPage({ data: { slug } }) });
+  const { data: page, isLoading, error } = useQuery<AvaliacaoPage | null>({ queryKey: ["pagina-avaliacao", slug], queryFn: () => fetchPage({ data: { slug } }) });
   const doc = useMemo(() => loadAvaliacaoDoc(page?.blocks), [page?.blocks]);
 
   if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
