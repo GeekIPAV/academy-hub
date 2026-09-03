@@ -1,6 +1,16 @@
+/** Valor serializável em JSON (compatível com colunas jsonb). */
+export type Jsonish =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Jsonish | undefined }
+  | Jsonish[];
+
 export type RichTextContent = {
-  type: "doc";
-  content?: Array<Record<string, unknown>>;
+  type: string;
+  content?: Jsonish[];
+  [key: string]: Jsonish | undefined;
 };
 
 export type TableCell = string;
@@ -14,11 +24,13 @@ export type PageBlock = {
   alt?: string;
   headers?: TableCell[];
   rows?: TableRow[];
+  [key: string]: Jsonish | undefined;
 };
 
 export type PageDoc = {
   blocks: PageBlock[];
   title?: string;
+  [key: string]: Jsonish | undefined;
 };
 
 export type AvaliacaoPage = {
