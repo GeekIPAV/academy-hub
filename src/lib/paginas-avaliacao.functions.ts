@@ -26,27 +26,19 @@ async function assertAvaliacaoEditor(userId: string) {
   }
 }
 
-/**
- * Garante que os recursos têm o conteúdo base carregado. As páginas são criadas
- * vazias na base de dados; na primeira leitura o conteúdo integral é escrito.
- */
 async function ensureSeeded(pages: AvaliacaoPage[]) {
   const empty = pages.filter((page) => !page.blocks || !Array.isArray(page.blocks.blocks) || page.blocks.blocks.length === 0);
   if (empty.length === 0) return pages;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { AVALIACAO_PAGES } = await import("@/lib/avaliacao-pages.server");
-  const filled = await Promise.all(
-    pages.map(async (page) => {
-      const seed = AVALIACAO_PAGES.find((item) => item.slug === page.slug);
-      const isEmpty = empty.some((item) => item.id === page.id);
-      if (!seed || !isEmpty) return page;
-      const blocks = { blocks: seed.blocks } as unknown as Database["public"]["Tables"]["paginas_avaliacao"]["Update"]["blocks"];
-      const { error } = await supabaseAdmin.from("paginas_avaliacao").update({ blocks }).eq("id", page.id);
-      if (error) throw new Error(error.message);
-      return { ...page, blocks };
-    }),
-  );
-  return filled;
+  return Promise.all(pages.map(async (page) => {
+    const seed = AVALIACAO_PAGES.find((item) => item.slug === page.slug);
+    if (!seed || !empty.some((item) => item.id === page.id)) return page;
+    const blocks = { blocks: seed.blocks } as unknown as Database["public"]["Tables"]["paginas_avaliacao"]["Update"]["blocks"];
+    const { error } = await supabaseAdmin.from("paginas_avaliacao").update({ blocks }).eq("id", page.id);
+    if (error) throw new Error(error.message);
+    return { ...page, blocks: JSON.parse(JSON.stringify(blocks)) as PageDoc };
+  }));
 }
 
 export const listPaginasAvaliacao = createServerFn({ method: "GET" })
@@ -58,7 +50,7 @@ export const listPaginasAvaliacao = createServerFn({ method: "GET" })
       .select(pageSelect)
       .order("sort_order", { ascending: true });
     if (error) throw new Error(error.message);
-    return await ensureSeeded((data ?? []) as unknown as AvaliacaoPage[]);
+    return JSON.parse(JSON.stringify(await ensureSeeded((data ?? []) as unknown as AvaliacaoPage[]))) as AvaliacaoPage[];
   });
 
 
@@ -75,7 +67,7 @@ export const getPaginaAvaliacao = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!page) return null;
     const [seeded] = await ensureSeeded([page as unknown as AvaliacaoPage]);
-    return seeded;
+    return JSON.parse(JSON.stringify(seeded)) as AvaliacaoPage;
   });
 
 

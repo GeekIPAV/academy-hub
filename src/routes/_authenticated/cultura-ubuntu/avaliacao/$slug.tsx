@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/cultura-ubuntu/avaliacao/$
 function AvaliacaoDocument() {
   const { slug } = Route.useParams();
   const fetchPage = useServerFn(getPaginaAvaliacao);
-  const { data: page, isLoading, error } = useQuery<AvaliacaoPage | null>({ queryKey: ["pagina-avaliacao", slug], queryFn: () => fetchPage({ data: { slug } }) });
+  const { data: page, isLoading, error } = useQuery<AvaliacaoPage | null>({ queryKey: ["pagina-avaliacao", slug], queryFn: async () => (await fetchPage({ data: { slug } })) as AvaliacaoPage | null });
   const doc = useMemo(() => loadAvaliacaoDoc(page?.blocks), [page?.blocks]);
 
   if (isLoading) return <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
