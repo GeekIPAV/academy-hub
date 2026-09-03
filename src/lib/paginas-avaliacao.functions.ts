@@ -58,7 +58,7 @@ export const listPaginasAvaliacao = createServerFn({ method: "GET" })
       .select(pageSelect)
       .order("sort_order", { ascending: true });
     if (error) throw new Error(error.message);
-    return await ensureSeeded((data ?? []) as unknown as AvaliacaoPage[]);
+    return (await ensureSeeded((data ?? []) as unknown as AvaliacaoPage[])) as AvaliacaoPage[];
   });
 
 
@@ -75,7 +75,7 @@ export const getPaginaAvaliacao = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!page) return null;
     const [seeded] = await ensureSeeded([page as unknown as AvaliacaoPage]);
-    return seeded;
+    return seeded as AvaliacaoPage;
   });
 
 

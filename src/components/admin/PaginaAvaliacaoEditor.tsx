@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, type JSONContent } from "@tiptap/react";
 import { generateHTML } from "@tiptap/html";
 import StarterKit from "@tiptap/starter-kit";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
@@ -71,7 +71,7 @@ function TableEditor({ block, onPatch }: { block: PageBlock; onPatch: (changes: 
 }
 
 function RichTextEditor({ value, onChange }: { value: RichTextContent | undefined; onChange: (value: RichTextContent) => void }) {
-  const editor = useEditor({ extensions: [StarterKit], content: value ?? { type: "doc", content: [{ type: "paragraph" }] }, onUpdate: ({ editor: current }) => onChange(current.getJSON() as RichTextContent) });
+  const editor = useEditor({ extensions: [StarterKit], content: (value ?? { type: "doc", content: [{ type: "paragraph" }] }) as unknown as JSONContent, onUpdate: ({ editor: current }) => onChange(current.getJSON() as RichTextContent) });
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!editor) return null;
