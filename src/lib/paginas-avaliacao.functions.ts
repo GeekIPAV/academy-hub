@@ -50,7 +50,7 @@ export const listPaginasAvaliacao = createServerFn({ method: "GET" })
       .select(pageSelect)
       .order("sort_order", { ascending: true });
     if (error) throw new Error(error.message);
-    return JSON.parse(JSON.stringify(data ?? [])) as AvaliacaoPage[];
+    return JSON.parse(JSON.stringify(await ensureSeeded((data ?? []) as unknown as AvaliacaoPage[]))) as AvaliacaoPage[];
   });
 
 
