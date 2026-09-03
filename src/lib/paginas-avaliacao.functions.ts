@@ -66,7 +66,8 @@ export const getPaginaAvaliacao = createServerFn({ method: "GET" })
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!page) return null;
-    return JSON.parse(JSON.stringify(page)) as AvaliacaoPage;
+    const [seeded] = await ensureSeeded([page as unknown as AvaliacaoPage]);
+    return JSON.parse(JSON.stringify(seeded)) as AvaliacaoPage;
   });
 
 
