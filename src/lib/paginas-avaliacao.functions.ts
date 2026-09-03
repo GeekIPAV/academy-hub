@@ -26,6 +26,21 @@ async function assertAvaliacaoEditor(userId: string) {
   }
 }
 
+async function ensureSeeded(pages: AvaliacaoPage[]) {
+  const empty = pages.filter((page) => !page.blocks || !Array.isArray(page.blocks.blocks) || page.blocks.blocks.length === 0);
+  if (empty.length === 0) return pages;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { AVALIACAO_PAGES } = await import("@/lib/avaliacao-pages.server");
+  return Promise.all(pages.map(async (page) => {
+    const seed = AVALIACAO_PAGES.find((item) => item.slug === page.slug);
+    if (!seed || !empty.some((item) => item.id === page.id)) return page;
+    const blocks = { blocks: seed.blocks } as unknown as Database["public"]["Tables"]["paginas_avaliacao"]["Update"]["blocks"];
+    const { error } = await supabaseAdmin.from("paginas_avaliacao").update({ blocks }).eq("id", page.id);
+    if (error) throw new Error(error.message);
+    return { ...page, blocks: JSON.parse(JSON.stringify(blocks)) as PageDoc };
+  }));
+}
+
 export const listPaginasAvaliacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
