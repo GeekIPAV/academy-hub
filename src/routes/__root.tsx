@@ -132,10 +132,6 @@ function RootComponent() {
 function AppShell() {
   const { session, loading } = useAuth();
   const isRouterLoading = useRouterState({ select: (s) => s.isLoading || s.isTransitioning });
-  const livePathname = useRouterState({ select: (s) => s.location.pathname });
-  const hideImprovingBanner =
-    livePathname.startsWith("/recursos") ||
-    livePathname.startsWith("/cultura-ubuntu/avaliacao");
 
   // Only the initial auth bootstrap shows the full-screen loader.
   // Router transitions show a loader inside <main> so the sidebar stays mounted.
