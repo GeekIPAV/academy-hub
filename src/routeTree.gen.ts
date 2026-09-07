@@ -51,6 +51,7 @@ import { Route as AuthenticatedCulturaUbuntuAvaliacaoRouteImport } from './route
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 import { Route as AuthenticatedRecursosClusterIndexRouteImport } from './routes/_authenticated/recursos.$cluster.index'
+import { Route as AuthenticatedCulturaUbuntuAvaliacaoIndexRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -279,6 +280,12 @@ const AuthenticatedRecursosClusterIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedRecursosClusterRoute,
   } as any)
+const AuthenticatedCulturaUbuntuAvaliacaoIndexRoute =
+  AuthenticatedCulturaUbuntuAvaliacaoIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoRoute,
+  } as any)
 const LovableEmailTransactionalSendRoute =
   LovableEmailTransactionalSendRouteImport.update({
     id: '/lovable/email/transactional/send',
@@ -382,6 +389,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/cultura-ubuntu/avaliacao/': typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
   '/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRoutesByTo {
@@ -418,7 +426,6 @@ export interface FileRoutesByTo {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
-  '/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
@@ -432,6 +439,7 @@ export interface FileRoutesByTo {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRoutesById {
@@ -486,6 +494,7 @@ export interface FileRoutesById {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
+  '/_authenticated/cultura-ubuntu/avaliacao/': typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
   '/_authenticated/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
 }
 export interface FileRouteTypes {
@@ -540,6 +549,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/cultura-ubuntu/avaliacao/'
     | '/recursos/$cluster/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -576,7 +586,6 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
-    | '/cultura-ubuntu/avaliacao'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
@@ -590,6 +599,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/cultura-ubuntu/avaliacao'
     | '/recursos/$cluster'
   id:
     | '__root__'
@@ -643,6 +653,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
+    | '/_authenticated/cultura-ubuntu/avaliacao/'
     | '/_authenticated/recursos/$cluster/'
   fileRoutesById: FileRoutesById
 }
@@ -982,6 +993,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosClusterIndexRouteImport
       parentRoute: typeof AuthenticatedRecursosClusterRoute
     }
+    '/_authenticated/cultura-ubuntu/avaliacao/': {
+      id: '/_authenticated/cultura-ubuntu/avaliacao/'
+      path: '/'
+      fullPath: '/cultura-ubuntu/avaliacao/'
+      preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRouteImport
+      parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRoute
+    }
     '/lovable/email/transactional/send': {
       id: '/lovable/email/transactional/send'
       path: '/lovable/email/transactional/send'
@@ -1051,6 +1069,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedCulturaUbuntuAvaliacaoRouteChildren {
   AuthenticatedCulturaUbuntuAvaliacaoSlugRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
   AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
+  AuthenticatedCulturaUbuntuAvaliacaoIndexRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
 }
 
 const AuthenticatedCulturaUbuntuAvaliacaoRouteChildren: AuthenticatedCulturaUbuntuAvaliacaoRouteChildren =
@@ -1059,6 +1078,8 @@ const AuthenticatedCulturaUbuntuAvaliacaoRouteChildren: AuthenticatedCulturaUbun
       AuthenticatedCulturaUbuntuAvaliacaoSlugRoute,
     AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute:
       AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute,
+    AuthenticatedCulturaUbuntuAvaliacaoIndexRoute:
+      AuthenticatedCulturaUbuntuAvaliacaoIndexRoute,
   }
 
 const AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren =
