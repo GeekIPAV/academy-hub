@@ -42,11 +42,54 @@ function AvaliacaoGallery() {
       </header>
 
       <section aria-labelledby="overview-title" className="space-y-3">
-        <div><h2 id="overview-title" className="text-xl font-semibold text-secondary">Visão geral</h2><p className="text-sm text-muted-foreground">Compara rapidamente o foco e os indicadores de cada recurso.</p></div>
-        <div className="overflow-x-auto rounded-lg border bg-card"><table className="min-w-[900px] w-full text-left text-sm"><thead className="bg-muted/60"><tr>{["Recurso", "Destinatários", "Objetivo", "Metodologias", "Indicadores"].map((header) => <th key={header} className="px-4 py-3 font-semibold text-secondary">{header}</th>)}</tr></thead><tbody>{AVALIACAO_OVERVIEW.map((row) => <tr key={row[0]} className="border-t align-top"><td className="px-4 py-3 font-medium text-secondary">{row[0]}</td>{row.slice(1).map((cell, index) => <td key={index} className="px-4 py-3 leading-6 text-muted-foreground">{cell}</td>)}</tr>)}</tbody></table></div>
+        <div>
+          <h2 id="overview-title" className="text-xl font-semibold text-secondary">Visão geral</h2>
+          <p className="text-sm text-muted-foreground">Compara o foco de cada recurso e abre-o diretamente a partir da tabela.</p>
+        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+        ) : error ? (
+          <p className="py-8 text-sm text-destructive">Não foi possível carregar os recursos.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border bg-card">
+            <table className="w-full min-w-[1000px] text-left text-sm">
+              <thead className="bg-muted/60">
+                <tr>{["Recurso", "Destinatários", "Objetivo", "Metodologias", "Indicadores", ""].map((header, i) => <th key={i} className="px-4 py-3 font-semibold text-secondary">{header}</th>)}</tr>
+              </thead>
+              <tbody>
+                {rows.map((page, index) => {
+                  const row = AVALIACAO_OVERVIEW[index];
+                  return (
+                    <tr key={page.id} className="border-t align-top transition hover:bg-muted/30">
+                      <td className="px-4 py-3">
+                        <Link to="/cultura-ubuntu/avaliacao/$slug" params={{ slug: page.slug }} className="group flex items-start gap-3">
+                          <span className="hidden h-14 w-20 shrink-0 overflow-hidden rounded-md bg-primary/10 sm:block">
+                            {page.cover_url ? (
+                              <CoverImage src={page.cover_url} alt="" position={page.cover_position} scale={page.cover_scale} className="transition duration-300 group-hover:scale-[1.05]" />
+                            ) : (
+                              <span className="flex h-full items-center justify-center"><ClipboardCheck className="h-6 w-6 text-primary/60" /></span>
+                            )}
+                          </span>
+                          <span>
+                            <span className="block text-xs font-semibold uppercase tracking-[0.14em] text-primary">Recurso {page.sort_order}</span>
+                            <span className="block font-semibold leading-6 text-secondary group-hover:underline">{page.title}</span>
+                          </span>
+                        </Link>
+                      </td>
+                      {(row ? row.slice(1) : ["—", "—", "—", "—"]).map((cell, i) => <td key={i} className="px-4 py-3 leading-6 text-muted-foreground">{cell}</td>)}
+                      <td className="px-4 py-3">
+                        <Link to="/cultura-ubuntu/avaliacao/$slug" params={{ slug: page.slug }} className="group inline-flex items-center gap-1 whitespace-nowrap text-sm font-medium text-primary">
+                          Abrir <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
-
-      <section aria-labelledby="resources-title" className="space-y-4"><div><h2 id="resources-title" className="text-xl font-semibold text-secondary">Explorar recursos</h2></div>{isLoading ? <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div> : error ? <p className="py-8 text-sm text-destructive">Não foi possível carregar os recursos.</p> : <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{rows.map((page) => <Link key={page.id} to="/cultura-ubuntu/avaliacao/$slug" params={{ slug: page.slug }} className="group overflow-hidden rounded-lg border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"><div className="aspect-[4/3] overflow-hidden bg-primary/10">{page.cover_url ? <CoverImage src={page.cover_url} alt="" position={page.cover_position} scale={page.cover_scale} className="transition duration-300 group-hover:scale-[1.03]" /> : <div className="flex h-full items-center justify-center"><ClipboardCheck className="h-12 w-12 text-primary/60" /></div>}</div><div className="flex items-start justify-between gap-3 p-4"><div><p className="mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary">Recurso {page.sort_order}</p><h3 className="font-semibold leading-6 text-secondary">{page.title}</h3></div><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-primary transition group-hover:translate-x-1" /></div></Link>)}</div>}</section>
     </div>
   );
 }
