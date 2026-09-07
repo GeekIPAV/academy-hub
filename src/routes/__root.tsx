@@ -196,6 +196,8 @@ function ShellWithSidebar({
   isRouterLoading: boolean;
 }) {
   const { isAdmin, activeRoles } = useApp();
+  const hideImprovingBanner =
+    pathname.startsWith("/recursos") || pathname.startsWith("/cultura-ubuntu/avaliacao");
   const { isLoading: profileLoading } = useCurrentProfile();
   const isEntidadeRep = activeRoles.includes("Entidade");
   const fetchEntidade = useServerFn(getMyEntidade);
