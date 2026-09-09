@@ -61,6 +61,8 @@ import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './rou
 import { Route as AuthenticatedRecursosClusterTemaIdRouteImport } from './routes/_authenticated/recursos.$cluster.$temaId'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/gestao'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug'
+import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug/index'
+import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug/$section'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -338,6 +340,18 @@ const AuthenticatedCulturaUbuntuAvaliacaoSlugRoute =
     path: '/$slug',
     getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoRoute,
   } as any)
+const AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute =
+  AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoSlugRoute,
+  } as any)
+const AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute =
+  AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport.update({
+    id: '/$section',
+    path: '/$section',
+    getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoSlugRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -380,7 +394,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/recursos/': typeof AuthenticatedRecursosIndexRoute
-  '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+  '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
@@ -391,6 +405,8 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/cultura-ubuntu/avaliacao/': typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
   '/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
+  '/cultura-ubuntu/avaliacao/$slug/$section': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute
+  '/cultura-ubuntu/avaliacao/$slug/': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -430,7 +446,6 @@ export interface FileRoutesByTo {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/recursos': typeof AuthenticatedRecursosIndexRoute
-  '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
   '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
@@ -441,6 +456,8 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterIndexRoute
+  '/cultura-ubuntu/avaliacao/$slug/$section': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute
+  '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -485,7 +502,7 @@ export interface FileRoutesById {
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
-  '/_authenticated/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+  '/_authenticated/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   '/_authenticated/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/_authenticated/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
@@ -496,6 +513,8 @@ export interface FileRoutesById {
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/cultura-ubuntu/avaliacao/': typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
   '/_authenticated/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
+  '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute
+  '/_authenticated/cultura-ubuntu/avaliacao/$slug/': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -551,6 +570,8 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/cultura-ubuntu/avaliacao/'
     | '/recursos/$cluster/'
+    | '/cultura-ubuntu/avaliacao/$slug/$section'
+    | '/cultura-ubuntu/avaliacao/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -590,7 +611,6 @@ export interface FileRouteTypes {
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
     | '/recursos'
-    | '/cultura-ubuntu/avaliacao/$slug'
     | '/cultura-ubuntu/avaliacao/gestao'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
@@ -601,6 +621,8 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/cultura-ubuntu/avaliacao'
     | '/recursos/$cluster'
+    | '/cultura-ubuntu/avaliacao/$slug/$section'
+    | '/cultura-ubuntu/avaliacao/$slug'
   id:
     | '__root__'
     | '/'
@@ -655,6 +677,8 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/send'
     | '/_authenticated/cultura-ubuntu/avaliacao/'
     | '/_authenticated/recursos/$cluster/'
+    | '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section'
+    | '/_authenticated/cultura-ubuntu/avaliacao/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1063,11 +1087,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteImport
       parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRoute
     }
+    '/_authenticated/cultura-ubuntu/avaliacao/$slug/': {
+      id: '/_authenticated/cultura-ubuntu/avaliacao/$slug/'
+      path: '/'
+      fullPath: '/cultura-ubuntu/avaliacao/$slug/'
+      preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRouteImport
+      parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+    }
+    '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section': {
+      id: '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section'
+      path: '/$section'
+      fullPath: '/cultura-ubuntu/avaliacao/$slug/$section'
+      preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport
+      parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+    }
   }
 }
 
+interface AuthenticatedCulturaUbuntuAvaliacaoSlugRouteChildren {
+  AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute
+  AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute
+}
+
+const AuthenticatedCulturaUbuntuAvaliacaoSlugRouteChildren: AuthenticatedCulturaUbuntuAvaliacaoSlugRouteChildren =
+  {
+    AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute:
+      AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute,
+    AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute:
+      AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute,
+  }
+
+const AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren =
+  AuthenticatedCulturaUbuntuAvaliacaoSlugRoute._addFileChildren(
+    AuthenticatedCulturaUbuntuAvaliacaoSlugRouteChildren,
+  )
+
 interface AuthenticatedCulturaUbuntuAvaliacaoRouteChildren {
-  AuthenticatedCulturaUbuntuAvaliacaoSlugRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+  AuthenticatedCulturaUbuntuAvaliacaoSlugRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   AuthenticatedCulturaUbuntuAvaliacaoIndexRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
 }
@@ -1075,7 +1131,7 @@ interface AuthenticatedCulturaUbuntuAvaliacaoRouteChildren {
 const AuthenticatedCulturaUbuntuAvaliacaoRouteChildren: AuthenticatedCulturaUbuntuAvaliacaoRouteChildren =
   {
     AuthenticatedCulturaUbuntuAvaliacaoSlugRoute:
-      AuthenticatedCulturaUbuntuAvaliacaoSlugRoute,
+      AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren,
     AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute:
       AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute,
     AuthenticatedCulturaUbuntuAvaliacaoIndexRoute:
