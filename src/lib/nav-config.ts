@@ -34,7 +34,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { path: "/recursos", label: "Centro de Recursos", icon: BookMarked, gated: true },
   ] },
   { label: "Cultura Ubuntu", items: [
-    { path: "/cultura-ubuntu/avaliacao", label: "Recursos de avaliação", icon: ClipboardCheck },
+    { path: "/cultura-ubuntu/avaliacao", label: "Avaliação de Impacto", icon: ClipboardCheck },
   ] },
   { label: "Publicações", items: [
     { path: "/publicacoes/revistas", label: "Revista Científica", icon: BookOpen, gated: true },
