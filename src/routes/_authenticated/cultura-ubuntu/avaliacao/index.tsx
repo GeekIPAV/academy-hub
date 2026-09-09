@@ -89,7 +89,7 @@ function AvaliacaoGallery() {
                       <td className="px-4 py-3">
                         {referenciais.length > 0 ? (
                           <ul className="space-y-1">
-                            {referenciais.slice(0, 3).map((item, i) => <li key={i} className="leading-5 text-muted-foreground">{item}</li>)}
+                            {referenciais.slice(0, 3).map((item, i) => <li key={i} className="leading-5 text-muted-foreground">{item.length > 80 ? `${item.slice(0, 80).trimEnd()}…` : item}</li>)}
                             {referenciais.length > 3 && <li className="text-xs text-primary">+{referenciais.length - 3} referenciais</li>}
                           </ul>
                         ) : (
