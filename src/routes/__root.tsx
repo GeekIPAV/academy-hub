@@ -282,7 +282,7 @@ function ShellWithSidebar({
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-muted/30">
         <AppSidebar />
-        <div className="flex flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col">
           <AppHeader pathname={pathname} />
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
             {isRouterLoading ? <InlineLoader /> : <Outlet />}
