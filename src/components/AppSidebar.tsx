@@ -15,7 +15,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,8 +27,6 @@ import {
 
 
 export function AppSidebar() {
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
   const { canAccess, profile, activeRoles, isRealAdmin, impersonatedRole, setImpersonatedRole, realRole, isAdmin } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
