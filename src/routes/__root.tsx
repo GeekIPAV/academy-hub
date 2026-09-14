@@ -12,8 +12,9 @@ import {
 
 import appCss from "../styles.css?url";
 import { AppProvider, useApp } from "@/lib/app-context";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
+import { AppHeader } from "@/components/AppHeader";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingU, LoadingUInline } from "@/components/LoadingU";
@@ -282,12 +283,7 @@ function ShellWithSidebar({
       <div className="flex min-h-screen w-full bg-muted/30">
         <AppSidebar />
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur">
-            <SidebarTrigger />
-            <div className="text-sm font-medium text-muted-foreground">
-              Academia de Líderes Ubuntu
-            </div>
-          </header>
+          <AppHeader pathname={pathname} />
           <main className="flex-1 p-4 sm:p-6 lg:p-8">
             {isRouterLoading ? <InlineLoader /> : <Outlet />}
             {!hideImprovingBanner && <ImprovingBanner />}

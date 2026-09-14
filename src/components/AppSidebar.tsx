@@ -17,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -29,6 +30,8 @@ import {
 
 
 export function AppSidebar() {
+  const { state } = useSidebar();
+  const collapsed = state === "collapsed";
   const { canAccess, profile, activeRoles, isRealAdmin, impersonatedRole, setImpersonatedRole, realRole, isAdmin } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
@@ -46,8 +49,12 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b flex items-center justify-center py-6">
-        <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-20 w-auto" />
+      <SidebarHeader className="flex h-14 items-center justify-center border-b border-sidebar-border p-2">
+        {collapsed ? (
+          <span className="text-lg font-bold text-sidebar-foreground" aria-label="Academia de Líderes Ubuntu">U</span>
+        ) : (
+          <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-10 w-auto brightness-0 invert" />
+        )}
       </SidebarHeader>
 
       <SidebarContent>
