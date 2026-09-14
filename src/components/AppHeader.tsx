@@ -70,7 +70,7 @@ export function AppHeader({ pathname }: { pathname: string }) {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-30 grid h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-sidebar-border bg-secondary px-3 text-secondary-foreground shadow-sm sm:px-4">
+      <header className="grid h-14 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-sidebar-border bg-secondary px-3 text-secondary-foreground shadow-sm sm:px-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <SidebarTrigger className="shrink-0 text-secondary-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" />
           <div className="hidden h-7 w-px bg-secondary-foreground/20 sm:block" />
