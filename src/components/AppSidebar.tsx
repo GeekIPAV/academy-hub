@@ -1,6 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Eye, LogIn, LogOut } from "lucide-react";
-import aluLogo from "@/assets/alu-logo.svg";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useRoles } from "@/hooks/use-roles";
@@ -12,7 +11,6 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
