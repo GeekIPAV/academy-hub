@@ -43,7 +43,7 @@ export function AppSidebar() {
     .toUpperCase();
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="top-14">
       <SidebarContent className="pt-2">
         {NAV_GROUPS.map((group, idx) => {
           if (group.adminOnly && !isAdmin) return null;
