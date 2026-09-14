@@ -1,6 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { Eye, LogIn, LogOut } from "lucide-react";
-import aluLogo from "@/assets/alu-logo.svg";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useRoles } from "@/hooks/use-roles";
@@ -12,12 +11,10 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -30,8 +27,6 @@ import {
 
 
 export function AppSidebar() {
-  const { state } = useSidebar();
-  const collapsed = state === "collapsed";
   const { canAccess, profile, activeRoles, isRealAdmin, impersonatedRole, setImpersonatedRole, realRole, isAdmin } = useApp();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
@@ -49,15 +44,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="flex h-14 items-center justify-center border-b border-sidebar-border p-2">
-        {collapsed ? (
-          <span className="text-lg font-bold text-sidebar-foreground" aria-label="Academia de Líderes Ubuntu">U</span>
-        ) : (
-          <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-10 w-auto brightness-0 invert" />
-        )}
-      </SidebarHeader>
-
-      <SidebarContent>
+      <SidebarContent className="pt-2">
         {NAV_GROUPS.map((group, idx) => {
           if (group.adminOnly && !isAdmin) return null;
           const items = group.items.filter((it) => (it.gated ? canAccess(it.path) : true));
