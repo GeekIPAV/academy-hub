@@ -49,15 +49,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="flex h-14 items-center justify-center border-b border-sidebar-border p-2">
-        {collapsed ? (
-          <span className="text-lg font-bold text-sidebar-foreground" aria-label="Academia de Líderes Ubuntu">U</span>
-        ) : (
-          <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-10 w-auto brightness-0 invert" />
-        )}
-      </SidebarHeader>
-
-      <SidebarContent>
+      <SidebarContent className="pt-2">
         {NAV_GROUPS.map((group, idx) => {
           if (group.adminOnly && !isAdmin) return null;
           const items = group.items.filter((it) => (it.gated ? canAccess(it.path) : true));
