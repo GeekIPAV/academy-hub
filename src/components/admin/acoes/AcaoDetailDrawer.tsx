@@ -109,8 +109,9 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
     queryFn: () => fetchProdutos(),
     retry: false,
   });
-
+  const [form, setForm] = useState(() => ({
     title: acao.title ?? "",
+
     description: acao.description ?? "",
     formato: acao.formato ?? "",
     localizacao: acao.localizacao ?? "",
