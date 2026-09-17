@@ -1224,3 +1224,243 @@ function BulkProgramasDialog({
     </Dialog>
   );
 }
+
+// ================== Formulário completo de programa ==================
+
+function ProgramaFormDialog({
+  mode,
+  programa,
+  clusters,
+  clusterId,
+}: {
+  mode: "create" | "edit";
+  programa?: ProgramaAdminRow;
+  clusters: Array<{ id: string; name: string }>;
+  clusterId?: string | null;
+}) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const createFn = useServerFn(createPrograma);
+  const updateFn = useServerFn(updateProgramaAdmin);
+  const fetchProdutos = useServerFn(listProdutos);
+  const { data: produtos } = useQuery({
+    queryKey: ["produtos-catalogo"],
+    queryFn: () => fetchProdutos(),
+    retry: false,
+    enabled: open,
+  });
+
+  const NONE = "__none__";
+  const [title, setTitle] = useState(programa?.title ?? "");
+  const [status, setStatus] = useState<string>(programa?.status ?? "Não começado");
+  const [dateStart, setDateStart] = useState(programa?.date_start ?? "");
+  const [dateEnd, setDateEnd] = useState(programa?.date_end ?? "");
+  const [certificacao, setCertificacao] = useState(!!programa?.certificacao);
+  const [acreditacao, setAcreditacao] = useState(!!programa?.acreditacao);
+  const [email, setEmail] = useState(programa?.email_contacto_ipav ?? "");
+  const [cluster, setCluster] = useState<string>(programa?.cluster_id ?? clusterId ?? NONE);
+  const [produtoIds, setProdutoIds] = useState<string[]>(programa?.produto_ids ?? []);
+
+  useEffect(() => {
+    if (!open) return;
+    setTitle(programa?.title ?? "");
+    setStatus(programa?.status ?? "Não começado");
+    setDateStart(programa?.date_start ?? "");
+    setDateEnd(programa?.date_end ?? "");
+    setCertificacao(!!programa?.certificacao);
+    setAcreditacao(!!programa?.acreditacao);
+    setEmail(programa?.email_contacto_ipav ?? "");
+    setCluster(programa?.cluster_id ?? clusterId ?? NONE);
+    setProdutoIds(programa?.produto_ids ?? []);
+  }, [open, programa, clusterId]);
+
+  const payload = () => ({
+    title: title.trim(),
+    status: status as (typeof PROGRAMA_STATUS)[number],
+    date_start: dateStart || null,
+    date_end: dateEnd || null,
+    certificacao,
+    acreditacao,
+    email_contacto_ipav: email.trim() || null,
+    cluster_id: cluster === NONE ? null : cluster,
+    produto_ids: produtoIds,
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin-programas"] });
+    qc.invalidateQueries({ queryKey: ["admin-programas-clusters"] });
+  };
+
+  const save = useMutation({
+    mutationFn: () =>
+      mode === "create"
+        ? createFn({ data: payload() })
+        : updateFn({ data: { id: programa!.id, ...payload() } }),
+    onSuccess: () => {
+      toast.success(mode === "create" ? "Programa criado." : "Programa atualizado.");
+      invalidate();
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleProduto = (id: string) =>
+    setProdutoIds((arr) => (arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]));
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      {mode === "create" ? (
+        <Button size="sm" onClick={() => setOpen(true)}>
+          <Plus className="mr-1 h-4 w-4" />
+          Criar programa
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 px-2"
+          onClick={() => setOpen(true)}
+          aria-label="Editar programa"
+        >
+          Editar
+        </Button>
+      )}
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{mode === "create" ? "Criar programa" : "Editar programa"}</DialogTitle>
+          <DialogDescription>
+            O cluster é opcional. Os produtos vêm do catálogo partilhado com as ações.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="pf-title">Título</Label>
+            <Input id="pf-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <Label>Estado</Label>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROGRAMA_STATUS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="pf-d1">Data de início</Label>
+              <Input
+                id="pf-d1"
+                type="date"
+                value={dateStart}
+                onChange={(e) => setDateStart(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pf-d2">Data de fim</Label>
+              <Input
+                id="pf-d2"
+                type="date"
+                value={dateEnd}
+                onChange={(e) => setDateEnd(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Cluster (opcional)</Label>
+              <Select value={cluster} onValueChange={setCluster}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sem cluster" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>Sem cluster</SelectItem>
+                  {clusters.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="pf-email">Email de contacto IPAV</Label>
+              <Input
+                id="pf-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-6">
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={certificacao}
+                onCheckedChange={(v) => setCertificacao(v === true)}
+              />
+              Certificação
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={acreditacao}
+                onCheckedChange={(v) => setAcreditacao(v === true)}
+              />
+              Acreditação
+            </label>
+          </div>
+
+          <div>
+            <Label className="mb-2 block">
+              Produtos{" "}
+              <span className="text-xs text-muted-foreground">
+                ({produtoIds.length} selecionado(s))
+              </span>
+            </Label>
+            <div className="max-h-56 space-y-1 overflow-y-auto rounded-md border p-2">
+              {(produtos ?? []).map((pr) => (
+                <label
+                  key={pr.id}
+                  className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-muted"
+                >
+                  <Checkbox
+                    checked={produtoIds.includes(pr.id)}
+                    onCheckedChange={() => toggleProduto(pr.id)}
+                  />
+                  <span className="flex-1">{pr.name}</span>
+                  {pr.tipo && (
+                    <Badge variant="outline" className="text-[10px]">
+                      {pr.tipo}
+                    </Badge>
+                  )}
+                </label>
+              ))}
+              {(produtos ?? []).length === 0 && (
+                <p className="p-2 text-xs text-muted-foreground">Catálogo vazio.</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
+          <Button disabled={!title.trim() || save.isPending} onClick={() => save.mutate()}>
+            Guardar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
