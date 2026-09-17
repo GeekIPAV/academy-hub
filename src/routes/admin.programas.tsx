@@ -150,8 +150,6 @@ function ProgramasSection() {
   );
 
   const [programId, setProgramId] = useState<string | undefined>(undefined);
-
-  const [programId, setProgramId] = useState<string | undefined>(undefined);
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
@@ -218,6 +216,7 @@ function ProgramasSection() {
               />
             </TabsContent>
           </Tabs>
+          )
         )}
       </Card>
 
