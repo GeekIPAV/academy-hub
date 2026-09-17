@@ -64,19 +64,22 @@ export const listAcoesPublicas = createServerFn({ method: "GET" }).handler(async
   const { data, error } = await supabaseAdmin
     .from("acoes")
     .select(
-      "id, title, description, start_date, end_date, formato, localizacao, pais, produto, action_type, max_capacity, registration_status, cover_url, cover_position, cover_scale, programas(title)",
+      "id, title, description, start_date, end_date, formato, localizacao, pais, produto_id, action_type, max_capacity, registration_status, cover_url, cover_position, cover_scale, programas(title), produtos(name)",
     )
     .or(`registration_status.eq.Aberto,and(registration_status.eq.Em breve,start_date.gte.${today})`)
     .order("start_date", { ascending: true, nullsFirst: false })
     .limit(500);
   if (error) throw new Error(error.message);
   return (data ?? []).map((r: Record<string, unknown>): AcaoPublicaRow => {
-    const { programas, ...rest } = r as Record<string, unknown> & {
+    const { programas, produtos, ...rest } = r as Record<string, unknown> & {
       programas: { title?: string | null } | null;
+      produtos: { name?: string | null } | null;
     };
     return {
-      ...(rest as Omit<AcaoPublicaRow, "programa_title">),
+      ...(rest as Omit<AcaoPublicaRow, "programa_title" | "produto">),
+      produto: produtos?.name ?? null,
       programa_title: programas?.title ?? null,
     };
   });
 });
+

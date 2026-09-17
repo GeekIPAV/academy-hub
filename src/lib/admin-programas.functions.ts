@@ -295,8 +295,7 @@ export const deleteClusterAdmin = createServerFn({ method: "POST" })
 
 const createProgramaSchema = z.object({
   title: z.string().min(1).max(255),
-  cluster_id: z.string().uuid(),
-  is_active: z.boolean().optional(),
+  ...programaFieldsSchema,
 });
 
 export const createPrograma = createServerFn({ method: "POST" })
@@ -304,18 +303,27 @@ export const createPrograma = createServerFn({ method: "POST" })
   .inputValidator((input) => createProgramaSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
+    const status = data.status ?? "Não começado";
     const { data: row, error } = await supabaseAdmin
       .from("programas")
       .insert({
         title: data.title.trim(),
-        cluster_id: data.cluster_id,
-        is_active: data.is_active ?? true,
+        cluster_id: data.cluster_id ?? null,
+        status,
+        date_start: data.date_start || null,
+        date_end: data.date_end || null,
+        certificacao: data.certificacao ?? false,
+        acreditacao: data.acreditacao ?? false,
+        email_contacto_ipav: data.email_contacto_ipav || null,
+        is_active: data.is_active ?? status === "Ativo",
       })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    if (data.produto_ids?.length) await syncProdutos(row.id, data.produto_ids);
     return { ok: true, id: row.id };
   });
+
 
 const bulkProgramasSchema = z.object({
   cluster_id: z.string().uuid(),
