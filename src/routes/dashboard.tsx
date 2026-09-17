@@ -98,11 +98,7 @@ function DashboardPage() {
           aria-hidden="true"
         />
         <div className="relative px-6 py-10 sm:px-10 sm:py-12">
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-3 py-1 text-xs font-medium tracking-wide text-primary-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-            Academia de Líderes Ubuntu
-          </span>
-          <h1 className="mt-4 text-3xl font-semibold leading-tight text-secondary-foreground sm:text-4xl">
+          <h1 className="text-3xl font-semibold leading-tight text-secondary-foreground sm:text-4xl">
             {getGreeting()}
             {firstName ? (
               <>
