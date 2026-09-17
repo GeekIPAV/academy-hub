@@ -9,16 +9,51 @@ async function assertAdmin(userId: string) {
 }
 
 
+export const PROGRAMA_STATUS = [
+  "Não começado",
+  "Ativo",
+  "Terminado",
+  "Arquivado",
+] as const;
+
+export type ProgramaAdminRow = {
+  id: string;
+  title: string | null;
+  is_active: boolean | null;
+  enrollment_open: boolean | null;
+  cluster_id: string | null;
+  status: string | null;
+  date_start: string | null;
+  date_end: string | null;
+  certificacao: boolean | null;
+  acreditacao: boolean | null;
+  email_contacto_ipav: string | null;
+  produto_ids: string[];
+};
+
+const PROGRAMA_SELECT =
+  "id, title, is_active, enrollment_open, cluster_id, status, date_start, date_end, certificacao, acreditacao, email_contacto_ipav, programas_produtos(produto_id)";
+
+function mapPrograma(r: Record<string, unknown>): ProgramaAdminRow {
+  const { programas_produtos: links, ...rest } = r as Record<string, unknown> & {
+    programas_produtos?: Array<{ produto_id: string }> | null;
+  };
+  return {
+    ...(rest as Omit<ProgramaAdminRow, "produto_ids">),
+    produto_ids: (links ?? []).map((l) => l.produto_id),
+  };
+}
+
 export const listProgramas = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
     const { data, error } = await supabaseAdmin
       .from("programas")
-      .select("id, title, is_active, enrollment_open, cluster_id")
+      .select(PROGRAMA_SELECT)
       .order("title", { ascending: true });
     if (error) throw new Error(error.message);
-    return data ?? [];
+    return (data ?? []).map((r) => mapPrograma(r as Record<string, unknown>));
   });
 
 const toggleEnrollmentSchema = z.object({
@@ -39,27 +74,113 @@ export const setProgramaEnrollmentOpen = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-const updateProgramaSchema = z.object({
-  id: z.string().uuid(),
+const programaFieldsSchema = {
   title: z.string().min(1).max(255).optional(),
   cluster_id: z.string().uuid().nullable().optional(),
   is_active: z.boolean().optional(),
+  status: z.enum(PROGRAMA_STATUS).optional(),
+  date_start: z.string().nullable().optional(),
+  date_end: z.string().nullable().optional(),
+  certificacao: z.boolean().optional(),
+  acreditacao: z.boolean().optional(),
+  email_contacto_ipav: z.string().max(255).nullable().optional(),
+  produto_ids: z.array(z.string().uuid()).optional(),
+};
+
+const updateProgramaSchema = z.object({
+  id: z.string().uuid(),
+  ...programaFieldsSchema,
 });
+
+async function syncProdutos(programId: string, produtoIds: string[]) {
+  const { error: delErr } = await supabaseAdmin
+    .from("programas_produtos")
+    .delete()
+    .eq("program_id", programId);
+  if (delErr) throw new Error(delErr.message);
+  if (produtoIds.length === 0) return;
+  const { error } = await supabaseAdmin
+    .from("programas_produtos")
+    .insert(produtoIds.map((produto_id) => ({ program_id: programId, produto_id })));
+  if (error) throw new Error(error.message);
+}
 
 export const updateProgramaAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => updateProgramaSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const patch: { title?: string; cluster_id?: string | null; is_active?: boolean } = {};
-    if (data.title !== undefined) patch.title = data.title.trim();
-    if (data.cluster_id !== undefined) patch.cluster_id = data.cluster_id;
-    if (data.is_active !== undefined) patch.is_active = data.is_active;
-    if (Object.keys(patch).length === 0) return { ok: true };
-    const { error } = await supabaseAdmin.from("programas").update(patch).eq("id", data.id);
+    const { id, produto_ids, ...fields } = data;
+    const patch: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(fields)) {
+      if (v === undefined) continue;
+      patch[k] = typeof v === "string" && k !== "title" ? (v === "" ? null : v) : v;
+    }
+    if (typeof patch.title === "string") patch.title = (patch.title as string).trim();
+    if (typeof patch.status === "string" && patch.is_active === undefined) {
+      patch.is_active = patch.status === "Ativo";
+    }
+    if (Object.keys(patch).length > 0) {
+      const { error } = await supabaseAdmin.from("programas").update(patch).eq("id", id);
+      if (error) throw new Error(error.message);
+    }
+    if (produto_ids) await syncProdutos(id, produto_ids);
+    return { ok: true };
+  });
+
+/** Elimina um programa, bloqueando quando há dependências reais. */
+export const deletePrograma = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+
+    const { data: cohorts, error: cErr } = await supabaseAdmin
+      .from("entidades_programas")
+      .select("id")
+      .eq("program_id", data.id);
+    if (cErr) throw new Error(cErr.message);
+    const cohortIds = (cohorts ?? []).map((c) => c.id);
+
+    if (cohortIds.length > 0) {
+      const { count, error: iErr } = await supabaseAdmin
+        .from("inscritos_programa")
+        .select("id", { count: "exact", head: true })
+        .in("cohort_id", cohortIds);
+      if (iErr) throw new Error(iErr.message);
+      if ((count ?? 0) > 0) {
+        throw new Error(
+          `Este programa tem ${count} inscrição(ões) de participantes. Remove-as antes de eliminar o programa.`,
+        );
+      }
+    }
+
+    const { count: acoesCount, error: aErr } = await supabaseAdmin
+      .from("acoes")
+      .select("id", { count: "exact", head: true })
+      .eq("program_id", data.id);
+    if (aErr) throw new Error(aErr.message);
+    if ((acoesCount ?? 0) > 0) {
+      throw new Error(
+        `Este programa tem ${acoesCount} ação(ões) associada(s). Desassocia-as antes de eliminar o programa.`,
+      );
+    }
+
+    if (cohortIds.length > 0) {
+      const { error } = await supabaseAdmin
+        .from("entidades_programas")
+        .delete()
+        .eq("program_id", data.id);
+      if (error) throw new Error(error.message);
+    }
+
+    await supabaseAdmin.from("programas_produtos").delete().eq("program_id", data.id);
+
+    const { error } = await supabaseAdmin.from("programas").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 // ===== Clusters management (scoped to programas admin) =====
 
