@@ -334,6 +334,7 @@ function ProgramaRow({
   const qc = useQueryClient();
   const toggleFn = useServerFn(setProgramaEnrollmentOpen);
   const deleteFn = useServerFn(deletePrograma);
+  const updateFn = useServerFn(updateProgramaAdmin);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-programas"] });
@@ -362,6 +363,16 @@ function ProgramaRow({
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const changeStatus = useMutation({
+    mutationFn: (status: (typeof PROGRAMA_STATUS)[number]) =>
+      updateFn({ data: { id: p.id, status } }),
+    onMutate: (status) => patchLocal({ status, is_active: status === "Ativo" }),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      invalidate();
+    },
+    onSettled: invalidate,
+  });
 
   const clusterName = clusters.find((c) => c.id === p.cluster_id)?.name ?? "—";
 
@@ -382,10 +393,23 @@ function ProgramaRow({
           )}
         </div>
       </TableCell>
-      <TableCell>
-        <Badge variant={p.status === "Ativo" ? "default" : "outline"}>
-          {p.status ?? "—"}
-        </Badge>
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <Select
+          value={p.status ?? "Não começado"}
+          onValueChange={(v) => changeStatus.mutate(v as (typeof PROGRAMA_STATUS)[number])}
+          disabled={changeStatus.isPending}
+        >
+          <SelectTrigger className="h-8 w-36 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PROGRAMA_STATUS.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </TableCell>
       <TableCell className="text-xs text-muted-foreground">
         {fmtDate(p.date_start)} → {fmtDate(p.date_end)}
