@@ -334,6 +334,7 @@ function ProgramaRow({
   const qc = useQueryClient();
   const toggleFn = useServerFn(setProgramaEnrollmentOpen);
   const deleteFn = useServerFn(deletePrograma);
+  const updateFn = useServerFn(updateProgramaAdmin);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-programas"] });
