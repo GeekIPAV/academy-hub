@@ -75,7 +75,6 @@ export const setProgramaEnrollmentOpen = createServerFn({ method: "POST" })
   });
 
 const programaFieldsSchema = {
-  title: z.string().min(1).max(255).optional(),
   cluster_id: z.string().uuid().nullable().optional(),
   is_active: z.boolean().optional(),
   status: z.enum(PROGRAMA_STATUS).optional(),
@@ -89,6 +88,7 @@ const programaFieldsSchema = {
 
 const updateProgramaSchema = z.object({
   id: z.string().uuid(),
+  title: z.string().min(1).max(255).optional(),
   ...programaFieldsSchema,
 });
 
@@ -110,23 +110,39 @@ export const updateProgramaAdmin = createServerFn({ method: "POST" })
   .inputValidator((input) => updateProgramaSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { id, produto_ids, ...fields } = data;
-    const patch: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(fields)) {
-      if (v === undefined) continue;
-      patch[k] = typeof v === "string" && k !== "title" ? (v === "" ? null : v) : v;
+    const patch: {
+      title?: string;
+      cluster_id?: string | null;
+      is_active?: boolean;
+      status?: string;
+      date_start?: string | null;
+      date_end?: string | null;
+      certificacao?: boolean;
+      acreditacao?: boolean;
+      email_contacto_ipav?: string | null;
+    } = {};
+    if (data.title !== undefined) patch.title = data.title.trim();
+    if (data.cluster_id !== undefined) patch.cluster_id = data.cluster_id;
+    if (data.status !== undefined) {
+      patch.status = data.status;
+      patch.is_active = data.status === "Ativo";
     }
-    if (typeof patch.title === "string") patch.title = (patch.title as string).trim();
-    if (typeof patch.status === "string" && patch.is_active === undefined) {
-      patch.is_active = patch.status === "Ativo";
+    if (data.is_active !== undefined) patch.is_active = data.is_active;
+    if (data.date_start !== undefined) patch.date_start = data.date_start || null;
+    if (data.date_end !== undefined) patch.date_end = data.date_end || null;
+    if (data.certificacao !== undefined) patch.certificacao = data.certificacao;
+    if (data.acreditacao !== undefined) patch.acreditacao = data.acreditacao;
+    if (data.email_contacto_ipav !== undefined) {
+      patch.email_contacto_ipav = data.email_contacto_ipav || null;
     }
     if (Object.keys(patch).length > 0) {
-      const { error } = await supabaseAdmin.from("programas").update(patch).eq("id", id);
+      const { error } = await supabaseAdmin.from("programas").update(patch).eq("id", data.id);
       if (error) throw new Error(error.message);
     }
-    if (produto_ids) await syncProdutos(id, produto_ids);
+    if (data.produto_ids) await syncProdutos(data.id, data.produto_ids);
     return { ok: true };
   });
+
 
 /** Elimina um programa, bloqueando quando há dependências reais. */
 export const deletePrograma = createServerFn({ method: "POST" })
