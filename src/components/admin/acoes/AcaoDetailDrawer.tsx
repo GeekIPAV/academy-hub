@@ -41,6 +41,8 @@ import {
   type AcaoRow,
   type RequiredFieldDef,
 } from "@/lib/admin-acoes-gestao.functions";
+import { listProdutos } from "@/lib/produtos.functions";
+
 import {
   PaginaInscricaoEditor,
   loadDoc,
@@ -101,7 +103,13 @@ export function AcaoDetailDrawer({ acao, open, onOpenChange }: Props) {
 function DadosTab({ acao }: { acao: AcaoRow }) {
   const qc = useQueryClient();
   const patchFn = useServerFn(patchAcao);
-  const [form, setForm] = useState(() => ({
+  const fetchProdutos = useServerFn(listProdutos);
+  const { data: produtos } = useQuery({
+    queryKey: ["produtos-catalogo"],
+    queryFn: () => fetchProdutos(),
+    retry: false,
+  });
+
     title: acao.title ?? "",
     description: acao.description ?? "",
     formato: acao.formato ?? "",
