@@ -41,6 +41,9 @@ export type AcaoRow = {
   formato: string | null;
   localizacao: string | null;
   produto: string | null;
+  produto_id: string | null;
+  produto_nome?: string | null;
+
   projeto: string | null;
   pais: string | null;
   email_responsavel: string | null;
@@ -65,7 +68,7 @@ export const listAcoesFull = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("acoes")
       .select(
-        "id, title, description, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, formato, localizacao, produto, projeto, pais, email_responsavel, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, cover_url, cover_position, cover_scale, required_fields, programas(title), entidades(name)",
+        "id, title, description, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, formato, localizacao, produto, produto_id, projeto, pais, email_responsavel, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, cover_url, cover_position, cover_scale, required_fields, programas(title), entidades(name), produtos(name)",
       )
       .order("start_date", { ascending: false, nullsFirst: false })
       .limit(1000);
@@ -73,14 +76,17 @@ export const listAcoesFull = createServerFn({ method: "GET" })
     return (data ?? []).map((r: Record<string, unknown>): AcaoRow => {
       const programa = r.programas as { title?: string | null } | null;
       const entidade = r.entidades as { name?: string | null } | null;
-      const { programas: _p, entidades: _e, ...rest } = r;
+      const produto = r.produtos as { name?: string | null } | null;
+      const { programas: _p, entidades: _e, produtos: _pr, ...rest } = r;
       const rf = (rest as { required_fields?: unknown }).required_fields;
       return {
-        ...(rest as Omit<AcaoRow, "programa_title" | "entidade_nome" | "required_fields">),
+        ...(rest as Omit<AcaoRow, "programa_title" | "entidade_nome" | "produto_nome" | "required_fields">),
         required_fields: Array.isArray(rf) ? (rf as RequiredFieldDef[]) : [],
         programa_title: programa?.title ?? null,
         entidade_nome: entidade?.name ?? null,
+        produto_nome: produto?.name ?? null,
       };
+
     });
   });
 
@@ -99,6 +105,8 @@ const patchSchema = z.object({
       formato: z.string().nullable().optional(),
       localizacao: z.string().nullable().optional(),
       produto: z.string().nullable().optional(),
+      produto_id: z.string().uuid().nullable().optional(),
+
       projeto: z.string().nullable().optional(),
       pais: z.string().nullable().optional(),
       email_responsavel: z.string().nullable().optional(),

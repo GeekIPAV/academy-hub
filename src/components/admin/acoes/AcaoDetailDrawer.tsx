@@ -41,6 +41,8 @@ import {
   type AcaoRow,
   type RequiredFieldDef,
 } from "@/lib/admin-acoes-gestao.functions";
+import { listProdutos } from "@/lib/produtos.functions";
+
 import {
   PaginaInscricaoEditor,
   loadDoc,
@@ -101,13 +103,20 @@ export function AcaoDetailDrawer({ acao, open, onOpenChange }: Props) {
 function DadosTab({ acao }: { acao: AcaoRow }) {
   const qc = useQueryClient();
   const patchFn = useServerFn(patchAcao);
+  const fetchProdutos = useServerFn(listProdutos);
+  const { data: produtos } = useQuery({
+    queryKey: ["produtos-catalogo"],
+    queryFn: () => fetchProdutos(),
+    retry: false,
+  });
   const [form, setForm] = useState(() => ({
     title: acao.title ?? "",
+
     description: acao.description ?? "",
     formato: acao.formato ?? "",
     localizacao: acao.localizacao ?? "",
     pais: acao.pais ?? "",
-    produto: acao.produto ?? "",
+    produto_id: acao.produto_id ?? "",
     projeto: acao.projeto ?? "",
     email_responsavel: acao.email_responsavel ?? "",
     start_date: acao.start_date ?? "",
@@ -140,7 +149,7 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
             formato: form.formato || null,
             localizacao: form.localizacao || null,
             pais: form.pais || null,
-            produto: form.produto || null,
+            produto_id: form.produto_id || null,
             projeto: form.projeto || null,
             email_responsavel: form.email_responsavel || null,
             start_date: form.start_date || null,
@@ -260,8 +269,25 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
           <Input value={form.formato} onChange={(e) => set("formato", e.target.value)} />
         </Field>
         <Field label="Produto">
-          <Input value={form.produto} onChange={(e) => set("produto", e.target.value)} />
+          <Select
+            value={form.produto_id || "__none__"}
+            onValueChange={(v) => set("produto_id", v === "__none__" ? "" : v)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Sem produto" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none__">Sem produto</SelectItem>
+              {(produtos ?? []).map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                  {p.tipo ? ` — ${p.tipo}` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
+
         <Field label="Projeto">
           <Input value={form.projeto} onChange={(e) => set("projeto", e.target.value)} />
         </Field>

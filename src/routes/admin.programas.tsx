@@ -60,7 +60,12 @@ import {
   bulkCreateClusters,
   bulkCreateProgramas,
   updateProgramaAdmin,
+  deletePrograma,
+  PROGRAMA_STATUS,
+  type ProgramaAdminRow,
 } from "@/lib/admin-programas.functions";
+import { listProdutos } from "@/lib/produtos.functions";
+
 import { listAllBadges } from "@/lib/badges.functions";
 import { RouteGate } from "@/components/RouteGate";
 import { slugifyCluster } from "@/lib/cluster-utils";
@@ -153,13 +158,17 @@ function ProgramasSection() {
   return (
     <div className="space-y-6">
       <Card className="p-4">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium">Programas</p>
             <p className="text-xs text-muted-foreground">Lista completa de programas registados.</p>
           </div>
-          <Badge variant="secondary">{programas.length}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{programas.length}</Badge>
+            <ProgramaFormDialog mode="create" clusters={clusters} />
+          </div>
         </div>
+
         {loadingProgramas ? (
           <Skeleton className="h-24 w-full" />
         ) : (
@@ -264,7 +273,7 @@ function ProgramasTable({
   selectedId,
   onSelect,
 }: {
-  rows: Array<{ id: string; title: string | null; is_active: boolean | null; enrollment_open?: boolean | null; cluster_id?: string | null }>;
+  rows: ProgramaAdminRow[];
   clusters: Array<{ id: string; name: string }>;
   selectedId?: string;
   onSelect: (id: string) => void;
@@ -281,10 +290,13 @@ function ProgramasTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="min-w-[220px]">Título</TableHead>
-            <TableHead className="min-w-[180px]">Cluster</TableHead>
-            <TableHead className="w-40">Inscrições abertas</TableHead>
-            <TableHead className="w-32">Status</TableHead>
+            <TableHead className="min-w-[240px]">Título</TableHead>
+            <TableHead className="w-36">Estado</TableHead>
+            <TableHead className="w-44">Datas</TableHead>
+            <TableHead className="w-40">Cluster</TableHead>
+            <TableHead className="w-28">Produtos</TableHead>
+            <TableHead className="w-32">Inscrições abertas</TableHead>
+            <TableHead className="w-28" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -303,31 +315,34 @@ function ProgramasTable({
   );
 }
 
+function fmtDate(v: string | null | undefined) {
+  if (!v) return "—";
+  return v.split("-").reverse().join("/");
+}
+
 function ProgramaRow({
   p,
   clusters,
   selected,
   onSelect,
 }: {
-  p: { id: string; title: string | null; is_active: boolean | null; enrollment_open?: boolean | null; cluster_id?: string | null };
+  p: ProgramaAdminRow;
   clusters: Array<{ id: string; name: string }>;
   selected: boolean;
   onSelect: (id: string) => void;
 }) {
   const qc = useQueryClient();
   const toggleFn = useServerFn(setProgramaEnrollmentOpen);
-  const updateFn = useServerFn(updateProgramaAdmin);
-  const [title, setTitle] = useState(p.title ?? "");
-  useEffect(() => setTitle(p.title ?? ""), [p.title]);
+  const deleteFn = useServerFn(deletePrograma);
 
-  const patchLocal = (patch: Partial<typeof p>) => {
-    qc.setQueryData<any[]>(["admin-programas"], (old) =>
-      (old ?? []).map((r) => (r.id === p.id ? { ...r, ...patch } : r)),
-    );
-  };
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-programas"] });
     qc.invalidateQueries({ queryKey: ["admin-programas-clusters"] });
+  };
+  const patchLocal = (patch: Partial<ProgramaAdminRow>) => {
+    qc.setQueryData<ProgramaAdminRow[]>(["admin-programas"], (old) =>
+      (old ?? []).map((r) => (r.id === p.id ? { ...r, ...patch } : r)),
+    );
   };
 
   const toggle = useMutation({
@@ -339,16 +354,16 @@ function ProgramaRow({
     },
     onSettled: invalidate,
   });
-  const update = useMutation({
-    mutationFn: (vars: { title?: string; cluster_id?: string | null; is_active?: boolean }) =>
-      updateFn({ data: { id: p.id, ...vars } }),
-    onMutate: (vars) => patchLocal(vars),
-    onError: (e: Error) => {
-      toast.error(e.message);
+  const remove = useMutation({
+    mutationFn: () => deleteFn({ data: { id: p.id } }),
+    onSuccess: () => {
+      toast.success("Programa eliminado.");
       invalidate();
     },
-    onSettled: invalidate,
+    onError: (e: Error) => toast.error(e.message),
   });
+
+  const clusterName = clusters.find((c) => c.id === p.cluster_id)?.name ?? "—";
 
   return (
     <TableRow
@@ -356,34 +371,28 @@ function ProgramaRow({
       data-state={selected ? "selected" : undefined}
       className="cursor-pointer"
     >
-      <TableCell className="font-medium" onClick={(e) => e.stopPropagation()}>
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onBlur={() => {
-            const t = title.trim();
-            if (t && t !== (p.title ?? "")) update.mutate({ title: t });
-          }}
-          className="h-8"
-        />
+      <TableCell className="font-medium">
+        {p.title ?? "(sem título)"}
+        <div className="mt-0.5 flex flex-wrap gap-1">
+          {p.certificacao && (
+            <Badge variant="outline" className="text-[10px]">Certificação</Badge>
+          )}
+          {p.acreditacao && (
+            <Badge variant="outline" className="text-[10px]">Acreditação</Badge>
+          )}
+        </div>
       </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <Select
-          value={p.cluster_id ?? "__none__"}
-          onValueChange={(v) => update.mutate({ cluster_id: v === "__none__" ? null : v })}
-        >
-          <SelectTrigger className="h-8">
-            <SelectValue placeholder="Selecionar cluster…" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none__">Nenhum</SelectItem>
-            {clusters.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <TableCell>
+        <Badge variant={p.status === "Ativo" ? "default" : "outline"}>
+          {p.status ?? "—"}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground">
+        {fmtDate(p.date_start)} → {fmtDate(p.date_end)}
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground">{clusterName}</TableCell>
+      <TableCell>
+        <Badge variant="secondary">{p.produto_ids.length}</Badge>
       </TableCell>
       <TableCell onClick={(e) => e.stopPropagation()}>
         <Checkbox
@@ -393,22 +402,24 @@ function ProgramaRow({
         />
       </TableCell>
       <TableCell onClick={(e) => e.stopPropagation()}>
-        <Select
-          value={p.is_active ? "ativo" : "inativo"}
-          onValueChange={(v) => update.mutate({ is_active: v === "ativo" })}
-        >
-          <SelectTrigger className="h-8">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ativo">Ativo</SelectItem>
-            <SelectItem value="inativo">Inativo</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-1">
+          <ProgramaFormDialog mode="edit" programa={p} clusters={clusters} />
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm(`Eliminar o programa "${p.title ?? ""}"?`)) remove.mutate();
+            }}
+            className="rounded p-1 text-destructive hover:bg-destructive/10"
+            aria-label="Eliminar programa"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       </TableCell>
     </TableRow>
   );
 }
+
 
 function EnrollmentToggle({ programId, open }: { programId: string; open: boolean }) {
   const qc = useQueryClient();
@@ -1207,6 +1218,246 @@ function BulkProgramasDialog({
           </Button>
           <Button disabled={titles.length === 0 || m.isPending} onClick={() => m.mutate()}>
             Criar {titles.length || ""}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ================== Formulário completo de programa ==================
+
+function ProgramaFormDialog({
+  mode,
+  programa,
+  clusters,
+  clusterId,
+}: {
+  mode: "create" | "edit";
+  programa?: ProgramaAdminRow;
+  clusters: Array<{ id: string; name: string }>;
+  clusterId?: string | null;
+}) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const createFn = useServerFn(createPrograma);
+  const updateFn = useServerFn(updateProgramaAdmin);
+  const fetchProdutos = useServerFn(listProdutos);
+  const { data: produtos } = useQuery({
+    queryKey: ["produtos-catalogo"],
+    queryFn: () => fetchProdutos(),
+    retry: false,
+    enabled: open,
+  });
+
+  const NONE = "__none__";
+  const [title, setTitle] = useState(programa?.title ?? "");
+  const [status, setStatus] = useState<string>(programa?.status ?? "Não começado");
+  const [dateStart, setDateStart] = useState(programa?.date_start ?? "");
+  const [dateEnd, setDateEnd] = useState(programa?.date_end ?? "");
+  const [certificacao, setCertificacao] = useState(!!programa?.certificacao);
+  const [acreditacao, setAcreditacao] = useState(!!programa?.acreditacao);
+  const [email, setEmail] = useState(programa?.email_contacto_ipav ?? "");
+  const [cluster, setCluster] = useState<string>(programa?.cluster_id ?? clusterId ?? NONE);
+  const [produtoIds, setProdutoIds] = useState<string[]>(programa?.produto_ids ?? []);
+
+  useEffect(() => {
+    if (!open) return;
+    setTitle(programa?.title ?? "");
+    setStatus(programa?.status ?? "Não começado");
+    setDateStart(programa?.date_start ?? "");
+    setDateEnd(programa?.date_end ?? "");
+    setCertificacao(!!programa?.certificacao);
+    setAcreditacao(!!programa?.acreditacao);
+    setEmail(programa?.email_contacto_ipav ?? "");
+    setCluster(programa?.cluster_id ?? clusterId ?? NONE);
+    setProdutoIds(programa?.produto_ids ?? []);
+  }, [open, programa, clusterId]);
+
+  const payload = () => ({
+    title: title.trim(),
+    status: status as (typeof PROGRAMA_STATUS)[number],
+    date_start: dateStart || null,
+    date_end: dateEnd || null,
+    certificacao,
+    acreditacao,
+    email_contacto_ipav: email.trim() || null,
+    cluster_id: cluster === NONE ? null : cluster,
+    produto_ids: produtoIds,
+  });
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin-programas"] });
+    qc.invalidateQueries({ queryKey: ["admin-programas-clusters"] });
+  };
+
+  const save = useMutation({
+    mutationFn: () =>
+      mode === "create"
+        ? createFn({ data: payload() })
+        : updateFn({ data: { id: programa!.id, ...payload() } }),
+    onSuccess: () => {
+      toast.success(mode === "create" ? "Programa criado." : "Programa atualizado.");
+      invalidate();
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleProduto = (id: string) =>
+    setProdutoIds((arr) => (arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]));
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      {mode === "create" ? (
+        <Button size="sm" onClick={() => setOpen(true)}>
+          <Plus className="mr-1 h-4 w-4" />
+          Criar programa
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-8 px-2"
+          onClick={() => setOpen(true)}
+          aria-label="Editar programa"
+        >
+          Editar
+        </Button>
+      )}
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{mode === "create" ? "Criar programa" : "Editar programa"}</DialogTitle>
+          <DialogDescription>
+            O cluster é opcional. Os produtos vêm do catálogo partilhado com as ações.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="pf-title">Título</Label>
+            <Input id="pf-title" value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <Label>Estado</Label>
+              <Select value={status} onValueChange={setStatus}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROGRAMA_STATUS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="pf-d1">Data de início</Label>
+              <Input
+                id="pf-d1"
+                type="date"
+                value={dateStart}
+                onChange={(e) => setDateStart(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pf-d2">Data de fim</Label>
+              <Input
+                id="pf-d2"
+                type="date"
+                value={dateEnd}
+                onChange={(e) => setDateEnd(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Cluster (opcional)</Label>
+              <Select value={cluster} onValueChange={setCluster}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sem cluster" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>Sem cluster</SelectItem>
+                  {clusters.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="pf-email">Email de contacto IPAV</Label>
+              <Input
+                id="pf-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-6">
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={certificacao}
+                onCheckedChange={(v) => setCertificacao(v === true)}
+              />
+              Certificação
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox
+                checked={acreditacao}
+                onCheckedChange={(v) => setAcreditacao(v === true)}
+              />
+              Acreditação
+            </label>
+          </div>
+
+          <div>
+            <Label className="mb-2 block">
+              Produtos{" "}
+              <span className="text-xs text-muted-foreground">
+                ({produtoIds.length} selecionado(s))
+              </span>
+            </Label>
+            <div className="max-h-56 space-y-1 overflow-y-auto rounded-md border p-2">
+              {(produtos ?? []).map((pr) => (
+                <label
+                  key={pr.id}
+                  className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-muted"
+                >
+                  <Checkbox
+                    checked={produtoIds.includes(pr.id)}
+                    onCheckedChange={() => toggleProduto(pr.id)}
+                  />
+                  <span className="flex-1">{pr.name}</span>
+                  {pr.tipo && (
+                    <Badge variant="outline" className="text-[10px]">
+                      {pr.tipo}
+                    </Badge>
+                  )}
+                </label>
+              ))}
+              {(produtos ?? []).length === 0 && (
+                <p className="p-2 text-xs text-muted-foreground">Catálogo vazio.</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancelar
+          </Button>
+          <Button disabled={!title.trim() || save.isPending} onClick={() => save.mutate()}>
+            Guardar
           </Button>
         </DialogFooter>
       </DialogContent>
