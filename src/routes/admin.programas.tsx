@@ -60,7 +60,12 @@ import {
   bulkCreateClusters,
   bulkCreateProgramas,
   updateProgramaAdmin,
+  deletePrograma,
+  PROGRAMA_STATUS,
+  type ProgramaAdminRow,
 } from "@/lib/admin-programas.functions";
+import { listProdutos } from "@/lib/produtos.functions";
+
 import { listAllBadges } from "@/lib/badges.functions";
 import { RouteGate } from "@/components/RouteGate";
 import { slugifyCluster } from "@/lib/cluster-utils";
@@ -153,13 +158,17 @@ function ProgramasSection() {
   return (
     <div className="space-y-6">
       <Card className="p-4">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium">Programas</p>
             <p className="text-xs text-muted-foreground">Lista completa de programas registados.</p>
           </div>
-          <Badge variant="secondary">{programas.length}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{programas.length}</Badge>
+            <ProgramaFormDialog mode="create" clusters={clusters} />
+          </div>
         </div>
+
         {loadingProgramas ? (
           <Skeleton className="h-24 w-full" />
         ) : (
@@ -264,7 +273,7 @@ function ProgramasTable({
   selectedId,
   onSelect,
 }: {
-  rows: Array<{ id: string; title: string | null; is_active: boolean | null; enrollment_open?: boolean | null; cluster_id?: string | null }>;
+  rows: ProgramaAdminRow[];
   clusters: Array<{ id: string; name: string }>;
   selectedId?: string;
   onSelect: (id: string) => void;
@@ -281,10 +290,13 @@ function ProgramasTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="min-w-[220px]">Título</TableHead>
-            <TableHead className="min-w-[180px]">Cluster</TableHead>
-            <TableHead className="w-40">Inscrições abertas</TableHead>
-            <TableHead className="w-32">Status</TableHead>
+            <TableHead className="min-w-[240px]">Título</TableHead>
+            <TableHead className="w-36">Estado</TableHead>
+            <TableHead className="w-44">Datas</TableHead>
+            <TableHead className="w-40">Cluster</TableHead>
+            <TableHead className="w-28">Produtos</TableHead>
+            <TableHead className="w-32">Inscrições abertas</TableHead>
+            <TableHead className="w-28" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -303,31 +315,34 @@ function ProgramasTable({
   );
 }
 
+function fmtDate(v: string | null | undefined) {
+  if (!v) return "—";
+  return v.split("-").reverse().join("/");
+}
+
 function ProgramaRow({
   p,
   clusters,
   selected,
   onSelect,
 }: {
-  p: { id: string; title: string | null; is_active: boolean | null; enrollment_open?: boolean | null; cluster_id?: string | null };
+  p: ProgramaAdminRow;
   clusters: Array<{ id: string; name: string }>;
   selected: boolean;
   onSelect: (id: string) => void;
 }) {
   const qc = useQueryClient();
   const toggleFn = useServerFn(setProgramaEnrollmentOpen);
-  const updateFn = useServerFn(updateProgramaAdmin);
-  const [title, setTitle] = useState(p.title ?? "");
-  useEffect(() => setTitle(p.title ?? ""), [p.title]);
+  const deleteFn = useServerFn(deletePrograma);
 
-  const patchLocal = (patch: Partial<typeof p>) => {
-    qc.setQueryData<any[]>(["admin-programas"], (old) =>
-      (old ?? []).map((r) => (r.id === p.id ? { ...r, ...patch } : r)),
-    );
-  };
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-programas"] });
     qc.invalidateQueries({ queryKey: ["admin-programas-clusters"] });
+  };
+  const patchLocal = (patch: Partial<ProgramaAdminRow>) => {
+    qc.setQueryData<ProgramaAdminRow[]>(["admin-programas"], (old) =>
+      (old ?? []).map((r) => (r.id === p.id ? { ...r, ...patch } : r)),
+    );
   };
 
   const toggle = useMutation({
@@ -339,16 +354,16 @@ function ProgramaRow({
     },
     onSettled: invalidate,
   });
-  const update = useMutation({
-    mutationFn: (vars: { title?: string; cluster_id?: string | null; is_active?: boolean }) =>
-      updateFn({ data: { id: p.id, ...vars } }),
-    onMutate: (vars) => patchLocal(vars),
-    onError: (e: Error) => {
-      toast.error(e.message);
+  const remove = useMutation({
+    mutationFn: () => deleteFn({ data: { id: p.id } }),
+    onSuccess: () => {
+      toast.success("Programa eliminado.");
       invalidate();
     },
-    onSettled: invalidate,
+    onError: (e: Error) => toast.error(e.message),
   });
+
+  const clusterName = clusters.find((c) => c.id === p.cluster_id)?.name ?? "—";
 
   return (
     <TableRow
@@ -356,34 +371,28 @@ function ProgramaRow({
       data-state={selected ? "selected" : undefined}
       className="cursor-pointer"
     >
-      <TableCell className="font-medium" onClick={(e) => e.stopPropagation()}>
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          onBlur={() => {
-            const t = title.trim();
-            if (t && t !== (p.title ?? "")) update.mutate({ title: t });
-          }}
-          className="h-8"
-        />
+      <TableCell className="font-medium">
+        {p.title ?? "(sem título)"}
+        <div className="mt-0.5 flex flex-wrap gap-1">
+          {p.certificacao && (
+            <Badge variant="outline" className="text-[10px]">Certificação</Badge>
+          )}
+          {p.acreditacao && (
+            <Badge variant="outline" className="text-[10px]">Acreditação</Badge>
+          )}
+        </div>
       </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <Select
-          value={p.cluster_id ?? "__none__"}
-          onValueChange={(v) => update.mutate({ cluster_id: v === "__none__" ? null : v })}
-        >
-          <SelectTrigger className="h-8">
-            <SelectValue placeholder="Selecionar cluster…" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none__">Nenhum</SelectItem>
-            {clusters.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                {c.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <TableCell>
+        <Badge variant={p.status === "Ativo" ? "default" : "outline"}>
+          {p.status ?? "—"}
+        </Badge>
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground">
+        {fmtDate(p.date_start)} → {fmtDate(p.date_end)}
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground">{clusterName}</TableCell>
+      <TableCell>
+        <Badge variant="secondary">{p.produto_ids.length}</Badge>
       </TableCell>
       <TableCell onClick={(e) => e.stopPropagation()}>
         <Checkbox
@@ -393,22 +402,24 @@ function ProgramaRow({
         />
       </TableCell>
       <TableCell onClick={(e) => e.stopPropagation()}>
-        <Select
-          value={p.is_active ? "ativo" : "inativo"}
-          onValueChange={(v) => update.mutate({ is_active: v === "ativo" })}
-        >
-          <SelectTrigger className="h-8">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ativo">Ativo</SelectItem>
-            <SelectItem value="inativo">Inativo</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-1">
+          <ProgramaFormDialog mode="edit" programa={p} clusters={clusters} />
+          <button
+            type="button"
+            onClick={() => {
+              if (confirm(`Eliminar o programa "${p.title ?? ""}"?`)) remove.mutate();
+            }}
+            className="rounded p-1 text-destructive hover:bg-destructive/10"
+            aria-label="Eliminar programa"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       </TableCell>
     </TableRow>
   );
 }
+
 
 function EnrollmentToggle({ programId, open }: { programId: string; open: boolean }) {
   const qc = useQueryClient();
