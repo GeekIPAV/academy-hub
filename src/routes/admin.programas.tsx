@@ -393,10 +393,23 @@ function ProgramaRow({
           )}
         </div>
       </TableCell>
-      <TableCell>
-        <Badge variant={p.status === "Ativo" ? "default" : "outline"}>
-          {p.status ?? "—"}
-        </Badge>
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <Select
+          value={p.status ?? "Não começado"}
+          onValueChange={(v) => changeStatus.mutate(v as (typeof PROGRAMA_STATUS)[number])}
+          disabled={changeStatus.isPending}
+        >
+          <SelectTrigger className="h-8 w-36 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PROGRAMA_STATUS.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </TableCell>
       <TableCell className="text-xs text-muted-foreground">
         {fmtDate(p.date_start)} → {fmtDate(p.date_end)}
