@@ -363,6 +363,16 @@ function ProgramaRow({
     },
     onError: (e: Error) => toast.error(e.message),
   });
+  const changeStatus = useMutation({
+    mutationFn: (status: (typeof PROGRAMA_STATUS)[number]) =>
+      updateFn({ data: { id: p.id, status } }),
+    onMutate: (status) => patchLocal({ status, is_active: status === "Ativo" }),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      invalidate();
+    },
+    onSettled: invalidate,
+  });
 
   const clusterName = clusters.find((c) => c.id === p.cluster_id)?.name ?? "—";
 
