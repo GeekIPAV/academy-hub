@@ -1485,10 +1485,11 @@ function ProgramaFormDialog({
   };
 
   const save = useMutation({
-    mutationFn: () =>
-      mode === "create"
-        ? createFn({ data: payload() })
-        : updateFn({ data: { id: programa!.id, ...payload() } }),
+    mutationFn: () => {
+      if (mode === "create") return createFn({ data: payload() });
+      if (!programa) throw new Error("Programa em falta.");
+      return updateFn({ data: { id: programa.id, ...payload() } });
+    },
     onSuccess: () => {
       toast.success(mode === "create" ? "Programa criado." : "Programa atualizado.");
       invalidate();
