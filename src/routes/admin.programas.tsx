@@ -150,6 +150,7 @@ function ProgramasSection() {
   );
 
   const [programId, setProgramId] = useState<string | undefined>(undefined);
+  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     if (!programId && programas.length > 0) setProgramId(programas[0].id);
@@ -159,20 +160,33 @@ function ProgramasSection() {
     <div className="space-y-6">
       <Card className="p-4">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium">Programas</p>
-            <p className="text-xs text-muted-foreground">Lista completa de programas registados.</p>
-          </div>
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="flex items-center gap-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-expanded={open}
+          >
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "" : "-rotate-90"}`}
+            />
+            <span>
+              <span className="block text-sm font-medium">Programas</span>
+              <span className="block text-xs text-muted-foreground">
+                Lista completa de programas registados.
+              </span>
+            </span>
+          </button>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">{programas.length}</Badge>
             <ProgramaFormDialog mode="create" clusters={clusters} />
           </div>
         </div>
 
-        {loadingProgramas ? (
-          <Skeleton className="h-24 w-full" />
-        ) : (
-          <Tabs defaultValue="ativos">
+        {open &&
+          (loadingProgramas ? (
+            <Skeleton className="h-24 w-full" />
+          ) : (
+            <Tabs defaultValue="ativos">
             <TabsList>
               <TabsTrigger value="ativos">
                 Ativos
@@ -202,6 +216,7 @@ function ProgramasSection() {
               />
             </TabsContent>
           </Tabs>
+          )
         )}
       </Card>
 
