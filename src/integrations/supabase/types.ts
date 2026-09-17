@@ -39,6 +39,7 @@ export type Database = {
           notion_id: string | null
           pais: string | null
           produto: string | null
+          produto_id: string | null
           program_id: string | null
           projeto: string | null
           registration_status: string | null
@@ -71,6 +72,7 @@ export type Database = {
           notion_id?: string | null
           pais?: string | null
           produto?: string | null
+          produto_id?: string | null
           program_id?: string | null
           projeto?: string | null
           registration_status?: string | null
@@ -103,6 +105,7 @@ export type Database = {
           notion_id?: string | null
           pais?: string | null
           produto?: string | null
+          produto_id?: string | null
           program_id?: string | null
           projeto?: string | null
           registration_status?: string | null
@@ -112,6 +115,13 @@ export type Database = {
           title?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "acoes_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "training_actions_entity_id_fkey"
             columns: ["entity_id"]
@@ -1278,11 +1288,46 @@ export type Database = {
           },
         ]
       }
+      produtos: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          sort_order: number
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          sort_order?: number
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          sort_order?: number
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       programas: {
         Row: {
+          acreditacao: boolean
+          certificacao: boolean
           cluster: string | null
           cluster_id: string | null
+          date_end: string | null
+          date_start: string | null
           description: string | null
+          email_contacto_ipav: string | null
           enrollment_open: boolean
           id: string
           is_active: boolean | null
@@ -1292,13 +1337,19 @@ export type Database = {
           notion_id: string | null
           public_enroll_token: string | null
           required_fields: Json | null
+          status: string
           sync_status: string | null
           title: string | null
         }
         Insert: {
+          acreditacao?: boolean
+          certificacao?: boolean
           cluster?: string | null
           cluster_id?: string | null
+          date_end?: string | null
+          date_start?: string | null
           description?: string | null
+          email_contacto_ipav?: string | null
           enrollment_open?: boolean
           id?: string
           is_active?: boolean | null
@@ -1308,13 +1359,19 @@ export type Database = {
           notion_id?: string | null
           public_enroll_token?: string | null
           required_fields?: Json | null
+          status?: string
           sync_status?: string | null
           title?: string | null
         }
         Update: {
+          acreditacao?: boolean
+          certificacao?: boolean
           cluster?: string | null
           cluster_id?: string | null
+          date_end?: string | null
+          date_start?: string | null
           description?: string | null
+          email_contacto_ipav?: string | null
           enrollment_open?: boolean
           id?: string
           is_active?: boolean | null
@@ -1324,6 +1381,7 @@ export type Database = {
           notion_id?: string | null
           public_enroll_token?: string | null
           required_fields?: Json | null
+          status?: string
           sync_status?: string | null
           title?: string | null
         }
@@ -1333,6 +1391,39 @@ export type Database = {
             columns: ["cluster_id"]
             isOneToOne: false
             referencedRelation: "clusters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programas_produtos: {
+        Row: {
+          created_at: string
+          produto_id: string
+          program_id: string
+        }
+        Insert: {
+          created_at?: string
+          produto_id: string
+          program_id: string
+        }
+        Update: {
+          created_at?: string
+          produto_id?: string
+          program_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programas_produtos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programas_produtos_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programas"
             referencedColumns: ["id"]
           },
         ]
