@@ -11,6 +11,7 @@ import {
   Plus,
   Trash2,
   Layers,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,7 +72,22 @@ import { RouteGate } from "@/components/RouteGate";
 import { slugifyCluster } from "@/lib/cluster-utils";
 
 export const Route = createFileRoute("/admin/programas")({
-  head: () => ({ meta: [{ title: "Gestão de Programas — Admin" }] }),
+  head: () => ({
+    meta: [
+      { title: "Gestão de Programas — Academia de Líderes Ubuntu" },
+      {
+        name: "description",
+        content: "Área administrativa para editar programas, instituições inscritas e participantes.",
+      },
+      { property: "og:title", content: "Gestão de Programas — Academia de Líderes Ubuntu" },
+      {
+        property: "og:description",
+        content: "Área administrativa para editar programas, instituições inscritas e participantes.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: () => (
     <RouteGate path="/admin/programas">
       <AdminProgramasPage />
@@ -149,12 +165,7 @@ function ProgramasSection() {
     [clustersRaw],
   );
 
-  const [programId, setProgramId] = useState<string | undefined>(undefined);
   const [open, setOpen] = useState(true);
-
-  useEffect(() => {
-    if (!programId && programas.length > 0) setProgramId(programas[0].id);
-  }, [programas, programId]);
 
   return (
     <div className="space-y-6">
@@ -182,11 +193,17 @@ function ProgramasSection() {
           </div>
         </div>
 
+        {programasError && (
+          <p className="mb-3 text-xs text-destructive">
+            Não foi possível carregar programas ({(programasError as Error).message}).
+          </p>
+        )}
+
         {open &&
           (loadingProgramas ? (
             <Skeleton className="h-24 w-full" />
           ) : (
-            <Tabs defaultValue="ativos">
+            <Tabs defaultValue="ativos" className="space-y-3">
             <TabsList>
               <TabsTrigger value="ativos">
                 Ativos
@@ -203,81 +220,18 @@ function ProgramasSection() {
               <ProgramasTable
                 rows={programas.filter((p) => p.is_active)}
                 clusters={clusters}
-                selectedId={programId}
-                onSelect={setProgramId}
               />
             </TabsContent>
             <TabsContent value="geral">
               <ProgramasTable
                 rows={programas}
                 clusters={clusters}
-                selectedId={programId}
-                onSelect={setProgramId}
               />
             </TabsContent>
           </Tabs>
           )
         )}
       </Card>
-
-      <Card className="p-4">
-        <Label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Programa
-        </Label>
-        {loadingProgramas ? (
-          <Skeleton className="h-10 max-w-md" />
-        ) : (
-          <div className="flex flex-wrap items-center gap-4">
-            <Select value={programId ?? ""} onValueChange={(v) => setProgramId(v)}>
-              <SelectTrigger className="max-w-md">
-                <SelectValue placeholder="Selecionar programa…" />
-              </SelectTrigger>
-              <SelectContent>
-                {programas.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.title ?? "(sem título)"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {programId && (
-              <EnrollmentToggle
-                programId={programId}
-                open={!!programas.find((p) => p.id === programId)?.enrollment_open}
-              />
-            )}
-          </div>
-        )}
-        {programasError && (
-          <p className="mt-2 text-xs text-destructive">
-            Não foi possível carregar programas ({(programasError as Error).message}).
-          </p>
-        )}
-      </Card>
-
-      {!programId ? (
-        <EmptyState />
-      ) : (
-        <Tabs defaultValue="instituicoes" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="instituicoes">
-              <Building2 className="mr-2 h-4 w-4" />
-              Instituições
-            </TabsTrigger>
-            <TabsTrigger value="participantes">
-              <Users className="mr-2 h-4 w-4" />
-              Participantes
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="instituicoes">
-            <InstituicoesTab programId={programId} />
-          </TabsContent>
-          <TabsContent value="participantes">
-            <ParticipantesTab programId={programId} />
-          </TabsContent>
-        </Tabs>
-      )}
     </div>
   );
 }
@@ -285,13 +239,9 @@ function ProgramasSection() {
 function ProgramasTable({
   rows,
   clusters,
-  selectedId,
-  onSelect,
 }: {
   rows: ProgramaAdminRow[];
   clusters: Array<{ id: string; name: string }>;
-  selectedId?: string;
-  onSelect: (id: string) => void;
 }) {
   if (rows.length === 0) {
     return (
@@ -305,13 +255,14 @@ function ProgramasTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="min-w-[240px]">Título</TableHead>
+            <TableHead className="w-10" />
+            <TableHead className="min-w-[240px]">Programa</TableHead>
             <TableHead className="w-36">Estado</TableHead>
             <TableHead className="w-44">Datas</TableHead>
             <TableHead className="w-40">Cluster</TableHead>
             <TableHead className="w-28">Produtos</TableHead>
             <TableHead className="w-32">Inscrições abertas</TableHead>
-            <TableHead className="w-28" />
+            <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -320,8 +271,6 @@ function ProgramasTable({
               key={p.id}
               p={p}
               clusters={clusters}
-              selected={selectedId === p.id}
-              onSelect={onSelect}
             />
           ))}
         </TableBody>
@@ -338,18 +287,15 @@ function fmtDate(v: string | null | undefined) {
 function ProgramaRow({
   p,
   clusters,
-  selected,
-  onSelect,
 }: {
   p: ProgramaAdminRow;
   clusters: Array<{ id: string; name: string }>;
-  selected: boolean;
-  onSelect: (id: string) => void;
 }) {
   const qc = useQueryClient();
   const toggleFn = useServerFn(setProgramaEnrollmentOpen);
   const deleteFn = useServerFn(deletePrograma);
   const updateFn = useServerFn(updateProgramaAdmin);
+  const [expanded, setExpanded] = useState(false);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-programas"] });
@@ -392,119 +338,328 @@ function ProgramaRow({
   const clusterName = clusters.find((c) => c.id === p.cluster_id)?.name ?? "—";
 
   return (
-    <TableRow
-      onClick={() => onSelect(p.id)}
-      data-state={selected ? "selected" : undefined}
-      className="cursor-pointer"
-    >
-      <TableCell className="font-medium">
-        {p.title ?? "(sem título)"}
-        <div className="mt-0.5 flex flex-wrap gap-1">
-          {p.certificacao && (
-            <Badge variant="outline" className="text-[10px]">Certificação</Badge>
-          )}
-          {p.acreditacao && (
-            <Badge variant="outline" className="text-[10px]">Acreditação</Badge>
-          )}
-        </div>
-      </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <Select
-          value={p.status ?? "Não começado"}
-          onValueChange={(v) => changeStatus.mutate(v as (typeof PROGRAMA_STATUS)[number])}
-          disabled={changeStatus.isPending}
-        >
-          <SelectTrigger className="h-8 w-36 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PROGRAMA_STATUS.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </TableCell>
-      <TableCell className="text-xs text-muted-foreground">
-        {fmtDate(p.date_start)} → {fmtDate(p.date_end)}
-      </TableCell>
-      <TableCell className="text-xs text-muted-foreground">{clusterName}</TableCell>
-      <TableCell>
-        <Badge variant="secondary">{p.produto_ids.length}</Badge>
-      </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <Checkbox
-          checked={!!p.enrollment_open}
-          onCheckedChange={(v) => toggle.mutate(v === true)}
-          aria-label="Inscrições abertas"
-        />
-      </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center gap-1">
-          <ProgramaFormDialog mode="edit" programa={p} clusters={clusters} />
-          <button
+    <>
+      <TableRow
+        onClick={() => setExpanded((v) => !v)}
+        data-state={expanded ? "selected" : undefined}
+        className="cursor-pointer"
+      >
+        <TableCell>
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+            aria-label={expanded ? "Recolher programa" : "Abrir programa"}
+          >
+            {expanded ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </Button>
+        </TableCell>
+        <TableCell className="font-medium">
+          {p.title ?? "(sem título)"}
+          <div className="mt-0.5 flex flex-wrap gap-1">
+            {p.certificacao && (
+              <Badge variant="outline" className="text-[10px]">Certificação</Badge>
+            )}
+            {p.acreditacao && (
+              <Badge variant="outline" className="text-[10px]">Acreditação</Badge>
+            )}
+          </div>
+        </TableCell>
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <Select
+            value={p.status ?? "Não começado"}
+            onValueChange={(v) => changeStatus.mutate(v as (typeof PROGRAMA_STATUS)[number])}
+            disabled={changeStatus.isPending}
+          >
+            <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PROGRAMA_STATUS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </TableCell>
+        <TableCell className="text-xs text-muted-foreground">
+          {fmtDate(p.date_start)} → {fmtDate(p.date_end)}
+        </TableCell>
+        <TableCell className="text-xs text-muted-foreground">{clusterName}</TableCell>
+        <TableCell>
+          <Badge variant="secondary">{p.produto_ids.length}</Badge>
+        </TableCell>
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            checked={!!p.enrollment_open}
+            onCheckedChange={(v) => toggle.mutate(v === true)}
+            aria-label="Inscrições abertas"
+          />
+        </TableCell>
+        <TableCell onClick={(e) => e.stopPropagation()}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={() => {
               if (confirm(`Eliminar o programa "${p.title ?? ""}"?`)) remove.mutate();
             }}
-            className="rounded p-1 text-destructive hover:bg-destructive/10"
             aria-label="Eliminar programa"
           >
             <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
-      </TableCell>
-    </TableRow>
+          </Button>
+        </TableCell>
+      </TableRow>
+      {expanded && (
+        <TableRow>
+          <TableCell colSpan={8} className="bg-muted/20 p-0">
+            <div className="px-4 py-4">
+              <Tabs defaultValue="editar" className="space-y-4">
+                <TabsList>
+                  <TabsTrigger value="editar">
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Editar
+                  </TabsTrigger>
+                  <TabsTrigger value="instituicoes">
+                    <Building2 className="mr-2 h-4 w-4" />
+                    Instituições
+                  </TabsTrigger>
+                  <TabsTrigger value="participantes">
+                    <Users className="mr-2 h-4 w-4" />
+                    Participantes
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="editar">
+                  <ProgramaInlineEditor programa={p} clusters={clusters} />
+                </TabsContent>
+                <TabsContent value="instituicoes">
+                  <InstituicoesTab programId={p.id} />
+                </TabsContent>
+                <TabsContent value="participantes">
+                  <ParticipantesTab programId={p.id} />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
   );
 }
 
-
-function EnrollmentToggle({ programId, open }: { programId: string; open: boolean }) {
+function ProgramaInlineEditor({
+  programa,
+  clusters,
+}: {
+  programa: ProgramaAdminRow;
+  clusters: Array<{ id: string; name: string }>;
+}) {
   const qc = useQueryClient();
-  const toggleFn = useServerFn(setProgramaEnrollmentOpen);
-  const m = useMutation({
-    mutationFn: (vars: { programId: string; open: boolean }) => toggleFn({ data: vars }),
-    onMutate: async (vars) => {
-      await qc.cancelQueries({ queryKey: ["admin-programas"] });
-      const prev = qc.getQueryData<any[]>(["admin-programas"]);
-      qc.setQueryData<any[]>(["admin-programas"], (old) =>
-        (old ?? []).map((p) => (p.id === vars.programId ? { ...p, enrollment_open: vars.open } : p)),
-      );
-      return { prev };
-    },
-    onError: (e: Error, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(["admin-programas"], ctx.prev);
-      toast.error(e.message);
-    },
-    onSettled: () => qc.invalidateQueries({ queryKey: ["admin-programas"] }),
+  const updateFn = useServerFn(updateProgramaAdmin);
+  const fetchProdutos = useServerFn(listProdutos);
+  const { data: produtos } = useQuery({
+    queryKey: ["produtos-catalogo"],
+    queryFn: () => fetchProdutos(),
+    retry: false,
   });
-  return (
-    <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
-      <Switch
-        checked={open}
-        onCheckedChange={(v) => m.mutate({ programId, open: v })}
-        aria-label="Inscrições abertas"
-      />
-      <span className="text-sm">
-        Inscrições {open ? "abertas" : "fechadas"}
-      </span>
-    </div>
-  );
-}
 
-function EmptyState() {
+  const NONE = "__none__";
+  const [title, setTitle] = useState(programa.title ?? "");
+  const [status, setStatus] = useState<string>(programa.status ?? "Não começado");
+  const [dateStart, setDateStart] = useState(programa.date_start ?? "");
+  const [dateEnd, setDateEnd] = useState(programa.date_end ?? "");
+  const [certificacao, setCertificacao] = useState(!!programa.certificacao);
+  const [acreditacao, setAcreditacao] = useState(!!programa.acreditacao);
+  const [email, setEmail] = useState(programa.email_contacto_ipav ?? "");
+  const [cluster, setCluster] = useState<string>(programa.cluster_id ?? NONE);
+  const [produtoIds, setProdutoIds] = useState<string[]>(programa.produto_ids ?? []);
+
+  useEffect(() => {
+    setTitle(programa.title ?? "");
+    setStatus(programa.status ?? "Não começado");
+    setDateStart(programa.date_start ?? "");
+    setDateEnd(programa.date_end ?? "");
+    setCertificacao(!!programa.certificacao);
+    setAcreditacao(!!programa.acreditacao);
+    setEmail(programa.email_contacto_ipav ?? "");
+    setCluster(programa.cluster_id ?? NONE);
+    setProdutoIds(programa.produto_ids ?? []);
+  }, [programa]);
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["admin-programas"] });
+    qc.invalidateQueries({ queryKey: ["admin-programas-clusters"] });
+  };
+
+  const save = useMutation({
+    mutationFn: () =>
+      updateFn({
+        data: {
+          id: programa.id,
+          title: title.trim(),
+          status: status as (typeof PROGRAMA_STATUS)[number],
+          date_start: dateStart || null,
+          date_end: dateEnd || null,
+          certificacao,
+          acreditacao,
+          email_contacto_ipav: email.trim() || null,
+          cluster_id: cluster === NONE ? null : cluster,
+          produto_ids: produtoIds,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Programa atualizado.");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleProduto = (id: string) =>
+    setProdutoIds((arr) => (arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]));
+
   return (
-    <Card className="border-dashed">
-      <CardContent className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-        <GraduationCap className="h-10 w-10 text-muted-foreground/60" />
-        <p className="text-sm font-medium">Selecione um programa</p>
-        <p className="text-xs text-muted-foreground">
-          Escolha um programa no seletor acima para ver as instituições inscritas e os
-          respetivos participantes.
-        </p>
-      </CardContent>
-    </Card>
+    <div className="rounded-md border bg-background p-4">
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor={`pi-title-${programa.id}`}>Título</Label>
+          <Input
+            id={`pi-title-${programa.id}`}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <Label>Estado</Label>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PROGRAMA_STATUS.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor={`pi-d1-${programa.id}`}>Data de início</Label>
+            <Input
+              id={`pi-d1-${programa.id}`}
+              type="date"
+              value={dateStart}
+              onChange={(e) => setDateStart(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor={`pi-d2-${programa.id}`}>Data de fim</Label>
+            <Input
+              id={`pi-d2-${programa.id}`}
+              type="date"
+              value={dateEnd}
+              onChange={(e) => setDateEnd(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label>Cluster (opcional)</Label>
+            <Select value={cluster} onValueChange={setCluster}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sem cluster" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>Sem cluster</SelectItem>
+                {clusters.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor={`pi-email-${programa.id}`}>Email de contacto IPAV</Label>
+            <Input
+              id={`pi-email-${programa.id}`}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-6">
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={certificacao}
+              onCheckedChange={(v) => setCertificacao(v === true)}
+            />
+            Certificação
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={acreditacao}
+              onCheckedChange={(v) => setAcreditacao(v === true)}
+            />
+            Acreditação
+          </label>
+        </div>
+
+        <div>
+          <Label className="mb-2 block">
+            Produtos{" "}
+            <span className="text-xs text-muted-foreground">
+              ({produtoIds.length} selecionado(s))
+            </span>
+          </Label>
+          <div className="max-h-56 space-y-1 overflow-y-auto rounded-md border p-2">
+            {(produtos ?? []).map((pr) => (
+              <label
+                key={pr.id}
+                className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-muted"
+              >
+                <Checkbox
+                  checked={produtoIds.includes(pr.id)}
+                  onCheckedChange={() => toggleProduto(pr.id)}
+                />
+                <span className="flex-1">{pr.name}</span>
+                {pr.tipo && (
+                  <Badge variant="outline" className="text-[10px]">
+                    {pr.tipo}
+                  </Badge>
+                )}
+              </label>
+            ))}
+            {(produtos ?? []).length === 0 && (
+              <p className="p-2 text-xs text-muted-foreground">Catálogo vazio.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 flex justify-end">
+        <Button disabled={!title.trim() || save.isPending} onClick={() => save.mutate()}>
+          Guardar alterações
+        </Button>
+      </div>
+    </div>
   );
 }
 
