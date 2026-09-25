@@ -1,9 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, Download, ExternalLink, ListTree, RotateCcw, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronLeft, ChevronRight, Download, ListTree, RotateCcw, XCircle } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
