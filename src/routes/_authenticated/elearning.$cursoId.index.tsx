@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Award, CheckCircle2, Circle, Clock, FileDown, Lock, PlayCircle } from "lucide-react";
+import { ArrowLeft, Award, Clock, FileDown, PlayCircle } from "lucide-react";
+import { EstadoIcon, TIPO_PASSO } from "@/components/elearning/shared";
 import { RouteGate } from "@/components/RouteGate";
 import { CoverImage } from "@/components/CoverImage";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getCurso, inscreverCurso, type PassoEstado } from "@/lib/elearning.functions";
+import { getCurso, inscreverCurso } from "@/lib/elearning.functions";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId/")({
@@ -31,14 +32,6 @@ export const Route = createFileRoute("/_authenticated/elearning/$cursoId/")({
     </RouteGate>
   ),
 });
-
-export const TIPO_PASSO: Record<string, string> = { video: "Vídeo", texto: "Leitura", recurso: "Recurso", quiz: "Quiz", reflexao: "Reflexão" };
-
-export function EstadoIcon({ estado }: { estado: PassoEstado }) {
-  if (estado === "concluido") return <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" />;
-  if (estado === "bloqueado") return <Lock className="h-4 w-4 shrink-0 text-muted-foreground" />;
-  return <Circle className="h-4 w-4 shrink-0 text-muted-foreground" />;
-}
 
 function fmt(d: string | null) {
   return d ? new Date(d + "T00:00:00").toLocaleDateString("pt-PT") : "—";

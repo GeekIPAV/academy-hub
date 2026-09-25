@@ -21,7 +21,7 @@ import {
   type PassoDetalhe,
 } from "@/lib/elearning.functions";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
-import { EstadoIcon, TIPO_PASSO } from "./elearning.$cursoId.index";
+import { EstadoIcon, TIPO_PASSO } from "@/components/elearning/shared";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId/passo/$passoId")({
   head: () => ({

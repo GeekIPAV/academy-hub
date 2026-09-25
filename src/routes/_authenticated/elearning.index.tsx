@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MODALIDADE_LABEL } from "@/components/elearning/shared";
 import { listCatalogo, type CursoCardDTO } from "@/lib/elearning.functions";
 
 export const Route = createFileRoute("/_authenticated/elearning/")({
@@ -31,7 +32,6 @@ export const Route = createFileRoute("/_authenticated/elearning/")({
   ),
 });
 
-export const MODALIDADE_LABEL: Record<string, string> = { autonomo: "Autónomo", turma: "Em turma" };
 
 function CatalogoPage() {
   const fetchFn = useServerFn(listCatalogo);
