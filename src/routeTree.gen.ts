@@ -46,6 +46,7 @@ import { Route as AuthenticatedElearningIndexRouteImport } from './routes/_authe
 import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
+import { Route as CertificadosVerificarCodigoRouteImport } from './routes/certificados.verificar.$codigo'
 import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
@@ -256,6 +257,12 @@ const EntidadeAcoesIdRoute = EntidadeAcoesIdRouteImport.update({
   path: '/entidade/acoes/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CertificadosVerificarCodigoRoute =
+  CertificadosVerificarCodigoRouteImport.update({
+    id: '/certificados/verificar/$codigo',
+    path: '/certificados/verificar/$codigo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedRecursosClusterRoute =
   AuthenticatedRecursosClusterRouteImport.update({
     id: '/$cluster',
@@ -404,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
+  '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
@@ -458,6 +466,7 @@ export interface FileRoutesByTo {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
@@ -516,6 +525,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/_authenticated/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
   '/_authenticated/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
+  '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
@@ -575,6 +585,7 @@ export interface FileRouteTypes {
     | '/admin/recursos'
     | '/cultura-ubuntu/avaliacao'
     | '/recursos/$cluster'
+    | '/certificados/verificar/$codigo'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
@@ -629,6 +640,7 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
+    | '/certificados/verificar/$codigo'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
@@ -686,6 +698,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/recursos'
     | '/_authenticated/cultura-ubuntu/avaliacao'
     | '/_authenticated/recursos/$cluster'
+    | '/certificados/verificar/$codigo'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
@@ -737,6 +750,7 @@ export interface RootRouteChildren {
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
   PublicacoesRevistasRoute: typeof PublicacoesRevistasRouteWithChildren
+  CertificadosVerificarCodigoRoute: typeof CertificadosVerificarCodigoRoute
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
   ApiCertificatesActionIdParticipanteIdRoute: typeof ApiCertificatesActionIdParticipanteIdRoute
@@ -1006,6 +1020,13 @@ declare module '@tanstack/react-router' {
       path: '/entidade/acoes/$id'
       fullPath: '/entidade/acoes/$id'
       preLoaderRoute: typeof EntidadeAcoesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/certificados/verificar/$codigo': {
+      id: '/certificados/verificar/$codigo'
+      path: '/certificados/verificar/$codigo'
+      fullPath: '/certificados/verificar/$codigo'
+      preLoaderRoute: typeof CertificadosVerificarCodigoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/recursos/$cluster': {
@@ -1303,6 +1324,7 @@ const rootRouteChildren: RootRouteChildren = {
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
   PublicacoesRevistasRoute: PublicacoesRevistasRouteWithChildren,
+  CertificadosVerificarCodigoRoute: CertificadosVerificarCodigoRoute,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
   ApiCertificatesActionIdParticipanteIdRoute:
