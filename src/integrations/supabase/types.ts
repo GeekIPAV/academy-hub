@@ -382,6 +382,72 @@ export type Database = {
         }
         Relationships: []
       }
+      certificados_elearning: {
+        Row: {
+          codigo: string
+          curso_id: string
+          curso_titulo: string
+          data_fim: string | null
+          data_inicio: string | null
+          emitido_em: string
+          horas: number | null
+          id: string
+          inscricao_id: string
+          modalidade: string | null
+          nome: string
+          revogado: boolean
+          storage_path: string | null
+          user_id: string
+        }
+        Insert: {
+          codigo: string
+          curso_id: string
+          curso_titulo: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          emitido_em?: string
+          horas?: number | null
+          id?: string
+          inscricao_id: string
+          modalidade?: string | null
+          nome: string
+          revogado?: boolean
+          storage_path?: string | null
+          user_id: string
+        }
+        Update: {
+          codigo?: string
+          curso_id?: string
+          curso_titulo?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          emitido_em?: string
+          horas?: number | null
+          id?: string
+          inscricao_id?: string
+          modalidade?: string | null
+          nome?: string
+          revogado?: boolean
+          storage_path?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificados_elearning_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificados_elearning_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: true
+            referencedRelation: "cursos_inscricoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cluster_covers: {
         Row: {
           cluster_name: string
@@ -565,6 +631,479 @@ export type Database = {
             columns: ["entity_id"]
             isOneToOne: false
             referencedRelation: "entidades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos: {
+        Row: {
+          acreditacao_ref: string | null
+          badge_entrada_id: string | null
+          badge_final_id: string | null
+          badge_renovado_id: string | null
+          cluster_id: string | null
+          cover_position: string
+          cover_scale: number
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          estado: string
+          horas: number | null
+          id: string
+          modalidade: string
+          nota_minima_quiz: number
+          pct_minima_video: number
+          program_id: string | null
+          tem_certificado: boolean
+          tipo: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          acreditacao_ref?: string | null
+          badge_entrada_id?: string | null
+          badge_final_id?: string | null
+          badge_renovado_id?: string | null
+          cluster_id?: string | null
+          cover_position?: string
+          cover_scale?: number
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estado?: string
+          horas?: number | null
+          id?: string
+          modalidade?: string
+          nota_minima_quiz?: number
+          pct_minima_video?: number
+          program_id?: string | null
+          tem_certificado?: boolean
+          tipo?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          acreditacao_ref?: string | null
+          badge_entrada_id?: string | null
+          badge_final_id?: string | null
+          badge_renovado_id?: string | null
+          cluster_id?: string | null
+          cover_position?: string
+          cover_scale?: number
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          estado?: string
+          horas?: number | null
+          id?: string
+          modalidade?: string
+          nota_minima_quiz?: number
+          pct_minima_video?: number
+          program_id?: string | null
+          tem_certificado?: boolean
+          tipo?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_badge_entrada_id_fkey"
+            columns: ["badge_entrada_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_badge_final_id_fkey"
+            columns: ["badge_final_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_badge_renovado_id_fkey"
+            columns: ["badge_renovado_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_cluster_id_fkey"
+            columns: ["cluster_id"]
+            isOneToOne: false
+            referencedRelation: "clusters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos_atividade: {
+        Row: {
+          created_at: string
+          evento: string
+          id: string
+          inscricao_id: string | null
+          passo_id: string | null
+          payload: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          evento: string
+          id?: string
+          inscricao_id?: string | null
+          passo_id?: string | null
+          payload?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          evento?: string
+          id?: string
+          inscricao_id?: string | null
+          passo_id?: string | null
+          payload?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_atividade_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "cursos_inscricoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_atividade_passo_id_fkey"
+            columns: ["passo_id"]
+            isOneToOne: false
+            referencedRelation: "cursos_passos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos_inscricoes: {
+        Row: {
+          concluido_em: string | null
+          curso_id: string
+          estado: string
+          id: string
+          iniciado_em: string | null
+          inscrito_em: string
+          turma_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          concluido_em?: string | null
+          curso_id: string
+          estado?: string
+          id?: string
+          iniciado_em?: string | null
+          inscrito_em?: string
+          turma_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          concluido_em?: string | null
+          curso_id?: string
+          estado?: string
+          id?: string
+          iniciado_em?: string | null
+          inscrito_em?: string
+          turma_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_inscricoes_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_inscricoes_turma_id_fkey"
+            columns: ["turma_id"]
+            isOneToOne: false
+            referencedRelation: "cursos_turmas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_inscricoes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "utilizadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos_modulos: {
+        Row: {
+          abertura_dias: number | null
+          created_at: string
+          curso_id: string
+          description: string | null
+          id: string
+          sort_order: number
+          tema_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          abertura_dias?: number | null
+          created_at?: string
+          curso_id: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          tema_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          abertura_dias?: number | null
+          created_at?: string
+          curso_id?: string
+          description?: string | null
+          id?: string
+          sort_order?: number
+          tema_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_modulos_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_modulos_tema_id_fkey"
+            columns: ["tema_id"]
+            isOneToOne: false
+            referencedRelation: "temas_momentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos_passos: {
+        Row: {
+          conteudo: Json
+          created_at: string
+          duracao_min: number | null
+          id: string
+          modulo_id: string
+          obrigatorio: boolean
+          sort_order: number
+          tipo: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          conteudo?: Json
+          created_at?: string
+          duracao_min?: number | null
+          id?: string
+          modulo_id: string
+          obrigatorio?: boolean
+          sort_order?: number
+          tipo: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          conteudo?: Json
+          created_at?: string
+          duracao_min?: number | null
+          id?: string
+          modulo_id?: string
+          obrigatorio?: boolean
+          sort_order?: number
+          tipo?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_passos_modulo_id_fkey"
+            columns: ["modulo_id"]
+            isOneToOne: false
+            referencedRelation: "cursos_modulos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos_progresso: {
+        Row: {
+          concluido_em: string | null
+          estado: string
+          id: string
+          iniciado_em: string
+          inscricao_id: string
+          nota: number | null
+          partilhada: boolean
+          passo_id: string
+          resposta: Json | null
+          tentativas: number
+          updated_at: string
+          user_id: string
+          video_pct: number
+          video_posicao_s: number
+        }
+        Insert: {
+          concluido_em?: string | null
+          estado?: string
+          id?: string
+          iniciado_em?: string
+          inscricao_id: string
+          nota?: number | null
+          partilhada?: boolean
+          passo_id: string
+          resposta?: Json | null
+          tentativas?: number
+          updated_at?: string
+          user_id: string
+          video_pct?: number
+          video_posicao_s?: number
+        }
+        Update: {
+          concluido_em?: string | null
+          estado?: string
+          id?: string
+          iniciado_em?: string
+          inscricao_id?: string
+          nota?: number | null
+          partilhada?: boolean
+          passo_id?: string
+          resposta?: Json | null
+          tentativas?: number
+          updated_at?: string
+          user_id?: string
+          video_pct?: number
+          video_posicao_s?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_progresso_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "cursos_inscricoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_progresso_passo_id_fkey"
+            columns: ["passo_id"]
+            isOneToOne: false
+            referencedRelation: "cursos_passos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos_quiz_perguntas: {
+        Row: {
+          created_at: string
+          enunciado: string
+          id: string
+          opcoes: Json
+          passo_id: string
+          sort_order: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enunciado: string
+          id?: string
+          opcoes?: Json
+          passo_id: string
+          sort_order?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enunciado?: string
+          id?: string
+          opcoes?: Json
+          passo_id?: string
+          sort_order?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_quiz_perguntas_passo_id_fkey"
+            columns: ["passo_id"]
+            isOneToOne: false
+            referencedRelation: "cursos_passos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos_turmas: {
+        Row: {
+          created_at: string
+          curso_id: string
+          data_fim: string | null
+          data_inicio: string | null
+          formador_id: string | null
+          id: string
+          inscricoes_abertas: boolean
+          nome: string
+          updated_at: string
+          vagas: number | null
+        }
+        Insert: {
+          created_at?: string
+          curso_id: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          formador_id?: string | null
+          id?: string
+          inscricoes_abertas?: boolean
+          nome: string
+          updated_at?: string
+          vagas?: number | null
+        }
+        Update: {
+          created_at?: string
+          curso_id?: string
+          data_fim?: string | null
+          data_inicio?: string | null
+          formador_id?: string | null
+          id?: string
+          inscricoes_abertas?: boolean
+          nome?: string
+          updated_at?: string
+          vagas?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_turmas_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_turmas_formador_id_fkey"
+            columns: ["formador_id"]
+            isOneToOne: false
+            referencedRelation: "utilizadores"
             referencedColumns: ["id"]
           },
         ]

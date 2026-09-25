@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ShieldAlert, Award } from "lucide-react";
 import { useUserBadges } from "@/hooks/use-badges";
+import { getMeusCertificados } from "@/lib/elearning.functions";
 import { useAuth } from "@/hooks/use-auth";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -104,6 +105,7 @@ function ProfilePage() {
 
         <TabsContent value="badges" className="space-y-6 pt-4">
           <BadgesSection userId={profile?.id ?? null} />
+          <CertificadosSection />
         </TabsContent>
 
         <TabsContent value="privacidade" className="space-y-6 pt-4">
@@ -166,6 +168,33 @@ function BadgesSection({ userId }: { userId: string | null }) {
             ))}
           </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CertificadosSection() {
+  const fn = useServerFn(getMeusCertificados);
+  const { data } = useQuery({ queryKey: ["elearning", "certificados"], queryFn: () => fn() });
+  if (!data || data.length === 0) return null;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2"><Award className="h-5 w-5 text-accent" />Certificados E-learning</CardTitle>
+        <CardDescription>Certificados emitidos pela Escola Ubuntu Online.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        {data.map((c) => (
+          <div key={c.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-3 text-sm">
+            <div>
+              <p className="font-medium">{c.curso_titulo}</p>
+              <p className="text-xs text-muted-foreground">
+                {c.modalidade}{c.horas ? ` · ${c.horas} h` : ""} · {new Date(c.emitido_em).toLocaleDateString("pt-PT")} · {c.codigo}
+              </p>
+            </div>
+            {c.url && <Button size="sm" variant="outline" asChild><a href={c.url} target="_blank" rel="noreferrer">Descarregar</a></Button>}
+          </div>
+        ))}
       </CardContent>
     </Card>
   );

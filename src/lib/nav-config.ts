@@ -52,6 +52,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { path: "/admin/acoes", label: "Gestão de Ações", icon: CalendarCog },
     { path: "/admin/recursos", label: "Gestão de Recursos", icon: FolderCog },
     { path: "/admin/badges", label: "Gestão de Badges", icon: Medal },
+    { path: "/admin/elearning", label: "Gestão de E-learning", icon: GraduationCap },
     { path: "/admin/manager", label: "Central de Comando", icon: Shield },
     { path: "/admin/governacao", label: "Governação de Dados", icon: Lock },
     { path: "/admin/emails", label: "Gestão de Emails", icon: Mail },

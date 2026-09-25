@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as FaqsRouteImport } from './routes/faqs'
-import { Route as ElearningRouteImport } from './routes/elearning'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DadosCertificacaoRouteImport } from './routes/dados-certificacao'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -42,15 +41,20 @@ import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedInscricaoProgramasRouteImport } from './routes/_authenticated/inscricao-programas'
 import { Route as AuthenticatedCulturaUbuntuRouteImport } from './routes/_authenticated/cultura-ubuntu'
 import { Route as AuthenticatedAcoesRouteImport } from './routes/_authenticated/acoes'
+import { Route as AdminElearningIndexRouteImport } from './routes/admin.elearning.index'
 import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
+import { Route as AuthenticatedElearningIndexRouteImport } from './routes/_authenticated/elearning.index'
 import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
 import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
+import { Route as CertificadosVerificarCodigoRouteImport } from './routes/certificados.verificar.$codigo'
+import { Route as AdminElearningCursoIdRouteImport } from './routes/admin.elearning.$cursoId'
 import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
 import { Route as AuthenticatedRecursosClusterIndexRouteImport } from './routes/_authenticated/recursos.$cluster.index'
+import { Route as AuthenticatedElearningCursoIdIndexRouteImport } from './routes/_authenticated/elearning.$cursoId.index'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoIndexRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/index'
 import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -62,6 +66,7 @@ import { Route as AuthenticatedRecursosClusterTemaIdRouteImport } from './routes
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/gestao'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug/index'
+import { Route as AuthenticatedElearningCursoIdPassoPassoIdRouteImport } from './routes/_authenticated/elearning.$cursoId.passo.$passoId'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug/$section'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -77,11 +82,6 @@ const ProfileRoute = ProfileRouteImport.update({
 const FaqsRoute = FaqsRouteImport.update({
   id: '/faqs',
   path: '/faqs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ElearningRoute = ElearningRouteImport.update({
-  id: '/elearning',
-  path: '/elearning',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -232,11 +232,22 @@ const AuthenticatedAcoesRoute = AuthenticatedAcoesRouteImport.update({
   path: '/acoes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AdminElearningIndexRoute = AdminElearningIndexRouteImport.update({
+  id: '/admin/elearning/',
+  path: '/admin/elearning/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRecursosIndexRoute =
   AuthenticatedRecursosIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedRecursosRoute,
+  } as any)
+const AuthenticatedElearningIndexRoute =
+  AuthenticatedElearningIndexRouteImport.update({
+    id: '/elearning/',
+    path: '/elearning/',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const PublicacoesRevistasIdRoute = PublicacoesRevistasIdRouteImport.update({
   id: '/$id',
@@ -251,6 +262,17 @@ const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
 const EntidadeAcoesIdRoute = EntidadeAcoesIdRouteImport.update({
   id: '/entidade/acoes/$id',
   path: '/entidade/acoes/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CertificadosVerificarCodigoRoute =
+  CertificadosVerificarCodigoRouteImport.update({
+    id: '/certificados/verificar/$codigo',
+    path: '/certificados/verificar/$codigo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminElearningCursoIdRoute = AdminElearningCursoIdRouteImport.update({
+  id: '/admin/elearning/$cursoId',
+  path: '/admin/elearning/$cursoId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRecursosClusterRoute =
@@ -281,6 +303,12 @@ const AuthenticatedRecursosClusterIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedRecursosClusterRoute,
+  } as any)
+const AuthenticatedElearningCursoIdIndexRoute =
+  AuthenticatedElearningCursoIdIndexRouteImport.update({
+    id: '/elearning/$cursoId/',
+    path: '/elearning/$cursoId/',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedCulturaUbuntuAvaliacaoIndexRoute =
   AuthenticatedCulturaUbuntuAvaliacaoIndexRouteImport.update({
@@ -346,6 +374,12 @@ const AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoSlugRoute,
   } as any)
+const AuthenticatedElearningCursoIdPassoPassoIdRoute =
+  AuthenticatedElearningCursoIdPassoPassoIdRouteImport.update({
+    id: '/elearning/$cursoId/passo/$passoId',
+    path: '/elearning/$cursoId/passo/$passoId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute =
   AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport.update({
     id: '/$section',
@@ -359,7 +393,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
-  '/elearning': typeof ElearningRoute
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -390,10 +423,14 @@ export interface FileRoutesByFullPath {
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
+  '/admin/elearning/$cursoId': typeof AdminElearningCursoIdRoute
+  '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
+  '/elearning/': typeof AuthenticatedElearningIndexRoute
   '/recursos/': typeof AuthenticatedRecursosIndexRoute
+  '/admin/elearning/': typeof AdminElearningIndexRoute
   '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
@@ -404,8 +441,10 @@ export interface FileRoutesByFullPath {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/cultura-ubuntu/avaliacao/': typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
+  '/elearning/$cursoId/': typeof AuthenticatedElearningCursoIdIndexRoute
   '/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
   '/cultura-ubuntu/avaliacao/$slug/$section': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute
+  '/elearning/$cursoId/passo/$passoId': typeof AuthenticatedElearningCursoIdPassoPassoIdRoute
   '/cultura-ubuntu/avaliacao/$slug/': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute
 }
 export interface FileRoutesByTo {
@@ -414,7 +453,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
-  '/elearning': typeof ElearningRoute
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -442,10 +480,14 @@ export interface FileRoutesByTo {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/admin/elearning/$cursoId': typeof AdminElearningCursoIdRoute
+  '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
+  '/elearning': typeof AuthenticatedElearningIndexRoute
   '/recursos': typeof AuthenticatedRecursosIndexRoute
+  '/admin/elearning': typeof AdminElearningIndexRoute
   '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
@@ -455,8 +497,10 @@ export interface FileRoutesByTo {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
+  '/elearning/$cursoId': typeof AuthenticatedElearningCursoIdIndexRoute
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterIndexRoute
   '/cultura-ubuntu/avaliacao/$slug/$section': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute
+  '/elearning/$cursoId/passo/$passoId': typeof AuthenticatedElearningCursoIdPassoPassoIdRoute
   '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute
 }
 export interface FileRoutesById {
@@ -467,7 +511,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
-  '/elearning': typeof ElearningRoute
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -498,10 +541,14 @@ export interface FileRoutesById {
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/_authenticated/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
   '/_authenticated/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
+  '/admin/elearning/$cursoId': typeof AdminElearningCursoIdRoute
+  '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
+  '/_authenticated/elearning/': typeof AuthenticatedElearningIndexRoute
   '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
+  '/admin/elearning/': typeof AdminElearningIndexRoute
   '/_authenticated/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   '/_authenticated/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/_authenticated/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
@@ -512,8 +559,10 @@ export interface FileRoutesById {
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/lovable/email/transactional/send': typeof LovableEmailTransactionalSendRoute
   '/_authenticated/cultura-ubuntu/avaliacao/': typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRoute
+  '/_authenticated/elearning/$cursoId/': typeof AuthenticatedElearningCursoIdIndexRoute
   '/_authenticated/recursos/$cluster/': typeof AuthenticatedRecursosClusterIndexRoute
   '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute
+  '/_authenticated/elearning/$cursoId/passo/$passoId': typeof AuthenticatedElearningCursoIdPassoPassoIdRoute
   '/_authenticated/cultura-ubuntu/avaliacao/$slug/': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute
 }
 export interface FileRouteTypes {
@@ -524,7 +573,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
-    | '/elearning'
     | '/faqs'
     | '/profile'
     | '/reset-password'
@@ -555,10 +603,14 @@ export interface FileRouteTypes {
     | '/admin/recursos'
     | '/cultura-ubuntu/avaliacao'
     | '/recursos/$cluster'
+    | '/admin/elearning/$cursoId'
+    | '/certificados/verificar/$codigo'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
+    | '/elearning/'
     | '/recursos/'
+    | '/admin/elearning/'
     | '/cultura-ubuntu/avaliacao/$slug'
     | '/cultura-ubuntu/avaliacao/gestao'
     | '/recursos/$cluster/$temaId'
@@ -569,8 +621,10 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/cultura-ubuntu/avaliacao/'
+    | '/elearning/$cursoId/'
     | '/recursos/$cluster/'
     | '/cultura-ubuntu/avaliacao/$slug/$section'
+    | '/elearning/$cursoId/passo/$passoId'
     | '/cultura-ubuntu/avaliacao/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -579,7 +633,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
-    | '/elearning'
     | '/faqs'
     | '/profile'
     | '/reset-password'
@@ -607,10 +660,14 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
+    | '/admin/elearning/$cursoId'
+    | '/certificados/verificar/$codigo'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
+    | '/elearning'
     | '/recursos'
+    | '/admin/elearning'
     | '/cultura-ubuntu/avaliacao/gestao'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
@@ -620,8 +677,10 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/cultura-ubuntu/avaliacao'
+    | '/elearning/$cursoId'
     | '/recursos/$cluster'
     | '/cultura-ubuntu/avaliacao/$slug/$section'
+    | '/elearning/$cursoId/passo/$passoId'
     | '/cultura-ubuntu/avaliacao/$slug'
   id:
     | '__root__'
@@ -631,7 +690,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
-    | '/elearning'
     | '/faqs'
     | '/profile'
     | '/reset-password'
@@ -662,10 +720,14 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/recursos'
     | '/_authenticated/cultura-ubuntu/avaliacao'
     | '/_authenticated/recursos/$cluster'
+    | '/admin/elearning/$cursoId'
+    | '/certificados/verificar/$codigo'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
+    | '/_authenticated/elearning/'
     | '/_authenticated/recursos/'
+    | '/admin/elearning/'
     | '/_authenticated/cultura-ubuntu/avaliacao/$slug'
     | '/_authenticated/cultura-ubuntu/avaliacao/gestao'
     | '/_authenticated/recursos/$cluster/$temaId'
@@ -676,8 +738,10 @@ export interface FileRouteTypes {
     | '/lovable/email/transactional/preview'
     | '/lovable/email/transactional/send'
     | '/_authenticated/cultura-ubuntu/avaliacao/'
+    | '/_authenticated/elearning/$cursoId/'
     | '/_authenticated/recursos/$cluster/'
     | '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section'
+    | '/_authenticated/elearning/$cursoId/passo/$passoId'
     | '/_authenticated/cultura-ubuntu/avaliacao/$slug/'
   fileRoutesById: FileRoutesById
 }
@@ -688,7 +752,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DadosCertificacaoRoute: typeof DadosCertificacaoRoute
   DashboardRoute: typeof DashboardRoute
-  ElearningRoute: typeof ElearningRoute
   FaqsRoute: typeof FaqsRoute
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -711,8 +774,11 @@ export interface RootRouteChildren {
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
   PublicacoesRevistasRoute: typeof PublicacoesRevistasRouteWithChildren
+  AdminElearningCursoIdRoute: typeof AdminElearningCursoIdRoute
+  CertificadosVerificarCodigoRoute: typeof CertificadosVerificarCodigoRoute
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  AdminElearningIndexRoute: typeof AdminElearningIndexRoute
   ApiCertificatesActionIdParticipanteIdRoute: typeof ApiCertificatesActionIdParticipanteIdRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -742,13 +808,6 @@ declare module '@tanstack/react-router' {
       path: '/faqs'
       fullPath: '/faqs'
       preLoaderRoute: typeof FaqsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/elearning': {
-      id: '/elearning'
-      path: '/elearning'
-      fullPath: '/elearning'
-      preLoaderRoute: typeof ElearningRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -954,12 +1013,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAcoesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/admin/elearning/': {
+      id: '/admin/elearning/'
+      path: '/admin/elearning'
+      fullPath: '/admin/elearning/'
+      preLoaderRoute: typeof AdminElearningIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/recursos/': {
       id: '/_authenticated/recursos/'
       path: '/'
       fullPath: '/recursos/'
       preLoaderRoute: typeof AuthenticatedRecursosIndexRouteImport
       parentRoute: typeof AuthenticatedRecursosRoute
+    }
+    '/_authenticated/elearning/': {
+      id: '/_authenticated/elearning/'
+      path: '/elearning'
+      fullPath: '/elearning/'
+      preLoaderRoute: typeof AuthenticatedElearningIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/publicacoes/revistas/$id': {
       id: '/publicacoes/revistas/$id'
@@ -980,6 +1053,20 @@ declare module '@tanstack/react-router' {
       path: '/entidade/acoes/$id'
       fullPath: '/entidade/acoes/$id'
       preLoaderRoute: typeof EntidadeAcoesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/certificados/verificar/$codigo': {
+      id: '/certificados/verificar/$codigo'
+      path: '/certificados/verificar/$codigo'
+      fullPath: '/certificados/verificar/$codigo'
+      preLoaderRoute: typeof CertificadosVerificarCodigoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/elearning/$cursoId': {
+      id: '/admin/elearning/$cursoId'
+      path: '/admin/elearning/$cursoId'
+      fullPath: '/admin/elearning/$cursoId'
+      preLoaderRoute: typeof AdminElearningCursoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/recursos/$cluster': {
@@ -1016,6 +1103,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/recursos/$cluster/'
       preLoaderRoute: typeof AuthenticatedRecursosClusterIndexRouteImport
       parentRoute: typeof AuthenticatedRecursosClusterRoute
+    }
+    '/_authenticated/elearning/$cursoId/': {
+      id: '/_authenticated/elearning/$cursoId/'
+      path: '/elearning/$cursoId'
+      fullPath: '/elearning/$cursoId/'
+      preLoaderRoute: typeof AuthenticatedElearningCursoIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/cultura-ubuntu/avaliacao/': {
       id: '/_authenticated/cultura-ubuntu/avaliacao/'
@@ -1093,6 +1187,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/cultura-ubuntu/avaliacao/$slug/'
       preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRouteImport
       parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+    }
+    '/_authenticated/elearning/$cursoId/passo/$passoId': {
+      id: '/_authenticated/elearning/$cursoId/passo/$passoId'
+      path: '/elearning/$cursoId/passo/$passoId'
+      fullPath: '/elearning/$cursoId/passo/$passoId'
+      preLoaderRoute: typeof AuthenticatedElearningCursoIdPassoPassoIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section': {
       id: '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section'
@@ -1199,6 +1300,9 @@ interface AuthenticatedRouteChildren {
   AuthenticatedRecursosRoute: typeof AuthenticatedRecursosRouteWithChildren
   AuthenticatedActionsIdRoute: typeof AuthenticatedActionsIdRoute
   AuthenticatedAdminRecursosRoute: typeof AuthenticatedAdminRecursosRoute
+  AuthenticatedElearningIndexRoute: typeof AuthenticatedElearningIndexRoute
+  AuthenticatedElearningCursoIdIndexRoute: typeof AuthenticatedElearningCursoIdIndexRoute
+  AuthenticatedElearningCursoIdPassoPassoIdRoute: typeof AuthenticatedElearningCursoIdPassoPassoIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -1208,6 +1312,11 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedRecursosRoute: AuthenticatedRecursosRouteWithChildren,
   AuthenticatedActionsIdRoute: AuthenticatedActionsIdRoute,
   AuthenticatedAdminRecursosRoute: AuthenticatedAdminRecursosRoute,
+  AuthenticatedElearningIndexRoute: AuthenticatedElearningIndexRoute,
+  AuthenticatedElearningCursoIdIndexRoute:
+    AuthenticatedElearningCursoIdIndexRoute,
+  AuthenticatedElearningCursoIdPassoPassoIdRoute:
+    AuthenticatedElearningCursoIdPassoPassoIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -1232,7 +1341,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DadosCertificacaoRoute: DadosCertificacaoRoute,
   DashboardRoute: DashboardRoute,
-  ElearningRoute: ElearningRoute,
   FaqsRoute: FaqsRoute,
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
@@ -1256,8 +1364,11 @@ const rootRouteChildren: RootRouteChildren = {
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
   PublicacoesRevistasRoute: PublicacoesRevistasRouteWithChildren,
+  AdminElearningCursoIdRoute: AdminElearningCursoIdRoute,
+  CertificadosVerificarCodigoRoute: CertificadosVerificarCodigoRoute,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  AdminElearningIndexRoute: AdminElearningIndexRoute,
   ApiCertificatesActionIdParticipanteIdRoute:
     ApiCertificatesActionIdParticipanteIdRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,

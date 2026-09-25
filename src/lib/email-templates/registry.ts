@@ -19,8 +19,10 @@ export interface TemplateEntry {
  */
 import { template as programEnrollmentPending } from './program-enrollment-pending'
 import { template as entityApplicationApproved } from './entity-application-approved'
+import { template as elearningCertificado } from './elearning-certificado'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'program-enrollment-pending': programEnrollmentPending,
   'entity-application-approved': entityApplicationApproved,
+  'elearning-certificado': elearningCertificado,
 }
