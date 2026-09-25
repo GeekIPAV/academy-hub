@@ -8,6 +8,7 @@ export type PassoEstado = "bloqueado" | "disponivel" | "em_curso" | "concluido";
 
 export interface CursoCardDTO {
   id: string;
+  estado?: "rascunho" | "publicado" | "arquivado";
   title: string;
   description: string | null;
   cover_url: string | null;
@@ -221,6 +222,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
   return {
     curso: {
       id: c.id,
+      estado: c.estado as "rascunho" | "publicado" | "arquivado",
       title: c.title,
       description: c.description,
       cover_url: c.cover_url,

@@ -48,16 +48,26 @@ function CursoPage() {
   if (error || !data) return <p className="p-6 text-sm text-destructive">{(error as Error)?.message ?? "Curso não encontrado."}</p>;
   const { curso, modulos } = data;
   const primeiro = modulos.flatMap((m) => m.passos).find((p) => p.estado !== "bloqueado")?.id;
+  const temPassos = modulos.some((m) => m.passos.length > 0);
+  const disponivelParaInscricao = curso.estado === "publicado";
   const atual = modulos.find((m) => m.passos.some((p) => p.id === curso.inscricao?.proximo_passo_id))?.id ?? modulos[0]?.id;
   const concluido = curso.inscricao?.estado === "concluido";
   const acao = () => {
     if (concluido && data.certificado) window.open(data.certificado.url, "_blank", "noopener,noreferrer");
     else if (curso.inscricao?.proximo_passo_id) navigate({ to: "/elearning/$cursoId/passo/$passoId", params: { cursoId, passoId: curso.inscricao.proximo_passo_id } });
     else if (curso.inscricao && primeiro) navigate({ to: "/elearning/$cursoId/passo/$passoId", params: { cursoId, passoId: primeiro } });
-    else insc.mutate();
+    else if (disponivelParaInscricao && temPassos) insc.mutate();
   };
-  const acaoLabel = concluido && data.certificado ? "Ver certificado" : curso.inscricao ? (curso.inscricao.pct ? "Continuar" : "Começar") : "Inscrever-me";
-  const disabled = insc.isPending || (!curso.inscricao && curso.modalidade === "turma" && !turma);
+  const acaoLabel = concluido && data.certificado
+    ? "Ver certificado"
+    : !temPassos
+      ? "Conteúdos em preparação"
+      : !disponivelParaInscricao && !curso.inscricao
+        ? "Curso ainda não publicado"
+        : curso.inscricao
+          ? (curso.inscricao.pct ? "Continuar" : "Começar")
+          : "Inscrever-me";
+  const disabled = insc.isPending || (!temPassos && !(concluido && data.certificado)) || (!curso.inscricao && !disponivelParaInscricao) || (!curso.inscricao && curso.modalidade === "turma" && !turma);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 pb-24 lg:pb-0">
