@@ -346,7 +346,7 @@ export interface PassoDetalhe {
 
 export const getPasso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({ cursoId: z.string().uuid(), passoId: z.string().uuid() }).parse(i))
+  .inputValidator((i) => z.object({ cursoId: z.string().uuid(), passoId: z.string().uuid(), prefetch: z.boolean().optional() }).parse(i))
   .handler(async ({ data, context }): Promise<PassoDetalhe> => {
     const sb = await admin();
     const curso = await carregarCurso(context.userId, data.cursoId);
@@ -406,7 +406,7 @@ export const getPasso = createServerFn({ method: "POST" })
     const inscId = curso.curso.inscricao?.id;
     if (inscId) {
       const { data: pr } = await sb.from("cursos_progresso").select("*").eq("inscricao_id", inscId).eq("passo_id", p.id).maybeSingle();
-      if (!pr) {
+      if (!pr && !data.prefetch) {
         await sb.from("cursos_progresso").insert({ inscricao_id: inscId, passo_id: p.id, user_id: context.userId, estado: "em_curso" });
         const { logAtividade } = await import("@/lib/elearning.server");
         await logAtividade(context.userId, inscId, p.id, "inicio_passo");
@@ -415,7 +415,7 @@ export const getPasso = createServerFn({ method: "POST" })
       }
       progresso = pr
         ? { estado: pr.estado, video_pct: Number(pr.video_pct), video_posicao_s: Number(pr.video_posicao_s), nota: pr.nota != null ? Number(pr.nota) : null, tentativas: pr.tentativas, resposta: pr.resposta, partilhada: pr.partilhada }
-        : { estado: "em_curso", video_pct: 0, video_posicao_s: 0, nota: null, tentativas: 0, resposta: null, partilhada: false };
+        : data.prefetch ? null : { estado: "em_curso", video_pct: 0, video_posicao_s: 0, nota: null, tentativas: 0, resposta: null, partilhada: false };
     }
     return {
       curso,
