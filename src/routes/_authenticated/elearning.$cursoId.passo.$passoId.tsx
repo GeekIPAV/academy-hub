@@ -227,7 +227,7 @@ function QuizRunner({ data, inscrito, onDone, refetch }: { data: PassoDetalhe; i
     onSuccess: (r) => {
       setRes(r);
       if (r.aprovado) { toast.success(`Aprovado com ${r.nota}%`); onDone(r.cursoConcluido); refetch(); }
-      else toast.error(`Obtiveste ${r.nota}% — mínimo ${r.minimo}%. Tenta novamente.`);
+      else { toast.error(`Obtiveste ${r.nota}% — mínimo ${r.minimo}%. Tenta novamente.`); refetch(); }
     },
     onError: (e: Error) => toast.error(e.message),
   });

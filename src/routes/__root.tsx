@@ -147,7 +147,8 @@ function AppShell() {
     pathname.startsWith("/inscricao/") ||
     pathname.startsWith("/inscricao-entidade/") ||
     pathname.startsWith("/evento/") ||
-    pathname.startsWith("/convite/");
+    pathname.startsWith("/convite/") ||
+    pathname.startsWith("/certificados/verificar/");
 
   if (!session) {
     if (!isPublicRoute) {
@@ -198,7 +199,7 @@ function ShellWithSidebar({
 }) {
   const { isAdmin, activeRoles } = useApp();
   const hideImprovingBanner =
-    pathname.startsWith("/recursos") || pathname.startsWith("/cultura-ubuntu/avaliacao");
+    pathname.startsWith("/recursos") || pathname.startsWith("/cultura-ubuntu/avaliacao") || pathname.startsWith("/elearning") || pathname.startsWith("/admin/elearning") || pathname.startsWith("/certificados");
   const { isLoading: profileLoading } = useCurrentProfile();
   const isEntidadeRep = activeRoles.includes("Entidade");
   const fetchEntidade = useServerFn(getMyEntidade);

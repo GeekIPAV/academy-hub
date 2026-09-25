@@ -282,7 +282,8 @@ export interface PassoDetalhe {
     tipo: PassoTipo;
     obrigatorio: boolean;
     duracao_min: number | null;
-    conteudo: Record<string, unknown>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    conteudo: Record<string, any>;
     recurso: { id: string; title: string; description: string | null; resource_type: string; file_url: string; cover_url: string | null } | null;
     perguntas: { id: string; enunciado: string; tipo: "unica" | "multipla"; opcoes: { id: string; texto: string }[] }[];
   };
@@ -292,7 +293,8 @@ export interface PassoDetalhe {
     video_posicao_s: number;
     nota: number | null;
     tentativas: number;
-    resposta: unknown;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resposta: any;
     partilhada: boolean;
   } | null;
   anterior: string | null;
@@ -316,6 +318,7 @@ export const getPasso = createServerFn({ method: "POST" })
       if (!r?.length) throw new Error("Inscreve-te no curso para aceder aos passos.");
     }
     const { data: p } = await sb.from("cursos_passos").select("*").eq("id", data.passoId).single();
+    if (!p) throw new Error("Passo não encontrado.");
     const conteudo = (p.conteudo ?? {}) as Record<string, unknown>;
     let recurso: PassoDetalhe["passo"]["recurso"] = null;
     if (p.tipo === "recurso" && typeof conteudo.recurso_id === "string") {
@@ -359,10 +362,12 @@ export const getPasso = createServerFn({ method: "POST" })
 async function getInscricaoPasso(userId: string, passoId: string) {
   const sb = await admin();
   const { data: p } = await sb.from("cursos_passos").select("id, tipo, modulo_id, cursos_modulos!inner(curso_id, abertura_dias)").eq("id", passoId).single();
+  if (!p) throw new Error("Passo não encontrado.");
   const mod = p.cursos_modulos as unknown as { curso_id: string; abertura_dias: number | null };
   const { data: insc } = await sb.from("cursos_inscricoes").select("id, estado, turma_id").eq("user_id", userId).eq("curso_id", mod.curso_id).neq("estado", "cancelado").maybeSingle();
   if (!insc) throw new Error("Não estás inscrito neste curso.");
   const { data: curso } = await sb.from("cursos").select("modalidade, nota_minima_quiz, pct_minima_video").eq("id", mod.curso_id).single();
+  if (!curso) throw new Error("Curso não encontrado.");
   const turma = insc.turma_id ? (await sb.from("cursos_turmas").select("data_inicio").eq("id", insc.turma_id).maybeSingle()).data : null;
   const { aberturaModulo } = await import("@/lib/elearning.server");
   if (aberturaModulo(curso.modalidade, mod.abertura_dias, turma?.data_inicio ?? null)) throw new Error("Módulo ainda fechado.");

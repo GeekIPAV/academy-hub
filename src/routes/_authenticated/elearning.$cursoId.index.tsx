@@ -101,12 +101,12 @@ function CursoPage() {
           {curso.inscricao ? (
             <div className="space-y-3 rounded-xl bg-muted/50 p-4">
               <div className="flex items-center justify-between text-sm">
-                <span>{curso.inscricao.estado === "concluido" ? "Curso concluído 🎉" : "O teu progresso"}{data.turma ? ` · ${data.turma.nome}` : ""}</span>
+                <span>{curso.inscricao.estado === "concluido" ? "Curso concluído" : "O teu progresso"}{data.turma ? ` · ${data.turma.nome}` : ""}</span>
                 <span className="font-medium">{curso.inscricao.pct}%</span>
               </div>
               <Progress value={curso.inscricao.pct} />
               <div className="flex flex-wrap gap-2">
-                {curso.inscricao.proximo_passo_id && (
+                {curso.inscricao.proximo_passo_id && curso.inscricao.estado !== "concluido" && (
                   <Button onClick={() => navigate({ to: "/elearning/$cursoId/passo/$passoId", params: { cursoId, passoId: curso.inscricao!.proximo_passo_id! } })}>
                     <PlayCircle className="mr-1 h-4 w-4" /> {curso.inscricao.pct > 0 ? "Continuar" : "Começar"}
                   </Button>
