@@ -19,8 +19,12 @@ export interface CursoCardDTO {
   tipo: string;
   horas: number | null;
   tem_certificado: boolean;
-  turmas_abertas: { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscritos: number }[];
-  inscricao: { id: string; estado: string; pct: number; proximo_passo_id: string | null } | null;
+  total_minutos: number;
+  total_modulos: number;
+  total_passos: number;
+  badge_final: { id: string; title: string; cover_url: string | null } | null;
+  turmas_abertas: { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscritos: number; formador: string | null }[];
+  inscricao: { id: string; estado: string; pct: number; proximo_passo_id: string | null; proximo_passo_titulo: string | null; proximo_modulo_titulo: string | null; ultima_atividade: string | null } | null;
 }
 
 function baseUrl() {
@@ -67,7 +71,7 @@ export const listCatalogo = createServerFn({ method: "GET" })
     const sb = await admin();
     const { data: cursos, error } = await sb
       .from("cursos")
-      .select("id, title, description, cover_url, cover_position, cover_scale, cluster_id, modalidade, tipo, horas, tem_certificado, clusters(name), cursos_turmas(id, nome, data_inicio, data_fim, vagas, inscricoes_abertas)")
+      .select("id, title, description, cover_url, cover_position, cover_scale, cluster_id, modalidade, tipo, horas, tem_certificado, clusters(name), bf:badges!cursos_badge_final_id_fkey(id, title, cover_url), cursos_modulos(id, title, cursos_passos(id, title, duracao_min, sort_order)), cursos_turmas(id, nome, data_inicio, data_fim, vagas, inscricoes_abertas, formador_id, utilizadores!cursos_turmas_formador_id_fkey(full_name))")
       .eq("estado", "publicado")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -77,6 +81,12 @@ export const listCatalogo = createServerFn({ method: "GET" })
       .eq("user_id", context.userId)
       .neq("estado", "cancelado");
     const resumo = await progressoResumo((inscs ?? []).map((i) => i.id), (inscs ?? []).map((i) => i.curso_id));
+    const inscricaoIds = (inscs ?? []).map((i) => i.id);
+    const { data: atividade } = inscricaoIds.length
+      ? await sb.from("cursos_atividade").select("inscricao_id, created_at").in("inscricao_id", inscricaoIds).order("created_at", { ascending: false })
+      : { data: [] as { inscricao_id: string | null; created_at: string }[] };
+    const ultimaAtividade = new Map<string, string>();
+    for (const a of atividade ?? []) if (a.inscricao_id && !ultimaAtividade.has(a.inscricao_id)) ultimaAtividade.set(a.inscricao_id, a.created_at);
     const turmaIds = (cursos ?? []).flatMap((c) => (c.cursos_turmas ?? []).map((t) => t.id));
     const { data: contagem } = turmaIds.length
       ? await sb.from("cursos_inscricoes").select("turma_id").in("turma_id", turmaIds).neq("estado", "cancelado")
@@ -86,6 +96,11 @@ export const listCatalogo = createServerFn({ method: "GET" })
 
     return (cursos ?? []).map((c) => {
       const insc = (inscs ?? []).find((i) => i.curso_id === c.id);
+      const modulos = (c.cursos_modulos ?? []) as { id: string; title: string; cursos_passos: { id: string; title: string; duracao_min: number | null; sort_order: number }[] }[];
+      const passos = modulos.flatMap((m) => (m.cursos_passos ?? []).map((p) => ({ ...p, modulo: m.title }))).sort((a, b) => a.sort_order - b.sort_order);
+      const sum = passos.reduce((n, p) => n + (p.duracao_min ?? 0), 0);
+      const r = insc ? resumo(insc.id, c.id) : null;
+      const proximo = r?.proximo_passo_id ? passos.find((p) => p.id === r.proximo_passo_id) : null;
       return {
         id: c.id,
         title: c.title,
@@ -99,10 +114,14 @@ export const listCatalogo = createServerFn({ method: "GET" })
         tipo: c.tipo,
         horas: c.horas != null ? Number(c.horas) : null,
         tem_certificado: c.tem_certificado,
+        total_minutos: sum + Math.round(Number(c.horas ?? 0) * 60),
+        total_modulos: modulos.length,
+        total_passos: passos.length,
+        badge_final: (c.bf as { id: string; title: string; cover_url: string | null } | null) ?? null,
         turmas_abertas: (c.cursos_turmas ?? [])
           .filter((t) => t.inscricoes_abertas)
-          .map((t) => ({ id: t.id, nome: t.nome, data_inicio: t.data_inicio, data_fim: t.data_fim, vagas: t.vagas, inscritos: count.get(t.id) ?? 0 })),
-        inscricao: insc ? { id: insc.id, estado: insc.estado, ...resumo(insc.id, c.id) } : null,
+          .map((t) => ({ id: t.id, nome: t.nome, data_inicio: t.data_inicio, data_fim: t.data_fim, vagas: t.vagas, inscritos: count.get(t.id) ?? 0, formador: (t.utilizadores as { full_name: string | null } | null)?.full_name ?? null })),
+        inscricao: insc && r ? { id: insc.id, estado: insc.estado, ...r, proximo_passo_titulo: proximo?.title ?? null, proximo_modulo_titulo: proximo?.modulo ?? null, ultima_atividade: ultimaAtividade.get(insc.id) ?? null } : null,
       };
     });
   });
@@ -131,15 +150,15 @@ export interface CursoDetalhe {
     badge_final: { id: string; title: string; cover_url: string | null } | null;
   };
   modulos: ModuloResumo[];
-  certificado: { codigo: string; url: string } | null;
-  turma: { id: string; nome: string; data_inicio: string | null; data_fim: string | null } | null;
+  certificado: { codigo: string; url: string; verificacao_url: string } | null;
+  turma: { id: string; nome: string; data_inicio: string | null; data_fim: string | null; formador: string | null } | null;
 }
 
 async function carregarCurso(userId: string, cursoId: string): Promise<CursoDetalhe> {
   const sb = await admin();
   const { data: c, error } = await sb
     .from("cursos")
-    .select("*, clusters(name), cursos_turmas(id, nome, data_inicio, data_fim, vagas, inscricoes_abertas), be:badges!cursos_badge_entrada_id_fkey(id, title, cover_url), bf:badges!cursos_badge_final_id_fkey(id, title, cover_url)")
+    .select("*, clusters(name), cursos_turmas(id, nome, data_inicio, data_fim, vagas, inscricoes_abertas, formador_id, utilizadores!cursos_turmas_formador_id_fkey(full_name)), be:badges!cursos_badge_entrada_id_fkey(id, title, cover_url), bf:badges!cursos_badge_final_id_fkey(id, title, cover_url)")
     .eq("id", cursoId)
     .maybeSingle();
   if (error) throw new Error(error.message);
@@ -164,7 +183,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
     ? (await sb.from("cursos_progresso").select("passo_id, estado").eq("inscricao_id", insc.id)).data ?? []
     : [];
   const pmap = new Map(prog.map((p) => [p.passo_id, p.estado]));
-  const turmas = (c.cursos_turmas ?? []) as { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscricoes_abertas: boolean }[];
+  const turmas = (c.cursos_turmas ?? []) as { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscricoes_abertas: boolean; formador_id: string | null; utilizadores: { full_name: string | null } | null }[];
   const turma = insc?.turma_id ? turmas.find((t) => t.id === insc.turma_id) ?? null : null;
   const { aberturaModulo } = await import("@/lib/elearning.server");
 
@@ -193,6 +212,11 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
     ? await sb.from("certificados_elearning").select("codigo, storage_path, revogado").eq("inscricao_id", insc.id).maybeSingle()
     : { data: null };
   const certUrl = cert?.storage_path && !cert.revogado ? sb.storage.from("certificados").getPublicUrl(cert.storage_path).data.publicUrl : null;
+  const turmaIds = turmas.map((t) => t.id);
+  const { data: turmaInscricoes } = turmaIds.length ? await sb.from("cursos_inscricoes").select("turma_id").in("turma_id", turmaIds).neq("estado", "cancelado") : { data: [] as { turma_id: string | null }[] };
+  const contagemTurmas = new Map<string, number>();
+  for (const row of turmaInscricoes ?? []) if (row.turma_id) contagemTurmas.set(row.turma_id, (contagemTurmas.get(row.turma_id) ?? 0) + 1);
+  const totalMinutos = modulos.flatMap((m) => m.passos).reduce((n, p) => n + (p.duracao_min ?? 0), 0) + Math.round(Number(c.horas ?? 0) * 60);
 
   return {
     curso: {
@@ -208,24 +232,30 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
       tipo: c.tipo,
       horas: c.horas != null ? Number(c.horas) : null,
       tem_certificado: c.tem_certificado,
+      total_minutos: totalMinutos,
+      total_modulos: modulos.length,
+      total_passos: total.length,
       acreditacao_ref: c.acreditacao_ref,
       nota_minima_quiz: c.nota_minima_quiz,
       pct_minima_video: c.pct_minima_video,
       badge_entrada: (c.be as never) ?? null,
       badge_final: (c.bf as never) ?? null,
-      turmas_abertas: turmas.filter((t) => t.inscricoes_abertas).map((t) => ({ ...t, inscritos: 0 })),
+      turmas_abertas: turmas.filter((t) => t.inscricoes_abertas).map((t) => ({ ...t, inscritos: contagemTurmas.get(t.id) ?? 0, formador: t.utilizadores?.full_name ?? null })),
       inscricao: insc
         ? {
             id: insc.id,
             estado: insc.estado,
             pct: total.length ? Math.round((concl / total.length) * 100) : 0,
-            proximo_passo_id: total.find((p) => p.estado !== "concluido" && p.estado !== "bloqueado")?.id ?? total[0]?.id ?? null,
+            proximo_passo_id: total.find((p) => p.estado !== "concluido" && p.estado !== "bloqueado")?.id ?? null,
+            proximo_passo_titulo: total.find((p) => p.estado !== "concluido" && p.estado !== "bloqueado")?.title ?? null,
+            proximo_modulo_titulo: modulos.find((m) => m.passos.some((p) => p.estado !== "concluido" && p.estado !== "bloqueado"))?.title ?? null,
+            ultima_atividade: null,
           }
         : null,
     },
     modulos,
-    certificado: cert && certUrl ? { codigo: cert.codigo, url: certUrl } : null,
-    turma: turma ? { id: turma.id, nome: turma.nome, data_inicio: turma.data_inicio, data_fim: turma.data_fim } : null,
+    certificado: cert && certUrl ? { codigo: cert.codigo, url: certUrl, verificacao_url: `${baseUrl()}/certificados/verificar/${cert.codigo}` } : null,
+    turma: turma ? { id: turma.id, nome: turma.nome, data_inicio: turma.data_inicio, data_fim: turma.data_fim, formador: turma.utilizadores?.full_name ?? null } : null,
   };
 }
 
@@ -474,6 +504,18 @@ export const submeterReflexao = createServerFn({ method: "POST" })
     const { logAtividade, avaliarConclusao } = await import("@/lib/elearning.server");
     await logAtividade(context.userId, insc.id, passo.id, "submissao_reflexao");
     return { cursoConcluido: await avaliarConclusao(insc.id, baseUrl()) };
+  });
+
+export const guardarRascunhoReflexao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ passoId: z.string().uuid(), texto: z.string().max(20000), partilhar: z.boolean().default(false) }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { sb, passo, insc } = await getInscricaoPasso(context.userId, data.passoId);
+    if (passo.tipo !== "reflexao") throw new Error("Passo inválido.");
+    const { sanitizeRichHtml } = await import("@/lib/sanitize-html");
+    const { data: atual } = await sb.from("cursos_progresso").select("estado").eq("inscricao_id", insc.id).eq("passo_id", passo.id).maybeSingle();
+    await upsertProg(sb, { inscricao_id: insc.id, passo_id: passo.id, user_id: context.userId, resposta: { texto: sanitizeRichHtml(data.texto) }, partilhada: data.partilhar, estado: atual?.estado === "concluido" ? "concluido" : "em_curso" });
+    return { guardado: true };
   });
 
 export const getMeusCertificados = createServerFn({ method: "GET" })
