@@ -134,12 +134,14 @@ export interface PassoResumo {
   obrigatorio: boolean;
   duracao_min: number | null;
   estado: PassoEstado;
+  bloqueio_motivo?: string | null;
 }
 export interface ModuloResumo {
   id: string;
   title: string;
   description: string | null;
   abre_em: string | null;
+  tema_id?: string | null;
   passos: PassoResumo[];
 }
 export interface CursoDetalhe {
@@ -177,7 +179,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
     .maybeSingle();
   const { data: mods } = await sb
     .from("cursos_modulos")
-    .select("id, title, description, sort_order, abertura_dias, cursos_passos(id, title, tipo, obrigatorio, duracao_min, sort_order)")
+    .select("id, title, description, sort_order, abertura_dias, tema_id, cursos_passos(id, title, tipo, obrigatorio, duracao_min, sort_order)")
     .eq("curso_id", cursoId)
     .order("sort_order");
   const prog = insc
@@ -195,6 +197,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
       title: m.title,
       description: m.description,
       abre_em: abre,
+      tema_id: m.tema_id,
       passos: ((m.cursos_passos ?? []) as { id: string; title: string; tipo: PassoTipo; obrigatorio: boolean; duracao_min: number | null; sort_order: number }[])
         .sort((a, b) => a.sort_order - b.sort_order)
         .map((p) => ({
@@ -204,6 +207,11 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
           obrigatorio: p.obrigatorio,
           duracao_min: p.duracao_min,
           estado: !insc || abre ? "bloqueado" : ((pmap.get(p.id) as PassoEstado | undefined) ?? "disponivel"),
+          bloqueio_motivo: !insc
+            ? "Inscreve-te para aceder"
+            : abre
+              ? `Abre a ${new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: "short" }).format(new Date(`${abre}T12:00:00`))}`
+              : null,
         })),
     };
   });
@@ -319,6 +327,9 @@ export interface PassoDetalhe {
     recurso: { id: string; title: string; description: string | null; resource_type: string; file_url: string; cover_url: string | null } | null;
     perguntas: { id: string; enunciado: string; tipo: "unica" | "multipla"; opcoes: { id: string; texto: string }[] }[];
   };
+  modulo: { id: string; title: string; description: string | null; indice: number };
+  materiais: { id: string; title: string; description: string | null; resource_type: string; file_url: string; cover_url: string | null }[];
+  nota: { texto: string; updated_at: string } | null;
   progresso: {
     estado: string;
     video_pct: number;
@@ -367,6 +378,30 @@ export const getPasso = createServerFn({ method: "POST" })
         opcoes: ((q.opcoes ?? []) as { id: string; texto: string }[]).map((o) => ({ id: o.id, texto: o.texto })),
       }));
     }
+    const moduloAtual = curso.modulos.find((m) => m.id === p.modulo_id);
+    if (!moduloAtual) throw new Error("Módulo não encontrado.");
+    let materiais: PassoDetalhe["materiais"] = recurso ? [recurso] : [];
+    if (moduloAtual.tema_id) {
+      const { data: temaRecursos } = await sb
+        .from("tema_recursos")
+        .select("sort_order, recursos(id, title, description, resource_type, file_url, cover_url)")
+        .eq("tema_id", moduloAtual.tema_id)
+        .order("sort_order");
+      const vistos = new Set(materiais.map((r) => r.id));
+      for (const row of temaRecursos ?? []) {
+        const r = row.recursos as unknown as PassoDetalhe["materiais"][number] | null;
+        if (r && !vistos.has(r.id)) {
+          materiais.push(r);
+          vistos.add(r.id);
+        }
+      }
+    }
+    const { data: nota } = await sb
+      .from("cursos_notas")
+      .select("texto, updated_at")
+      .eq("user_id", context.userId)
+      .eq("passo_id", p.id)
+      .maybeSingle();
     let progresso: PassoDetalhe["progresso"] = null;
     const inscId = curso.curso.inscricao?.id;
     if (inscId) {
@@ -385,10 +420,29 @@ export const getPasso = createServerFn({ method: "POST" })
     return {
       curso,
       passo: { id: p.id, modulo_id: p.modulo_id, title: p.title, tipo: p.tipo as PassoTipo, obrigatorio: p.obrigatorio, duracao_min: p.duracao_min, conteudo, recurso, perguntas },
+      modulo: { id: moduloAtual.id, title: moduloAtual.title, description: moduloAtual.description, indice: curso.modulos.findIndex((m) => m.id === moduloAtual.id) + 1 },
+      materiais,
+      nota: nota ?? null,
       progresso,
       anterior: flat[idx - 1]?.id ?? null,
       seguinte: flat[idx + 1]?.id ?? null,
     };
+  });
+
+export const guardarNotaPasso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ passoId: z.string().uuid(), texto: z.string().max(20000) }).parse(i))
+  .handler(async ({ data, context }) => {
+    const sb = await admin();
+    const { data: passo } = await sb.from("cursos_passos").select("id").eq("id", data.passoId).maybeSingle();
+    if (!passo) throw new Error("Passo não encontrado.");
+    const agora = new Date().toISOString();
+    const { error } = await sb.from("cursos_notas").upsert(
+      { user_id: context.userId, passo_id: data.passoId, texto: data.texto, updated_at: agora },
+      { onConflict: "user_id,passo_id" },
+    );
+    if (error) throw new Error(error.message);
+    return { updated_at: agora };
   });
 
 async function getInscricaoPasso(userId: string, passoId: string) {

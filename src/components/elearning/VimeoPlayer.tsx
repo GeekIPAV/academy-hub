@@ -12,13 +12,16 @@ interface Props {
   video: string;
   startAt?: number;
   onProgress: (pct: number, seconds: number) => void;
+  onEnded?: () => void;
 }
 
 /** Leitor Vimeo com registo de % visto (reporta a cada ~5% ou 10 s). */
-export function VimeoPlayer({ video, startAt = 0, onProgress }: Props) {
+export function VimeoPlayer({ video, startAt = 0, onProgress, onEnded }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const cb = useRef(onProgress);
   cb.current = onProgress;
+  const endedCb = useRef(onEnded);
+  endedCb.current = onEnded;
 
   useEffect(() => {
     const id = parseVimeoId(video);
@@ -48,7 +51,10 @@ export function VimeoPlayer({ video, startAt = 0, onProgress }: Props) {
           cb.current(maxPct, d.seconds);
         }
       });
-      p.on("ended", () => cb.current(100, lastSec));
+      p.on("ended", () => {
+        cb.current(100, lastSec);
+        endedCb.current?.();
+      });
       p.on("pause", () => cb.current(maxPct, lastSec));
     });
     return () => {
@@ -60,5 +66,5 @@ export function VimeoPlayer({ video, startAt = 0, onProgress }: Props) {
   if (!parseVimeoId(video)) {
     return <p className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">Vídeo não configurado.</p>;
   }
-  return <div ref={ref} className="overflow-hidden rounded-xl bg-muted" />;
+  return <div ref={ref} className="aspect-video w-full overflow-hidden rounded-lg bg-muted [&_iframe]:h-full [&_iframe]:w-full" />;
 }
