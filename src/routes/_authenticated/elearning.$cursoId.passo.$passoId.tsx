@@ -226,7 +226,7 @@ function LeitorPage() {
   </div></TooltipProvider>;
 }
 
-function ReaderContent({ data, inscrito, titleRef, onDone, refetch, onContinue, onPrevious }: { data: PassoDetalhe; inscrito: boolean; titleRef: React.RefObject<HTMLHeadingElement>; onDone: (c?: boolean) => void; refetch: () => void; onContinue: () => void; onPrevious: () => void }) {
+function ReaderContent({ data, inscrito, titleRef, onDone, refetch, onContinue, onPrevious }: { data: PassoDetalhe; inscrito: boolean; titleRef: React.RefObject<HTMLHeadingElement | null>; onDone: (c?: boolean) => void; refetch: () => void; onContinue: () => void; onPrevious: () => void }) {
   const wide = data.passo.tipo === "video" || data.passo.tipo === "recurso";
   return <div className={cn("mx-auto w-full px-4 py-6 sm:px-6 sm:py-8", wide ? "max-w-[1048px]" : "max-w-[768px]")}>
     <div className="mb-7">
