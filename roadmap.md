@@ -15,9 +15,9 @@
 - [x] Teste de ponta a ponta
 
 ## E-learning UX/UI
-- [ ] Redesenhar catálogo, página do curso e leitor
-- [ ] Adicionar celebração e partilha da conclusão
-- [ ] Reorganizar Dados e publicação na gestão
-- [ ] Melhorar construtor, recursos, Vimeo, quiz e pré-visualização
-- [ ] Melhorar tabela de inscritos
-- [ ] Validar os fluxos em desktop e telemóvel
+- [x] Redesenhar catálogo, página do curso e leitor
+- [x] Adicionar celebração e partilha da conclusão
+- [x] Reorganizar Dados e publicação na gestão
+- [x] Melhorar construtor, recursos, Vimeo, quiz e pré-visualização
+- [x] Melhorar tabela de inscritos
+- [x] Validar os fluxos em desktop e telemóvel

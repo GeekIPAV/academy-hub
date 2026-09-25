@@ -71,8 +71,8 @@ function CursoPage() {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_330px]">
         <main className="min-w-0 space-y-8">
           <section>
-            <div className="flex flex-wrap gap-2"><Badge variant="secondary">{curso.modalidade === "turma" ? "Em turma · B-learning" : "Autónomo · Online"}</Badge>{curso.cluster_name && <Badge variant="outline">{curso.cluster_name}</Badge>}{curso.acreditacao_ref && <Badge variant="outline">Acreditação {curso.acreditacao_ref}</Badge>}</div>
-            <h1 className="mt-3 text-2xl font-semibold sm:text-3xl">{curso.title}</h1>
+             <div className="flex max-w-full flex-wrap gap-2"><Badge variant="secondary">{curso.modalidade === "turma" ? "Em turma · B-learning" : "Autónomo · Online"}</Badge>{curso.cluster_name && <Badge variant="outline" className="max-w-full whitespace-normal">{curso.cluster_name}</Badge>}{curso.acreditacao_ref && <Badge variant="outline" className="max-w-full whitespace-normal">Acreditação {curso.acreditacao_ref}</Badge>}</div>
+             <h1 className="mt-3 break-words text-2xl font-semibold sm:text-3xl">{curso.title}</h1>
             {curso.description && <div className="rich-text mt-4 text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(curso.description) }} />}
           </section>
 
