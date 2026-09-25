@@ -59,10 +59,10 @@ export function TurmasTab({ cursoId, turmas }: { cursoId: string; turmas: Turma[
   const formadorNome = (id: string | null) => opts?.formadores.find((f) => f.id === id)?.nome ?? "—";
 
   return (
-    <Card className="space-y-3 p-4">
-      <div className="flex justify-between">
-        <p className="text-sm text-muted-foreground">Os módulos abrem por data a partir do início de cada turma.</p>
-        <Button size="sm" onClick={() => setEdit({ inscricoes_abertas: false })}><Plus className="mr-1 h-4 w-4" /> Nova turma</Button>
+    <Card className="w-full min-w-0 space-y-3 overflow-hidden p-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+        <p className="min-w-0 text-sm text-muted-foreground">Os módulos abrem por data a partir do início de cada turma.</p>
+        <Button size="sm" className="shrink-0" onClick={() => setEdit({ inscricoes_abertas: false })}><Plus className="mr-1 h-4 w-4" /> Nova turma</Button>
       </div>
       <Table>
         <TableHeader>

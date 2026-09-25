@@ -93,7 +93,7 @@ export function ConteudoBuilder({ cursoId, clusterId, modalidade, modulos: initi
   };
 
   return (
-    <div className="space-y-4">
+    <div className="w-full min-w-0 space-y-4">
       <div className="flex flex-wrap gap-2">
         <Button size="sm" onClick={() => setModEdit({})}><Plus className="mr-1 h-4 w-4" /> Novo módulo</Button>
         {clusterId && (
@@ -108,25 +108,25 @@ export function ConteudoBuilder({ cursoId, clusterId, modalidade, modulos: initi
           {modulos.map((m, i) => (
             <Sortable key={m.id} id={m.id}>
               {(handle) => (
-                <Card className="mb-3 p-4">
-                  <div className="flex items-center gap-2">
+                 <Card className="mb-3 min-w-0 p-4">
+                   <div className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-2">
                     {handle}
                     <div className="min-w-0 flex-1"><p className="font-medium">{i + 1}. {m.title}</p><p className="text-xs text-muted-foreground">{m.passos.length ? `${m.passos.length} passos · ${formatarDuracao(m.passos.reduce((n, p) => n + (p.duracao_min ?? 0), 0))}` : "Módulo sem passos"}</p></div>
-                    {modalidade === "turma" && m.abertura_dias != null && <span className="text-xs text-muted-foreground">Abre ao dia {m.abertura_dias}</span>}
+                     {modalidade === "turma" && m.abertura_dias != null && <span className="col-span-full ml-7 text-xs text-muted-foreground sm:col-span-1 sm:ml-0">Abre ao dia {m.abertura_dias}</span>}
                     <Button size="icon" variant="ghost" aria-label="Editar módulo" onClick={() => setModEdit(m)}><Pencil className="h-4 w-4" /></Button>
                     <Button size="icon" variant="ghost" aria-label="Eliminar módulo" onClick={() => setDeleteTarget({ tabela: "cursos_modulos", id: m.id, label: "o módulo e todos os seus passos" })}><Trash2 className="h-4 w-4" /></Button>
                   </div>
-                  <div className="ml-6 mt-2 space-y-1">
+                   <div className="mt-2 min-w-0 space-y-1 sm:ml-6">
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onPassoDrag(m.id)}>
                       <SortableContext items={m.passos.map((p) => p.id)} strategy={verticalListSortingStrategy}>
                         {m.passos.map((p) => (
                           <Sortable key={p.id} id={p.id}>
                             {(h) => (
-                              <div className="flex items-center gap-2 rounded-md border px-2 py-1.5 text-sm">
+                               <div className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)_auto_auto_auto] items-center gap-1 rounded-md border px-2 py-1.5 text-sm sm:gap-2">
                                 {h}
                                  <PassoTipoIcon tipo={p.tipo} className="h-4 w-4 text-muted-foreground" />
-                                 <span className="w-16 text-xs text-muted-foreground">{TIPO_PASSO[p.tipo]}</span>
-                                <span className="flex-1">{p.title}{!p.obrigatorio && <span className="text-xs text-muted-foreground"> · opcional</span>}</span>
+                                  <span className="hidden w-16 text-xs text-muted-foreground sm:block">{TIPO_PASSO[p.tipo]}</span>
+                                 <span className="min-w-0 truncate">{p.title}{!p.obrigatorio && <span className="text-xs text-muted-foreground"> · opcional</span>}</span>
                                  <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Pré-visualizar passo" asChild><a href={`/elearning/${cursoId}/passo/${p.id}`} target="_blank" rel="noreferrer"><Eye className="h-3.5 w-3.5" /></a></Button>
                                  <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Editar passo" onClick={() => setPassoEdit({ modulo_id: m.id, passo: p })}><Pencil className="h-3.5 w-3.5" /></Button>
                                  <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Eliminar passo" onClick={() => setDeleteTarget({ tabela: "cursos_passos", id: p.id, label: "este passo" })}><Trash2 className="h-3.5 w-3.5" /></Button>
