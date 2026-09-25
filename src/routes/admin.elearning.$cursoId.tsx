@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Eye, RefreshCw } from "lucide-react";
+import { AlertTriangle, Archive, ArrowLeft, CheckCircle2, Download, Eye, RefreshCw, Rocket, Save } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
 import { CoverUploader } from "@/components/CoverUploader";
 import { CoverImage } from "@/components/CoverImage";
@@ -16,7 +16,9 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -50,7 +52,7 @@ function CursoAdminPage() {
   const { cursoId } = Route.useParams();
   const fn = useServerFn(getCursoAdmin);
   const { data, isLoading, error } = useQuery({ queryKey: ["admin-elearning", "curso", cursoId], queryFn: () => fn({ data: { id: cursoId } }) });
-  if (isLoading) return <p className="p-6 text-sm text-muted-foreground">A carregar…</p>;
+  if (isLoading) return <div className="mx-auto max-w-6xl space-y-4"><Skeleton className="h-6 w-40" /><Skeleton className="h-12 w-full" /><Skeleton className="h-96 w-full" /></div>;
   if (error || !data) return <p className="p-6 text-sm text-destructive">{(error as Error)?.message ?? "Curso não encontrado."}</p>;
   const primeiro = data.modulos.flatMap((m) => m.passos)[0]?.id;
   return (
@@ -58,8 +60,11 @@ function CursoAdminPage() {
       <Link to="/admin/elearning" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" /> Todos os cursos
       </Link>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">{data.curso.title}</h1>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-semibold">{data.curso.title}</h1>
+          <Badge variant={data.curso.estado === "publicado" ? "default" : "secondary"} className="mt-2">{data.curso.estado === "publicado" ? "Publicado" : data.curso.estado === "arquivado" ? "Arquivado" : "Rascunho"}</Badge>
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>
             <Link to="/elearning/$cursoId" params={{ cursoId }}><Eye className="mr-1 h-4 w-4" /> Página do curso</Link>
@@ -71,6 +76,7 @@ function CursoAdminPage() {
           )}
         </div>
       </div>
+      <EstadoCurso curso={data.curso} modulos={data.modulos} turmas={data.turmas} />
       <Tabs defaultValue="dados">
         <TabsList>
           <TabsTrigger value="dados">Dados</TabsTrigger>
