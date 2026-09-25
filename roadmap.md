@@ -23,10 +23,10 @@
 - [x] Validar os fluxos em desktop e telemóvel
 
 ## Redesign do leitor E-learning
-- [ ] Criar modo foco sem navegação global
-- [ ] Redesenhar cabeçalho, índice e navegação responsiva
-- [ ] Melhorar conteúdo, vídeo, quiz, reflexão e recursos
-- [ ] Adicionar separadores, materiais e notas pessoais
-- [ ] Adicionar transições de módulo, atalhos e prefetch
-- [ ] Validar a 375px, 768px e 1280px
-- [ ] Testar com dados temporários e removê-los
+- [x] Criar modo foco sem navegação global
+- [x] Redesenhar cabeçalho, índice e navegação responsiva
+- [x] Melhorar conteúdo, vídeo, quiz, reflexão e recursos
+- [x] Adicionar separadores, materiais e notas pessoais
+- [x] Adicionar transições de módulo, atalhos e prefetch
+- [x] Validar a 375px, 768px e 1280px
+- [x] Testar com dados temporários e removê-los

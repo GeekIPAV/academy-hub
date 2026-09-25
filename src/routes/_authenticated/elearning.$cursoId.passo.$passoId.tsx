@@ -158,7 +158,7 @@ function LeitorPage() {
     const lastInModule = stepIndex === (data.curso.modulos[moduleIndex]?.passos.length ?? 0) - 1;
     const nextModule = data.curso.modulos[moduleIndex + 1];
     if (lastInModule && nextModule) {
-      const scores = data.curso.modulos[moduleIndex].passos.map((p) => p.id === data.passo.id ? data.progresso?.nota : null).filter((n): n is number => n != null);
+      const scores = data.curso.modulos[moduleIndex].passos.map((p) => p.id === data.passo.id ? (data.progresso?.nota ?? p.nota) : p.nota).filter((n): n is number => n != null);
       setTransition({ atual: moduleIndex + 1, proximo: moduleIndex + 2, modulo: nextModule, notaMedia: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null });
       return;
     }

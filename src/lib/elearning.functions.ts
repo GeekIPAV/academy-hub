@@ -134,6 +134,7 @@ export interface PassoResumo {
   obrigatorio: boolean;
   duracao_min: number | null;
   estado: PassoEstado;
+  nota?: number | null;
   bloqueio_motivo?: string | null;
 }
 export interface ModuloResumo {
@@ -183,9 +184,10 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
     .eq("curso_id", cursoId)
     .order("sort_order");
   const prog = insc
-    ? (await sb.from("cursos_progresso").select("passo_id, estado").eq("inscricao_id", insc.id)).data ?? []
+    ? (await sb.from("cursos_progresso").select("passo_id, estado, nota").eq("inscricao_id", insc.id)).data ?? []
     : [];
   const pmap = new Map(prog.map((p) => [p.passo_id, p.estado]));
+  const nmap = new Map(prog.map((p) => [p.passo_id, p.nota == null ? null : Number(p.nota)]));
   const turmas = (c.cursos_turmas ?? []) as { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscricoes_abertas: boolean; formador_id: string | null; utilizadores: { full_name: string | null } | null }[];
   const turma = insc?.turma_id ? turmas.find((t) => t.id === insc.turma_id) ?? null : null;
   const { aberturaModulo } = await import("@/lib/elearning.server");
@@ -207,6 +209,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
           obrigatorio: p.obrigatorio,
           duracao_min: p.duracao_min,
           estado: !insc || abre ? "bloqueado" : ((pmap.get(p.id) as PassoEstado | undefined) ?? "disponivel"),
+           nota: nmap.get(p.id) ?? null,
           bloqueio_motivo: !insc
             ? "Inscreve-te para aceder"
             : abre
@@ -433,9 +436,7 @@ export const guardarNotaPasso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ passoId: z.string().uuid(), texto: z.string().max(20000) }).parse(i))
   .handler(async ({ data, context }) => {
-    const sb = await admin();
-    const { data: passo } = await sb.from("cursos_passos").select("id").eq("id", data.passoId).maybeSingle();
-    if (!passo) throw new Error("Passo não encontrado.");
+    const { sb } = await getInscricaoPasso(context.userId, data.passoId);
     const agora = new Date().toISOString();
     const { error } = await sb.from("cursos_notas").upsert(
       { user_id: context.userId, passo_id: data.passoId, texto: data.texto, updated_at: agora },
