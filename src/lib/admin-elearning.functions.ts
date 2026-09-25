@@ -202,6 +202,86 @@ export const deleteItem = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const duplicarItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z.object({
+      tipo: z.enum(["modulo", "passo"]),
+      id: z.string().uuid(),
+    }).parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    const sb = await guard(context.userId);
+
+    const duplicarPasso = async (passoId: string, moduloId?: string) => {
+      const passo = must(
+        await sb
+          .from("cursos_passos")
+          .select("modulo_id, title, tipo, obrigatorio, duracao_min, conteudo")
+          .eq("id", passoId)
+          .single(),
+      );
+      const destino = moduloId ?? passo.modulo_id;
+      const { count } = await sb.from("cursos_passos").select("id", { count: "exact", head: true }).eq("modulo_id", destino);
+      const novo = must(
+        await sb
+          .from("cursos_passos")
+          .insert({
+            modulo_id: destino,
+            title: moduloId ? passo.title : `${passo.title} (cópia)`,
+            tipo: passo.tipo,
+            obrigatorio: passo.obrigatorio,
+            duracao_min: passo.duracao_min,
+            conteudo: passo.conteudo,
+            sort_order: count ?? 0,
+          })
+          .select("id")
+          .single(),
+      );
+      if (passo.tipo === "quiz") {
+        const perguntas = must(
+          await sb
+            .from("cursos_quiz_perguntas")
+            .select("enunciado, tipo, opcoes, sort_order")
+            .eq("passo_id", passoId)
+            .order("sort_order"),
+        );
+        if (perguntas.length) {
+          must(await sb.from("cursos_quiz_perguntas").insert(perguntas.map((q) => ({ ...q, passo_id: novo.id }))));
+        }
+      }
+      return novo.id;
+    };
+
+    if (data.tipo === "passo") return { id: await duplicarPasso(data.id) };
+
+    const modulo = must(
+      await sb
+        .from("cursos_modulos")
+        .select("curso_id, title, description, tema_id, abertura_dias, cursos_passos(id, sort_order)")
+        .eq("id", data.id)
+        .single(),
+    );
+    const { count } = await sb.from("cursos_modulos").select("id", { count: "exact", head: true }).eq("curso_id", modulo.curso_id);
+    const novoModulo = must(
+      await sb
+        .from("cursos_modulos")
+        .insert({
+          curso_id: modulo.curso_id,
+          title: `${modulo.title} (cópia)`,
+          description: modulo.description,
+          tema_id: modulo.tema_id,
+          abertura_dias: modulo.abertura_dias,
+          sort_order: count ?? 0,
+        })
+        .select("id")
+        .single(),
+    );
+    const passos = [...(modulo.cursos_passos ?? [])].sort((a, b) => a.sort_order - b.sort_order);
+    for (const passo of passos) await duplicarPasso(passo.id, novoModulo.id);
+    return { id: novoModulo.id };
+  });
+
 export const reordenar = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) =>
