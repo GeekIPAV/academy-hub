@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -31,6 +32,7 @@ export function TurmasTab({ cursoId, turmas }: { cursoId: string; turmas: Turma[
   const optFn = useServerFn(listOpcoesElearning);
   const { data: opts } = useQuery({ queryKey: ["admin-elearning", "opcoes"], queryFn: () => optFn() });
   const [edit, setEdit] = useState<Partial<Turma> | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const refresh = () => qc.invalidateQueries({ queryKey: ["admin-elearning", "curso", cursoId] });
   const save = useMutation({
     mutationFn: (t: Partial<Turma>) =>
@@ -79,7 +81,7 @@ export function TurmasTab({ cursoId, turmas }: { cursoId: string; turmas: Turma[
               <TableCell><Badge variant={t.inscricoes_abertas ? "default" : "secondary"}>{t.inscricoes_abertas ? "Abertas" : "Fechadas"}</Badge></TableCell>
               <TableCell className="text-right">
                 <Button size="icon" variant="ghost" aria-label="Editar turma" onClick={() => setEdit(t)}><Pencil className="h-4 w-4" /></Button>
-                <Button size="icon" variant="ghost" aria-label="Eliminar turma" onClick={() => confirm("Eliminar turma?") && del.mutate(t.id)}><Trash2 className="h-4 w-4" /></Button>
+                <Button size="icon" variant="ghost" aria-label="Eliminar turma" onClick={() => setDeleteId(t.id)}><Trash2 className="h-4 w-4" /></Button>
               </TableCell>
             </TableRow>
           ))}
@@ -116,6 +118,12 @@ export function TurmasTab({ cursoId, turmas }: { cursoId: string; turmas: Turma[
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader><AlertDialogTitle>Eliminar turma?</AlertDialogTitle><AlertDialogDescription>Esta ação é permanente e só é possível quando a turma não tem inscrições associadas.</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => { if (deleteId) del.mutate(deleteId); setDeleteId(null); }}>Eliminar</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

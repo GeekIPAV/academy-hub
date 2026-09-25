@@ -5,17 +5,23 @@ import { toast } from "sonner";
 import { DndContext, PointerSensor, closestCenter, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Import, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, ChevronsUpDown, Eye, GripVertical, Import, Pencil, Plus, Trash2, Video } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { RichTextEditor } from "@/components/rich-text-editor";
-import { TIPO_PASSO } from "@/components/elearning/shared";
+import { formatarDuracao, PassoTipoIcon, TIPO_PASSO, TIPO_PASSO_DESCRICAO } from "@/components/elearning/shared";
+import { VimeoPlayer, parseVimeoId } from "@/components/elearning/VimeoPlayer";
+import { cn } from "@/lib/utils";
 import {
   deleteItem,
   getCursoAdmin,
@@ -52,6 +58,8 @@ export function ConteudoBuilder({ cursoId, clusterId, modalidade, modulos: initi
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
   const [modEdit, setModEdit] = useState<Partial<Modulo> | null>(null);
   const [passoEdit, setPassoEdit] = useState<{ modulo_id: string; passo?: Passo } | null>(null);
+  const [tipoPara, setTipoPara] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ tabela: "cursos_modulos" | "cursos_passos"; id: string; label: string } | null>(null);
 
   const imp = useMutation({
     mutationFn: () => importFn({ data: { cursoId, clusterId: clusterId! } }),
@@ -103,10 +111,10 @@ export function ConteudoBuilder({ cursoId, clusterId, modalidade, modulos: initi
                 <Card className="mb-3 p-4">
                   <div className="flex items-center gap-2">
                     {handle}
-                    <p className="flex-1 font-medium">{i + 1}. {m.title}</p>
+                    <div className="min-w-0 flex-1"><p className="font-medium">{i + 1}. {m.title}</p><p className="text-xs text-muted-foreground">{m.passos.length ? `${m.passos.length} passos · ${formatarDuracao(m.passos.reduce((n, p) => n + (p.duracao_min ?? 0), 0))}` : "Módulo sem passos"}</p></div>
                     {modalidade === "turma" && m.abertura_dias != null && <span className="text-xs text-muted-foreground">Abre ao dia {m.abertura_dias}</span>}
                     <Button size="icon" variant="ghost" aria-label="Editar módulo" onClick={() => setModEdit(m)}><Pencil className="h-4 w-4" /></Button>
-                    <Button size="icon" variant="ghost" aria-label="Eliminar módulo" onClick={() => confirm("Eliminar módulo e passos?") && del.mutate({ tabela: "cursos_modulos", id: m.id })}><Trash2 className="h-4 w-4" /></Button>
+                    <Button size="icon" variant="ghost" aria-label="Eliminar módulo" onClick={() => setDeleteTarget({ tabela: "cursos_modulos", id: m.id, label: "o módulo e todos os seus passos" })}><Trash2 className="h-4 w-4" /></Button>
                   </div>
                   <div className="ml-6 mt-2 space-y-1">
                     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onPassoDrag(m.id)}>
@@ -116,17 +124,19 @@ export function ConteudoBuilder({ cursoId, clusterId, modalidade, modulos: initi
                             {(h) => (
                               <div className="flex items-center gap-2 rounded-md border px-2 py-1.5 text-sm">
                                 {h}
-                                <span className="w-16 text-xs text-muted-foreground">{TIPO_PASSO[p.tipo]}</span>
+                                 <PassoTipoIcon tipo={p.tipo} className="h-4 w-4 text-muted-foreground" />
+                                 <span className="w-16 text-xs text-muted-foreground">{TIPO_PASSO[p.tipo]}</span>
                                 <span className="flex-1">{p.title}{!p.obrigatorio && <span className="text-xs text-muted-foreground"> · opcional</span>}</span>
-                                <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Editar passo" onClick={() => setPassoEdit({ modulo_id: m.id, passo: p })}><Pencil className="h-3.5 w-3.5" /></Button>
-                                <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Eliminar passo" onClick={() => confirm("Eliminar passo?") && del.mutate({ tabela: "cursos_passos", id: p.id })}><Trash2 className="h-3.5 w-3.5" /></Button>
+                                 <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Pré-visualizar passo" asChild><a href={`/elearning/${cursoId}/passo/${p.id}`} target="_blank" rel="noreferrer"><Eye className="h-3.5 w-3.5" /></a></Button>
+                                 <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Editar passo" onClick={() => setPassoEdit({ modulo_id: m.id, passo: p })}><Pencil className="h-3.5 w-3.5" /></Button>
+                                 <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Eliminar passo" onClick={() => setDeleteTarget({ tabela: "cursos_passos", id: p.id, label: "este passo" })}><Trash2 className="h-3.5 w-3.5" /></Button>
                               </div>
                             )}
                           </Sortable>
                         ))}
                       </SortableContext>
                     </DndContext>
-                    <Button size="sm" variant="ghost" onClick={() => setPassoEdit({ modulo_id: m.id })}><Plus className="mr-1 h-4 w-4" /> Adicionar passo</Button>
+                    <Button size="sm" variant="ghost" onClick={() => setTipoPara(m.id)}><Plus className="mr-1 h-4 w-4" /> Adicionar passo</Button>
                   </div>
                 </Card>
               )}
@@ -137,6 +147,8 @@ export function ConteudoBuilder({ cursoId, clusterId, modalidade, modulos: initi
 
       {modEdit && <ModuloDialog cursoId={cursoId} modalidade={modalidade} value={modEdit} onClose={() => setModEdit(null)} onSaved={refresh} />}
       {passoEdit && <PassoDialog moduloId={passoEdit.modulo_id} passo={passoEdit.passo} onClose={() => setPassoEdit(null)} onSaved={refresh} />}
+      <Dialog open={!!tipoPara} onOpenChange={(o) => !o && setTipoPara(null)}><DialogContent className="max-w-2xl"><DialogHeader><DialogTitle>Que tipo de passo queres adicionar?</DialogTitle></DialogHeader><div className="grid gap-3 sm:grid-cols-2">{Object.entries(TIPO_PASSO).map(([tipo, label]) => <button key={tipo} type="button" className="flex gap-3 border p-4 text-left hover:border-primary hover:bg-primary/5" onClick={() => { const modulo_id = tipoPara; setTipoPara(null); if (modulo_id) setPassoEdit({ modulo_id, passo: { tipo } as Passo }); }}><PassoTipoIcon tipo={tipo} className="mt-0.5 h-5 w-5 text-primary" /><span><strong className="block">{label}</strong><span className="text-xs text-muted-foreground">{TIPO_PASSO_DESCRICAO[tipo]}</span></span></button>)}</div></DialogContent></Dialog>
+      <AlertDialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar conteúdo?</AlertDialogTitle><AlertDialogDescription>Esta ação elimina {deleteTarget?.label} e não pode ser anulada.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction onClick={() => { if (deleteTarget) del.mutate({ tabela: deleteTarget.tabela, id: deleteTarget.id }); setDeleteTarget(null); }}>Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
     </div>
   );
 }
@@ -184,6 +196,8 @@ function PassoDialog({ moduloId, passo, onClose, onSaved }: { moduloId: string; 
   const [dur, setDur] = useState<number | null>(passo?.duracao_min ?? null);
   const [c, setC] = useState<Record<string, unknown>>(passo?.conteudo ?? {});
   const [perguntas, setPerguntas] = useState<Pergunta[]>(passo?.perguntas ?? []);
+  const [resourceOpen, setResourceOpen] = useState(false);
+  const [clusterFilter, setClusterFilter] = useState("all");
   const m = useMutation({
     mutationFn: () =>
       fn({
@@ -203,6 +217,9 @@ function PassoDialog({ moduloId, passo, onClose, onSaved }: { moduloId: string; 
   });
   const setQ = (i: number, q: Pergunta) => setPerguntas((ps) => ps.map((p, j) => (j === i ? q : p)));
   const quizInvalido = tipo === "quiz" && perguntas.some((q) => !q.enunciado.trim() || !q.opcoes.some((o) => o.correta));
+  const recursos = (opts?.recursos ?? []).filter((r) => clusterFilter === "all" || r.cluster_id === clusterFilter);
+  const recurso = opts?.recursos.find((r) => r.id === c.recurso_id);
+  const vimeoValido = tipo !== "video" || !!parseVimeoId(String(c.vimeo ?? ""));
 
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
@@ -223,16 +240,10 @@ function PassoDialog({ moduloId, passo, onClose, onSaved }: { moduloId: string; 
           <label className="flex items-center gap-2 text-sm"><Checkbox checked={obrig} onCheckedChange={(v) => setObrig(!!v)} /> Obrigatório para concluir o curso</label>
 
           {tipo === "video" && (
-            <div className="space-y-1"><Label>Vídeo Vimeo (URL ou ID)</Label><Input value={String(c.vimeo ?? "")} onChange={(e) => setC({ ...c, vimeo: e.target.value })} placeholder="https://vimeo.com/123456789" /></div>
+             <div className="space-y-3"><div className="space-y-1"><Label>Vídeo Vimeo (URL ou ID)</Label><Input value={String(c.vimeo ?? "")} onChange={(e) => setC({ ...c, vimeo: e.target.value })} placeholder="https://vimeo.com/123456789" />{!!c.vimeo && !vimeoValido && <p className="text-xs text-destructive">Introduz um link Vimeo ou um ID válido.</p>}</div>{vimeoValido && !!c.vimeo ? <VimeoPlayer video={String(c.vimeo)} onProgress={() => undefined} /> : null}</div>
           )}
           {tipo === "recurso" && (
-            <div className="space-y-1">
-              <Label>Recurso do Centro de Recursos</Label>
-              <Select value={String(c.recurso_id ?? "")} onValueChange={(v) => setC({ ...c, recurso_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Escolhe um recurso" /></SelectTrigger>
-                <SelectContent>{opts?.recursos.map((r) => <SelectItem key={r.id} value={r.id}>{r.title}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
+            <div className="space-y-2"><Label>Recurso do Centro de Recursos</Label><Select value={clusterFilter} onValueChange={setClusterFilter}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os clusters</SelectItem>{opts?.clusters.map((cl) => <SelectItem key={cl.id} value={cl.id}>{cl.name}</SelectItem>)}</SelectContent></Select><Popover open={resourceOpen} onOpenChange={setResourceOpen}><PopoverTrigger asChild><Button variant="outline" role="combobox" className="w-full justify-between">{recurso?.title ?? "Pesquisar recurso"}<ChevronsUpDown className="h-4 w-4 opacity-50" /></Button></PopoverTrigger><PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0"><Command><CommandInput placeholder="Pesquisar por título…" /><CommandList><CommandEmpty>Sem recursos.</CommandEmpty><CommandGroup>{recursos.map((r) => <CommandItem key={r.id} value={`${r.title} ${r.resource_type}`} onSelect={() => { setC({ ...c, recurso_id: r.id }); setResourceOpen(false); }}><Check className={cn("h-4 w-4", c.recurso_id === r.id ? "opacity-100" : "opacity-0")} />{r.cover_url && <img src={r.cover_url} alt="" className="h-8 w-8 object-cover" />}<span className="min-w-0 flex-1 truncate">{r.title}</span><span className="text-xs text-muted-foreground">{r.resource_type}</span></CommandItem>)}</CommandGroup></CommandList></Command></PopoverContent></Popover>{recurso && <div className="flex gap-3 border bg-muted/30 p-3 text-sm">{recurso.cover_url && <img src={recurso.cover_url} alt="" className="h-12 w-12 object-cover" />}<div><p className="font-medium">{recurso.title}</p><p className="text-xs text-muted-foreground">{recurso.resource_type}</p></div></div>}</div>
           )}
           {tipo === "reflexao" && (
             <label className="flex items-center gap-2 text-sm"><Checkbox checked={!!c.partilhavel} onCheckedChange={(v) => setC({ ...c, partilhavel: !!v })} /> Permitir partilhar com a turma</label>
@@ -257,13 +268,7 @@ function PassoDialog({ moduloId, passo, onClose, onSaved }: { moduloId: string; 
                   </div>
                   {q.opcoes.map((o, k) => (
                     <div key={o.id} className="flex items-center gap-2 pl-2">
-                      <Checkbox
-                        aria-label="Correta"
-                        checked={o.correta}
-                        onCheckedChange={(v) =>
-                          setQ(i, { ...q, opcoes: q.opcoes.map((x, j) => (j === k ? { ...x, correta: !!v } : q.tipo === "unica" && v ? { ...x, correta: false } : x)) })
-                        }
-                      />
+                      {q.tipo === "unica" ? <RadioGroup value={q.opcoes.find((x) => x.correta)?.id ?? ""} onValueChange={(id) => setQ(i, { ...q, opcoes: q.opcoes.map((x) => ({ ...x, correta: x.id === id })) })}><RadioGroupItem value={o.id} aria-label="Opção correta" /></RadioGroup> : <Checkbox aria-label="Correta" checked={o.correta} onCheckedChange={(v) => setQ(i, { ...q, opcoes: q.opcoes.map((x, j) => j === k ? { ...x, correta: !!v } : x) })} />}
                       <Input className="h-8" placeholder="Opção" value={o.texto} onChange={(e) => setQ(i, { ...q, opcoes: q.opcoes.map((x, j) => (j === k ? { ...x, texto: e.target.value } : x)) })} />
                       <Input className="h-8" placeholder="Feedback (opcional)" value={o.feedback ?? ""} onChange={(e) => setQ(i, { ...q, opcoes: q.opcoes.map((x, j) => (j === k ? { ...x, feedback: e.target.value } : x)) })} />
                       <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Remover opção" onClick={() => setQ(i, { ...q, opcoes: q.opcoes.filter((_, j) => j !== k) })}><Trash2 className="h-3.5 w-3.5" /></Button>
@@ -281,7 +286,7 @@ function PassoDialog({ moduloId, passo, onClose, onSaved }: { moduloId: string; 
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
-          <Button disabled={!title.trim() || m.isPending || quizInvalido} onClick={() => m.mutate()}>Guardar</Button>
+          <Button disabled={!title.trim() || m.isPending || quizInvalido || !vimeoValido} onClick={() => m.mutate()}>Guardar</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

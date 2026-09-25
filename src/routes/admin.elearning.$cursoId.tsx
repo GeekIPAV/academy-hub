@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Eye, RefreshCw } from "lucide-react";
+import { AlertTriangle, Archive, ArrowLeft, CheckCircle2, Download, Eye, RefreshCw, Rocket, Save } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
 import { CoverUploader } from "@/components/CoverUploader";
 import { CoverImage } from "@/components/CoverImage";
@@ -16,7 +16,9 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -50,7 +52,7 @@ function CursoAdminPage() {
   const { cursoId } = Route.useParams();
   const fn = useServerFn(getCursoAdmin);
   const { data, isLoading, error } = useQuery({ queryKey: ["admin-elearning", "curso", cursoId], queryFn: () => fn({ data: { id: cursoId } }) });
-  if (isLoading) return <p className="p-6 text-sm text-muted-foreground">A carregar…</p>;
+  if (isLoading) return <div className="mx-auto max-w-6xl space-y-4"><Skeleton className="h-6 w-40" /><Skeleton className="h-12 w-full" /><Skeleton className="h-96 w-full" /></div>;
   if (error || !data) return <p className="p-6 text-sm text-destructive">{(error as Error)?.message ?? "Curso não encontrado."}</p>;
   const primeiro = data.modulos.flatMap((m) => m.passos)[0]?.id;
   return (
@@ -58,8 +60,11 @@ function CursoAdminPage() {
       <Link to="/admin/elearning" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" /> Todos os cursos
       </Link>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold">{data.curso.title}</h1>
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <h1 className="truncate text-2xl font-semibold">{data.curso.title}</h1>
+          <Badge variant={data.curso.estado === "publicado" ? "default" : "secondary"} className="mt-2">{data.curso.estado === "publicado" ? "Publicado" : data.curso.estado === "arquivado" ? "Arquivado" : "Rascunho"}</Badge>
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" asChild>
             <Link to="/elearning/$cursoId" params={{ cursoId }}><Eye className="mr-1 h-4 w-4" /> Página do curso</Link>
@@ -71,6 +76,7 @@ function CursoAdminPage() {
           )}
         </div>
       </div>
+      <EstadoCurso curso={data.curso} modulos={data.modulos} turmas={data.turmas} />
       <Tabs defaultValue="dados">
         <TabsList>
           <TabsTrigger value="dados">Dados</TabsTrigger>
@@ -92,6 +98,26 @@ function CursoAdminPage() {
 }
 
 type CursoRow = Awaited<ReturnType<typeof getCursoAdmin>>["curso"];
+
+function EstadoCurso({ curso, modulos, turmas }: { curso: CursoRow; modulos: Awaited<ReturnType<typeof getCursoAdmin>>["modulos"]; turmas: Awaited<ReturnType<typeof getCursoAdmin>>["turmas"] }) {
+  const saveFn = useServerFn(upsertCurso);
+  const qc = useQueryClient();
+  const passos = modulos.flatMap((m) => m.passos);
+  const checks = [
+    { label: "Pelo menos um módulo com passos", ok: passos.length > 0, bloqueia: true },
+    { label: "Capa definida", ok: !!curso.cover_url, bloqueia: false },
+    { label: "Turma com inscrições abertas", ok: curso.modalidade !== "turma" || turmas.some((t) => t.inscricoes_abertas), bloqueia: false },
+    { label: "Horas definidas para o certificado", ok: !curso.tem_certificado || Number(curso.horas ?? 0) > 0, bloqueia: false },
+    { label: "Badges de entrada e final definidos", ok: !!curso.badge_entrada_id && !!curso.badge_final_id, bloqueia: false },
+  ];
+  const change = useMutation({
+    mutationFn: (estado: CursoInput["estado"]) => saveFn({ data: { ...curso, modalidade: curso.modalidade as CursoInput["modalidade"], estado, tipo: curso.tipo as CursoInput["tipo"], cover_scale: Number(curso.cover_scale), horas: curso.horas == null ? null : Number(curso.horas), nota_minima_quiz: Number(curso.nota_minima_quiz), pct_minima_video: Number(curso.pct_minima_video) } }),
+    onSuccess: () => { toast.success("Estado do curso atualizado."); qc.invalidateQueries({ queryKey: ["admin-elearning"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const blocked = checks.some((c) => c.bloqueia && !c.ok);
+  return <Card className="grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"><div><p className="text-sm font-semibold">Antes de publicar</p><div className="mt-2 grid gap-1 sm:grid-cols-2">{checks.map((c) => <p key={c.label} className={`flex items-center gap-2 text-xs ${c.ok ? "text-muted-foreground" : "text-destructive"}`}>{c.ok ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertTriangle className="h-4 w-4" />}{c.label}</p>)}</div></div><div className="flex gap-2">{curso.estado === "publicado" ? <Button variant="outline" disabled={change.isPending} onClick={() => change.mutate("rascunho")}>Despublicar</Button> : <Button disabled={blocked || change.isPending} onClick={() => change.mutate("publicado")}><Rocket className="mr-2 h-4 w-4" />Publicar</Button>}<Button variant="outline" disabled={change.isPending || curso.estado === "arquivado"} onClick={() => change.mutate("arquivado")}><Archive className="mr-2 h-4 w-4" />Arquivar</Button></div></Card>;
+}
 
 function NullSelect({ value, onChange, items, placeholder = "Nenhum" }: { value: string | null; onChange: (v: string | null) => void; items: { id: string; label: string }[]; placeholder?: string }) {
   return (
@@ -132,6 +158,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
     pct_minima_video: curso.pct_minima_video,
   });
   const [f, setF] = useState<CursoInput>(initial);
+  const dirty = JSON.stringify(f) !== JSON.stringify(initial());
   useEffect(() => setF(initial()), [curso]); // eslint-disable-line react-hooks/exhaustive-deps
   const set = <K extends keyof CursoInput>(k: K, v: CursoInput[K]) => setF((p) => ({ ...p, [k]: v }));
   const save = useMutation({
@@ -146,7 +173,10 @@ function DadosTab({ curso }: { curso: CursoRow }) {
   };
 
   return (
-    <Card className="space-y-5 p-5">
+    <div className="space-y-5">
+      {dirty && <div className="sticky top-16 z-20 flex items-center justify-between border border-accent bg-accent/10 px-4 py-3 text-sm"><span className="flex items-center gap-2"><AlertTriangle className="h-4 w-4" />Tens alterações por guardar.</span><Button size="sm" onClick={() => save.mutate(f)} disabled={save.isPending || !f.title.trim()}><Save className="mr-2 h-4 w-4" />Guardar</Button></div>}
+      <Card className="space-y-5 p-5">
+      <div><h2 className="text-lg font-semibold">Informação</h2><p className="text-sm text-muted-foreground">Identificação e apresentação pública do curso.</p></div>
       <div className="grid gap-5 md:grid-cols-[1fr_280px]">
         <div className="space-y-4">
           <div className="space-y-1"><Label>Título</Label><Input value={f.title} onChange={(e) => set("title", e.target.value)} /></div>
@@ -173,13 +203,6 @@ function DadosTab({ curso }: { curso: CursoRow }) {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="space-y-1">
-          <Label>Estado</Label>
-          <Select value={f.estado} onValueChange={(v) => set("estado", v as CursoInput["estado"])}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent><SelectItem value="rascunho">Rascunho</SelectItem><SelectItem value="publicado">Publicado</SelectItem><SelectItem value="arquivado">Arquivado</SelectItem></SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1">
           <Label>Modalidade</Label>
           <Select value={f.modalidade} onValueChange={(v) => set("modalidade", v as CursoInput["modalidade"])}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -200,17 +223,28 @@ function DadosTab({ curso }: { curso: CursoRow }) {
         </div>
         <div className="space-y-1"><Label>Cluster</Label><NullSelect value={f.cluster_id ?? null} onChange={onCluster} items={(opts?.clusters ?? []).map((c) => ({ id: c.id, label: c.name }))} placeholder="Sem cluster" /></div>
         <div className="space-y-1"><Label>Programa</Label><NullSelect value={f.program_id ?? null} onChange={(v) => set("program_id", v)} items={(opts?.programas ?? []).map((p) => ({ id: p.id, label: p.title ?? "—" }))} placeholder="Sem programa" /></div>
-        <div className="space-y-1"><Label>Horas de formação</Label><Input type="number" min={0} value={f.horas ?? ""} onChange={(e) => set("horas", e.target.value === "" ? null : Number(e.target.value))} /></div>
+      </div>
+      </Card>
+      <Card className="space-y-4 p-5">
+        <div><h2 className="text-lg font-semibold">Modalidade e acesso</h2><p className="text-sm text-muted-foreground">Define como o curso decorre e a sua carga formativa.</p></div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-1"><Label>Horas de formação</Label><Input type="number" min={0} value={f.horas ?? ""} onChange={(e) => set("horas", e.target.value === "" ? null : Number(e.target.value))} /><p className="text-xs text-muted-foreground">Usadas no certificado e na duração apresentada.</p></div>
+        <div className="space-y-1"><Label>Referência de acreditação</Label><Input placeholder="ex. CCPFC/ACC-…" value={f.acreditacao_ref ?? ""} onChange={(e) => set("acreditacao_ref", e.target.value || null)} /><p className="text-xs text-muted-foreground">Referência oficial, quando aplicável.</p></div>
+        </div>
+      </Card>
+      <Card className="space-y-4 p-5">
+        <div><h2 className="text-lg font-semibold">Conclusão e certificação</h2><p className="text-sm text-muted-foreground">Regras aplicadas automaticamente ao progresso do formando.</p></div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="space-y-1"><Label>Badge de entrada (em formação)</Label><NullSelect value={f.badge_entrada_id ?? null} onChange={(v) => set("badge_entrada_id", v)} items={badgeItems} /></div>
         <div className="space-y-1"><Label>Badge final (formado)</Label><NullSelect value={f.badge_final_id ?? null} onChange={(v) => set("badge_final_id", v)} items={badgeItems} /></div>
         <div className="space-y-1"><Label>Badge a renovar</Label><NullSelect value={f.badge_renovado_id ?? null} onChange={(v) => set("badge_renovado_id", v)} items={badgeItems} /></div>
         <div className="space-y-1"><Label>Nota mínima dos quizzes (%)</Label><Input type="number" min={0} max={100} value={f.nota_minima_quiz} onChange={(e) => set("nota_minima_quiz", Number(e.target.value))} /></div>
         <div className="space-y-1"><Label>% mínima de vídeo visto</Label><Input type="number" min={0} max={100} value={f.pct_minima_video} onChange={(e) => set("pct_minima_video", Number(e.target.value))} /></div>
-        <div className="space-y-1"><Label>Referência de acreditação</Label><Input placeholder="ex. CCPFC/ACC-…" value={f.acreditacao_ref ?? ""} onChange={(e) => set("acreditacao_ref", e.target.value || null)} /></div>
       </div>
       <label className="flex items-center gap-2 text-sm"><Checkbox checked={f.tem_certificado} onCheckedChange={(v) => set("tem_certificado", !!v)} /> Emite certificado ao concluir</label>
-      <div className="flex justify-end"><Button onClick={() => save.mutate(f)} disabled={save.isPending || !f.title.trim()}>Guardar alterações</Button></div>
-    </Card>
+      <div className="flex justify-end"><Button onClick={() => save.mutate(f)} disabled={save.isPending || !f.title.trim() || !dirty}>Guardar alterações</Button></div>
+      </Card>
+    </div>
   );
 }
 
@@ -221,13 +255,14 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
   const regenFn = useServerFn(regenerarCertificado);
   const qc = useQueryClient();
   const [turma, setTurma] = useState("all");
+  const [estado, setEstado] = useState("all");
   const { data, isLoading } = useQuery({ queryKey: ["admin-elearning", "inscritos", cursoId], queryFn: () => fn({ data: { cursoId } }) });
   const regen = useMutation({
     mutationFn: (inscricaoId: string) => regenFn({ data: { inscricaoId } }),
     onSuccess: () => { toast.success("Certificado gerado."); qc.invalidateQueries({ queryKey: ["admin-elearning", "inscritos", cursoId] }); },
     onError: (e: Error) => toast.error(e.message),
   });
-  const rows = (data ?? []).filter((r) => turma === "all" || r.turma_id === turma);
+  const rows = (data ?? []).filter((r) => (turma === "all" || r.turma_id === turma) && (estado === "all" || r.estado === estado));
   const turmaNome = (id: string | null) => turmas.find((t) => t.id === id)?.nome ?? "—";
   const exportCsv = () => {
     const head = ["Nome", "Email", "Turma", "Estado", "Progresso %", "Nota média", "Badge", "Certificado", "Inscrito em", "Concluído em"];
@@ -251,6 +286,7 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
             </SelectContent>
           </Select>
         )}
+        <Select value={estado} onValueChange={setEstado}><SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os estados</SelectItem>{Object.entries(ESTADO_INSC).map(([id, label]) => <SelectItem key={id} value={id}>{label}</SelectItem>)}</SelectContent></Select>
         <span className="flex-1 text-sm text-muted-foreground">{rows.length} inscrito(s)</span>
         <Button variant="outline" size="sm" onClick={exportCsv} disabled={!rows.length}><Download className="mr-1 h-4 w-4" /> Exportar CSV</Button>
       </div>
@@ -260,8 +296,9 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
             <TableHead>Nome</TableHead>
             {turmas.length > 0 && <TableHead>Turma</TableHead>}
             <TableHead>Estado</TableHead>
-            <TableHead className="text-right">Progresso</TableHead>
+            <TableHead>Progresso</TableHead>
             <TableHead className="text-right">Nota</TableHead>
+            <TableHead>Última atividade</TableHead>
             <TableHead>Badge</TableHead>
             <TableHead>Certificado</TableHead>
           </TableRow>
@@ -274,8 +311,9 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
               <TableCell><p className="font-medium">{r.nome}</p><p className="text-xs text-muted-foreground">{r.email}</p></TableCell>
               {turmas.length > 0 && <TableCell className="text-sm">{turmaNome(r.turma_id)}</TableCell>}
               <TableCell><Badge variant={r.estado === "concluido" ? "default" : "secondary"}>{ESTADO_INSC[r.estado]}</Badge></TableCell>
-              <TableCell className="text-right">{r.pct}%</TableCell>
+               <TableCell><div className="min-w-28"><div className="mb-1 text-right text-xs">{r.pct}%</div><Progress value={r.pct} className="h-1.5" /></div></TableCell>
               <TableCell className="text-right">{r.nota_media != null ? `${r.nota_media}%` : "—"}</TableCell>
+               <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{r.ultima_atividade ? new Date(r.ultima_atividade).toLocaleDateString("pt-PT") : "—"}</TableCell>
               <TableCell>{r.badge ? "Sim" : "—"}</TableCell>
               <TableCell className="space-x-1 whitespace-nowrap">
                 {r.certificado && <a href={r.certificado} target="_blank" rel="noreferrer" className="text-sm text-primary underline">PDF</a>}

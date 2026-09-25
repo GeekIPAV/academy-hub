@@ -273,7 +273,7 @@ export const listOpcoesElearning = createServerFn({ method: "GET" })
       sb.from("clusters").select("id, name, formando_badge_id, final_badge_id").order("sort_order"),
       sb.from("badges").select("id, title, kind, cluster_id").order("title"),
       sb.from("programas").select("id, title").order("title"),
-      sb.from("recursos").select("id, title, resource_type").order("title"),
+      sb.from("recursos").select("id, title, resource_type, cluster_id, cover_url, description, file_url").order("title"),
       sb.from("user_roles").select("user_id").eq("role_name", "Formador"),
     ]);
     let ids = [...new Set((formadoresRoles.data ?? []).map((r) => r.user_id))];
@@ -309,6 +309,7 @@ export const listInscritos = createServerFn({ method: "POST" })
     const quizIds = new Set(passos.filter((p) => p.tipo === "quiz").map((p) => p.id));
     const ids = (inscs ?? []).map((i) => i.id);
     const prog = ids.length ? must(await sb.from("cursos_progresso").select("inscricao_id, passo_id, estado, nota").in("inscricao_id", ids)) : [];
+    const atividade = ids.length ? must(await sb.from("cursos_atividade").select("inscricao_id, created_at").in("inscricao_id", ids).order("created_at", { ascending: false })) : [];
     const certs = ids.length ? must(await sb.from("certificados_elearning").select("inscricao_id, codigo, storage_path").in("inscricao_id", ids)) : [];
     const { data: curso } = await sb.from("cursos").select("badge_final_id").eq("id", data.cursoId).single();
     const badges = curso?.badge_final_id
@@ -320,6 +321,7 @@ export const listInscritos = createServerFn({ method: "POST" })
       const done = mine.filter((p) => p.estado === "concluido").length;
       const notas = mine.filter((p) => quizIds.has(p.passo_id) && p.nota != null).map((p) => Number(p.nota));
       const cert = (certs ?? []).find((c) => c.inscricao_id === i.id);
+      const ultima = (atividade ?? []).find((a) => a.inscricao_id === i.id)?.created_at ?? null;
       const u = i.utilizadores as { full_name: string | null; email: string | null } | null;
       return {
         id: i.id,
@@ -334,6 +336,7 @@ export const listInscritos = createServerFn({ method: "POST" })
         badge: comBadge.has(i.user_id),
         certificado: cert?.storage_path ? sb.storage.from("certificados").getPublicUrl(cert.storage_path).data.publicUrl : null,
         codigo: cert?.codigo ?? null,
+        ultima_atividade: ultima,
       };
     });
   });
