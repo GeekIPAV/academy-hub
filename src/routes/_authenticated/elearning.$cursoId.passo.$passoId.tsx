@@ -196,7 +196,7 @@ function LeitorPage() {
   return <TooltipProvider delayDuration={250}><div className="h-svh w-full overflow-hidden bg-background">
     <header className="fixed inset-x-0 top-0 z-40 grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center border-b bg-background px-2 sm:px-4 lg:grid-cols-[minmax(0,1fr)_minmax(300px,440px)_auto]">
       <div className="flex min-w-0 items-center gap-1 sm:gap-2">
-        <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" onClick={() => window.innerWidth < 1024 ? setDrawer(true) : toggleSidebar()} aria-label={sidebarOpen ? "Fechar módulos" : "Abrir módulos"}><Menu className="h-5 w-5" /></Button>
+        <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" onClick={() => window.innerWidth < 1024 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5" /></Button>
         <Button variant="ghost" size="sm" asChild className="shrink-0 px-2"><Link to="/elearning/$cursoId" params={{ cursoId }}><ArrowLeft className="mr-1 h-4 w-4" /> <span className="hidden sm:inline">Sair</span></Link></Button>
         <span className="hidden h-5 w-px bg-border sm:block" />
         <p className="min-w-0 truncate text-sm font-semibold">{data.curso.curso.title}</p>
