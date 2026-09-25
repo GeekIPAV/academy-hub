@@ -4,9 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Check, CheckCircle2, ChevronLeft, ChevronRight, Circle, Clock3,
+  Check, CheckCircle2, ChevronLeft, ChevronRight, Circle, Clock3,
   Download, ExternalLink, FileQuestion, HelpCircle, ListFilter, ListTree, Lock,
-  Maximize2, Menu, PanelLeftClose, PanelLeftOpen, RotateCcw, X, XCircle,
+  Maximize2, Menu, RotateCcw, X, XCircle,
 } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { VimeoPlayer } from "@/components/elearning/VimeoPlayer";
+import { useCourseLayout } from "@/components/elearning/CourseLayoutContext";
 import { PassoTipoIcon, TIPO_PASSO } from "@/components/elearning/shared";
 import {
   concluirPasso, getPasso, guardarNotaPasso, guardarRascunhoReflexao, registarVideo,
@@ -119,6 +120,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
 
 function LeitorPage() {
   const { cursoId, passoId } = Route.useParams();
+  const { isPreview } = useCourseLayout();
   const fetchFn = useServerFn(getPasso);
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -127,12 +129,12 @@ function LeitorPage() {
   const [celebrar, setCelebrar] = useState(false);
   const [drawer, setDrawer] = useState(false);
   const [shortcuts, setShortcuts] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [transition, setTransition] = useState<ModuleTransition | null>(null);
   const key = ["elearning", "passo", cursoId, passoId];
   const { data, isLoading, isFetching, error } = useQuery({ queryKey: key, queryFn: () => fetchFn({ data: { cursoId, passoId } }), placeholderData: (previous) => previous });
 
-  useEffect(() => { try { const saved = window.localStorage.getItem("elearning-reader-sidebar"); if (saved !== null) setSidebarOpen(saved === "open"); } catch { /* armazenamento indisponível */ } }, []);
+  useEffect(() => { try { const saved = window.localStorage.getItem("elearning-reader-sidebar"); setSidebarOpen(window.innerWidth >= 1280 && saved !== "closed"); } catch { setSidebarOpen(window.innerWidth >= 1280); } }, []);
   const toggleSidebar = useCallback(() => setSidebarOpen((current) => { const next = !current; try { window.localStorage.setItem("elearning-reader-sidebar", next ? "open" : "closed"); } catch { /* armazenamento indisponível */ } return next; }), []);
 
   useEffect(() => {
@@ -175,7 +177,7 @@ function LeitorPage() {
     const handler = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target?.closest("input, textarea, [contenteditable=true], [role=radio], [role=checkbox]")) return;
-      if (event.key === "m" || event.key === "M") { event.preventDefault(); window.innerWidth < 1024 ? setDrawer((v) => !v) : toggleSidebar(); }
+      if (event.key === "m" || event.key === "M") { event.preventDefault(); window.innerWidth < 1280 ? setDrawer((v) => !v) : toggleSidebar(); }
       if (event.key === "?") { event.preventDefault(); setShortcuts(true); }
       if (event.key === "ArrowLeft" && data?.anterior) { event.preventDefault(); navigateTo(data.anterior); }
       if (event.key === "ArrowRight" && data?.seguinte && data.progresso?.estado === "concluido") { event.preventDefault(); showTransitionOrNext(); }
@@ -193,29 +195,25 @@ function LeitorPage() {
   const pct = data.curso.curso.inscricao?.pct ?? 0;
   const inscrito = !!data.curso.curso.inscricao;
 
-  return <TooltipProvider delayDuration={250}><div className="h-svh w-full overflow-hidden bg-background">
-    <header className="fixed inset-x-0 top-0 z-40 grid h-14 grid-cols-[minmax(0,1fr)_auto] items-center border-b bg-background px-2 sm:px-4 lg:grid-cols-[minmax(0,1fr)_minmax(300px,440px)_auto]">
-      <div className="flex min-w-0 items-center gap-1 sm:gap-2">
-        <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" onClick={() => window.innerWidth < 1024 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5" /></Button>
-        <Button variant="ghost" size="sm" asChild className="shrink-0 px-2"><Link to="/elearning/$cursoId" params={{ cursoId }}><ArrowLeft className="mr-1 h-4 w-4" /> <span className="hidden sm:inline">Sair</span></Link></Button>
-        <span className="hidden h-5 w-px bg-border sm:block" />
-        <p className="min-w-0 truncate text-sm font-semibold">{data.curso.curso.title}</p>
+  return <TooltipProvider delayDuration={250}><div className="min-w-0 bg-background">
+    <div className="sticky top-[12.25rem] z-10 -mx-4 grid h-12 grid-cols-[minmax(0,1fr)_auto] items-center border-y bg-background/95 px-2 backdrop-blur sm:-mx-6 sm:px-4 lg:-mx-8 xl:grid-cols-[minmax(0,1fr)_auto_auto]">
+      <div className="flex min-w-0 items-center gap-2">
+        <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" onClick={() => window.innerWidth < 1280 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5" /></Button>
+        <span className="truncate text-xs text-muted-foreground">Passo {position} de {flat.length}</span>
       </div>
-      <div className="hidden min-w-0 items-center gap-3 lg:flex"><span className="shrink-0 text-xs text-muted-foreground">Passo {position} de {flat.length}</span><Progress value={pct} className="h-1.5 min-w-24 flex-1" /><span className="w-9 text-right text-xs font-medium">{pct}%</span></div>
-      <div className="flex items-center justify-end gap-1">
-        <span className="hidden text-xs text-muted-foreground md:inline lg:hidden">{pct}%</span>
-        <Button variant="ghost" size="icon" className="hidden h-9 w-9 lg:inline-flex" disabled={!data.anterior} onClick={() => navigateTo(data.anterior)} aria-label="Passo anterior"><ChevronLeft className="h-4 w-4" /></Button>
-        <Button variant="ghost" size="icon" className="hidden h-9 w-9 lg:inline-flex" disabled={!data.seguinte || data.progresso?.estado !== "concluido"} onClick={showTransitionOrNext} aria-label="Passo seguinte"><ChevronRight className="h-4 w-4" /></Button>
-        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setShortcuts(true)} aria-label="Atalhos de teclado"><HelpCircle className="h-4 w-4" /></Button>
+      <div className="hidden items-center gap-1 xl:flex">
+        <Button variant="ghost" size="sm" disabled={!data.anterior} onClick={() => navigateTo(data.anterior)}><ChevronLeft className="mr-1 h-4 w-4" />Anterior</Button>
+        <Button variant="ghost" size="sm" disabled={!data.seguinte || data.progresso?.estado !== "concluido"} onClick={showTransitionOrNext}>Seguinte<ChevronRight className="ml-1 h-4 w-4" /></Button>
       </div>
-    </header>
+      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setShortcuts(true)} aria-label="Atalhos de teclado"><HelpCircle className="h-4 w-4" /></Button>
+    </div>
 
-    <div className={cn("grid h-full min-w-0 pt-14 transition-[grid-template-columns] duration-200", sidebarOpen ? "lg:grid-cols-[320px_minmax(0,1fr)]" : "lg:grid-cols-[0_minmax(0,1fr)]")}>
-      <aside className={cn("hidden min-h-0 overflow-hidden border-r lg:block", !sidebarOpen && "invisible")}><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} /></aside>
-      <main ref={scrollRef} className="relative min-w-0 overflow-y-auto overscroll-contain scroll-smooth pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:pb-0">
+    <div className={cn("grid min-w-0 transition-[grid-template-columns] duration-200", sidebarOpen ? "xl:grid-cols-[300px_minmax(0,1fr)]" : "xl:grid-cols-[0_minmax(0,1fr)]")}>
+      <aside className={cn("sticky top-[15.25rem] hidden h-[calc(100svh-15.25rem)] min-h-0 overflow-hidden border-r xl:block", !sidebarOpen && "invisible")}><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} /></aside>
+      <main ref={scrollRef} className="relative min-w-0 scroll-mt-[15.25rem] scroll-smooth pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:pb-0">
         {isFetching && <div className="absolute inset-x-0 top-0 z-20"><Progress value={35} className="h-0.5 animate-pulse" /></div>}
         {isFetching && data.passo.id !== passoId ? <ContentSkeleton /> : transition ? <ModuleComplete transition={transition} data={data} onContinue={() => { const first = transition.modulo.passos.find((p) => p.estado !== "bloqueado"); if (first) navigateTo(first.id); }} /> :
-          <ReaderContent key={data.passo.id} data={data} inscrito={inscrito} titleRef={titleRef} onDone={onDone} refetch={() => qc.invalidateQueries({ queryKey: key })} onContinue={showTransitionOrNext} onPrevious={() => navigateTo(data.anterior)} />}
+          <ReaderContent key={data.passo.id} data={data} inscrito={inscrito || isPreview} titleRef={titleRef} onDone={onDone} refetch={() => qc.invalidateQueries({ queryKey: key })} onContinue={showTransitionOrNext} onPrevious={() => navigateTo(data.anterior)} />}
       </main>
     </div>
 
@@ -379,5 +377,5 @@ function ModuleComplete({ transition, data, onContinue }: { transition: ModuleTr
 function Summary({ label, value }: { label: string; value: string }) { return <div className="rounded-md bg-muted p-3"><p className="text-xl font-semibold">{value}</p><p className="text-xs text-muted-foreground">{label}</p></div>; }
 function EmptyContent({ text }: { text: string }) { return <div className="rounded-lg border border-dashed p-8 text-center"><FileQuestion className="mx-auto h-8 w-8 text-muted-foreground" /><p className="mt-3 text-sm text-muted-foreground">{text}</p></div>; }
 function ContentSkeleton() { return <div className="mx-auto w-full max-w-4xl space-y-5 p-6 sm:p-10"><Skeleton className="h-4 w-52" /><Skeleton className="h-9 w-3/4" /><Skeleton className="aspect-video w-full" /><Skeleton className="h-20 w-full" /></div>; }
-function ReaderError({ message, cursoId }: { message: string; cursoId: string }) { return <div className="grid min-h-svh place-items-center bg-background px-4"><Card className="max-w-md p-6 text-center"><XCircle className="mx-auto h-10 w-10 text-destructive" /><h1 className="mt-4 text-xl font-semibold">Não foi possível abrir este passo</h1><p className="mt-2 text-sm text-muted-foreground">{message}</p><Button className="mt-5" asChild><Link to="/elearning/$cursoId" params={{ cursoId }}>Voltar ao curso</Link></Button></Card></div>; }
-function ReaderSkeleton() { return <div className="h-svh overflow-hidden bg-background"><Skeleton className="h-14 w-full rounded-none" /><div className="grid h-[calc(100svh-3.5rem)] lg:grid-cols-[320px_1fr]"><Skeleton className="hidden h-full rounded-none lg:block" /><div className="mx-auto w-full max-w-4xl space-y-5 p-6 sm:p-10"><Skeleton className="h-4 w-52" /><Skeleton className="h-9 w-3/4" /><Skeleton className="aspect-video w-full" /><Skeleton className="h-20 w-full" /></div></div></div>; }
+function ReaderError({ message, cursoId }: { message: string; cursoId: string }) { return <div className="grid min-h-96 place-items-center bg-background px-4"><Card className="max-w-md p-6 text-center"><XCircle className="mx-auto h-10 w-10 text-destructive" /><h1 className="mt-4 text-xl font-semibold">Não foi possível abrir este passo</h1><p className="mt-2 text-sm text-muted-foreground">{message}</p><Button className="mt-5" asChild><Link to="/elearning/$cursoId" params={{ cursoId }}>Voltar ao curso</Link></Button></Card></div>; }
+function ReaderSkeleton() { return <div className="min-w-0 bg-background"><Skeleton className="h-12 w-full rounded-none" /><div className="grid xl:grid-cols-[300px_1fr]"><Skeleton className="hidden h-[60svh] rounded-none xl:block" /><div className="mx-auto w-full max-w-4xl space-y-5 p-6 sm:p-10"><Skeleton className="h-4 w-52" /><Skeleton className="h-9 w-3/4" /><Skeleton className="aspect-video w-full" /><Skeleton className="h-20 w-full" /></div></div></div>; }
