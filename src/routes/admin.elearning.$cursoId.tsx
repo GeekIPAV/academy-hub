@@ -56,16 +56,16 @@ function CursoAdminPage() {
   if (error || !data) return <p className="p-6 text-sm text-destructive">{(error as Error)?.message ?? "Curso não encontrado."}</p>;
   const primeiro = data.modulos.flatMap((m) => m.passos)[0]?.id;
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-5 overflow-x-hidden">
       <Link to="/admin/elearning" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" /> Todos os cursos
       </Link>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-semibold">{data.curso.title}</h1>
           <Badge variant={data.curso.estado === "publicado" ? "default" : "secondary"} className="mt-2">{data.curso.estado === "publicado" ? "Publicado" : data.curso.estado === "arquivado" ? "Arquivado" : "Rascunho"}</Badge>
         </div>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
           <Button variant="outline" size="sm" asChild>
             <Link to="/elearning/$cursoId" params={{ cursoId }}><Eye className="mr-1 h-4 w-4" /> Página do curso</Link>
           </Button>
@@ -77,21 +77,21 @@ function CursoAdminPage() {
         </div>
       </div>
       <EstadoCurso curso={data.curso} modulos={data.modulos} turmas={data.turmas} />
-      <Tabs defaultValue="dados">
-        <TabsList>
-          <TabsTrigger value="dados">Dados</TabsTrigger>
-          <TabsTrigger value="conteudo">Conteúdo</TabsTrigger>
-          {data.curso.modalidade === "turma" && <TabsTrigger value="turmas">Turmas</TabsTrigger>}
-          <TabsTrigger value="inscritos">Inscritos</TabsTrigger>
+       <Tabs defaultValue="dados" className="w-full min-w-0">
+         <TabsList className="grid w-full grid-flow-col auto-cols-fr sm:w-fit">
+           <TabsTrigger value="dados" className="min-w-0 px-2 sm:px-4">Dados</TabsTrigger>
+           <TabsTrigger value="conteudo" className="min-w-0 px-2 sm:px-4">Conteúdo</TabsTrigger>
+           {data.curso.modalidade === "turma" && <TabsTrigger value="turmas" className="min-w-0 px-2 sm:px-4">Turmas</TabsTrigger>}
+           <TabsTrigger value="inscritos" className="min-w-0 px-2 sm:px-4">Inscritos</TabsTrigger>
         </TabsList>
-        <TabsContent value="dados" className="pt-4"><DadosTab curso={data.curso} /></TabsContent>
-        <TabsContent value="conteudo" className="pt-4">
+         <TabsContent value="dados" className="w-full min-w-0 pt-4"><DadosTab curso={data.curso} /></TabsContent>
+         <TabsContent value="conteudo" className="w-full min-w-0 pt-4">
           <ConteudoBuilder cursoId={cursoId} clusterId={data.curso.cluster_id} modalidade={data.curso.modalidade} modulos={data.modulos} />
         </TabsContent>
         {data.curso.modalidade === "turma" && (
-          <TabsContent value="turmas" className="pt-4"><TurmasTab cursoId={cursoId} turmas={data.turmas} /></TabsContent>
+           <TabsContent value="turmas" className="w-full min-w-0 pt-4"><TurmasTab cursoId={cursoId} turmas={data.turmas} /></TabsContent>
         )}
-        <TabsContent value="inscritos" className="pt-4"><InscritosTab cursoId={cursoId} turmas={data.turmas} /></TabsContent>
+         <TabsContent value="inscritos" className="w-full min-w-0 pt-4"><InscritosTab cursoId={cursoId} turmas={data.turmas} /></TabsContent>
       </Tabs>
     </div>
   );
@@ -116,7 +116,7 @@ function EstadoCurso({ curso, modulos, turmas }: { curso: CursoRow; modulos: Awa
     onError: (e: Error) => toast.error(e.message),
   });
   const blocked = checks.some((c) => c.bloqueia && !c.ok);
-  return <Card className="grid gap-4 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"><div><p className="text-sm font-semibold">Antes de publicar</p><div className="mt-2 grid gap-1 sm:grid-cols-2">{checks.map((c) => <p key={c.label} className={`flex items-center gap-2 text-xs ${c.ok ? "text-muted-foreground" : "text-destructive"}`}>{c.ok ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertTriangle className="h-4 w-4" />}{c.label}</p>)}</div></div><div className="flex gap-2">{curso.estado === "publicado" ? <Button variant="outline" disabled={change.isPending} onClick={() => change.mutate("rascunho")}>Despublicar</Button> : <Button disabled={blocked || change.isPending} onClick={() => change.mutate("publicado")}><Rocket className="mr-2 h-4 w-4" />Publicar</Button>}<Button variant="outline" disabled={change.isPending || curso.estado === "arquivado"} onClick={() => change.mutate("arquivado")}><Archive className="mr-2 h-4 w-4" />Arquivar</Button></div></Card>;
+  return <Card className="grid min-w-0 gap-4 p-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"><div className="min-w-0"><p className="text-sm font-semibold">Antes de publicar</p><div className="mt-2 grid gap-1 sm:grid-cols-2">{checks.map((c) => <p key={c.label} className={`flex min-w-0 items-center gap-2 text-xs ${c.ok ? "text-muted-foreground" : "text-destructive"}`}>{c.ok ? <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" /> : <AlertTriangle className="h-4 w-4 shrink-0" />}{c.label}</p>)}</div></div><div className="flex flex-wrap gap-2 md:shrink-0">{curso.estado === "publicado" ? <Button variant="outline" disabled={change.isPending} onClick={() => change.mutate("rascunho")}>Despublicar</Button> : <Button disabled={blocked || change.isPending} onClick={() => change.mutate("publicado")}><Rocket className="mr-2 h-4 w-4" />Publicar</Button>}<Button variant="outline" disabled={change.isPending || curso.estado === "arquivado"} onClick={() => change.mutate("arquivado")}><Archive className="mr-2 h-4 w-4" />Arquivar</Button></div></Card>;
 }
 
 function NullSelect({ value, onChange, items, placeholder = "Nenhum" }: { value: string | null; onChange: (v: string | null) => void; items: { id: string; label: string }[]; placeholder?: string }) {
@@ -173,7 +173,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
   };
 
   return (
-    <div className="space-y-5">
+     <div className="w-full min-w-0 space-y-5">
       {dirty && <div className="sticky top-16 z-20 flex items-center justify-between border border-accent bg-accent/10 px-4 py-3 text-sm"><span className="flex items-center gap-2"><AlertTriangle className="h-4 w-4" />Tens alterações por guardar.</span><Button size="sm" onClick={() => save.mutate(f)} disabled={save.isPending || !f.title.trim()}><Save className="mr-2 h-4 w-4" />Guardar</Button></div>}
       <Card className="space-y-5 p-5">
       <div><h2 className="text-lg font-semibold">Informação</h2><p className="text-sm text-muted-foreground">Identificação e apresentação pública do curso.</p></div>
@@ -275,18 +275,18 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
     a.click();
   };
   return (
-    <Card className="space-y-3 p-4">
-      <div className="flex flex-wrap items-center gap-2">
+     <Card className="w-full min-w-0 space-y-3 overflow-hidden p-4">
+       <div className="grid gap-2 sm:grid-cols-[auto_auto_minmax(0,1fr)_auto] sm:items-center">
         {turmas.length > 0 && (
           <Select value={turma} onValueChange={setTurma}>
-            <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
+             <SelectTrigger className="w-full sm:w-[220px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as turmas</SelectItem>
               {turmas.map((t) => <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>)}
             </SelectContent>
           </Select>
         )}
-        <Select value={estado} onValueChange={setEstado}><SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os estados</SelectItem>{Object.entries(ESTADO_INSC).map(([id, label]) => <SelectItem key={id} value={id}>{label}</SelectItem>)}</SelectContent></Select>
+         <Select value={estado} onValueChange={setEstado}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os estados</SelectItem>{Object.entries(ESTADO_INSC).map(([id, label]) => <SelectItem key={id} value={id}>{label}</SelectItem>)}</SelectContent></Select>
         <span className="flex-1 text-sm text-muted-foreground">{rows.length} inscrito(s)</span>
         <Button variant="outline" size="sm" onClick={exportCsv} disabled={!rows.length}><Download className="mr-1 h-4 w-4" /> Exportar CSV</Button>
       </div>
