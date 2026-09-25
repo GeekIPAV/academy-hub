@@ -213,7 +213,7 @@ function LeitorPage() {
       <main ref={scrollRef} className="relative min-w-0 scroll-mt-[15.25rem] scroll-smooth pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:pb-0">
         {isFetching && <div className="absolute inset-x-0 top-0 z-20"><Progress value={35} className="h-0.5 animate-pulse" /></div>}
         {isFetching && data.passo.id !== passoId ? <ContentSkeleton /> : transition ? <ModuleComplete transition={transition} data={data} onContinue={() => { const first = transition.modulo.passos.find((p) => p.estado !== "bloqueado"); if (first) navigateTo(first.id); }} /> :
-          <ReaderContent key={data.passo.id} data={data} inscrito={inscrito || isPreview} titleRef={titleRef} onDone={onDone} refetch={() => qc.invalidateQueries({ queryKey: key })} onContinue={showTransitionOrNext} onPrevious={() => navigateTo(data.anterior)} />}
+          <ReaderContent key={data.passo.id} data={data} inscrito={inscrito} titleRef={titleRef} onDone={onDone} refetch={() => qc.invalidateQueries({ queryKey: key })} onContinue={showTransitionOrNext} onPrevious={() => navigateTo(data.anterior)} />}
       </main>
     </div>
 

@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
 import { ArrowLeft, Award, CalendarDays, CheckCircle2, Clock, Download, FileCheck2, Layers3, Linkedin, UserRound, Users } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
 import { useCourseLayout } from "@/components/elearning/CourseLayoutContext";
@@ -43,7 +42,7 @@ function CursoPage() {
           <section>
              <div className="flex max-w-full flex-wrap gap-2"><Badge variant="secondary">{curso.modalidade === "turma" ? "Em turma · B-learning" : "Autónomo · Online"}</Badge>{curso.cluster_name && <Badge variant="outline" className="max-w-full whitespace-normal">{curso.cluster_name}</Badge>}{curso.acreditacao_ref && <Badge variant="outline" className="max-w-full whitespace-normal">Acreditação {curso.acreditacao_ref}</Badge>}</div>
              <h1 className="mt-3 break-words text-2xl font-semibold sm:text-3xl">{curso.title}</h1>
-            {curso.description && <div className="rich-text mt-4 text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(curso.description) }} />}
+             {curso.description && <div className="rich-text mt-4 text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(curso.description) }} />}
           </section>
 
           {!curso.inscricao && curso.modalidade === "turma" && <section className="space-y-3"><div><h2 className="text-lg font-semibold">Escolhe a tua turma</h2><p className="text-sm text-muted-foreground">Seleciona uma turma com inscrições abertas e vagas disponíveis.</p></div>{curso.turmas_abertas.length ? <div className="grid gap-3 sm:grid-cols-2">{curso.turmas_abertas.map((t) => { const restantes = t.vagas == null ? null : Math.max(0, t.vagas - t.inscritos); const selected = turma === t.id; return <button key={t.id} type="button" onClick={() => setTurma(t.id)} className={`text-left border p-4 transition-colors ${selected ? "border-primary bg-primary/5 ring-1 ring-primary" : "bg-card hover:bg-muted/50"}`}><div className="flex items-start justify-between gap-2"><p className="font-semibold">{t.nome}</p>{selected && <CheckCircle2 className="h-5 w-5 text-primary" />}</div><div className="mt-3 space-y-1.5 text-xs text-muted-foreground"><p className="flex gap-2"><CalendarDays className="h-4 w-4" />{fmt(t.data_inicio)} — {fmt(t.data_fim)}</p><p className="flex gap-2"><Users className="h-4 w-4" />{restantes == null ? "Sem limite de vagas" : `${restantes} vaga${restantes === 1 ? "" : "s"} disponível${restantes === 1 ? "" : "is"}`}</p>{t.formador && <p className="flex gap-2"><UserRound className="h-4 w-4" />{t.formador}</p>}</div></button>; })}</div> : <Card className="p-4 text-sm text-muted-foreground">De momento não há turmas com inscrições abertas.</Card>}</section>}
