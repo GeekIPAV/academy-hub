@@ -198,7 +198,7 @@ function ShellWithSidebar({
   isRouterLoading: boolean;
 }) {
   const { isAdmin, activeRoles } = useApp();
-  const isElearningReader = /^\/elearning\/[^/]+\/passo\/[^/]+\/?$/.test(pathname);
+  const isElearningCourse = /^\/elearning\/[^/]+(?:\/passo\/[^/]+)?\/?$/.test(pathname);
   const hideImprovingBanner =
     pathname.startsWith("/recursos") || pathname.startsWith("/cultura-ubuntu/avaliacao") || pathname.startsWith("/elearning") || pathname.startsWith("/admin/elearning") || pathname.startsWith("/certificados");
   const { isLoading: profileLoading } = useCurrentProfile();
@@ -280,16 +280,6 @@ function ShellWithSidebar({
     );
   }
 
-  if (isElearningReader) {
-    return (
-      <SidebarProvider>
-        <div className="min-h-svh w-full bg-background">
-          <main className="min-w-0">{isRouterLoading ? <InlineLoader /> : <Outlet />}</main>
-        </div>
-      </SidebarProvider>
-    );
-  }
-
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full flex-col bg-muted/30">
@@ -297,7 +287,7 @@ function ShellWithSidebar({
         <div className="flex flex-1">
           <AppSidebar />
           <main className="flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:p-8">
-            {isRouterLoading ? <InlineLoader /> : <Outlet />}
+            {isRouterLoading && !isElearningCourse ? <InlineLoader /> : <Outlet />}
             {!hideImprovingBanner && <ImprovingBanner />}
           </main>
         </div>
