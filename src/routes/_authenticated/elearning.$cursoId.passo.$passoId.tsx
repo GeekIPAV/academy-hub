@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  Check, CheckCircle2, ChevronLeft, ChevronRight, Circle, Clock3,
+  Check, CheckCircle2, ChevronLeft, ChevronRight, Circle,
   Download, ExternalLink, FileQuestion, HelpCircle, ListFilter, ListTree, Lock,
   Maximize2, Menu, RotateCcw, X, XCircle,
 } from "lucide-react";
@@ -23,7 +23,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { VimeoPlayer } from "@/components/elearning/VimeoPlayer";
-import { useCourseLayout } from "@/components/elearning/CourseLayoutContext";
 import { PassoTipoIcon, TIPO_PASSO } from "@/components/elearning/shared";
 import {
   concluirPasso, getPasso, guardarNotaPasso, guardarRascunhoReflexao, registarVideo,
@@ -120,7 +119,6 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
 
 function LeitorPage() {
   const { cursoId, passoId } = Route.useParams();
-  const { isPreview } = useCourseLayout();
   const fetchFn = useServerFn(getPasso);
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -177,7 +175,7 @@ function LeitorPage() {
     const handler = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target?.closest("input, textarea, [contenteditable=true], [role=radio], [role=checkbox]")) return;
-      if (event.key === "m" || event.key === "M") { event.preventDefault(); window.innerWidth < 1280 ? setDrawer((v) => !v) : toggleSidebar(); }
+      if (event.key === "m" || event.key === "M") { event.preventDefault(); window.innerWidth < 1024 ? setDrawer((v) => !v) : toggleSidebar(); }
       if (event.key === "?") { event.preventDefault(); setShortcuts(true); }
       if (event.key === "ArrowLeft" && data?.anterior) { event.preventDefault(); navigateTo(data.anterior); }
       if (event.key === "ArrowRight" && data?.seguinte && data.progresso?.estado === "concluido") { event.preventDefault(); showTransitionOrNext(); }
@@ -198,7 +196,7 @@ function LeitorPage() {
   return <TooltipProvider delayDuration={250}><div className="min-w-0 bg-background">
     <div className="sticky top-[12.25rem] z-10 -mx-4 grid h-12 grid-cols-[minmax(0,1fr)_auto] items-center border-y bg-background/95 px-2 backdrop-blur sm:-mx-6 sm:px-4 lg:-mx-8 xl:grid-cols-[minmax(0,1fr)_auto_auto]">
       <div className="flex min-w-0 items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" onClick={() => window.innerWidth < 1280 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5" /></Button>
+        <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" onClick={() => window.innerWidth < 1024 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5" /></Button>
         <span className="truncate text-xs text-muted-foreground">Passo {position} de {flat.length}</span>
       </div>
       <div className="hidden items-center gap-1 xl:flex">
@@ -208,7 +206,8 @@ function LeitorPage() {
       <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setShortcuts(true)} aria-label="Atalhos de teclado"><HelpCircle className="h-4 w-4" /></Button>
     </div>
 
-    <div className={cn("grid min-w-0 transition-[grid-template-columns] duration-200", sidebarOpen ? "xl:grid-cols-[300px_minmax(0,1fr)]" : "xl:grid-cols-[0_minmax(0,1fr)]")}>
+    <div className={cn("relative grid min-w-0 transition-[grid-template-columns] duration-200", sidebarOpen ? "xl:grid-cols-[300px_minmax(0,1fr)]" : "xl:grid-cols-[0_minmax(0,1fr)]")}>
+      <aside className={cn("absolute inset-y-0 left-0 z-20 hidden w-[300px] overflow-hidden border-r bg-background shadow-lg lg:block xl:hidden", !sidebarOpen && "invisible")}><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} /></aside>
       <aside className={cn("sticky top-[15.25rem] hidden h-[calc(100svh-15.25rem)] min-h-0 overflow-hidden border-r xl:block", !sidebarOpen && "invisible")}><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} /></aside>
       <main ref={scrollRef} className="relative min-w-0 scroll-mt-[15.25rem] scroll-smooth pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:pb-0">
         {isFetching && <div className="absolute inset-x-0 top-0 z-20"><Progress value={35} className="h-0.5 animate-pulse" /></div>}
