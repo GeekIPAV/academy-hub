@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as FaqsRouteImport } from './routes/faqs'
-import { Route as ElearningRouteImport } from './routes/elearning'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DadosCertificacaoRouteImport } from './routes/dados-certificacao'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -77,11 +76,6 @@ const ProfileRoute = ProfileRouteImport.update({
 const FaqsRoute = FaqsRouteImport.update({
   id: '/faqs',
   path: '/faqs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ElearningRoute = ElearningRouteImport.update({
-  id: '/elearning',
-  path: '/elearning',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -359,7 +353,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
-  '/elearning': typeof ElearningRoute
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -414,7 +407,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
-  '/elearning': typeof ElearningRoute
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -467,7 +459,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dados-certificacao': typeof DadosCertificacaoRoute
   '/dashboard': typeof DashboardRoute
-  '/elearning': typeof ElearningRoute
   '/faqs': typeof FaqsRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -524,7 +515,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
-    | '/elearning'
     | '/faqs'
     | '/profile'
     | '/reset-password'
@@ -579,7 +569,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
-    | '/elearning'
     | '/faqs'
     | '/profile'
     | '/reset-password'
@@ -631,7 +620,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dados-certificacao'
     | '/dashboard'
-    | '/elearning'
     | '/faqs'
     | '/profile'
     | '/reset-password'
@@ -688,7 +676,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DadosCertificacaoRoute: typeof DadosCertificacaoRoute
   DashboardRoute: typeof DashboardRoute
-  ElearningRoute: typeof ElearningRoute
   FaqsRoute: typeof FaqsRoute
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -742,13 +729,6 @@ declare module '@tanstack/react-router' {
       path: '/faqs'
       fullPath: '/faqs'
       preLoaderRoute: typeof FaqsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/elearning': {
-      id: '/elearning'
-      path: '/elearning'
-      fullPath: '/elearning'
-      preLoaderRoute: typeof ElearningRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -1232,7 +1212,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DadosCertificacaoRoute: DadosCertificacaoRoute,
   DashboardRoute: DashboardRoute,
-  ElearningRoute: ElearningRoute,
   FaqsRoute: FaqsRoute,
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
