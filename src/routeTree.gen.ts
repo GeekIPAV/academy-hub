@@ -41,6 +41,7 @@ import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedInscricaoProgramasRouteImport } from './routes/_authenticated/inscricao-programas'
 import { Route as AuthenticatedCulturaUbuntuRouteImport } from './routes/_authenticated/cultura-ubuntu'
 import { Route as AuthenticatedAcoesRouteImport } from './routes/_authenticated/acoes'
+import { Route as AdminElearningIndexRouteImport } from './routes/admin.elearning.index'
 import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
 import { Route as AuthenticatedElearningIndexRouteImport } from './routes/_authenticated/elearning.index'
 import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
@@ -230,6 +231,11 @@ const AuthenticatedAcoesRoute = AuthenticatedAcoesRouteImport.update({
   path: '/acoes',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AdminElearningIndexRoute = AdminElearningIndexRouteImport.update({
+  id: '/admin/elearning/',
+  path: '/admin/elearning/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRecursosIndexRoute =
   AuthenticatedRecursosIndexRouteImport.update({
     id: '/',
@@ -417,6 +423,7 @@ export interface FileRoutesByFullPath {
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/elearning/': typeof AuthenticatedElearningIndexRoute
   '/recursos/': typeof AuthenticatedRecursosIndexRoute
+  '/admin/elearning/': typeof AdminElearningIndexRoute
   '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
@@ -472,6 +479,7 @@ export interface FileRoutesByTo {
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/elearning': typeof AuthenticatedElearningIndexRoute
   '/recursos': typeof AuthenticatedRecursosIndexRoute
+  '/admin/elearning': typeof AdminElearningIndexRoute
   '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
@@ -531,6 +539,7 @@ export interface FileRoutesById {
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/_authenticated/elearning/': typeof AuthenticatedElearningIndexRoute
   '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
+  '/admin/elearning/': typeof AdminElearningIndexRoute
   '/_authenticated/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   '/_authenticated/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/_authenticated/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
@@ -591,6 +600,7 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas/$id'
     | '/elearning/'
     | '/recursos/'
+    | '/admin/elearning/'
     | '/cultura-ubuntu/avaliacao/$slug'
     | '/cultura-ubuntu/avaliacao/gestao'
     | '/recursos/$cluster/$temaId'
@@ -646,6 +656,7 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas/$id'
     | '/elearning'
     | '/recursos'
+    | '/admin/elearning'
     | '/cultura-ubuntu/avaliacao/gestao'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
@@ -704,6 +715,7 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas/$id'
     | '/_authenticated/elearning/'
     | '/_authenticated/recursos/'
+    | '/admin/elearning/'
     | '/_authenticated/cultura-ubuntu/avaliacao/$slug'
     | '/_authenticated/cultura-ubuntu/avaliacao/gestao'
     | '/_authenticated/recursos/$cluster/$temaId'
@@ -753,6 +765,7 @@ export interface RootRouteChildren {
   CertificadosVerificarCodigoRoute: typeof CertificadosVerificarCodigoRoute
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  AdminElearningIndexRoute: typeof AdminElearningIndexRoute
   ApiCertificatesActionIdParticipanteIdRoute: typeof ApiCertificatesActionIdParticipanteIdRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -986,6 +999,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/acoes'
       preLoaderRoute: typeof AuthenticatedAcoesRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/admin/elearning/': {
+      id: '/admin/elearning/'
+      path: '/admin/elearning'
+      fullPath: '/admin/elearning/'
+      preLoaderRoute: typeof AdminElearningIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/recursos/': {
       id: '/_authenticated/recursos/'
@@ -1327,6 +1347,7 @@ const rootRouteChildren: RootRouteChildren = {
   CertificadosVerificarCodigoRoute: CertificadosVerificarCodigoRoute,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  AdminElearningIndexRoute: AdminElearningIndexRoute,
   ApiCertificatesActionIdParticipanteIdRoute:
     ApiCertificatesActionIdParticipanteIdRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
