@@ -13,3 +13,11 @@
 - [x] Equipa IPAV só pela matriz de permissões
 - [x] Curso-piloto em rascunho (5 temas)
 - [x] Teste de ponta a ponta
+
+## E-learning UX/UI
+- [ ] Redesenhar catálogo, página do curso e leitor
+- [ ] Adicionar celebração e partilha da conclusão
+- [ ] Reorganizar Dados e publicação na gestão
+- [ ] Melhorar construtor, recursos, Vimeo, quiz e pré-visualização
+- [ ] Melhorar tabela de inscritos
+- [ ] Validar os fluxos em desktop e telemóvel
