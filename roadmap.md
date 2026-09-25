@@ -23,10 +23,16 @@
 - [x] Validar os fluxos em desktop e telemóvel
 
 ## Redesign do leitor E-learning
-- [x] Criar modo foco sem navegação global
+- [x] Reintegrar o leitor na navegação global
 - [x] Redesenhar cabeçalho, índice e navegação responsiva
 - [x] Melhorar conteúdo, vídeo, quiz, reflexão e recursos
 - [x] Adicionar separadores, materiais e notas pessoais
 - [x] Adicionar transições de módulo, atalhos e prefetch
 - [x] Validar a 375px, 768px e 1280px
 - [x] Testar com dados temporários e removê-los
+
+## Espaço integrado do curso
+- [ ] Criar layout persistente com cabeçalho e separadores
+- [ ] Integrar a visão geral no layout partilhado
+- [ ] Integrar o leitor e o índice no conteúdo da página
+- [ ] Validar a 375px, 1024px, 1280px e 1440px
