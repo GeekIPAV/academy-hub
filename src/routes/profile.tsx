@@ -1,11 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { ShieldAlert, Award } from "lucide-react";
 import { useUserBadges } from "@/hooks/use-badges";
-import { useQuery } from "@tanstack/react-query";
 import { getMeusCertificados } from "@/lib/elearning.functions";
 import { useAuth } from "@/hooks/use-auth";
 
