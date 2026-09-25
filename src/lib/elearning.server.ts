@@ -11,7 +11,7 @@ export async function assertElearningAdmin(userId: string) {
     .from("user_roles")
     .select("role_name")
     .eq("user_id", userId)
-    .in("role_name", ["Admin", "Equipa IPAV"])
+    .eq("role_name", "Admin")
     .limit(1);
   if (data && data.length) return;
   await assertRouteAccess(userId, "/admin/elearning");
@@ -212,6 +212,21 @@ export async function emitirCertificado(inscricaoId: string, baseUrl: string, se
   return { codigo, url: pub.publicUrl };
 }
 
+/** URL do template — configurável via CERT_ELEARNING_TEMPLATE_URL. */
+const DEFAULT_TEMPLATE_URL =
+  "https://ncfqaqfqvgzaerhnocws.supabase.co/storage/v1/object/public/certificados/_template/template.pdf";
+const templateCache = new Map<string, Uint8Array>();
+async function loadTemplate(): Promise<Uint8Array> {
+  const url = process.env["CERT_ELEARNING_TEMPLATE_URL"] || DEFAULT_TEMPLATE_URL;
+  const hit = templateCache.get(url);
+  if (hit) return hit;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Falha ao carregar template (${res.status})`);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  templateCache.set(url, bytes);
+  return bytes;
+}
+
 async function buildPdf(i: {
   nome: string;
   curso: string;
@@ -223,55 +238,56 @@ async function buildPdf(i: {
   verifyUrl: string;
   acreditacao: string | null;
 }) {
-  const pdf = await PDFDocument.create();
-  const page = pdf.addPage([842, 595]);
-  const { width, height } = page.getSize();
+  // Template oficial A5 horizontal (595x420 pt). Tapa o parágrafo da Semana
+  // Ubuntu e escreve o texto do curso; QR no canto inferior direito.
+  const pdf = await PDFDocument.load(await loadTemplate());
+  const page = pdf.getPage(0);
+  const { width } = page.getSize();
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const reg = await pdf.embedFont(StandardFonts.Helvetica);
+  const texto = rgb(0.12, 0.12, 0.14);
   const azul = rgb(0x19 / 255, 0x3b / 255, 0x69 / 255);
-  const laranja = rgb(1, 0x82 / 255, 0x26 / 255);
-  const texto = rgb(0.15, 0.15, 0.18);
+  const branco = rgb(1, 1, 1);
 
-  page.drawRectangle({ x: 0, y: height - 90, width, height: 90, color: azul });
-  page.drawRectangle({ x: 0, y: height - 96, width, height: 6, color: laranja });
-  page.drawText("ACADEMIA DE LÍDERES UBUNTU · ESCOLA UBUNTU ONLINE", {
-    x: 40, y: height - 55, size: 14, font: bold, color: rgb(1, 1, 1),
-  });
-
-  const center = (t: string, y: number, size: number, font = reg, color = texto) => {
+  const center = (t: string, y: number, size: number, font = reg, color = texto, max = width - 120) => {
     let s = size;
-    while (font.widthOfTextAtSize(t, s) > width - 120 && s > 8) s -= 1;
+    while (font.widthOfTextAtSize(t, s) > max && s > 7) s -= 0.5;
     page.drawText(t, { x: (width - font.widthOfTextAtSize(t, s)) / 2, y, size: s, font, color });
   };
-  center("CERTIFICADO DE FORMAÇÃO", height - 160, 26, bold, azul);
-  center("Certifica-se que", height - 205, 13);
-  center(i.nome.toUpperCase(), height - 245, 24, bold);
-  center("concluiu com aproveitamento o curso", height - 285, 13);
-  center(i.curso, height - 322, 18, bold, azul);
-  const periodo =
-    i.dataInicio && i.dataFim && i.dataInicio !== i.dataFim
-      ? `de ${fmt(i.dataInicio)} a ${fmt(i.dataFim)}`
-      : `em ${fmt(i.dataFim ?? i.dataInicio)}`;
+
+  // Nome
+  center(i.nome.toUpperCase(), 295, 14, bold, texto, width - 180);
+
+  // Parágrafo substituído
+  page.drawRectangle({ x: 40, y: 205, width: width - 80, height: 77, color: branco });
+  center("concluiu com aproveitamento o curso", 266, 10.5);
+  center(i.curso, 249, 12.5, bold, azul);
   center(
-    `Modalidade ${i.modalidade}${i.horas ? ` · ${i.horas} horas de formação` : ""} · ${periodo}`,
-    height - 355, 12,
+    `da Escola Ubuntu Online, na Academia de Líderes Ubuntu, em modalidade ${i.modalidade}` +
+      (i.horas ? `, com a duração de ${i.horas} horas.` : "."),
+    232, 9.5,
   );
-  if (i.acreditacao) center(`Acreditação: ${i.acreditacao}`, height - 377, 11);
+  if (i.acreditacao) center(`Acreditação: ${i.acreditacao}`, 216, 9);
+
+  // Data / Local
+  const periodo =
+    i.dataInicio && i.dataFim && i.dataInicio !== i.dataFim ? `${fmt(i.dataInicio)} a ${fmt(i.dataFim)}` : fmt(i.dataFim ?? i.dataInicio);
+  page.drawText(periodo, { x: 245, y: 191, size: 10, font: reg, color: texto });
+  page.drawText(i.modalidade === "Online" ? "Online" : "B-learning (online e presencial)", { x: 245, y: 171, size: 10, font: reg, color: texto });
 
   // QR
   const qr = QRCode.create(i.verifyUrl, { errorCorrectionLevel: "M" });
   const n = qr.modules.size;
-  const qrSize = 96;
-  const cell = qrSize / n;
-  const qx = width - qrSize - 40;
-  const qy = 40;
+  const size = 62;
+  const cell = size / n;
+  const qx = width - size - 48;
+  const qy = 60;
+  page.drawRectangle({ x: qx - 3, y: qy - 3, width: size + 6, height: size + 6, color: branco });
   for (let r = 0; r < n; r++)
     for (let c = 0; c < n; c++)
       if (qr.modules.get(r, c))
         page.drawRectangle({ x: qx + c * cell, y: qy + (n - 1 - r) * cell, width: cell, height: cell, color: rgb(0, 0, 0) });
-
-  page.drawText(`Código de verificação: ${i.codigo}`, { x: 40, y: 70, size: 10, font: bold, color: texto });
-  page.drawText(`Verifique em ${i.verifyUrl}`, { x: 40, y: 54, size: 9, font: reg, color: texto });
-  page.drawText(`Emitido em ${fmt(new Date().toISOString())}`, { x: 40, y: 38, size: 9, font: reg, color: texto });
+  const code = `Cód. ${i.codigo}`;
+  page.drawText(code, { x: qx + (size - reg.widthOfTextAtSize(code, 6)) / 2, y: qy - 11, size: 6, font: reg, color: texto });
   return pdf.save();
 }

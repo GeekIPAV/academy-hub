@@ -8,9 +8,9 @@ async function guard(userId: string) {
   await assertElearningAdmin(userId);
   return (await import("@/integrations/supabase/client.server")).supabaseAdmin;
 }
-function must<T>(r: { data: T; error: { message: string } | null }): T {
+function must<T>(r: { data: T; error: { message: string } | null }): NonNullable<T> {
   if (r.error) throw new Error(r.error.message);
-  return r.data;
+  return r.data as NonNullable<T>;
 }
 
 export const listCursosAdmin = createServerFn({ method: "GET" })
@@ -88,7 +88,8 @@ export const getCursoAdmin = createServerFn({ method: "POST" })
           .sort((a, b) => a.sort_order - b.sort_order)
           .map((p) => ({
             ...p,
-            conteudo: (p.conteudo ?? {}) as Record<string, unknown>,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            conteudo: (p.conteudo ?? {}) as Record<string, any>,
             perguntas: (perguntas ?? [])
               .filter((q) => q.passo_id === p.id)
               .map((q) => ({ id: q.id, enunciado: q.enunciado, tipo: q.tipo as "unica" | "multipla", opcoes: q.opcoes as { id: string; texto: string; correta: boolean; feedback?: string }[] })),
@@ -214,7 +215,9 @@ export const reordenar = createServerFn({ method: "POST" })
     const sb = await guard(context.userId);
     await Promise.all(
       data.ids.map((id, i) =>
-        sb.from(data.tabela).update(data.tabela === "cursos_passos" && data.modulo_id ? { sort_order: i, modulo_id: data.modulo_id } : { sort_order: i }).eq("id", id),
+        data.tabela === "cursos_passos"
+          ? sb.from("cursos_passos").update(data.modulo_id ? { sort_order: i, modulo_id: data.modulo_id } : { sort_order: i }).eq("id", id)
+          : sb.from("cursos_modulos").update({ sort_order: i }).eq("id", id),
       ),
     );
     return { ok: true };
@@ -273,7 +276,16 @@ export const listOpcoesElearning = createServerFn({ method: "GET" })
       sb.from("recursos").select("id, title, resource_type").order("title"),
       sb.from("user_roles").select("user_id").eq("role_name", "Formador"),
     ]);
-    const ids = [...new Set((formadoresRoles.data ?? []).map((r) => r.user_id))];
+    let ids = [...new Set((formadoresRoles.data ?? []).map((r) => r.user_id))];
+    if (!ids.length) {
+      // Sem papel Formador atribuído: recorre à flag is_formador e, por fim, a Equipa IPAV/Admin.
+      const { data: flag } = await sb.from("inscritos_programa").select("user_id").eq("is_formador", true);
+      ids = [...new Set((flag ?? []).map((r) => r.user_id).filter((v): v is string => !!v))];
+    }
+    if (!ids.length) {
+      const { data: eq } = await sb.from("user_roles").select("user_id").in("role_name", ["Equipa IPAV", "Admin"]);
+      ids = [...new Set((eq ?? []).map((r) => r.user_id))];
+    }
     const formadores = ids.length ? (await sb.from("utilizadores").select("id, full_name, email").in("id", ids)).data ?? [] : [];
     return {
       clusters: clusters.data ?? [],

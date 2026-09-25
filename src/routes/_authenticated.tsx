@@ -2,6 +2,8 @@ import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated")({
+  // A sessão vive no navegador: sem isto, abrir o link direto redireciona para /auth.
+  ssr: false,
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session) {

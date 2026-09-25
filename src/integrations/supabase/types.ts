@@ -1476,6 +1476,13 @@ export type Database = {
             referencedRelation: "acoes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "formadores_acoes_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_publica"
+            referencedColumns: ["id"]
+          },
         ]
       }
       inscritos_acoes: {
@@ -1530,6 +1537,13 @@ export type Database = {
             columns: ["action_id"]
             isOneToOne: false
             referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enrollments_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_publica"
             referencedColumns: ["id"]
           },
         ]
@@ -1741,6 +1755,13 @@ export type Database = {
             columns: ["action_id"]
             isOneToOne: false
             referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "participantes_acoes_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_publica"
             referencedColumns: ["id"]
           },
         ]
@@ -2618,7 +2639,78 @@ export type Database = {
             referencedRelation: "acoes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "enrollments_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_publica"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      agenda_publica: {
+        Row: {
+          data_fim: string | null
+          data_inicio: string | null
+          descricao: string | null
+          formato: string | null
+          id: string | null
+          imagem_url: string | null
+          inscricao_url: string | null
+          local: string | null
+          pais: string | null
+          programa: string | null
+          titulo: string | null
+        }
+        Insert: {
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          formato?: string | null
+          id?: string | null
+          imagem_url?: string | null
+          inscricao_url?: never
+          local?: string | null
+          pais?: string | null
+          programa?: never
+          titulo?: string | null
+        }
+        Update: {
+          data_fim?: string | null
+          data_inicio?: string | null
+          descricao?: string | null
+          formato?: string | null
+          id?: string | null
+          imagem_url?: string | null
+          inscricao_url?: never
+          local?: string | null
+          pais?: string | null
+          programa?: never
+          titulo?: string | null
+        }
+        Relationships: []
+      }
+      biblioteca_publica: {
+        Row: {
+          ano: number | null
+          autor: string | null
+          categoria: string | null
+          id: string | null
+          imagem_url: string | null
+          link: string | null
+          resumo: string | null
+          titulo: string | null
+        }
+        Relationships: []
+      }
+      numeros_publicos: {
+        Row: {
+          atualizado_em: string | null
+          chave: string | null
+          etiqueta: string | null
+          valor: number | null
+        }
+        Relationships: []
       }
     }
     Functions: {
