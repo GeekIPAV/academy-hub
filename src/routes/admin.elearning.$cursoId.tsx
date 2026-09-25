@@ -304,8 +304,8 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
           </TableRow>
         </TableHeader>
         <TableBody>
-          {isLoading && <TableRow><TableCell colSpan={7} className="text-sm text-muted-foreground">A carregar…</TableCell></TableRow>}
-          {!isLoading && !rows.length && <TableRow><TableCell colSpan={7} className="text-sm text-muted-foreground">Sem inscritos.</TableCell></TableRow>}
+          {isLoading && <TableRow><TableCell colSpan={turmas.length > 0 ? 8 : 7}><div className="space-y-2 py-2"><Skeleton className="h-5 w-full" /><Skeleton className="h-5 w-4/5" /><Skeleton className="h-5 w-11/12" /></div></TableCell></TableRow>}
+          {!isLoading && !rows.length && <TableRow><TableCell colSpan={turmas.length > 0 ? 8 : 7} className="text-sm text-muted-foreground">Sem inscritos.</TableCell></TableRow>}
           {rows.map((r) => (
             <TableRow key={r.id}>
               <TableCell><p className="font-medium">{r.nome}</p><p className="text-xs text-muted-foreground">{r.email}</p></TableCell>
