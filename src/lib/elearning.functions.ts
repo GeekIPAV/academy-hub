@@ -134,12 +134,15 @@ export interface PassoResumo {
   obrigatorio: boolean;
   duracao_min: number | null;
   estado: PassoEstado;
+  nota?: number | null;
+  bloqueio_motivo?: string | null;
 }
 export interface ModuloResumo {
   id: string;
   title: string;
   description: string | null;
   abre_em: string | null;
+  tema_id?: string | null;
   passos: PassoResumo[];
 }
 export interface CursoDetalhe {
@@ -177,13 +180,14 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
     .maybeSingle();
   const { data: mods } = await sb
     .from("cursos_modulos")
-    .select("id, title, description, sort_order, abertura_dias, cursos_passos(id, title, tipo, obrigatorio, duracao_min, sort_order)")
+    .select("id, title, description, sort_order, abertura_dias, tema_id, cursos_passos(id, title, tipo, obrigatorio, duracao_min, sort_order)")
     .eq("curso_id", cursoId)
     .order("sort_order");
   const prog = insc
-    ? (await sb.from("cursos_progresso").select("passo_id, estado").eq("inscricao_id", insc.id)).data ?? []
+    ? (await sb.from("cursos_progresso").select("passo_id, estado, nota").eq("inscricao_id", insc.id)).data ?? []
     : [];
   const pmap = new Map(prog.map((p) => [p.passo_id, p.estado]));
+  const nmap = new Map(prog.map((p) => [p.passo_id, p.nota == null ? null : Number(p.nota)]));
   const turmas = (c.cursos_turmas ?? []) as { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscricoes_abertas: boolean; formador_id: string | null; utilizadores: { full_name: string | null } | null }[];
   const turma = insc?.turma_id ? turmas.find((t) => t.id === insc.turma_id) ?? null : null;
   const { aberturaModulo } = await import("@/lib/elearning.server");
@@ -195,6 +199,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
       title: m.title,
       description: m.description,
       abre_em: abre,
+      tema_id: m.tema_id,
       passos: ((m.cursos_passos ?? []) as { id: string; title: string; tipo: PassoTipo; obrigatorio: boolean; duracao_min: number | null; sort_order: number }[])
         .sort((a, b) => a.sort_order - b.sort_order)
         .map((p) => ({
@@ -204,6 +209,12 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
           obrigatorio: p.obrigatorio,
           duracao_min: p.duracao_min,
           estado: !insc || abre ? "bloqueado" : ((pmap.get(p.id) as PassoEstado | undefined) ?? "disponivel"),
+           nota: nmap.get(p.id) ?? null,
+          bloqueio_motivo: !insc
+            ? "Inscreve-te para aceder"
+            : abre
+              ? `Abre a ${new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: "short" }).format(new Date(`${abre}T12:00:00`))}`
+              : null,
         })),
     };
   });
@@ -319,6 +330,9 @@ export interface PassoDetalhe {
     recurso: { id: string; title: string; description: string | null; resource_type: string; file_url: string; cover_url: string | null } | null;
     perguntas: { id: string; enunciado: string; tipo: "unica" | "multipla"; opcoes: { id: string; texto: string }[] }[];
   };
+  modulo: { id: string; title: string; description: string | null; indice: number };
+  materiais: { id: string; title: string; description: string | null; resource_type: string; file_url: string; cover_url: string | null }[];
+  nota: { texto: string; updated_at: string } | null;
   progresso: {
     estado: string;
     video_pct: number;
@@ -335,7 +349,7 @@ export interface PassoDetalhe {
 
 export const getPasso = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((i) => z.object({ cursoId: z.string().uuid(), passoId: z.string().uuid() }).parse(i))
+  .inputValidator((i) => z.object({ cursoId: z.string().uuid(), passoId: z.string().uuid(), prefetch: z.boolean().optional() }).parse(i))
   .handler(async ({ data, context }): Promise<PassoDetalhe> => {
     const sb = await admin();
     const curso = await carregarCurso(context.userId, data.cursoId);
@@ -367,11 +381,35 @@ export const getPasso = createServerFn({ method: "POST" })
         opcoes: ((q.opcoes ?? []) as { id: string; texto: string }[]).map((o) => ({ id: o.id, texto: o.texto })),
       }));
     }
+    const moduloAtual = curso.modulos.find((m) => m.id === p.modulo_id);
+    if (!moduloAtual) throw new Error("Módulo não encontrado.");
+    let materiais: PassoDetalhe["materiais"] = recurso ? [recurso] : [];
+    if (moduloAtual.tema_id) {
+      const { data: temaRecursos } = await sb
+        .from("tema_recursos")
+        .select("sort_order, recursos(id, title, description, resource_type, file_url, cover_url)")
+        .eq("tema_id", moduloAtual.tema_id)
+        .order("sort_order");
+      const vistos = new Set(materiais.map((r) => r.id));
+      for (const row of temaRecursos ?? []) {
+        const r = row.recursos as unknown as PassoDetalhe["materiais"][number] | null;
+        if (r && !vistos.has(r.id)) {
+          materiais.push(r);
+          vistos.add(r.id);
+        }
+      }
+    }
+    const { data: nota } = await sb
+      .from("cursos_notas")
+      .select("texto, updated_at")
+      .eq("user_id", context.userId)
+      .eq("passo_id", p.id)
+      .maybeSingle();
     let progresso: PassoDetalhe["progresso"] = null;
     const inscId = curso.curso.inscricao?.id;
     if (inscId) {
       const { data: pr } = await sb.from("cursos_progresso").select("*").eq("inscricao_id", inscId).eq("passo_id", p.id).maybeSingle();
-      if (!pr) {
+      if (!pr && !data.prefetch) {
         await sb.from("cursos_progresso").insert({ inscricao_id: inscId, passo_id: p.id, user_id: context.userId, estado: "em_curso" });
         const { logAtividade } = await import("@/lib/elearning.server");
         await logAtividade(context.userId, inscId, p.id, "inicio_passo");
@@ -380,15 +418,32 @@ export const getPasso = createServerFn({ method: "POST" })
       }
       progresso = pr
         ? { estado: pr.estado, video_pct: Number(pr.video_pct), video_posicao_s: Number(pr.video_posicao_s), nota: pr.nota != null ? Number(pr.nota) : null, tentativas: pr.tentativas, resposta: pr.resposta, partilhada: pr.partilhada }
-        : { estado: "em_curso", video_pct: 0, video_posicao_s: 0, nota: null, tentativas: 0, resposta: null, partilhada: false };
+        : data.prefetch ? null : { estado: "em_curso", video_pct: 0, video_posicao_s: 0, nota: null, tentativas: 0, resposta: null, partilhada: false };
     }
     return {
       curso,
       passo: { id: p.id, modulo_id: p.modulo_id, title: p.title, tipo: p.tipo as PassoTipo, obrigatorio: p.obrigatorio, duracao_min: p.duracao_min, conteudo, recurso, perguntas },
+      modulo: { id: moduloAtual.id, title: moduloAtual.title, description: moduloAtual.description, indice: curso.modulos.findIndex((m) => m.id === moduloAtual.id) + 1 },
+      materiais,
+      nota: nota ?? null,
       progresso,
       anterior: flat[idx - 1]?.id ?? null,
       seguinte: flat[idx + 1]?.id ?? null,
     };
+  });
+
+export const guardarNotaPasso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ passoId: z.string().uuid(), texto: z.string().max(20000) }).parse(i))
+  .handler(async ({ data, context }) => {
+    const { sb } = await getInscricaoPasso(context.userId, data.passoId);
+    const agora = new Date().toISOString();
+    const { error } = await sb.from("cursos_notas").upsert(
+      { user_id: context.userId, passo_id: data.passoId, texto: data.texto, updated_at: agora },
+      { onConflict: "user_id,passo_id" },
+    );
+    if (error) throw new Error(error.message);
+    return { updated_at: agora };
   });
 
 async function getInscricaoPasso(userId: string, passoId: string) {

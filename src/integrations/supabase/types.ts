@@ -900,6 +900,48 @@ export type Database = {
           },
         ]
       }
+      cursos_notas: {
+        Row: {
+          created_at: string
+          id: string
+          passo_id: string
+          texto: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          passo_id: string
+          texto?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          passo_id?: string
+          texto?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_notas_passo_id_fkey"
+            columns: ["passo_id"]
+            isOneToOne: false
+            referencedRelation: "cursos_passos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_notas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "utilizadores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cursos_passos: {
         Row: {
           conteudo: Json
