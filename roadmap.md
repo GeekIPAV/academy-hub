@@ -32,7 +32,7 @@
 - [x] Testar com dados temporários e removê-los
 
 ## Espaço integrado do curso
-- [ ] Criar layout persistente com cabeçalho e separadores
-- [ ] Integrar a visão geral no layout partilhado
-- [ ] Integrar o leitor e o índice no conteúdo da página
+- [x] Criar layout persistente com cabeçalho e separadores
+- [x] Integrar a visão geral no layout partilhado
+- [x] Integrar o leitor e o índice no conteúdo da página
 - [ ] Validar a 375px, 1024px, 1280px e 1440px
