@@ -147,7 +147,8 @@ function AppShell() {
     pathname.startsWith("/inscricao/") ||
     pathname.startsWith("/inscricao-entidade/") ||
     pathname.startsWith("/evento/") ||
-    pathname.startsWith("/convite/");
+    pathname.startsWith("/convite/") ||
+    pathname.startsWith("/certificados/verificar/");
 
   if (!session) {
     if (!isPublicRoute) {
