@@ -50,6 +50,7 @@ import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id
 import { Route as CertificadosVerificarCodigoRouteImport } from './routes/certificados.verificar.$codigo'
 import { Route as AdminElearningCursoIdRouteImport } from './routes/admin.elearning.$cursoId'
 import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
+import { Route as AuthenticatedElearningCursoIdRouteImport } from './routes/_authenticated/elearning.$cursoId'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao'
 import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
@@ -281,6 +282,12 @@ const AuthenticatedRecursosClusterRoute =
     path: '/$cluster',
     getParentRoute: () => AuthenticatedRecursosRoute,
   } as any)
+const AuthenticatedElearningCursoIdRoute =
+  AuthenticatedElearningCursoIdRouteImport.update({
+    id: '/elearning/$cursoId',
+    path: '/elearning/$cursoId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedCulturaUbuntuAvaliacaoRoute =
   AuthenticatedCulturaUbuntuAvaliacaoRouteImport.update({
     id: '/avaliacao',
@@ -306,9 +313,9 @@ const AuthenticatedRecursosClusterIndexRoute =
   } as any)
 const AuthenticatedElearningCursoIdIndexRoute =
   AuthenticatedElearningCursoIdIndexRouteImport.update({
-    id: '/elearning/$cursoId/',
-    path: '/elearning/$cursoId/',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedElearningCursoIdRoute,
   } as any)
 const AuthenticatedCulturaUbuntuAvaliacaoIndexRoute =
   AuthenticatedCulturaUbuntuAvaliacaoIndexRouteImport.update({
@@ -376,9 +383,9 @@ const AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute =
   } as any)
 const AuthenticatedElearningCursoIdPassoPassoIdRoute =
   AuthenticatedElearningCursoIdPassoPassoIdRouteImport.update({
-    id: '/elearning/$cursoId/passo/$passoId',
-    path: '/elearning/$cursoId/passo/$passoId',
-    getParentRoute: () => AuthenticatedRoute,
+    id: '/passo/$passoId',
+    path: '/passo/$passoId',
+    getParentRoute: () => AuthenticatedElearningCursoIdRoute,
   } as any)
 const AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute =
   AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport.update({
@@ -422,6 +429,7 @@ export interface FileRoutesByFullPath {
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
+  '/elearning/$cursoId': typeof AuthenticatedElearningCursoIdRouteWithChildren
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/admin/elearning/$cursoId': typeof AdminElearningCursoIdRoute
   '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
@@ -540,6 +548,7 @@ export interface FileRoutesById {
   '/_authenticated/actions/$id': typeof AuthenticatedActionsIdRoute
   '/_authenticated/admin/recursos': typeof AuthenticatedAdminRecursosRoute
   '/_authenticated/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
+  '/_authenticated/elearning/$cursoId': typeof AuthenticatedElearningCursoIdRouteWithChildren
   '/_authenticated/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
   '/admin/elearning/$cursoId': typeof AdminElearningCursoIdRoute
   '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
@@ -602,6 +611,7 @@ export interface FileRouteTypes {
     | '/actions/$id'
     | '/admin/recursos'
     | '/cultura-ubuntu/avaliacao'
+    | '/elearning/$cursoId'
     | '/recursos/$cluster'
     | '/admin/elearning/$cursoId'
     | '/certificados/verificar/$codigo'
@@ -719,6 +729,7 @@ export interface FileRouteTypes {
     | '/_authenticated/actions/$id'
     | '/_authenticated/admin/recursos'
     | '/_authenticated/cultura-ubuntu/avaliacao'
+    | '/_authenticated/elearning/$cursoId'
     | '/_authenticated/recursos/$cluster'
     | '/admin/elearning/$cursoId'
     | '/certificados/verificar/$codigo'
@@ -1076,6 +1087,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosClusterRouteImport
       parentRoute: typeof AuthenticatedRecursosRoute
     }
+    '/_authenticated/elearning/$cursoId': {
+      id: '/_authenticated/elearning/$cursoId'
+      path: '/elearning/$cursoId'
+      fullPath: '/elearning/$cursoId'
+      preLoaderRoute: typeof AuthenticatedElearningCursoIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/cultura-ubuntu/avaliacao': {
       id: '/_authenticated/cultura-ubuntu/avaliacao'
       path: '/avaliacao'
@@ -1106,10 +1124,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/elearning/$cursoId/': {
       id: '/_authenticated/elearning/$cursoId/'
-      path: '/elearning/$cursoId'
+      path: '/'
       fullPath: '/elearning/$cursoId/'
       preLoaderRoute: typeof AuthenticatedElearningCursoIdIndexRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedElearningCursoIdRoute
     }
     '/_authenticated/cultura-ubuntu/avaliacao/': {
       id: '/_authenticated/cultura-ubuntu/avaliacao/'
@@ -1190,10 +1208,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/elearning/$cursoId/passo/$passoId': {
       id: '/_authenticated/elearning/$cursoId/passo/$passoId'
-      path: '/elearning/$cursoId/passo/$passoId'
+      path: '/passo/$passoId'
       fullPath: '/elearning/$cursoId/passo/$passoId'
       preLoaderRoute: typeof AuthenticatedElearningCursoIdPassoPassoIdRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedElearningCursoIdRoute
     }
     '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section': {
       id: '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section'
@@ -1293,6 +1311,24 @@ const AuthenticatedRecursosRouteWithChildren =
     AuthenticatedRecursosRouteChildren,
   )
 
+interface AuthenticatedElearningCursoIdRouteChildren {
+  AuthenticatedElearningCursoIdIndexRoute: typeof AuthenticatedElearningCursoIdIndexRoute
+  AuthenticatedElearningCursoIdPassoPassoIdRoute: typeof AuthenticatedElearningCursoIdPassoPassoIdRoute
+}
+
+const AuthenticatedElearningCursoIdRouteChildren: AuthenticatedElearningCursoIdRouteChildren =
+  {
+    AuthenticatedElearningCursoIdIndexRoute:
+      AuthenticatedElearningCursoIdIndexRoute,
+    AuthenticatedElearningCursoIdPassoPassoIdRoute:
+      AuthenticatedElearningCursoIdPassoPassoIdRoute,
+  }
+
+const AuthenticatedElearningCursoIdRouteWithChildren =
+  AuthenticatedElearningCursoIdRoute._addFileChildren(
+    AuthenticatedElearningCursoIdRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
   AuthenticatedAcoesRoute: typeof AuthenticatedAcoesRoute
   AuthenticatedCulturaUbuntuRoute: typeof AuthenticatedCulturaUbuntuRouteWithChildren
@@ -1300,9 +1336,8 @@ interface AuthenticatedRouteChildren {
   AuthenticatedRecursosRoute: typeof AuthenticatedRecursosRouteWithChildren
   AuthenticatedActionsIdRoute: typeof AuthenticatedActionsIdRoute
   AuthenticatedAdminRecursosRoute: typeof AuthenticatedAdminRecursosRoute
+  AuthenticatedElearningCursoIdRoute: typeof AuthenticatedElearningCursoIdRouteWithChildren
   AuthenticatedElearningIndexRoute: typeof AuthenticatedElearningIndexRoute
-  AuthenticatedElearningCursoIdIndexRoute: typeof AuthenticatedElearningCursoIdIndexRoute
-  AuthenticatedElearningCursoIdPassoPassoIdRoute: typeof AuthenticatedElearningCursoIdPassoPassoIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -1312,11 +1347,9 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedRecursosRoute: AuthenticatedRecursosRouteWithChildren,
   AuthenticatedActionsIdRoute: AuthenticatedActionsIdRoute,
   AuthenticatedAdminRecursosRoute: AuthenticatedAdminRecursosRoute,
+  AuthenticatedElearningCursoIdRoute:
+    AuthenticatedElearningCursoIdRouteWithChildren,
   AuthenticatedElearningIndexRoute: AuthenticatedElearningIndexRoute,
-  AuthenticatedElearningCursoIdIndexRoute:
-    AuthenticatedElearningCursoIdIndexRoute,
-  AuthenticatedElearningCursoIdPassoPassoIdRoute:
-    AuthenticatedElearningCursoIdPassoPassoIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
