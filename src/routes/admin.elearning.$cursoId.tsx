@@ -157,6 +157,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
     badge_renovado_id: curso.badge_renovado_id,
     nota_minima_quiz: curso.nota_minima_quiz,
     pct_minima_video: curso.pct_minima_video,
+    apresentacao: { percurso: [], como_funciona: [], sequencia: [], ...((curso.apresentacao ?? {}) as object) } as NonNullable<CursoInput["apresentacao"]>,
   });
   const [f, setF] = useState<CursoInput>(initial);
   const dirty = JSON.stringify(f) !== JSON.stringify(initial());
@@ -233,6 +234,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
         <div className="space-y-1"><Label>Referência de acreditação</Label><Input placeholder="ex. CCPFC/ACC-…" value={f.acreditacao_ref ?? ""} onChange={(e) => set("acreditacao_ref", e.target.value || null)} /><p className="text-xs text-muted-foreground">Referência oficial, quando aplicável.</p></div>
         </div>
       </Card>
+      <ApresentacaoEditor value={f.apresentacao!} onChange={(v) => set("apresentacao", v)} />
       <Card className="space-y-4 p-5">
         <div><h2 className="text-lg font-semibold">Conclusão e certificação</h2><p className="text-sm text-muted-foreground">Regras aplicadas automaticamente ao progresso do formando.</p></div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -328,6 +330,43 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
           ))}
         </TableBody>
       </Table>
+    </Card>
+  );
+}
+
+type Apres = NonNullable<CursoInput["apresentacao"]>;
+const ESTADOS_PERCURSO = { concluido: "Concluído", atual: "Está aqui", seguinte: "A seguir", aplicacao: "Aplicação" } as const;
+function ApresentacaoEditor({ value, onChange }: { value: Apres; onChange: (v: Apres) => void }) {
+  const upd = <K extends keyof Apres>(k: K, v: Apres[K]) => onChange({ ...value, [k]: v });
+  return (
+    <Card className="space-y-5 p-5">
+      <div><h2 className="text-lg font-semibold">Apresentação do curso</h2><p className="text-sm text-muted-foreground">Opcional. Secções mostradas na Visão geral só quando preenchidas.</p></div>
+      <div className="space-y-2">
+        <Label>Onde está no percurso</Label><p className="text-xs text-muted-foreground">Etapas do percurso em que este curso se insere.</p>
+        {value.percurso.map((e, i) => (
+          <div key={i} className="grid gap-2 border p-3 sm:grid-cols-[150px_minmax(0,1fr)_auto]">
+            <Select value={e.estado} onValueChange={(v) => upd("percurso", value.percurso.map((x, j) => j === i ? { ...x, estado: v as typeof e.estado } : x))}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{Object.entries(ESTADOS_PERCURSO).map(([k, l]) => <SelectItem key={k} value={k}>{l}</SelectItem>)}</SelectContent></Select>
+            <div className="grid gap-2"><Input placeholder="Etapa" value={e.titulo} onChange={(ev) => upd("percurso", value.percurso.map((x, j) => j === i ? { ...x, titulo: ev.target.value } : x))} /><Input placeholder="Descrição" value={e.descricao} onChange={(ev) => upd("percurso", value.percurso.map((x, j) => j === i ? { ...x, descricao: ev.target.value } : x))} /></div>
+            <Button variant="ghost" size="sm" onClick={() => upd("percurso", value.percurso.filter((_, j) => j !== i))}>Remover</Button>
+          </div>
+        ))}
+        <Button variant="outline" size="sm" onClick={() => upd("percurso", [...value.percurso, { titulo: "", descricao: "", estado: "seguinte" }])}>Adicionar etapa</Button>
+      </div>
+      <div className="space-y-2">
+        <Label>Como funciona</Label><p className="text-xs text-muted-foreground">Tipos de atividade que o formando vai encontrar.</p>
+        {value.como_funciona.map((e, i) => (
+          <div key={i} className="grid gap-2 border p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="grid gap-2"><Input placeholder="Atividade" value={e.titulo} onChange={(ev) => upd("como_funciona", value.como_funciona.map((x, j) => j === i ? { ...x, titulo: ev.target.value } : x))} /><Textarea rows={2} placeholder="Descrição" value={e.descricao} onChange={(ev) => upd("como_funciona", value.como_funciona.map((x, j) => j === i ? { ...x, descricao: ev.target.value } : x))} /></div>
+            <Button variant="ghost" size="sm" onClick={() => upd("como_funciona", value.como_funciona.filter((_, j) => j !== i))}>Remover</Button>
+          </div>
+        ))}
+        <Button variant="outline" size="sm" onClick={() => upd("como_funciona", [...value.como_funciona, { titulo: "", descricao: "" }])}>Adicionar atividade</Button>
+      </div>
+      <div className="space-y-1">
+        <Label>Sequência de cada módulo</Label>
+        <Input placeholder="ex. Conteúdo, Parar e refletir, Caso, Verificação, Síntese" value={value.sequencia.join(", ")} onChange={(e) => upd("sequencia", e.target.value.split(",").map((x) => x.trimStart()))} />
+        <p className="text-xs text-muted-foreground">Etapas separadas por vírgulas.</p>
+      </div>
     </Card>
   );
 }
