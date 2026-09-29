@@ -638,6 +638,7 @@ export type Database = {
       cursos: {
         Row: {
           acreditacao_ref: string | null
+          apresentacao: Json
           badge_entrada_id: string | null
           badge_final_id: string | null
           badge_renovado_id: string | null
@@ -662,6 +663,7 @@ export type Database = {
         }
         Insert: {
           acreditacao_ref?: string | null
+          apresentacao?: Json
           badge_entrada_id?: string | null
           badge_final_id?: string | null
           badge_renovado_id?: string | null
@@ -686,6 +688,7 @@ export type Database = {
         }
         Update: {
           acreditacao_ref?: string | null
+          apresentacao?: Json
           badge_entrada_id?: string | null
           badge_final_id?: string | null
           badge_renovado_id?: string | null
@@ -856,6 +859,7 @@ export type Database = {
           curso_id: string
           description: string | null
           id: string
+          pergunta_fundo: string | null
           sort_order: number
           tema_id: string | null
           title: string
@@ -867,6 +871,7 @@ export type Database = {
           curso_id: string
           description?: string | null
           id?: string
+          pergunta_fundo?: string | null
           sort_order?: number
           tema_id?: string | null
           title: string
@@ -878,6 +883,7 @@ export type Database = {
           curso_id?: string
           description?: string | null
           id?: string
+          pergunta_fundo?: string | null
           sort_order?: number
           tema_id?: string | null
           title?: string
