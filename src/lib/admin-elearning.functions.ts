@@ -59,6 +59,11 @@ const cursoSchema = z.object({
   badge_renovado_id: z.string().uuid().nullable().optional(),
   nota_minima_quiz: z.number().int().min(0).max(100),
   pct_minima_video: z.number().int().min(0).max(100),
+  apresentacao: z.object({
+    percurso: z.array(z.object({ titulo: z.string().max(200), descricao: z.string().max(1000), estado: z.enum(["concluido", "atual", "seguinte", "aplicacao"]) })).max(12).default([]),
+    como_funciona: z.array(z.object({ titulo: z.string().max(200), descricao: z.string().max(1000) })).max(12).default([]),
+    sequencia: z.array(z.string().max(100)).max(12).default([]),
+  }).optional(),
 });
 export type CursoInput = z.infer<typeof cursoSchema>;
 
@@ -71,7 +76,7 @@ export const getCursoAdmin = createServerFn({ method: "POST" })
     const modulos = must(
       await sb
         .from("cursos_modulos")
-        .select("id, title, description, sort_order, tema_id, abertura_dias, cursos_passos(id, title, sort_order, tipo, obrigatorio, duracao_min, conteudo)")
+        .select("id, title, description, sort_order, tema_id, abertura_dias, pergunta_fundo, cursos_passos(id, title, sort_order, tipo, obrigatorio, duracao_min, conteudo)")
         .eq("curso_id", data.id)
         .order("sort_order"),
     );
@@ -106,10 +111,10 @@ export const upsertCurso = createServerFn({ method: "POST" })
     const sb = await guard(context.userId);
     const { id, ...rest } = data;
     if (id) {
-      must(await sb.from("cursos").update(rest).eq("id", id));
+      must(await sb.from("cursos").update(rest as never).eq("id", id));
       return { id };
     }
-    const row = must(await sb.from("cursos").insert({ ...rest, created_by: context.userId }).select("id").single());
+    const row = must(await sb.from("cursos").insert({ ...rest, created_by: context.userId } as never).select("id").single());
     return { id: row.id };
   });
 
@@ -134,6 +139,7 @@ export const upsertModulo = createServerFn({ method: "POST" })
       description: z.string().max(20000).nullable().optional(),
       tema_id: z.string().uuid().nullable().optional(),
       abertura_dias: z.number().int().min(0).max(3650).nullable().optional(),
+      pergunta_fundo: z.string().max(1000).nullable().optional(),
       sort_order: z.number().int().optional(),
     }).parse(i),
   )
@@ -258,7 +264,7 @@ export const duplicarItem = createServerFn({ method: "POST" })
     const modulo = must(
       await sb
         .from("cursos_modulos")
-        .select("curso_id, title, description, tema_id, abertura_dias, cursos_passos(id, sort_order)")
+        .select("curso_id, title, description, tema_id, abertura_dias, pergunta_fundo, cursos_passos(id, sort_order)")
         .eq("id", data.id)
         .single(),
     );
@@ -272,6 +278,7 @@ export const duplicarItem = createServerFn({ method: "POST" })
           description: modulo.description,
           tema_id: modulo.tema_id,
           abertura_dias: modulo.abertura_dias,
+          pergunta_fundo: modulo.pergunta_fundo,
           sort_order: count ?? 0,
         })
         .select("id")

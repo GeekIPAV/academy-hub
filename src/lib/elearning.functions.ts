@@ -142,8 +142,14 @@ export interface ModuloResumo {
   title: string;
   description: string | null;
   abre_em: string | null;
+  pergunta_fundo?: string | null;
   tema_id?: string | null;
   passos: PassoResumo[];
+}
+export interface CursoApresentacao {
+  percurso: { titulo: string; descricao: string; estado: "concluido" | "atual" | "seguinte" | "aplicacao" }[];
+  como_funciona: { titulo: string; descricao: string }[];
+  sequencia: string[];
 }
 export interface CursoDetalhe {
   curso: CursoCardDTO & {
@@ -152,6 +158,7 @@ export interface CursoDetalhe {
     pct_minima_video: number;
     badge_entrada: { id: string; title: string; cover_url: string | null } | null;
     badge_final: { id: string; title: string; cover_url: string | null } | null;
+    apresentacao: CursoApresentacao;
   };
   modulos: ModuloResumo[];
   certificado: { codigo: string; url: string; verificacao_url: string } | null;
@@ -180,7 +187,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
     .maybeSingle();
   const { data: mods } = await sb
     .from("cursos_modulos")
-    .select("id, title, description, sort_order, abertura_dias, tema_id, cursos_passos(id, title, tipo, obrigatorio, duracao_min, sort_order)")
+    .select("id, title, description, sort_order, abertura_dias, tema_id, pergunta_fundo, cursos_passos(id, title, tipo, obrigatorio, duracao_min, sort_order)")
     .eq("curso_id", cursoId)
     .order("sort_order");
   const prog = insc
@@ -199,6 +206,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
       title: m.title,
       description: m.description,
       abre_em: abre,
+      pergunta_fundo: m.pergunta_fundo,
       tema_id: m.tema_id,
       passos: ((m.cursos_passos ?? []) as { id: string; title: string; tipo: PassoTipo; obrigatorio: boolean; duracao_min: number | null; sort_order: number }[])
         .sort((a, b) => a.sort_order - b.sort_order)
@@ -245,6 +253,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
       tipo: c.tipo,
       horas: c.horas != null ? Number(c.horas) : null,
       tem_certificado: c.tem_certificado,
+      apresentacao: { percurso: [], como_funciona: [], sequencia: [], ...((c.apresentacao ?? {}) as Partial<CursoApresentacao>) },
       total_minutos: totalMinutos,
       total_modulos: modulos.length,
       total_passos: total.length,

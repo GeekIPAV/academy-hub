@@ -168,7 +168,7 @@ function ModuloDialog({ cursoId, modalidade, value, onClose, onSaved }: { cursoI
   const fn = useServerFn(upsertModulo);
   const [f, setF] = useState(value);
   const m = useMutation({
-    mutationFn: () => fn({ data: { id: f.id, curso_id: cursoId, title: f.title ?? "", description: f.description ?? null, tema_id: f.tema_id ?? null, abertura_dias: f.abertura_dias ?? null } }),
+    mutationFn: () => fn({ data: { id: f.id, curso_id: cursoId, title: f.title ?? "", description: f.description ?? null, tema_id: f.tema_id ?? null, abertura_dias: f.abertura_dias ?? null, pergunta_fundo: f.pergunta_fundo?.trim() || null } }),
     onSuccess: () => { toast.success("Módulo guardado."); onSaved(); onClose(); },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -179,6 +179,7 @@ function ModuloDialog({ cursoId, modalidade, value, onClose, onSaved }: { cursoI
         <div className="space-y-3">
           <div className="space-y-1"><Label>Título</Label><Input value={f.title ?? ""} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
           <div className="space-y-1"><Label>Descrição</Label><Textarea value={f.description ?? ""} onChange={(e) => setF({ ...f, description: e.target.value })} /></div>
+          <div className="space-y-1"><Label>Pergunta de fundo (opcional)</Label><Textarea rows={2} value={f.pergunta_fundo ?? ""} onChange={(e) => setF({ ...f, pergunta_fundo: e.target.value })} /><p className="text-xs text-muted-foreground">A pergunta que orienta o módulo, mostrada na página do curso.</p></div>
           {modalidade === "turma" && (
             <div className="space-y-1">
               <Label>Abre N dias após o início da turma (vazio = sempre aberto)</Label>
