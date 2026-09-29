@@ -26,7 +26,7 @@ import {
   listInscritos,
   listOpcoesElearning,
   regenerarCertificado,
-  upsertCurso,
+  upsertCurso, setEstadoCurso,
   type CursoInput,
 } from "@/lib/admin-elearning.functions";
 
@@ -110,8 +110,9 @@ function EstadoCurso({ curso, modulos, turmas }: { curso: CursoRow; modulos: Awa
     { label: "Horas definidas para o certificado", ok: !curso.tem_certificado || Number(curso.horas ?? 0) > 0, bloqueia: false },
     { label: "Badges de entrada e final definidos", ok: !!curso.badge_entrada_id && !!curso.badge_final_id, bloqueia: false },
   ];
+  const setEstadoFn = useServerFn(setEstadoCurso);
   const change = useMutation({
-    mutationFn: (estado: CursoInput["estado"]) => saveFn({ data: { ...curso, modalidade: curso.modalidade as CursoInput["modalidade"], estado, tipo: curso.tipo as CursoInput["tipo"], cover_scale: Number(curso.cover_scale), horas: curso.horas == null ? null : Number(curso.horas), nota_minima_quiz: Number(curso.nota_minima_quiz), pct_minima_video: Number(curso.pct_minima_video) } }),
+    mutationFn: (estado: CursoInput["estado"]) => setEstadoFn({ data: { id: curso.id, estado } }),
     onSuccess: () => { toast.success("Estado do curso atualizado."); qc.invalidateQueries({ queryKey: ["admin-elearning"] }); },
     onError: (e: Error) => toast.error(e.message),
   });

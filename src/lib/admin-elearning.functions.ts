@@ -431,3 +431,12 @@ export const regenerarCertificado = createServerFn({ method: "POST" })
     const { emitirCertificado } = await import("@/lib/elearning.server");
     return emitirCertificado(data.inscricaoId, base, false);
   });
+
+export const setEstadoCurso = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ id: z.string().uuid(), estado: z.enum(["rascunho", "publicado", "arquivado"]) }).parse(i))
+  .handler(async ({ data, context }) => {
+    const sb = await guard(context.userId);
+    must(await sb.from("cursos").update({ estado: data.estado }).eq("id", data.id));
+    return { ok: true };
+  });
