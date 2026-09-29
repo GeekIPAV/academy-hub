@@ -38,6 +38,7 @@
 - [x] Validar a 375px, 1024px, 1280px e 1440px
 
 ## Formação Teórico-Conceptual Assíncrona
-- [ ] Criar o curso em rascunho com os cinco módulos do documento
-- [ ] Estruturar o Módulo 1 com leituras, reflexões, caso, quiz e síntese
-- [ ] Validar o conteúdo na gestão e no leitor
+- [x] Criar o curso em rascunho com os cinco módulos do documento
+- [x] Estruturar o Módulo 1 com leituras, reflexões, caso, quiz e síntese
+- [x] Validar a estrutura, ordenação e conteúdos guardados
+- [ ] Rever visualmente na gestão e no leitor — aguarda uma sessão autenticada no preview
