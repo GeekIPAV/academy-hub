@@ -36,3 +36,8 @@
 - [x] Integrar a visão geral no layout partilhado
 - [x] Integrar o leitor e o índice no conteúdo da página
 - [x] Validar a 375px, 1024px, 1280px e 1440px
+
+## Formação Teórico-Conceptual Assíncrona
+- [ ] Criar o curso em rascunho com os cinco módulos do documento
+- [ ] Estruturar o Módulo 1 com leituras, reflexões, caso, quiz e síntese
+- [ ] Validar o conteúdo na gestão e no leitor
