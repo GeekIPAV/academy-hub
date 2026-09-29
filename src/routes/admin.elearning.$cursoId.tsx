@@ -16,6 +16,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -164,7 +165,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
   useEffect(() => setF(initial()), [curso]); // eslint-disable-line react-hooks/exhaustive-deps
   const set = <K extends keyof CursoInput>(k: K, v: CursoInput[K]) => setF((p) => ({ ...p, [k]: v }));
   const save = useMutation({
-    mutationFn: (d: CursoInput) => saveFn({ data: d }),
+    mutationFn: (d: CursoInput) => saveFn({ data: { ...d, apresentacao: d.apresentacao && { ...d.apresentacao, sequencia: d.apresentacao.sequencia.map((x) => x.trim()).filter(Boolean) } } }),
     onSuccess: () => { toast.success("Curso guardado."); qc.invalidateQueries({ queryKey: ["admin-elearning"] }); },
     onError: (e: Error) => toast.error(e.message),
   });
