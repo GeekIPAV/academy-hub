@@ -143,8 +143,11 @@ function LeitorPage() {
   const key = ["elearning", "passo", cursoId, passoId];
   const { data, isLoading, isFetching, error } = useQuery({ queryKey: key, queryFn: () => fetchFn({ data: { cursoId, passoId } }), placeholderData: (previous) => previous });
 
-  useEffect(() => { try { const saved = window.localStorage.getItem("elearning-reader-sidebar"); setSidebarOpen(window.innerWidth >= 1280 && saved !== "closed"); } catch { setSidebarOpen(window.innerWidth >= 1280); } }, []);
-  const toggleSidebar = useCallback(() => setSidebarOpen((current) => { const next = !current; try { window.localStorage.setItem("elearning-reader-sidebar", next ? "open" : "closed"); } catch { /* armazenamento indisponível */ } return next; }), []);
+  useEffect(() => {
+    setSidebarOpen(window.innerWidth >= 1024);
+    setDrawer(window.innerWidth < 1024);
+  }, [cursoId]);
+  const toggleSidebar = useCallback(() => setSidebarOpen((current) => !current), []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
