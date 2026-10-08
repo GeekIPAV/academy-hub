@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { Award, CalendarDays, Clock, GraduationCap, Layers3, PlayCircle, Search, Users } from "lucide-react";
+import { Award, CalendarDays, Clock, GraduationCap, Layers3, PlayCircle, Search, Sparkles, Users } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { CoverImage } from "@/components/CoverImage";
@@ -76,6 +76,7 @@ function CatalogoPage() {
           </div>
           <p className="text-xs text-muted-foreground">{disponiveis.length} {disponiveis.length === 1 ? "curso" : "cursos"}</p>
           {disponiveis.length === 0 ? <div className="py-12 text-center text-sm text-muted-foreground"><GraduationCap className="mx-auto mb-2 h-8 w-8" />Não há cursos disponíveis com estes filtros.</div> : <div className="grid items-start gap-6 md:grid-cols-2 xl:grid-cols-3">{disponiveis.map((c) => <CursoCard key={c.id} c={c} />)}</div>}
+          <p className="flex items-center justify-center gap-2 pt-2 text-center text-sm text-muted-foreground"><Sparkles className="h-4 w-4" />Mais formações estão a caminho — novos cursos serão publicados aqui em breve.</p>
         </section>
       )}
     </div>
