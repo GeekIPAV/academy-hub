@@ -42,8 +42,11 @@ import {
 import {
   patchAcao,
   listInscritosAcao,
+  getAcaoResultados,
   savePaginaInscricao,
   type AcaoRow,
+  type AcaoResultados,
+  type Contagem,
   type RequiredFieldDef,
 } from "@/lib/admin-acoes-gestao.functions";
 import { listProdutos } from "@/lib/produtos.functions";
@@ -87,6 +90,7 @@ export function AcaoDetailDrawer({ acao, open, onOpenChange }: Props) {
             <TabsList>
               <TabsTrigger value="dados">Dados da ação</TabsTrigger>
               <TabsTrigger value="inscritos">Inscritos</TabsTrigger>
+              <TabsTrigger value="resultados">Resultados</TabsTrigger>
               <TabsTrigger value="pagina">Página de inscrição</TabsTrigger>
             </TabsList>
             <TabsContent value="dados" className="mt-4">
@@ -94,6 +98,9 @@ export function AcaoDetailDrawer({ acao, open, onOpenChange }: Props) {
             </TabsContent>
             <TabsContent value="inscritos" className="mt-4">
               <InscritosTab actionId={acao.id} />
+            </TabsContent>
+            <TabsContent value="resultados" className="mt-4">
+              <ResultadosTab actionId={acao.id} />
             </TabsContent>
             <TabsContent value="pagina" className="mt-4">
               <PaginaTab acao={acao} />
