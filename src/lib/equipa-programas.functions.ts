@@ -173,6 +173,7 @@ const applySchema = z.object({
   contact_name: z.string().trim().min(2).max(200),
   contact_email: z.string().trim().email().max(255),
   contact_phone: z.string().trim().max(50).optional().nullable(),
+  projeto: z.string().trim().max(64).optional().nullable(),
 });
 
 export const submitEntidadeApplication = createServerFn({ method: "POST" })
@@ -224,6 +225,33 @@ export const submitEntidadeApplication = createServerFn({ method: "POST" })
       entityId = newId;
     }
 
+    // Projeto associado ao link (invisível para a organização)
+    if (data.projeto) {
+      const { data: proj } = await supabaseAdmin
+        .from("projetos")
+        .select("id")
+        .eq("inscricao_token", data.projeto)
+        .maybeSingle();
+      if (proj) {
+        const { data: link } = await supabaseAdmin
+          .from("entidades_projetos")
+          .select("id")
+          .eq("project_id", proj.id)
+          .eq("entity_id", entityId!)
+          .maybeSingle();
+        if (link) {
+          await supabaseAdmin
+            .from("entidades_projetos")
+            .update({ is_active: true, data_fim: null })
+            .eq("id", link.id);
+        } else {
+          await supabaseAdmin
+            .from("entidades_projetos")
+            .insert({ project_id: proj.id, entity_id: entityId! });
+        }
+      }
+    }
+
     const { data: existing } = await supabaseAdmin
       .from("entidades_programas")
       .select("id, status")
@@ -248,6 +276,7 @@ export const submitEntidadeApplication = createServerFn({ method: "POST" })
       });
       if (cErr) throw new Error(cErr.message);
     }
+
 
     try {
       await supabaseAdmin.rpc("enqueue_email", {

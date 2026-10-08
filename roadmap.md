@@ -92,3 +92,7 @@
 - [x] Barra única do curso (Visão geral, Formação, Caderno) com ajuda num só menu
 - [x] Visão geral com cartões da plataforma, bloco de arranque correto, percurso e lateral
 - [x] Caderno com cartões da plataforma; validado a 375/1280px
+
+## Projetos via links de inscrição
+- [x] Link de inscrição de organização com projeto escondido (?p=) liga a entidade ao projeto
+- [x] Formandos inscritos na turma da entidade ficam associados à entidade e herdam o projeto

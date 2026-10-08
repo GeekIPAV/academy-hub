@@ -2087,6 +2087,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          inscricao_token: string | null
           status: Database["public"]["Enums"]["projeto_status"]
           title: string
           updated_at: string
@@ -2095,6 +2096,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          inscricao_token?: string | null
           status?: Database["public"]["Enums"]["projeto_status"]
           title: string
           updated_at?: string
@@ -2103,6 +2105,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          inscricao_token?: string | null
           status?: Database["public"]["Enums"]["projeto_status"]
           title?: string
           updated_at?: string

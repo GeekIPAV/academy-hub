@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/inscricao-entidade/$token")({
+  validateSearch: (s: Record<string, unknown>): { p?: string } =>
+    typeof s.p === "string" ? { p: s.p } : {},
   head: () => ({
     meta: [
       { title: "Inscrição de organização — Academia Ubuntu" },
@@ -40,6 +42,7 @@ type Step = "search" | "form" | "blocked" | "done";
 
 function InscricaoEntidadePage() {
   const { token } = Route.useParams();
+  const { p: projeto } = Route.useSearch();
   const fetchProg = useServerFn(getProgramaByPublicToken);
   const searchFn = useServerFn(searchEntidadesPublic);
   const checkFn = useServerFn(checkEntidadeAtiva);
@@ -112,6 +115,7 @@ function InscricaoEntidadePage() {
           contact_name: form.contact_name.trim(),
           contact_email: form.contact_email.trim(),
           contact_phone: form.contact_phone.trim() || null,
+          projeto: projeto ?? null,
         },
       });
       setStep("done");
