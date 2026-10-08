@@ -11,6 +11,8 @@ export type CourseLayoutValue = {
   formationStepId: string | null;
   /** Elemento do cabeçalho do curso onde o leitor injeta os seus controlos (Passo X de Y, módulos, notas). */
   headerSlot: HTMLElement | null;
+  /** Ação principal do curso (Começar / Continuar / Inscrever-me / Ver certificado). */
+  primary: { label: string; disabled: boolean; run: () => void };
 };
 
 const CourseLayoutContext = createContext<CourseLayoutValue | null>(null);
@@ -24,3 +26,6 @@ export function useCourseLayout() {
   if (!value) throw new Error("useCourseLayout must be used inside the course layout.");
   return value;
 }
+
+/** Evento escutado pelo leitor para abrir o diálogo de atalhos de teclado. */
+export const SHORTCUTS_EVENT = "elearning:atalhos";
