@@ -115,6 +115,16 @@
 }
 
 
+.course-catalog {
+  --secondary: #193E6B;
+  --primary: #F09A50;
+  --primary-foreground: #193E6B;
+  --learning-case: #E8F0EB;
+  --card: #FFFFFF;
+  --ring: #F09A50;
+}
+.course-catalog :where(h1, h2, h3) { letter-spacing: 0; }
+
 @layer base {
   * {
     border-color: var(--color-border);
