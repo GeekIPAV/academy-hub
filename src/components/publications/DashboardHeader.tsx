@@ -25,7 +25,7 @@ export function DashboardHeader() {
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{t("dashboard.subtitle")}</p>
         </div>
-        <div className="flex gap-4 items-center">
+        <div className="grid w-full grid-cols-4 items-center gap-3 sm:flex sm:w-auto sm:gap-4">
           <button
             onClick={() => setLang(lang === "pt" ? "en" : "pt")}
             className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md border border-border hover:bg-primary/10 transition-colors text-foreground"
@@ -34,21 +34,21 @@ export function DashboardHeader() {
             <Globe className="w-3.5 h-3.5" />
             {lang === "pt" ? "EN" : "PT"}
           </button>
-          <div className="w-px h-8 bg-spine" />
+          <div className="hidden w-px h-8 bg-spine sm:block" />
           <div className="text-right">
             <span className="text-label block">{t("dashboard.editions")}</span>
             <span className="font-mono-data text-xl font-medium text-foreground">
               {String(issuesMeta.length).padStart(2, "0")}
             </span>
           </div>
-          <div className="w-px h-8 bg-spine" />
+          <div className="hidden w-px h-8 bg-spine sm:block" />
           <div className="text-right">
             <span className="text-label block">{t("dashboard.articles")}</span>
             <span className="font-mono-data text-xl font-medium text-foreground">
               {String(totalArticles).padStart(2, "0")}
             </span>
           </div>
-          <div className="w-px h-8 bg-spine" />
+          <div className="hidden w-px h-8 bg-spine sm:block" />
           <div className="text-right">
             <span className="text-label block">{t("dashboard.pages")}</span>
             <span className="font-mono-data text-xl font-medium text-foreground">{totalPages}</span>

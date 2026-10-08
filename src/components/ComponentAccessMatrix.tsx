@@ -62,10 +62,10 @@ export function ComponentAccessMatrix({ pagePath }: Props) {
   return (
     <Card className="border-dashed">
       <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleTrigger className="flex w-full items-center justify-between gap-2 px-6 py-3 text-left">
-          <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-muted-foreground" />
-            <div>
+        <CollapsibleTrigger className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 py-3 text-left sm:px-6">
+          <div className="flex min-w-0 items-center gap-2">
+            <Shield className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <div className="min-w-0">
               <div className="text-sm font-medium">Matriz de Acessos (componentes)</div>
               <div className="text-xs text-muted-foreground">
                 Apenas visível para administradores. Define que componentes desta página são visíveis a cada perfil.

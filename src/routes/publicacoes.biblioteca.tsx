@@ -139,7 +139,7 @@ function BibliotecaPage() {
             <TabsTrigger value="outras">Outras Publicações</TabsTrigger>
           </TabsList>
 
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
             <Button
               variant={view === "gallery" ? "default" : "outline"}
               size="sm"
@@ -162,7 +162,7 @@ function BibliotecaPage() {
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_140px_140px_180px]">
+        <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_140px_140px_180px]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input

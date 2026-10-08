@@ -192,7 +192,7 @@ export function ResourceCategoriesManager() {
               Sem categorias configuradas.
             </p>
           ) : (
-            <Table>
+            <Table className="min-w-[580px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Chave</TableHead>
@@ -245,7 +245,7 @@ function EditableRow({
     <TableRow>
       <TableCell className="font-mono text-xs">{row.key}</TableCell>
       <TableCell>
-        <Input value={label} onChange={(e) => setLabel(e.target.value)} />
+        <Input aria-label="Etiqueta da categoria" className="min-w-[160px]" value={label} onChange={(e) => setLabel(e.target.value)} />
       </TableCell>
       <TableCell>
         <Input

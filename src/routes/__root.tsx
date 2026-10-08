@@ -287,7 +287,7 @@ function ShellWithSidebar({
         <AppHeader pathname={pathname} />
         <div className="flex flex-1">
           <AppSidebar />
-          <main className="flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:p-8">
+          <main className="app-main flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:p-8">
             {isRouterLoading && !isElearningCourse ? <InlineLoader /> : <Outlet />}
             {!hideImprovingBanner && <ImprovingBanner />}
           </main>

@@ -340,11 +340,11 @@ function InfoRow({
   value: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b pb-2 last:border-none last:pb-0">
+    <div className="flex min-w-0 flex-col gap-1 border-b pb-2 last:border-none last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
       <span className="flex items-center gap-2 text-muted-foreground">
         {icon} {label}
       </span>
-      <span className="text-right font-medium">{value}</span>
+      <span className="min-w-0 break-words font-medium sm:text-right">{value}</span>
     </div>
   );
 }

@@ -1,5 +1,10 @@
 # Cabeçalho compacto
 
+## Revisão para telemóvel em toda a aplicação
+- [ ] Rever navegação, controlos partilhados e páginas com sessão iniciada
+- [ ] Corrigir larguras, separadores, tabelas, formulários e janelas sem alterar lógica
+- [ ] Verificar páginas representativas a 375px e 402px e preservar apresentação no computador
+
 ## Visão geral mais clara (8 out 2026)
 - [x] Bloco único "O que faço agora" com um só botão principal
 - [x] Percurso num só cartão: módulo atual aberto, restantes como linhas recolhíveis

@@ -15,6 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,6 +32,7 @@ export function AppSidebar() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { isMobile, setOpenMobile } = useSidebar();
   const { activeRoleNames } = useRoles();
 
   const displayName = profile?.full_name ?? user?.email ?? "";
@@ -61,7 +63,7 @@ export function AppSidebar() {
                     return (
                       <SidebarMenuItem key={it.path}>
                         <SidebarMenuButton asChild isActive={active} tooltip={it.label}>
-                          <Link to={it.path}>
+                          <Link to={it.path} onClick={() => { if (isMobile) setOpenMobile(false); }}>
                             <Icon className="h-4 w-4" />
                             <span>{it.label}</span>
                           </Link>

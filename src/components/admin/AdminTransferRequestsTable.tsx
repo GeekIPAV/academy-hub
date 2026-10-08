@@ -52,8 +52,8 @@ export function AdminTransferRequestsTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Inbox className="h-5 w-5" /> Pedidos de Transferência de Responsável
+        <CardTitle className="flex items-start gap-2">
+          <Inbox className="h-5 w-5 shrink-0" /> Pedidos de Transferência de Responsável
         </CardTitle>
         <CardDescription>
           Aprove ou recuse pedidos de utilizadores que querem assumir uma organização já
@@ -98,7 +98,7 @@ export function AdminTransferRequestsTable() {
                       {new Date(r.created_at).toLocaleDateString("pt-PT")}
                     </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-col justify-end gap-2 sm:flex-row">
                         <Button
                           size="sm"
                           variant="default"

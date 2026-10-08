@@ -71,13 +71,13 @@ export function AcaoDetailDrawer({ acao, open, onOpenChange }: Props) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-3xl">
-        <SheetHeader className="border-b px-6 py-4">
-          <SheetTitle className="flex items-center gap-2">
+        <SheetHeader className="border-b px-4 py-4 pr-12 sm:px-6 sm:pr-12">
+          <SheetTitle className="flex min-w-0 flex-wrap items-center gap-2 break-words text-left">
             {acao.title ?? "(sem título)"}
             {acao.formato && <Badge variant="outline">{acao.formato}</Badge>}
           </SheetTitle>
         </SheetHeader>
-        <div className="p-6">
+        <div className="min-w-0 p-4 sm:p-6">
           <Tabs defaultValue="dados">
             <TabsList>
               <TabsTrigger value="dados">Dados da ação</TabsTrigger>
@@ -207,7 +207,7 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
     >
       <div className="space-y-2">
         <Label>Capa</Label>
-        <div className="flex items-start gap-3">
+        <div className="flex flex-col items-start gap-3 sm:flex-row">
           <div className="aspect-[4/3] w-40 shrink-0 overflow-hidden rounded-md border bg-muted">
             {acao.cover_url ? (
               <CoverImage

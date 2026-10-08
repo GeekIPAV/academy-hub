@@ -55,9 +55,9 @@ export function ArticleCard({ article, index, isSelected, onClick }: Props) {
         ))}
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-        <div className="flex gap-4">
-          <div className="flex flex-col">
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
+        <div className="flex min-w-0 flex-1 gap-4">
+          <div className="flex min-w-0 flex-1 flex-col">
             <span className="text-label">{t("detail.methodology")}</span>
             <span className="font-mono-data text-xs font-medium text-foreground mt-0.5 line-clamp-1">
               {tx(article.methodology, lang)}
@@ -73,7 +73,7 @@ export function ArticleCard({ article, index, isSelected, onClick }: Props) {
         <Link
           to="/publicacoes/revistas/$id"
           params={{ id: String(article.id) }}
-          className="inline-flex items-center gap-1 text-xs text-primary font-medium"
+          className="inline-flex shrink-0 items-center gap-1 text-xs text-primary font-medium"
           onClick={(e) => e.stopPropagation()}
         >
           {t("detail.viewDetails")}

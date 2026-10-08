@@ -181,7 +181,7 @@ function TemaDetail() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <nav className="flex items-center gap-1 text-sm text-muted-foreground">
+      <nav className="flex min-w-0 flex-wrap items-center gap-1 text-sm text-muted-foreground [&>svg]:shrink-0 [&>a]:break-words [&>span]:break-words">
         <Link to="/recursos" className="hover:text-secondary">
           Centro de Recursos
         </Link>

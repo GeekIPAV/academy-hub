@@ -265,8 +265,8 @@ export function ClusterTemasManager() {
                     .filter((r): r is RecursoRow => !!r);
                   return (
                     <AccordionItem key={t.id} value={t.id}>
-                      <div className="flex items-center gap-2">
-                        <AccordionTrigger className="flex-1">{t.title}</AccordionTrigger>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <AccordionTrigger className="min-w-0 flex-1 break-words text-left">{t.title}</AccordionTrigger>
                         <div className="flex shrink-0 items-center gap-1 pr-2">
                           <Button
                             variant="ghost"
