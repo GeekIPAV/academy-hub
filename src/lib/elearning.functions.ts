@@ -3,7 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { pctPorModulos } from "@/lib/elearning-progress";
-import { bloqueiosSequenciais, entradaSubmetida } from "@/lib/elearning-sequencial";
+import { bloqueiosSequenciais } from "@/lib/elearning-sequencial";
 
 export type PassoTipo = "video" | "texto" | "recurso" | "quiz" | "reflexao";
 export type PassoEstado = "bloqueado" | "disponivel" | "em_curso" | "concluido";
@@ -85,7 +85,8 @@ export const listCatalogo = createServerFn({ method: "GET" })
       .select("id, curso_id, estado, inscrito_em")
       .eq("user_id", context.userId)
       .neq("estado", "cancelado");
-    const resumo = await progressoResumo((inscs ?? []).map((i) => i.id), (inscs ?? []).map((i) => i.curso_id));
+    const detalhes = await Promise.all((inscs ?? []).filter((i) => cursos?.some((c) => c.id === i.curso_id)).map(async (i) => ({ id: i.id, curso: await carregarCurso(context.userId, i.curso_id) })));
+    const resumo = (id: string, _cursoId: string) => detalhes.find((d) => d.id === id)?.curso.curso.inscricao ?? { pct: 0, proximo_passo_id: null, iniciado: false };
     const inscricaoIds = (inscs ?? []).map((i) => i.id);
     const { data: atividade } = inscricaoIds.length
       ? await sb.from("cursos_atividade").select("inscricao_id, created_at").in("inscricao_id", inscricaoIds).order("created_at", { ascending: false })
