@@ -225,31 +225,6 @@ export const submitEntidadeApplication = createServerFn({ method: "POST" })
       entityId = newId;
     }
 
-    const { data: existing } = await supabaseAdmin
-      .from("entidades_programas")
-      .select("id, status")
-      .eq("entity_id", entityId)
-      .eq("program_id", prog.id)
-      .maybeSingle();
-
-    if (existing) {
-      if (existing.status === "aprovada") {
-        return { ok: true, already: true };
-      }
-      await supabaseAdmin
-        .from("entidades_programas")
-        .update({ status: "pendente" })
-        .eq("id", existing.id);
-    } else {
-      const { error: cErr } = await supabaseAdmin.from("entidades_programas").insert({
-        entity_id: entityId,
-        program_id: prog.id,
-        status: "pendente",
-        is_active: false,
-      });
-      if (cErr) throw new Error(cErr.message);
-    }
-
     // Projeto associado ao link (invisível para a organização)
     if (data.projeto) {
       const { data: proj } = await supabaseAdmin
@@ -275,6 +250,31 @@ export const submitEntidadeApplication = createServerFn({ method: "POST" })
             .insert({ project_id: proj.id, entity_id: entityId! });
         }
       }
+    }
+
+    const { data: existing } = await supabaseAdmin
+      .from("entidades_programas")
+      .select("id, status")
+      .eq("entity_id", entityId)
+      .eq("program_id", prog.id)
+      .maybeSingle();
+
+    if (existing) {
+      if (existing.status === "aprovada") {
+        return { ok: true, already: true };
+      }
+      await supabaseAdmin
+        .from("entidades_programas")
+        .update({ status: "pendente" })
+        .eq("id", existing.id);
+    } else {
+      const { error: cErr } = await supabaseAdmin.from("entidades_programas").insert({
+        entity_id: entityId,
+        program_id: prog.id,
+        status: "pendente",
+        is_active: false,
+      });
+      if (cErr) throw new Error(cErr.message);
     }
 
 
