@@ -4,6 +4,7 @@
 - [x] Rever navegação, controlos partilhados e páginas com sessão iniciada
 - [x] Corrigir larguras, separadores, tabelas, formulários e janelas sem alterar lógica
 - [x] Verificar 30 páginas a 375px, 402px e 1280px; sem scroll horizontal ou erros de execução; confirmar menu, gaveta de ações e índice de módulos
+- [ ] Segunda revisão (8 out): elementos cortados, sobrepostos ou apertados a 393px em todas as páginas e componentes
 
 ## Visão geral mais clara (8 out 2026)
 - [x] Bloco único "O que faço agora" com um só botão principal
