@@ -98,6 +98,6 @@
 - [x] Formandos inscritos na turma da entidade ficam associados à entidade e herdam o projeto
 
 ## Vídeos e documentos na Formação
-- [ ] Apresentar vídeos junto do texto correspondente sem alterar conteúdos ou progressão
-- [ ] Dar aos documentos sugeridos botão para abrir num novo separador
-- [ ] Verificar a Formação autenticada e os links no navegador
+- [x] Apresentar vídeos junto do texto correspondente sem alterar conteúdos ou progressão
+- [x] Dar aos documentos sugeridos botão para abrir num novo separador
+- [x] Formação autenticada validada a 375/1280px com dois vídeos visíveis; seis testes de ligações passaram. Não há documentos associados nos cursos atuais para verificar a abertura de um documento real.

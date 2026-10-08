@@ -31,7 +31,6 @@ import {
   concluirPasso, getPasso, guardarNotaPasso, guardarRascunhoReflexao, registarVideo,
   submeterQuiz, submeterReflexao, type CursoDetalhe, type PassoDetalhe, type PassoResumo,
 } from "@/lib/elearning.functions";
-import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId/passo/$passoId")({
