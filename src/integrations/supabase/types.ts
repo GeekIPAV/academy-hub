@@ -1043,6 +1043,10 @@ export type Database = {
       }
       cursos_progresso: {
         Row: {
+          comentario: string | null
+          comentario_autor_id: string | null
+          comentario_autor_nome: string | null
+          comentario_em: string | null
           concluido_em: string | null
           estado: string
           id: string
@@ -1059,6 +1063,10 @@ export type Database = {
           video_posicao_s: number
         }
         Insert: {
+          comentario?: string | null
+          comentario_autor_id?: string | null
+          comentario_autor_nome?: string | null
+          comentario_em?: string | null
           concluido_em?: string | null
           estado?: string
           id?: string
@@ -1075,6 +1083,10 @@ export type Database = {
           video_posicao_s?: number
         }
         Update: {
+          comentario?: string | null
+          comentario_autor_id?: string | null
+          comentario_autor_nome?: string | null
+          comentario_em?: string | null
           concluido_em?: string | null
           estado?: string
           id?: string
