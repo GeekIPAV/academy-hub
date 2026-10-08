@@ -362,6 +362,8 @@
 
 /* Route roots must shrink independently of wide tables and tab strips. */
 .app-main > * { min-width: 0; width: 100%; }
+/* Full-bleed wrappers use negative margins; let them stretch past the main padding. */
+.app-main > [class*="-mx-"] { width: auto; }
 /* Grid items may shrink below their content so wide widgets scroll inside instead of widening the page. */
 .app-main .grid > * { min-width: 0; }
 @media (max-width: 639px) {
