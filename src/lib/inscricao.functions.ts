@@ -49,7 +49,7 @@ export const enrollWithToken = createServerFn({ method: "POST" })
 
     const { data: cohort, error: cErr } = await supabaseAdmin
       .from("entidades_programas")
-      .select("id, is_active, program_id, programas(enrollment_open, cluster_id)")
+      .select("id, is_active, entity_id, program_id, programas(enrollment_open, cluster_id)")
       .eq("invite_token", data.token)
       .maybeSingle();
     if (cErr) throw new Error(cErr.message);
@@ -82,6 +82,15 @@ export const enrollWithToken = createServerFn({ method: "POST" })
       if (iErr) throw new Error(iErr.message);
       enrollmentId = inserted?.id;
       finalStatus = status;
+    }
+
+    // Associa o formando à entidade da turma (herda os projetos da entidade)
+    if (cohort.entity_id) {
+      await supabaseAdmin
+        .from("utilizadores")
+        .update({ entity_id: cohort.entity_id })
+        .eq("id", userId)
+        .is("entity_id", null);
     }
 
     const clusterId = cohort.programas?.cluster_id ?? null;

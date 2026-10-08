@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, Trash2, UserRound } from "lucide-react";
+import { Building2, Copy, Link2, Trash2, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import { RouteGate } from "@/components/RouteGate";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
   getProjetoMembros,
   listEntidadesUtilizadores,
   listProjetos,
+  listProgramasComLink,
   removeEntidadeProjeto,
   saveProjeto,
   setUtilizadorProjeto,
@@ -117,7 +118,7 @@ function ProjetosPage() {
   );
 }
 
-function ProjetoDetalhe({ projeto }: { projeto: { id: string; title: string; status: string; description: string | null } }) {
+function ProjetoDetalhe({ projeto }: { projeto: { id: string; title: string; status: string; description: string | null; inscricao_token: string | null } }) {
   const qc = useQueryClient();
   const fetchM = useServerFn(getProjetoMembros);
   const fetchOpts = useServerFn(listEntidadesUtilizadores);
@@ -161,6 +162,8 @@ function ProjetoDetalhe({ projeto }: { projeto: { id: string; title: string; sta
           </SelectContent>
         </Select>
       </div>
+
+      <LinkInscricao token={projeto.inscricao_token} />
 
       <div className="space-y-3">
         <h3 className="flex items-center gap-2 font-semibold"><Building2 className="h-4 w-4" /> Entidades</h3>
@@ -252,5 +255,41 @@ function ProjetoDetalhe({ projeto }: { projeto: { id: string; title: string; sta
         </ul>
       </div>
     </section>
+  );
+}
+
+function LinkInscricao({ token }: { token: string | null }) {
+  const fetchProg = useServerFn(listProgramasComLink);
+  const { data: programas = [] } = useQuery({ queryKey: ["programas-com-link"], queryFn: () => fetchProg() });
+  const [progId, setProgId] = useState("");
+  const prog = programas.find((p) => p.id === progId);
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const url = prog && token ? `${origin}/inscricao-entidade/${prog.token}?p=${token}` : "";
+  return (
+    <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+      <h3 className="flex items-center gap-2 font-semibold"><Link2 className="h-4 w-4" /> Link de inscrição de organizações</h3>
+      <p className="text-sm text-muted-foreground">
+        As organizações que se inscreverem por este link ficam ligadas a este projeto, sem o verem. Os formandos que depois se inscreverem nas turmas dessas organizações herdam o projeto.
+      </p>
+      <Select value={progId} onValueChange={setProgId}>
+        <SelectTrigger className="w-full sm:w-96"><SelectValue placeholder="Escolher programa" /></SelectTrigger>
+        <SelectContent>
+          {programas.map((p) => <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      {url && (
+        <div className="flex min-w-0 items-center gap-2 rounded-md border bg-card px-2 py-1.5">
+          <code className="min-w-0 flex-1 truncate text-xs">{url}</code>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="shrink-0"
+            onClick={() => { navigator.clipboard.writeText(url); toast.success("Link copiado"); }}
+          >
+            <Copy className="mr-1 h-4 w-4" /> Copiar
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

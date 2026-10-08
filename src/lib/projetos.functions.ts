@@ -11,7 +11,7 @@ async function admin(userId: string, path = "/admin/projetos") {
   return supabaseAdmin;
 }
 
-export type ProjetoRow = { id: string; title: string; description: string | null; status: string };
+export type ProjetoRow = { id: string; title: string; description: string | null; status: string; inscricao_token: string | null };
 
 export const listProjetos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -19,7 +19,7 @@ export const listProjetos = createServerFn({ method: "GET" })
     const db = await admin(context.userId, "/admin/acoes");
     const { data, error } = await db
       .from("projetos")
-      .select("id, title, description, status")
+      .select("id, title, description, status, inscricao_token")
       .order("title");
     if (error) throw new Error(error.message);
     return (data ?? []) as ProjetoRow[];
@@ -187,4 +187,17 @@ export const saveAcaoVisibilidade = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
     return { ok: true };
+  });
+
+export const listProgramasComLink = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const db = await admin(context.userId);
+    const { data, error } = await db
+      .from("programas")
+      .select("id, title, public_enroll_token, is_active")
+      .not("public_enroll_token", "is", null)
+      .order("title");
+    if (error) throw new Error(error.message);
+    return (data ?? []).filter((p) => p.is_active !== false).map((p) => ({ id: p.id, title: p.title ?? "(sem título)", token: p.public_enroll_token as string }));
   });
