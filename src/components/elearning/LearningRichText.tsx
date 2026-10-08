@@ -23,7 +23,7 @@ function LinkButton({
   label: string;
   icon: "globe" | "file";
   tone: "link" | "document";
-  children?: React.ReactNode;
+  children?: ReactNode;
 }) {
   const chip = tone === "document" ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground";
   const text = tone === "document" ? "text-primary" : "text-secondary";
