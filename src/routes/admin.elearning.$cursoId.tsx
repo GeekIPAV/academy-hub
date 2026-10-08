@@ -12,6 +12,7 @@ import { RichTextEditor } from "@/components/rich-text-editor";
 import { ConteudoBuilder } from "@/components/admin/elearning/ConteudoBuilder";
 import { TurmasTab } from "@/components/admin/elearning/TurmasTab";
 import { ReflexoesTab } from "@/components/admin/elearning/ReflexoesTab";
+import { QuizRespostasTab } from "@/components/admin/elearning/QuizRespostasTab";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -87,6 +88,7 @@ function CursoAdminPage() {
            {data.curso.modalidade === "turma" && <TabsTrigger value="turmas" className="min-w-0 px-2 sm:px-4">Turmas</TabsTrigger>}
            <TabsTrigger value="inscritos" className="min-w-0 px-2 sm:px-4">Inscritos</TabsTrigger>
            <TabsTrigger value="reflexoes" className="min-w-0 px-2 sm:px-4">Reflexões</TabsTrigger>
+           <TabsTrigger value="quizzes" className="min-w-0 px-2 sm:px-4">Quizzes</TabsTrigger>
         </TabsList>
          <TabsContent value="dados" className="w-full min-w-0 pt-4"><DadosTab curso={data.curso} /></TabsContent>
          <TabsContent value="conteudo" className="w-full min-w-0 pt-4">
@@ -97,6 +99,7 @@ function CursoAdminPage() {
         )}
          <TabsContent value="inscritos" className="w-full min-w-0 pt-4"><InscritosTab cursoId={cursoId} turmas={data.turmas} /></TabsContent>
          <TabsContent value="reflexoes" className="w-full min-w-0 pt-4"><ReflexoesTab cursoId={cursoId} /></TabsContent>
+         <TabsContent value="quizzes" className="w-full min-w-0 pt-4"><QuizRespostasTab cursoId={cursoId} /></TabsContent>
       </Tabs>
     </div>
   );

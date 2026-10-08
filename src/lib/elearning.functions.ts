@@ -350,6 +350,7 @@ export interface PassoDetalhe {
     conteudo: Record<string, any>;
     recurso: { id: string; title: string; description: string | null; resource_type: string; file_url: string; cover_url: string | null } | null;
     perguntas: { id: string; enunciado: string; tipo: "unica" | "multipla"; opcoes: { id: string; texto: string }[] }[];
+    permite_repetir: boolean;
   };
   modulo: { id: string; title: string; description: string | null; indice: number };
   materiais: { id: string; title: string; description: string | null; resource_type: string; file_url: string; cover_url: string | null }[];
@@ -443,7 +444,7 @@ export const getPasso = createServerFn({ method: "POST" })
     }
     return {
       curso,
-      passo: { id: p.id, modulo_id: p.modulo_id, title: p.title, tipo: p.tipo as PassoTipo, obrigatorio: p.obrigatorio, duracao_min: p.duracao_min, conteudo, recurso, perguntas },
+      passo: { id: p.id, modulo_id: p.modulo_id, title: p.title, tipo: p.tipo as PassoTipo, obrigatorio: p.obrigatorio, duracao_min: p.duracao_min, conteudo, recurso, perguntas, permite_repetir: p.tipo === "quiz" ? (await sb.from("cursos").select("quiz_permite_repetir").eq("id", data.cursoId).single()).data?.quiz_permite_repetir !== false : true },
       modulo: { id: moduloAtual.id, title: moduloAtual.title, description: moduloAtual.description, indice: curso.modulos.findIndex((m) => m.id === moduloAtual.id) + 1 },
       materiais,
       nota: nota ?? null,
