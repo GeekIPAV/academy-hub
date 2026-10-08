@@ -1,5 +1,10 @@
 # Cabeçalho compacto
 
+## Catálogo por cursos (8 out 2026)
+- [ ] Repor grelha de cursos com módulos em lista e percurso numerado por curso
+- [ ] Manter identidade, conteúdos e bloqueios existentes
+- [ ] Validar catálogo autenticado e abertura de módulo no navegador
+
 - [x] Reduzir a marca na barra lateral.
 - [x] Criar cabeçalho institucional com contexto da página.
 - [x] Manter o controlo da barra lateral acessível.
