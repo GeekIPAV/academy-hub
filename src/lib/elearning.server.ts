@@ -2,6 +2,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import QRCode from "qrcode";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { assertRouteAccess } from "@/lib/admin-access.server";
+import { podeConcluirCurso } from "@/lib/elearning-progress";
 
 export const DEFAULT_BASE_URL = "https://app.ipav.pt";
 
@@ -81,12 +82,7 @@ export async function avaliarConclusao(inscricaoId: string, baseUrl: string): Pr
     .from("cursos_modulos")
     .select("id, cursos_passos(id, obrigatorio)")
     .eq("curso_id", insc.curso_id);
-  if (!mods?.length) return false;
-  // Um curso só pode ser concluído quando TODOS os módulos têm pelo menos um passo obrigatório.
-  if (!mods.every((m) => ((m.cursos_passos ?? []) as Passo[]).some((p) => p.obrigatorio))) return false;
-  const passos = mods.flatMap((m) => (m.cursos_passos ?? []) as Passo[]);
-  const obrig = passos.filter((p) => p.obrigatorio).map((p) => p.id);
-  if (obrig.length === 0) return false;
+  const modulos = (mods ?? []).map((m) => ({ passos: (m.cursos_passos ?? []) as Passo[] }));
 
   const { data: prog } = await supabaseAdmin
     .from("cursos_progresso")
@@ -94,7 +90,7 @@ export async function avaliarConclusao(inscricaoId: string, baseUrl: string): Pr
     .eq("inscricao_id", inscricaoId)
     .eq("estado", "concluido");
   const done = new Set((prog ?? []).map((p) => p.passo_id));
-  if (!obrig.every((id) => done.has(id))) return false;
+  if (!podeConcluirCurso(modulos, done)) return false;
 
   const now = new Date().toISOString();
   await supabaseAdmin

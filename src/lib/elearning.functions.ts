@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { pctPorModulos } from "@/lib/elearning-progress";
 
 export type PassoTipo = "video" | "texto" | "recurso" | "quiz" | "reflexao";
 export type PassoEstado = "bloqueado" | "disponivel" | "em_curso" | "concluido";
@@ -67,12 +68,6 @@ async function progressoResumo(inscricaoIds: string[], cursoIds: string[]) {
   };
 }
 
-/** Progresso do curso: média por módulo; módulos sem passos ("em breve") contam como 0%. */
-export function pctPorModulos(modulos: { total: number; feitos: number }[]) {
-  if (!modulos.length) return 0;
-  const soma = modulos.reduce((n, m) => n + (m.total ? m.feitos / m.total : 0), 0);
-  return Math.round((soma / modulos.length) * 100);
-}
 
 export const listCatalogo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
