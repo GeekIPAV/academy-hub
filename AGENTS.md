@@ -1,5 +1,7 @@
 # Architecture rules
 
+- Enhance sanitized learning HTML links through a shared media renderer with allowlisted video providers; keep saved lesson content and completion rules unchanged.
+
 - Keep route roots and grid items shrinkable in the shared app shell (full-bleed negative-margin wrappers excepted) and contain horizontal scrolling inside tables and tab lists, giving wide tables a phone minimum width, so dense views cannot widen or squash the mobile page.
 - Constrain shared dialogs and sheets to the dynamic viewport and allow vertical scrolling, so forms and their actions remain reachable on mobile.
 
