@@ -33,6 +33,10 @@ export function VimeoPlayer({ video, startAt = 0, onProgress, onEnded }: Props) 
     let maxPct = 0;
     let lastSec = 0;
 
+    // Bloqueia avançar além do ponto já visto; recuar continua livre. Após ver até ao fim, fica livre.
+    let maxSeen = startAt;
+    let livre = false;
+    let corrigindo = false;
     import("@vimeo/player").then(({ default: Player }) => {
       if (destroyed || !ref.current) return;
       const p = new Player(ref.current, { id: Number(id), responsive: true, dnt: true });
@@ -41,7 +45,9 @@ export function VimeoPlayer({ video, startAt = 0, onProgress, onEnded }: Props) 
         if (startAt > 5) p.setCurrentTime(startAt).catch(() => {});
       });
       p.on("timeupdate", (d: { percent: number; seconds: number }) => {
+        if (!corrigindo && d.seconds - maxSeen < 2) maxSeen = Math.max(maxSeen, d.seconds);
         const pct = Math.round(d.percent * 100);
+        if (pct >= 99) livre = true;
         maxPct = Math.max(maxPct, pct);
         lastSec = d.seconds;
         const now = Date.now();
@@ -51,7 +57,14 @@ export function VimeoPlayer({ video, startAt = 0, onProgress, onEnded }: Props) 
           cb.current(maxPct, d.seconds);
         }
       });
+      p.on("seeked", (d: { seconds: number }) => {
+        if (livre || corrigindo || d.seconds <= maxSeen + 1) return;
+        corrigindo = true;
+        p.setCurrentTime(maxSeen).catch(() => {}).finally(() => { corrigindo = false; });
+        import("sonner").then(({ toast }) => toast.info("Não é possível avançar o vídeo antes de o ver."));
+      });
       p.on("ended", () => {
+        livre = true;
         cb.current(100, lastSec);
         endedCb.current?.();
       });

@@ -16,7 +16,7 @@ export const getCaderno = createServerFn({ method: "POST" })
       sb.from("cursos").select("title").eq("id", data.cursoId).single(),
       sb.from("utilizadores").select("full_name").eq("id", context.userId).maybeSingle(),
       sb.from("cursos_modulos").select("id,title,sort_order,cursos_passos(id,title,tipo,conteudo,sort_order)").eq("curso_id", data.cursoId).order("sort_order"),
-      sb.from("cursos_progresso").select("passo_id,estado,resposta,concluido_em").eq("inscricao_id", inscricao.id).eq("user_id", context.userId),
+      sb.from("cursos_progresso").select("passo_id,estado,resposta,concluido_em,comentario,comentario_autor_nome,comentario_em").eq("inscricao_id", inscricao.id).eq("user_id", context.userId),
     ]);
     if (!curso || courseError || modulesError || responsesError) throw new Error("Não foi possível carregar o teu Caderno.");
     return {
@@ -26,7 +26,8 @@ export const getCaderno = createServerFn({ method: "POST" })
         const r = respostas?.find((item) => item.passo_id === p.id);
         const c = p.conteudo && typeof p.conteudo === "object" && !Array.isArray(p.conteudo) ? p.conteudo : {};
         const pergunta = typeof c.enunciado === "string" ? c.enunciado : typeof c.pergunta === "string" ? c.pergunta : typeof c.html === "string" ? c.html : p.title;
-        return { passoId: p.id, title: p.title, pergunta, resposta: r ? entradaSubmetida(r.estado, r.resposta) : null, data: r?.estado === "concluido" ? r.concluido_em : null };
+        const resposta = r ? entradaSubmetida(r.estado, r.resposta) : null;
+        return { passoId: p.id, title: p.title, pergunta, resposta, data: r?.estado === "concluido" ? r.concluido_em : null, comentario: resposta && r?.comentario ? { texto: r.comentario, autor: r.comentario_autor_nome ?? "Equipa IPAV", em: r.comentario_em } : null };
       }) })),
     };
   });

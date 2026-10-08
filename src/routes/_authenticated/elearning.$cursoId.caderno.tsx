@@ -2,7 +2,7 @@ import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BookOpen, Printer } from "lucide-react";
+import { BookOpen, MessageSquare, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCourseLayout } from "@/components/elearning/CourseLayoutContext";
@@ -41,14 +41,19 @@ function CadernoPage() {
       <h1 className="flex items-center gap-2 text-2xl font-bold text-secondary"><BookOpen className="h-6 w-6" />Caderno de Percurso</h1>
       <p className="text-sm text-muted-foreground">{data.nome}{data.nome ? " · " : ""}{data.curso}</p>
       <p className="text-sm text-muted-foreground">{new Date().toLocaleDateString("pt-PT")} · {entradas.filter((e) => e.resposta).length} entradas · {entradas.length} perguntas-chave</p>
-      <p className="notebook-no-print text-sm text-muted-foreground">Um espaço seu. As suas reflexões são privadas, sem classificação nem comentário.</p>
+      <p className="notebook-no-print text-sm text-muted-foreground">Um espaço seu. As suas reflexões não são classificadas; apenas a Equipa IPAV as pode ler e comentar.</p>
     </header>
     {data.modulos.filter((m) => m.entradas.length).map((m) => <section key={m.id} className="min-w-0 space-y-4"><h2 className="text-xl font-bold text-secondary">Módulo {m.indice} — {m.title}</h2><div className="notebook-entries grid w-full min-w-0 grid-cols-1 items-start gap-5">{m.entradas.map((e) => {
       const passo = course.modulos.flatMap((item) => item.passos).find((p) => p.id === e.passoId);
       return <div key={e.passoId} className={`notebook-entry min-w-0 break-words rounded-xl border border-l-2 bg-card p-5 shadow-sm ${e.resposta ? "border-l-secondary" : "notebook-unanswered border-border text-muted-foreground"}`}>
         <h3 className="text-base font-semibold">{e.title}</h3>
         <div className="rich-text mt-2 text-sm" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(e.pergunta) }} />
-        {e.resposta ? <><div className="rich-text mt-3 rounded-lg border bg-muted/40 p-4 text-sm" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(e.resposta) }} />{e.data && <p className="mt-2 text-xs text-muted-foreground">{new Date(e.data).toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" })}</p>}</> : <p className="mt-3 text-sm">Ainda sem resposta. {passo && passo.estado !== "bloqueado" ? <Link to="/elearning/$cursoId/passo/$passoId" params={{ cursoId, passoId: e.passoId }} className="text-primary underline">Abrir momento</Link> : <span>{passo?.bloqueio_motivo}</span>}</p>}
+        {e.resposta ? <><div className="rich-text mt-3 rounded-lg border bg-muted/40 p-4 text-sm" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(e.resposta) }} />{e.data && <p className="mt-2 text-xs text-muted-foreground">{new Date(e.data).toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" })}</p>}
+          {e.comentario && <div className="notebook-comment mt-4 rounded-lg border border-l-4 border-l-primary bg-primary/[0.05] p-4">
+            <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary"><MessageSquare className="h-3.5 w-3.5" />Comentário da Equipa IPAV</p>
+            <p className="mt-2 whitespace-pre-wrap text-sm text-foreground">{e.comentario.texto}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{e.comentario.autor}{e.comentario.em ? ` · ${new Date(e.comentario.em).toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" })}` : ""}</p>
+          </div>}</> : <p className="mt-3 text-sm">Ainda sem resposta. {passo && passo.estado !== "bloqueado" ? <Link to="/elearning/$cursoId/passo/$passoId" params={{ cursoId, passoId: e.passoId }} className="text-primary underline">Abrir momento</Link> : <span>{passo?.bloqueio_motivo}</span>}</p>}
       </div>;
     })}</div></section>)}
     {!entradas.length && <p className="rounded-xl border bg-card p-5 text-sm text-muted-foreground shadow-sm">Este curso ainda não tem perguntas de reflexão.</p>}
