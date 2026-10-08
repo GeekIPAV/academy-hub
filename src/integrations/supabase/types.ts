@@ -656,6 +656,7 @@ export type Database = {
           nota_minima_quiz: number
           pct_minima_video: number
           program_id: string | null
+          progressao_sequencial: boolean
           tem_certificado: boolean
           tipo: string
           title: string
@@ -681,6 +682,7 @@ export type Database = {
           nota_minima_quiz?: number
           pct_minima_video?: number
           program_id?: string | null
+          progressao_sequencial?: boolean
           tem_certificado?: boolean
           tipo?: string
           title: string
@@ -706,6 +708,7 @@ export type Database = {
           nota_minima_quiz?: number
           pct_minima_video?: number
           program_id?: string | null
+          progressao_sequencial?: boolean
           tem_certificado?: boolean
           tipo?: string
           title?: string

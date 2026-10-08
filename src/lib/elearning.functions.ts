@@ -3,6 +3,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { pctPorModulos } from "@/lib/elearning-progress";
+import { bloqueiosSequenciais } from "@/lib/elearning-sequencial";
 
 export type PassoTipo = "video" | "texto" | "recurso" | "quiz" | "reflexao";
 export type PassoEstado = "bloqueado" | "disponivel" | "em_curso" | "concluido";
@@ -27,7 +28,7 @@ export interface CursoCardDTO {
   modulos_em_breve: number;
   badge_final: { id: string; title: string; cover_url: string | null } | null;
   turmas_abertas: { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscritos: number; formador: string | null }[];
-  inscricao: { id: string; estado: string; pct: number; proximo_passo_id: string | null; proximo_passo_titulo: string | null; proximo_modulo_titulo: string | null; ultima_atividade: string | null; iniciado?: boolean } | null;
+  inscricao: { id: string; estado: string; pct: number; proximo_passo_id: string | null; proximo_passo_titulo: string | null; proximo_modulo_titulo: string | null; ultima_atividade: string | null; inscrito_em?: string; iniciado?: boolean } | null;
 }
 
 function baseUrl() {
@@ -81,10 +82,11 @@ export const listCatalogo = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     const { data: inscs } = await sb
       .from("cursos_inscricoes")
-      .select("id, curso_id, estado")
+      .select("id, curso_id, estado, inscrito_em")
       .eq("user_id", context.userId)
       .neq("estado", "cancelado");
-    const resumo = await progressoResumo((inscs ?? []).map((i) => i.id), (inscs ?? []).map((i) => i.curso_id));
+    const detalhes = await Promise.all((inscs ?? []).filter((i) => cursos?.some((c) => c.id === i.curso_id)).map(async (i) => ({ id: i.id, curso: await carregarCurso(context.userId, i.curso_id) })));
+    const resumo = (id: string, _cursoId: string) => detalhes.find((d) => d.id === id)?.curso.curso.inscricao ?? { pct: 0, proximo_passo_id: null, iniciado: false };
     const inscricaoIds = (inscs ?? []).map((i) => i.id);
     const { data: atividade } = inscricaoIds.length
       ? await sb.from("cursos_atividade").select("inscricao_id, created_at").in("inscricao_id", inscricaoIds).order("created_at", { ascending: false })
@@ -126,7 +128,7 @@ export const listCatalogo = createServerFn({ method: "GET" })
         turmas_abertas: (c.cursos_turmas ?? [])
           .filter((t) => t.inscricoes_abertas)
           .map((t) => ({ id: t.id, nome: t.nome, data_inicio: t.data_inicio, data_fim: t.data_fim, vagas: t.vagas, inscritos: count.get(t.id) ?? 0, formador: (t.utilizadores as { full_name: string | null } | null)?.full_name ?? null })),
-        inscricao: insc && r ? { id: insc.id, estado: insc.estado, ...r, proximo_passo_titulo: proximo?.title ?? null, proximo_modulo_titulo: proximo?.modulo ?? null, ultima_atividade: ultimaAtividade.get(insc.id) ?? null } : null,
+        inscricao: insc && r ? { id: insc.id, estado: insc.estado, inscrito_em: insc.inscrito_em, ...r, proximo_passo_titulo: proximo?.title ?? null, proximo_modulo_titulo: proximo?.modulo ?? null, ultima_atividade: ultimaAtividade.get(insc.id) ?? null } : null,
       };
     });
   });
@@ -160,6 +162,7 @@ export interface CursoDetalhe {
     acreditacao_ref: string | null;
     nota_minima_quiz: number;
     pct_minima_video: number;
+    progressao_sequencial: boolean;
     badge_entrada: { id: string; title: string; cover_url: string | null } | null;
     badge_final: { id: string; title: string; cover_url: string | null } | null;
     apresentacao: CursoApresentacao;
@@ -202,6 +205,8 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
   const turmas = (c.cursos_turmas ?? []) as { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscricoes_abertas: boolean; formador_id: string | null; utilizadores: { full_name: string | null } | null }[];
   const turma = insc?.turma_id ? turmas.find((t) => t.id === insc.turma_id) ?? null : null;
   const { aberturaModulo } = await import("@/lib/elearning.server");
+  const orderedModules = (mods ?? []).map((m) => ({ passos: [...(m.cursos_passos ?? [])].sort((a, b) => a.sort_order - b.sort_order) }));
+  const bloqueios = bloqueiosSequenciais(orderedModules, new Set(prog.filter((p) => p.estado === "concluido").map((p) => p.passo_id)), c.progressao_sequencial);
 
   const modulos: ModuloResumo[] = (mods ?? []).map((m) => {
     const abre = aberturaModulo(c.modalidade, m.abertura_dias, turma?.data_inicio ?? null);
@@ -220,13 +225,13 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
           tipo: p.tipo,
           obrigatorio: p.obrigatorio,
           duracao_min: p.duracao_min,
-          estado: !insc || abre ? "bloqueado" : ((pmap.get(p.id) as PassoEstado | undefined) ?? "disponivel"),
+          estado: !insc || abre || bloqueios.has(p.id) ? "bloqueado" : ((pmap.get(p.id) as PassoEstado | undefined) ?? "disponivel"),
            nota: nmap.get(p.id) ?? null,
           bloqueio_motivo: !insc
             ? "Inscreve-te para aceder"
             : abre
               ? `Abre a ${new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: "short" }).format(new Date(`${abre}T12:00:00`))}`
-              : null,
+               : bloqueios.get(p.id) ?? null,
         })),
     };
   });
@@ -265,6 +270,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
       acreditacao_ref: c.acreditacao_ref,
       nota_minima_quiz: c.nota_minima_quiz,
       pct_minima_video: c.pct_minima_video,
+      progressao_sequencial: c.progressao_sequencial,
       badge_entrada: (c.be as never) ?? null,
       badge_final: (c.bf as never) ?? null,
       turmas_abertas: turmas.filter((t) => t.inscricoes_abertas).map((t) => ({ ...t, inscritos: contagemTurmas.get(t.id) ?? 0, formador: t.utilizadores?.full_name ?? null })),
@@ -373,7 +379,7 @@ export const getPasso = createServerFn({ method: "POST" })
     if (idx < 0) throw new Error("Passo não encontrado.");
     const resumo = flat[idx];
     const isEquipa = curso.curso.inscricao == null;
-    if (resumo.estado === "bloqueado" && !isEquipa) throw new Error("Este passo ainda não está disponível.");
+    if (resumo.estado === "bloqueado" && !isEquipa) throw new Error(resumo.bloqueio_motivo ?? "Este momento ainda não está disponível.");
     if (isEquipa) {
       const { data: r } = await sb.from("user_roles").select("role_name").eq("user_id", context.userId).in("role_name", ["Admin", "Equipa IPAV"]).limit(1);
       if (!r?.length) throw new Error("Inscreve-te no curso para aceder aos passos.");
@@ -442,8 +448,8 @@ export const getPasso = createServerFn({ method: "POST" })
       materiais,
       nota: nota ?? null,
       progresso,
-      anterior: flat[idx - 1]?.id ?? null,
-      seguinte: flat[idx + 1]?.id ?? null,
+      anterior: isEquipa || flat[idx - 1]?.estado !== "bloqueado" ? flat[idx - 1]?.id ?? null : null,
+      seguinte: isEquipa || flat[idx + 1]?.estado !== "bloqueado" ? flat[idx + 1]?.id ?? null : null,
     };
   });
 
@@ -468,6 +474,9 @@ async function getInscricaoPasso(userId: string, passoId: string) {
   const mod = p.cursos_modulos as unknown as { curso_id: string; abertura_dias: number | null };
   const { data: insc } = await sb.from("cursos_inscricoes").select("id, estado, turma_id").eq("user_id", userId).eq("curso_id", mod.curso_id).neq("estado", "cancelado").maybeSingle();
   if (!insc) throw new Error("Não estás inscrito neste curso.");
+  const detalhe = await carregarCurso(userId, mod.curso_id);
+  const resumo = detalhe.modulos.flatMap((m) => m.passos).find((p) => p.id === passoId);
+  if (!resumo || resumo.estado === "bloqueado") throw new Error(resumo?.bloqueio_motivo ?? "Este momento ainda não está disponível.");
   const { data: curso } = await sb.from("cursos").select("modalidade, nota_minima_quiz, pct_minima_video").eq("id", mod.curso_id).single();
   if (!curso) throw new Error("Curso não encontrado.");
   const turma = insc.turma_id ? (await sb.from("cursos_turmas").select("data_inicio").eq("id", insc.turma_id).maybeSingle()).data : null;

@@ -64,6 +64,7 @@ import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/em
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './routes/api/certificates.$actionId.$participanteId'
 import { Route as AuthenticatedRecursosClusterTemaIdRouteImport } from './routes/_authenticated/recursos.$cluster.$temaId'
+import { Route as AuthenticatedElearningCursoIdCadernoRouteImport } from './routes/_authenticated/elearning.$cursoId.caderno'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/gestao'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug/index'
@@ -363,6 +364,12 @@ const AuthenticatedRecursosClusterTemaIdRoute =
     path: '/$temaId',
     getParentRoute: () => AuthenticatedRecursosClusterRoute,
   } as any)
+const AuthenticatedElearningCursoIdCadernoRoute =
+  AuthenticatedElearningCursoIdCadernoRouteImport.update({
+    id: '/caderno',
+    path: '/caderno',
+    getParentRoute: () => AuthenticatedElearningCursoIdRoute,
+  } as any)
 const AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute =
   AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport.update({
     id: '/gestao',
@@ -441,6 +448,7 @@ export interface FileRoutesByFullPath {
   '/admin/elearning/': typeof AdminElearningIndexRoute
   '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
+  '/elearning/$cursoId/caderno': typeof AuthenticatedElearningCursoIdCadernoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -497,6 +505,7 @@ export interface FileRoutesByTo {
   '/recursos': typeof AuthenticatedRecursosIndexRoute
   '/admin/elearning': typeof AdminElearningIndexRoute
   '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
+  '/elearning/$cursoId/caderno': typeof AuthenticatedElearningCursoIdCadernoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -560,6 +569,7 @@ export interface FileRoutesById {
   '/admin/elearning/': typeof AdminElearningIndexRoute
   '/_authenticated/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   '/_authenticated/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
+  '/_authenticated/elearning/$cursoId/caderno': typeof AuthenticatedElearningCursoIdCadernoRoute
   '/_authenticated/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
   '/api/certificates/$actionId/$participanteId': typeof ApiCertificatesActionIdParticipanteIdRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
@@ -623,6 +633,7 @@ export interface FileRouteTypes {
     | '/admin/elearning/'
     | '/cultura-ubuntu/avaliacao/$slug'
     | '/cultura-ubuntu/avaliacao/gestao'
+    | '/elearning/$cursoId/caderno'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
     | '/lovable/email/auth/preview'
@@ -679,6 +690,7 @@ export interface FileRouteTypes {
     | '/recursos'
     | '/admin/elearning'
     | '/cultura-ubuntu/avaliacao/gestao'
+    | '/elearning/$cursoId/caderno'
     | '/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
     | '/lovable/email/auth/preview'
@@ -741,6 +753,7 @@ export interface FileRouteTypes {
     | '/admin/elearning/'
     | '/_authenticated/cultura-ubuntu/avaliacao/$slug'
     | '/_authenticated/cultura-ubuntu/avaliacao/gestao'
+    | '/_authenticated/elearning/$cursoId/caderno'
     | '/_authenticated/recursos/$cluster/$temaId'
     | '/api/certificates/$actionId/$participanteId'
     | '/lovable/email/auth/preview'
@@ -1185,6 +1198,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosClusterTemaIdRouteImport
       parentRoute: typeof AuthenticatedRecursosClusterRoute
     }
+    '/_authenticated/elearning/$cursoId/caderno': {
+      id: '/_authenticated/elearning/$cursoId/caderno'
+      path: '/caderno'
+      fullPath: '/elearning/$cursoId/caderno'
+      preLoaderRoute: typeof AuthenticatedElearningCursoIdCadernoRouteImport
+      parentRoute: typeof AuthenticatedElearningCursoIdRoute
+    }
     '/_authenticated/cultura-ubuntu/avaliacao/gestao': {
       id: '/_authenticated/cultura-ubuntu/avaliacao/gestao'
       path: '/gestao'
@@ -1312,12 +1332,15 @@ const AuthenticatedRecursosRouteWithChildren =
   )
 
 interface AuthenticatedElearningCursoIdRouteChildren {
+  AuthenticatedElearningCursoIdCadernoRoute: typeof AuthenticatedElearningCursoIdCadernoRoute
   AuthenticatedElearningCursoIdIndexRoute: typeof AuthenticatedElearningCursoIdIndexRoute
   AuthenticatedElearningCursoIdPassoPassoIdRoute: typeof AuthenticatedElearningCursoIdPassoPassoIdRoute
 }
 
 const AuthenticatedElearningCursoIdRouteChildren: AuthenticatedElearningCursoIdRouteChildren =
   {
+    AuthenticatedElearningCursoIdCadernoRoute:
+      AuthenticatedElearningCursoIdCadernoRoute,
     AuthenticatedElearningCursoIdIndexRoute:
       AuthenticatedElearningCursoIdIndexRoute,
     AuthenticatedElearningCursoIdPassoPassoIdRoute:

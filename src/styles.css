@@ -62,6 +62,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-learning-reflection: var(--learning-reflection);
+  --color-learning-check: var(--learning-check);
+  --color-learning-case: var(--learning-case);
+  --color-learning-paper: var(--learning-paper);
+  --color-notebook: var(--notebook);
+  --color-notebook-foreground: var(--notebook-foreground);
 }
 
 :root {
@@ -100,6 +106,12 @@
   --sidebar-accent-foreground: #FFFFFF;
   --sidebar-border: #182B47;
   --sidebar-ring: #FF8226;
+  --learning-reflection: #FFF4D6;
+  --learning-check: #E8F3FC;
+  --learning-case: #E9F4EB;
+  --learning-paper: #FFFCF5;
+  --notebook: #204C3D;
+  --notebook-foreground: #F5FAF6;
 }
 
 
@@ -336,4 +348,26 @@
 /* Highlight / selection */
 .alu-calendar .fc .fc-highlight {
   background: color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+@media print {
+  @page { size: A4; margin: 20mm; }
+  body:has(.course-notebook) * { visibility: hidden; }
+  body:has(.course-notebook) *:has(.course-notebook) {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+  body:has(.course-notebook) *:has(.course-notebook) > :not(:has(.course-notebook)):not(.course-notebook) { display: none !important; }
+  .course-notebook, .course-notebook * { visibility: visible !important; }
+  .course-notebook { padding: 0 !important; max-width: none !important; }
+  .course-notebook .notebook-no-print, .course-notebook .notebook-unanswered { display: none !important; }
+  .course-notebook h2, .course-notebook h3 { break-after: avoid; }
+  .course-notebook .notebook-entry { break-inside: auto; margin-top: 6mm; }
+  .course-notebook p { orphans: 3; widows: 3; }
 }

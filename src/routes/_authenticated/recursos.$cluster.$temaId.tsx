@@ -61,7 +61,7 @@ export const Route = createFileRoute("/_authenticated/recursos/$cluster/$temaId"
   component: TemaDetail,
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl py-16 text-center text-destructive">
-      {error.message}
+      {error instanceof Error ? error.message : "Não foi possível carregar o tema."}
     </div>
   ),
   notFoundComponent: () => (

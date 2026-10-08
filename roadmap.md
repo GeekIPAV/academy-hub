@@ -54,8 +54,9 @@
 - [ ] Testar no navegador a 375/1280px — aguarda sessão iniciada na pré-visualização
 
 ## Percurso e Caderno de formação
-- [ ] Mostrar percurso pessoal à entrada do E-learning e catálogo compacto abaixo
-- [ ] Aplicar progressão sequencial opcional no servidor e em todas as vistas
-- [ ] Integrar nota Como funciona e Caderno privado com exportação PDF
-- [ ] Preencher apresentação e ativar progressão no curso indicado
-- [ ] Validar regras e experiência a 375px e 1280px
+- [x] Mostrar percurso pessoal à entrada do E-learning e catálogo compacto abaixo
+- [x] Aplicar progressão sequencial opcional no servidor e em todas as vistas
+- [x] Integrar nota Como funciona e Caderno privado com opção de impressão em PDF
+- [x] Preencher apresentação e ativar progressão no curso indicado
+- [x] Validar regras com testes automáticos
+- [ ] Validar experiência autenticada a 375px e 1280px — pré-visualização redireciona para iniciar sessão
