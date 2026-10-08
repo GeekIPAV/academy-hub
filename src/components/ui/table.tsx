@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
     <div className="relative min-w-0 w-full max-w-full overflow-auto" tabIndex={0} role="region" aria-label="Tabela">
-      <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
+      <table ref={ref} data-app-table="" className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   ),
 );

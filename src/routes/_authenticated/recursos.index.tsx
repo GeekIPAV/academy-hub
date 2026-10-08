@@ -105,7 +105,7 @@ function ResourcesIndex() {
           Ainda não existem clusters configurados nos programas.
         </p>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {clusters.map((c) => {
             const row = covers.get(c.name);
             return (
