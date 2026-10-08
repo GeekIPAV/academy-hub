@@ -357,7 +357,7 @@ function Reflexao({ data, inscrito, onDone, refetch, onContinue, onPrevious, int
 }
 
 function PassoTabs({ data }: { data: PassoDetalhe; inscrito: boolean }) {
-  const sobre = <p className="text-sm leading-6 text-muted-foreground">{data.modulo.description || "Não foi adicionada uma descrição específica a este módulo."}</p>;
+  const sobre = data.modulo.description ? <div className="rich-text text-sm leading-6 text-muted-foreground" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(data.modulo.description) }} /> : <p className="text-sm leading-6 text-muted-foreground">Não foi adicionada uma descrição específica a este módulo.</p>;
   if (!data.materiais.length) return <section className="mt-10 border-t pt-5"><h2 className="text-sm font-semibold">Sobre o módulo</h2><div className="mt-3">{sobre}</div></section>;
   return <Tabs defaultValue="sobre" className="mt-10 border-t pt-5"><TabsList className="grid h-auto w-full grid-cols-2"><TabsTrigger value="sobre" className="min-h-10 px-2 text-xs sm:text-sm">Sobre o módulo</TabsTrigger><TabsTrigger value="materiais" className="min-h-10 px-2 text-xs sm:text-sm">Materiais</TabsTrigger></TabsList>
     <TabsContent value="sobre" className="py-5">{sobre}</TabsContent>
