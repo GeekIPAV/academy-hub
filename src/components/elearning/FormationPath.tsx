@@ -44,8 +44,8 @@ export function FormationPath({ data }: { data: CursoDetalhe }) {
         return <li key={p.id} className={`flex min-w-0 items-center gap-3 rounded-lg px-3 py-2.5 ${active ? "bg-primary/5" : "hover:bg-muted/50"}`}>
           <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-semibold ${active ? "bg-primary text-primary-foreground" : done ? "bg-secondary text-secondary-foreground" : "border bg-muted text-muted-foreground"}`}>{done ? <Check className="h-4 w-4" /> : i + 1}</span>
           <div className="min-w-0 flex-1">
-            <p className={`line-clamp-2 text-sm leading-snug ${active ? "font-semibold" : "font-medium"} ${locked ? "text-muted-foreground" : ""}`}>Momento {i + 1} — {p.title}</p>
-            <p className="mt-0.5 line-clamp-2 text-xs leading-snug text-muted-foreground">{TIPO_PASSO[p.tipo]}{p.duracao_min ? ` · ~${p.duracao_min} min` : ""}{locked && p.bloqueio_motivo ? ` · ${p.bloqueio_motivo}` : ""}</p>
+            <p className={`text-sm leading-snug ${active ? "font-semibold" : "font-medium"} ${locked ? "text-muted-foreground" : ""}`}>Momento {i + 1} — {p.title}</p>
+            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{TIPO_PASSO[p.tipo]}{p.duracao_min ? ` · ~${p.duracao_min} min` : ""}{locked && p.bloqueio_motivo ? ` · ${p.bloqueio_motivo}` : ""}</p>
           </div>
           {locked ? <Lock className="h-4 w-4 shrink-0 text-muted-foreground" /> : <Button asChild variant={active ? "outline" : "ghost"} size="sm" className="shrink-0 px-2"><Link to="/elearning/$cursoId/passo/$passoId" params={{ cursoId: data.curso.id, passoId: p.id }}>{active ? p.estado === "em_curso" ? "Continuar" : "Começar" : "Ver"}</Link></Button>}
         </li>;
