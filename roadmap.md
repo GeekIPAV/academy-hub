@@ -1,8 +1,8 @@
 # Cabeçalho compacto
 
 ## Cursos de exemplo na galeria
-- [ ] Criar dois cursos identificados como exemplos, com modalidades e percursos diferentes, sem alterar cursos reais
-- [ ] Confirmar os cursos e módulos na galeria autenticada
+- [x] Criar dois cursos identificados como exemplos, com modalidades e percursos diferentes, sem alterar cursos reais
+- [x] Confirmar os cursos e módulos na galeria autenticada
 
 ## Catálogo por cursos (8 out 2026)
 - [x] Repor grelha de cursos com módulos em lista e percurso numerado por curso
