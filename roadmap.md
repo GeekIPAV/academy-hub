@@ -1,5 +1,12 @@
 # Cabeçalho compacto
 
+## Visão geral mais clara (8 out 2026)
+- [x] Bloco único "O que faço agora" com um só botão principal
+- [x] Percurso num só cartão: módulo atual aberto, restantes como linhas recolhíveis
+- [x] Coluna direita reduzida a um cartão dividido (resumo, badge, caderno)
+- [x] Títulos completos a 375px e 1280px, sem scroll horizontal
+
+
 ## Larguras comuns do curso
 - [x] Unificar contentor e alinhamento da barra nas três vistas
 - [x] Adaptar percurso, lateral, leitura e grelha do Caderno

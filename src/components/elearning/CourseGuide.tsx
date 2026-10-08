@@ -18,17 +18,19 @@ export function ComoFuncionaList({ data }: { data: CursoDetalhe }) {
   </div>;
 }
 
-/** Cartão lateral do Caderno de Percurso, no estilo normal de cartão. */
-export function CadernoCard({ data }: { data: CursoDetalhe }) {
+/** Bloco do Caderno de Percurso; com `bare` entra num cartão dividido, sem `bare` é cartão próprio. */
+export function CadernoCard({ data, bare }: { data: CursoDetalhe; bare?: boolean }) {
   const fn = useServerFn(getCaderno);
   const { data: notebook, error } = useQuery({ queryKey: ["elearning", "caderno", data.curso.id], queryFn: () => fn({ data: { cursoId: data.curso.id } }), enabled: !!data.curso.inscricao });
   const total = data.modulos.flatMap((m) => m.passos).filter((p) => p.tipo === "reflexao").length;
   if (!total) return null;
   const n = notebook?.modulos.flatMap((m) => m.entradas).filter((e) => e.resposta).length ?? 0;
-  return <div className="rounded-xl border bg-card p-5 shadow-sm">
-    <div className="flex items-center gap-2"><BookOpen className="h-5 w-5 text-secondary" /><h3 className="font-semibold text-secondary">Caderno de Percurso</h3></div>
+  const body = <>
+    <div className="flex items-center gap-2"><BookOpen className="h-5 w-5 text-secondary" /><h3 className="text-sm font-bold text-secondary">Caderno de Percurso</h3></div>
     <p className="mt-2 text-sm text-muted-foreground">As tuas reflexões «Parar e refletir», privadas e sem classificação.</p>
     <p className="mt-3 text-xs text-muted-foreground">{error ? "Entradas indisponíveis" : `${n} entradas`} · {total} perguntas-chave</p>
     {data.curso.inscricao && <Button variant="outline" size="sm" asChild className="mt-4 w-full"><Link to="/elearning/$cursoId/caderno" params={{ cursoId: data.curso.id }}>Abrir caderno</Link></Button>}
-  </div>;
+  </>;
+  if (bare) return <div className="p-5">{body}</div>;
+  return <div className="rounded-xl border bg-card p-5 shadow-sm">{body}</div>;
 }
