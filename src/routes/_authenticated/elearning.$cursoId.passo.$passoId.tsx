@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useCourseLayout } from "@/components/elearning/CourseLayoutContext";
 import { toast } from "sonner";
 import {
   Check, CheckCircle2, ChevronLeft, ChevronRight, Circle,
   Download, ExternalLink, FileQuestion, HelpCircle, ListFilter, ListTree, Lock,
-  Maximize2, Menu, RotateCcw, X, XCircle,
+  Maximize2, Menu, NotebookPen, RotateCcw, X, XCircle,
 } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
 import { Button } from "@/components/ui/button";
@@ -44,7 +46,7 @@ export const Route = createFileRoute("/_authenticated/elearning/$cursoId/passo/$
 });
 
 type ActionState = { ready: boolean; help: string; pending?: boolean; label?: string; onAction: () => void };
-type ModuleTransition = { atual: number; proximo: number; modulo: CursoDetalhe["modulos"][number]; notaMedia: number | null };
+type ModuleTransition = { atual: number; proximo: number | null; modulo: CursoDetalhe["modulos"][number] | null; notaMedia: number | null };
 
 function getBlockReason(passo: PassoResumo, inscrito: boolean) {
   if (passo.estado !== "bloqueado") return null;
@@ -64,6 +66,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
   const [open, setOpen] = useState<string[]>(currentModule ? [currentModule.id] : []);
   const activeRef = useRef<HTMLAnchorElement>(null);
   const total = curso.modulos.flatMap((m) => m.passos).length;
+  const emBreve = curso.modulos.filter((m) => !m.passos.length).length;
   const done = curso.modulos.flatMap((m) => m.passos).filter((p) => p.estado === "concluido").length;
 
   useEffect(() => {
@@ -76,6 +79,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
       <p className="line-clamp-2 text-base font-semibold">{curso.curso.title}</p>
       <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground"><span>{done} de {total} passos</span><span>{curso.curso.inscricao?.pct ?? 0}%</span></div>
       <Progress value={curso.curso.inscricao?.pct ?? 0} className="mt-2 h-1.5" />
+      {emBreve > 0 && <p className="mt-2 text-xs text-muted-foreground">{emBreve === 1 ? "1 módulo em breve" : `${emBreve} módulos em breve`}</p>}
       <label className="mt-4 flex min-h-11 cursor-pointer items-center gap-3 text-sm">
         <Checkbox checked={onlyPending} onCheckedChange={(v) => setOnlyPending(!!v)} />
         <ListFilter className="h-4 w-4 text-muted-foreground" /> Mostrar só o que falta
@@ -88,6 +92,10 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
           const minutos = modulo.passos.filter((p) => p.estado !== "concluido").reduce((n, p) => n + (p.duracao_min ?? 0), 0);
           const complete = modulo.passos.length > 0 && feitos === modulo.passos.length;
           const passos = onlyPending ? modulo.passos.filter((p) => p.estado !== "concluido" || p.id === atual) : modulo.passos;
+          if (!modulo.passos.length) return <div key={modulo.id} className="flex items-start gap-3 border-b px-4 py-4 text-muted-foreground">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed text-xs font-semibold">{moduleIndex + 1}</span>
+            <span className="min-w-0 flex-1"><span className="line-clamp-2 font-semibold">{modulo.title}</span><span className="mt-1 inline-flex rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium">Em breve</span></span>
+          </div>;
           if (onlyPending && !passos.length) return null;
           return <AccordionItem value={modulo.id} key={modulo.id} className="border-b">
             <AccordionTrigger className="px-4 py-4 hover:no-underline">
@@ -128,6 +136,8 @@ function LeitorPage() {
   const [drawer, setDrawer] = useState(false);
   const [shortcuts, setShortcuts] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const { headerSlot } = useCourseLayout();
   const [transition, setTransition] = useState<ModuleTransition | null>(null);
   const key = ["elearning", "passo", cursoId, passoId];
   const { data, isLoading, isFetching, error } = useQuery({ queryKey: key, queryFn: () => fetchFn({ data: { cursoId, passoId } }), placeholderData: (previous) => previous });
@@ -156,10 +166,11 @@ function LeitorPage() {
     const moduleIndex = data.curso.modulos.findIndex((m) => m.id === data.modulo.id);
     const stepIndex = data.curso.modulos[moduleIndex]?.passos.findIndex((p) => p.id === data.passo.id) ?? -1;
     const lastInModule = stepIndex === (data.curso.modulos[moduleIndex]?.passos.length ?? 0) - 1;
-    const nextModule = data.curso.modulos[moduleIndex + 1];
-    if (lastInModule && nextModule) {
+    const after = data.curso.modulos.slice(moduleIndex + 1);
+    const nextModule = after.find((m) => m.passos.length > 0) ?? null;
+    if (lastInModule && after.length) {
       const scores = data.curso.modulos[moduleIndex].passos.map((p) => p.id === data.passo.id ? (data.progresso?.nota ?? p.nota) : p.nota).filter((n): n is number => n != null);
-      setTransition({ atual: moduleIndex + 1, proximo: moduleIndex + 2, modulo: nextModule, notaMedia: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null });
+      setTransition({ atual: moduleIndex + 1, proximo: nextModule ? data.curso.modulos.indexOf(nextModule) + 1 : null, modulo: nextModule, notaMedia: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null });
       return;
     }
     if (data.seguinte) navigateTo(data.seguinte);
@@ -178,11 +189,11 @@ function LeitorPage() {
       if (event.key === "m" || event.key === "M") { event.preventDefault(); window.innerWidth < 1024 ? setDrawer((v) => !v) : toggleSidebar(); }
       if (event.key === "?") { event.preventDefault(); setShortcuts(true); }
       if (event.key === "ArrowLeft" && data?.anterior) { event.preventDefault(); navigateTo(data.anterior); }
-      if (event.key === "ArrowRight" && data?.seguinte && data.progresso?.estado === "concluido") { event.preventDefault(); showTransitionOrNext(); }
+      if (event.key === "ArrowRight" && data?.seguinte) { event.preventDefault(); navigateTo(data.seguinte); }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [data, navigateTo, showTransitionOrNext, toggleSidebar]);
+  }, [data, navigateTo, toggleSidebar]);
 
   if (!data && isLoading) return <ReaderSkeleton />;
   if (error || !data) return <ReaderError message={(error as Error)?.message ?? "Passo não encontrado."} cursoId={cursoId} />;
@@ -194,31 +205,33 @@ function LeitorPage() {
   const inscrito = !!data.curso.curso.inscricao;
 
   return <TooltipProvider delayDuration={250}><div className="min-w-0 bg-background">
-    <div className="sticky top-[12.25rem] z-10 -mx-4 grid h-12 grid-cols-[minmax(0,1fr)_auto] items-center border-y bg-background/95 px-2 backdrop-blur sm:-mx-6 sm:px-4 lg:-mx-8 xl:grid-cols-[minmax(0,1fr)_auto_auto]">
-      <div className="flex min-w-0 items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" onClick={() => window.innerWidth < 1024 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5" /></Button>
-        <span className="truncate text-xs text-muted-foreground">Passo {position} de {flat.length}</span>
+    {headerSlot && createPortal(<>
+      <span className="hidden whitespace-nowrap px-1 text-xs text-muted-foreground lg:inline">Passo {position} de {flat.length}</span>
+      <span className="whitespace-nowrap px-1 text-xs text-muted-foreground lg:hidden">{position}/{flat.length}</span>
+      <div className="hidden items-center xl:flex">
+        <Button variant="ghost" size="icon" className="h-9 w-9" disabled={!data.anterior} onClick={() => navigateTo(data.anterior)} aria-label="Passo anterior"><ChevronLeft className="h-4 w-4" /></Button>
+        <Button variant="ghost" size="icon" className="h-9 w-9" disabled={!data.seguinte} onClick={() => navigateTo(data.seguinte)} aria-label="Passo seguinte"><ChevronRight className="h-4 w-4" /></Button>
       </div>
-      <div className="hidden items-center gap-1 xl:flex">
-        <Button variant="ghost" size="sm" disabled={!data.anterior} onClick={() => navigateTo(data.anterior)}><ChevronLeft className="mr-1 h-4 w-4" />Anterior</Button>
-        <Button variant="ghost" size="sm" disabled={!data.seguinte || data.progresso?.estado !== "concluido"} onClick={showTransitionOrNext}>Seguinte<ChevronRight className="ml-1 h-4 w-4" /></Button>
-      </div>
-      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setShortcuts(true)} aria-label="Atalhos de teclado"><HelpCircle className="h-4 w-4" /></Button>
-    </div>
+      <Button variant="ghost" size="sm" className="h-10 px-2 sm:px-3" onClick={() => setNotesOpen(true)} aria-label="Notas"><NotebookPen className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Notas</span></Button>
+      <Button variant="ghost" size="icon" className="hidden h-9 w-9 lg:inline-flex" onClick={() => setShortcuts(true)} aria-label="Atalhos de teclado"><HelpCircle className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => window.innerWidth < 1024 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5" /></Button>
+    </>, headerSlot)}
 
     <div className={cn("relative grid min-w-0 transition-[grid-template-columns] duration-200", sidebarOpen ? "xl:grid-cols-[300px_minmax(0,1fr)]" : "xl:grid-cols-[0_minmax(0,1fr)]")}>
       <aside className={cn("absolute inset-y-0 left-0 z-20 hidden w-[300px] overflow-hidden border-r bg-background shadow-lg lg:block xl:hidden", !sidebarOpen && "invisible")}><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} /></aside>
-      <aside className={cn("sticky top-[15.25rem] hidden h-[calc(100svh-15.25rem)] min-h-0 overflow-hidden border-r xl:block", !sidebarOpen && "invisible")}><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} /></aside>
-      <main ref={scrollRef} className="relative min-w-0 scroll-mt-[15.25rem] scroll-smooth pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:pb-0">
+      <aside className={cn("sticky top-[var(--course-top)] hidden h-[calc(100svh-var(--course-top))] min-h-0 overflow-hidden border-r xl:block", !sidebarOpen && "invisible")}><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} /></aside>
+      <main ref={scrollRef} className="relative min-w-0 scroll-mt-[var(--course-top)] scroll-smooth pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:pb-0">
         {isFetching && <div className="absolute inset-x-0 top-0 z-20"><Progress value={35} className="h-0.5 animate-pulse" /></div>}
-        {isFetching && data.passo.id !== passoId ? <ContentSkeleton /> : transition ? <ModuleComplete transition={transition} data={data} onContinue={() => { const first = transition.modulo.passos.find((p) => p.estado !== "bloqueado"); if (first) navigateTo(first.id); }} /> :
+        {isFetching && data.passo.id !== passoId ? <ContentSkeleton /> : transition ? <ModuleComplete transition={transition} data={data} onContinue={() => { const first = transition.modulo?.passos.find((p) => p.estado !== "bloqueado"); if (first) navigateTo(first.id); }} onOverview={() => navigate({ to: "/elearning/$cursoId", params: { cursoId } })} /> :
           <ReaderContent key={data.passo.id} data={data} inscrito={inscrito} titleRef={titleRef} onDone={onDone} refetch={() => qc.invalidateQueries({ queryKey: key })} onContinue={showTransitionOrNext} onPrevious={() => navigateTo(data.anterior)} />}
       </main>
     </div>
 
     <Sheet open={drawer} onOpenChange={setDrawer}><SheetContent side="left" className="flex h-full w-[min(92vw,360px)] flex-col p-0 sm:max-w-none"><SheetHeader className="sr-only"><SheetTitle>Módulos do curso</SheetTitle><SheetDescription>Escolhe um módulo ou passo.</SheetDescription></SheetHeader><div className="min-h-0 flex-1"><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} onSelect={() => setDrawer(false)} /></div><div className="shrink-0 border-t px-5 py-3 text-xs text-muted-foreground">Módulo {data.modulo.indice} · Passo {moduleStep + 1}/{data.curso.modulos.find((m) => m.id === data.modulo.id)?.passos.length ?? 0}</div></SheetContent></Sheet>
 
-    <Dialog open={shortcuts} onOpenChange={setShortcuts}><DialogContent><DialogHeader><DialogTitle>Atalhos de teclado</DialogTitle><DialogDescription>Navega no curso sem tirar as mãos do teclado.</DialogDescription></DialogHeader><dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 text-sm"><kbd className="rounded border bg-muted px-2 py-1 text-center">←</kbd><dd>Passo anterior</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">→</kbd><dd>Passo seguinte, quando concluído</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">M</kbd><dd>Abrir ou fechar os módulos</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">?</kbd><dd>Mostrar estes atalhos</dd></dl></DialogContent></Dialog>
+    <Sheet open={notesOpen} onOpenChange={setNotesOpen}><SheetContent side="right" className="flex w-[min(92vw,420px)] flex-col sm:max-w-none"><SheetHeader><SheetTitle>As minhas notas</SheetTitle><SheetDescription className="line-clamp-2">{data.passo.title}</SheetDescription></SheetHeader><PersonalNotes key={data.passo.id} data={data} inscrito={inscrito} /></SheetContent></Sheet>
+
+    <Dialog open={shortcuts} onOpenChange={setShortcuts}><DialogContent><DialogHeader><DialogTitle>Atalhos de teclado</DialogTitle><DialogDescription>Navega no curso sem tirar as mãos do teclado.</DialogDescription></DialogHeader><dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 text-sm"><kbd className="rounded border bg-muted px-2 py-1 text-center">←</kbd><dd>Passo anterior</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">→</kbd><dd>Passo seguinte</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">M</kbd><dd>Abrir ou fechar os módulos</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">?</kbd><dd>Mostrar estes atalhos</dd></dl></DialogContent></Dialog>
     <Dialog open={celebrar} onOpenChange={setCelebrar}><DialogContent className="text-center"><DialogHeader><DialogTitle className="text-center text-2xl">Parabéns!</DialogTitle></DialogHeader><CheckCircle2 className="mx-auto h-16 w-16 text-primary" /><p>Concluíste o curso. O teu badge e certificado estão a ser preparados.</p><Button onClick={() => navigate({ to: "/elearning/$cursoId", params: { cursoId } })}>Ver a conclusão do curso</Button></DialogContent></Dialog>
   </div></TooltipProvider>;
 }
@@ -237,19 +250,18 @@ function ReaderContent({ data, inscrito, titleRef, onDone, refetch, onContinue, 
   </div>;
 }
 
-function ActionBar({ state, concluido, anterior, onPrevious }: { state: ActionState; concluido: boolean; anterior: boolean; onPrevious: () => void }) {
+function BottomBar({ left, center, right }: { left: React.ReactNode; center: React.ReactNode; right: React.ReactNode }) {
   return <>
-    <div className="sticky bottom-0 z-10 mt-10 hidden grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 border-t bg-background/95 py-4 backdrop-blur lg:grid">
-      <Button variant="ghost" disabled={!anterior} onClick={onPrevious}><ChevronLeft className="mr-1 h-4 w-4" />Anterior</Button>
-      <p className="min-w-0 text-center text-xs text-muted-foreground">{concluido ? <span className="font-medium text-primary">✓ Concluído</span> : state.help}</p>
-      <Button disabled={!state.ready || state.pending} onClick={state.onAction}>{state.label ?? "Concluir e continuar"}<ChevronRight className="ml-1 h-4 w-4" /></Button>
-    </div>
-    <div className="fixed inset-x-0 bottom-0 z-40 grid min-h-16 grid-cols-[56px_minmax(0,1fr)_auto] items-center gap-2 border-t bg-background/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
-      <Button variant="ghost" size="icon" className="h-11 w-11" disabled={!anterior} onClick={onPrevious} aria-label="Anterior"><ChevronLeft className="h-5 w-5" /></Button>
-      <p className="min-w-0 truncate text-center text-xs text-muted-foreground">{concluido ? <span className="font-medium text-primary">✓ Concluído</span> : state.help}</p>
-      <Button className="min-h-11 px-3" disabled={!state.ready || state.pending} onClick={state.onAction}><span className="max-w-36 truncate">{state.label ?? "Concluir e continuar"}</span><ChevronRight className="ml-1 h-4 w-4" /></Button>
-    </div>
+    <div className="sticky bottom-0 z-10 mt-10 hidden grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 border-t bg-background/95 py-4 backdrop-blur lg:grid">{left}<div className="min-w-0 text-center text-xs text-muted-foreground">{center}</div>{right}</div>
+    <div className="fixed inset-x-0 bottom-0 z-40 grid min-h-16 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-t bg-background/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">{left}<div className="min-w-0 truncate text-center text-xs text-muted-foreground">{center}</div>{right}</div>
   </>;
+}
+
+function ActionBar({ state, concluido, anterior, onPrevious }: { state: ActionState; concluido: boolean; anterior: boolean; onPrevious: () => void }) {
+  return <BottomBar
+    left={<Button variant="ghost" className="min-h-11" disabled={!anterior} onClick={onPrevious} aria-label="Anterior"><ChevronLeft className="h-4 w-4 lg:mr-1" /><span className="hidden lg:inline">Anterior</span></Button>}
+    center={concluido ? <span className="font-medium text-primary">✓ Concluído</span> : state.help}
+    right={<Button className="min-h-11 px-3" disabled={!state.ready || state.pending} onClick={state.onAction}><span className="max-w-36 truncate lg:max-w-none">{state.label ?? "Concluir e continuar"}</span><ChevronRight className="ml-1 h-4 w-4" /></Button>} />;
 }
 
 function PassoConteudo({ data, inscrito, onDone, refetch, onContinue, onPrevious }: { data: PassoDetalhe; inscrito: boolean; onDone: (c?: boolean) => void; refetch: () => void; onContinue: () => void; onPrevious: () => void }) {
@@ -272,7 +284,7 @@ function PassoConteudo({ data, inscrito, onDone, refetch, onContinue, onPrevious
       <ActionBar concluido={ready} anterior={!!data.anterior} onPrevious={onPrevious} state={{ ready, help: `Vê o vídeo até ${data.curso.curso.pct_minima_video}% para continuar`, onAction: onContinue }} />
     </div>;
   }
-  if (passo.tipo === "texto") return <div>{intro ?? <EmptyContent text="Este passo ainda não tem conteúdo de leitura." />}<ActionBar concluido={concluido} anterior={!!data.anterior} onPrevious={onPrevious} state={{ ready: inscrito, pending: concluir.isPending, help: "Termina a leitura para continuar", onAction: concluido ? onContinue : () => concluir.mutate() }} /></div>;
+  if (passo.tipo === "texto") return <div>{intro ?? <EmptyContent text="Este passo ainda não tem conteúdo de leitura." />}<ActionBar concluido={concluido} anterior={!!data.anterior} onPrevious={onPrevious} state={{ ready: inscrito, pending: concluir.isPending, help: passo.duracao_min ? `Tempo estimado ${passo.duracao_min} min` : "", onAction: concluido ? onContinue : () => concluir.mutate() }} /></div>;
   if (passo.tipo === "recurso") return <ResourceStep data={data} intro={intro} concluido={concluido} inscrito={inscrito} pending={concluir.isPending} onAction={concluido ? onContinue : () => concluir.mutate()} onPrevious={onPrevious} />;
   if (passo.tipo === "quiz") return <QuizRunner data={data} inscrito={inscrito} onDone={onDone} refetch={refetch} onContinue={onContinue} onPrevious={onPrevious} intro={intro} />;
   return <Reflexao data={data} inscrito={inscrito} onDone={onDone} refetch={refetch} onContinue={onContinue} onPrevious={onPrevious} intro={intro} />;
@@ -316,12 +328,11 @@ function QuizRunner({ data, inscrito, onDone, refetch, onContinue, onPrevious, i
     <Accordion type="multiple" className="rounded-lg border px-4">{questions.map((q, i) => { const fb = result.feedback[q.id]; const selected = answers[q.id] ?? []; return <AccordionItem value={q.id} key={q.id}><AccordionTrigger className="hover:no-underline"><span className="flex items-center gap-2 text-left">{fb?.correta ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <XCircle className="h-4 w-4 text-destructive" />}Pergunta {i + 1}: {q.enunciado}</span></AccordionTrigger><AccordionContent className="space-y-3"><p className="text-sm"><strong>A tua resposta:</strong> {q.opcoes.filter((o) => selected.includes(o.id)).map((o) => o.texto).join(", ") || "Sem resposta"}</p><p className="text-sm"><strong>Resposta correta:</strong> {q.opcoes.filter((o) => fb?.corretas.includes(o.id)).map((o) => o.texto).join(", ")}</p>{Object.entries(fb?.feedback ?? {}).map(([id, text]) => <p key={id} className="text-sm text-muted-foreground">{q.opcoes.find((o) => o.id === id)?.texto}: {text}</p>)}</AccordionContent></AccordionItem>; })}</Accordion>
     <Button variant="outline" onClick={() => { setAnswers({}); setResult(null); setIndex(0); }}><RotateCcw className="mr-2 h-4 w-4" />Tentar de novo</Button>
     <ActionBar concluido={result.aprovado} anterior={!!data.anterior} onPrevious={onPrevious} state={{ ready: result.aprovado, help: "É necessário obter aprovação para continuar", onAction: onContinue }} /></div>;
-  if (review) { const missing = questions.filter((q) => !(answers[q.id]?.length)); return <div className="space-y-5">{intro}<Card className="p-6"><h2 className="text-xl font-semibold">Revê antes de submeter</h2><p className="mt-2 text-sm text-muted-foreground">{missing.length ? `Tens ${missing.length} ${missing.length === 1 ? "pergunta" : "perguntas"} por responder.` : "Respondeste a todas as perguntas."}</p><div className="mt-5 space-y-2">{questions.map((q, i) => <Button key={q.id} variant="ghost" className="w-full justify-start" onClick={() => { setIndex(i); setReview(false); }}>{answers[q.id]?.length ? <Check className="mr-2 h-4 w-4 text-primary" /> : <Circle className="mr-2 h-4 w-4" />}Pergunta {i + 1}</Button>)}</div></Card><div className="flex justify-between"><Button variant="outline" onClick={() => setReview(false)}>Voltar às perguntas</Button><Button disabled={mutation.isPending} onClick={() => mutation.mutate()}>Submeter quiz</Button></div><ActionBar concluido={false} anterior={!!data.anterior} onPrevious={onPrevious} state={{ ready: false, help: "Submete o quiz para continuar", onAction: () => undefined }} /></div>; }
+  if (review) { const missing = questions.filter((q) => !(answers[q.id]?.length)); return <div className="space-y-5">{intro}<Card className="p-6"><h2 className="text-xl font-semibold">Revê antes de submeter</h2><p className="mt-2 text-sm text-muted-foreground">{missing.length ? `Tens ${missing.length} ${missing.length === 1 ? "pergunta" : "perguntas"} por responder.` : "Respondeste a todas as perguntas."}</p><div className="mt-5 space-y-2">{questions.map((q, i) => <Button key={q.id} variant="ghost" className="w-full justify-start" onClick={() => { setIndex(i); setReview(false); }}>{answers[q.id]?.length ? <Check className="mr-2 h-4 w-4 text-primary" /> : <Circle className="mr-2 h-4 w-4" />}Pergunta {i + 1}</Button>)}</div></Card><BottomBar left={<Button variant="ghost" className="min-h-11" onClick={() => setReview(false)}><ChevronLeft className="h-4 w-4 lg:mr-1" /><span className="hidden sm:inline">Voltar às perguntas</span></Button>} center={missing.length ? `${missing.length} por responder` : "Pronto para submeter"} right={<Button className="min-h-11" disabled={mutation.isPending || !inscrito} onClick={() => mutation.mutate()}>Submeter quiz</Button>} /></div>; }
   const q = questions[index];
   return <div className="space-y-5">{intro}<div><div className="flex items-center justify-between text-sm"><span>Pergunta {index + 1} de {questions.length}</span><span className="text-muted-foreground">{q.tipo === "multipla" ? "Escolhe todas as corretas" : "Escolhe uma opção"}</span></div><div className="mt-3 flex gap-1">{questions.map((item, i) => <span key={item.id} className={cn("h-1.5 flex-1 rounded-full", i <= index ? "bg-primary" : "bg-muted")} />)}</div></div>
     <Card className="space-y-5 p-5 sm:p-6"><h2 className="text-lg font-semibold">{q.enunciado}</h2>{q.tipo === "unica" ? <RadioGroup value={(answers[q.id] ?? [])[0] ?? ""} onValueChange={(v) => toggle(q.id, v, false)}>{q.opcoes.map((o, i) => <label key={o.id} className="grid min-h-12 cursor-pointer grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted/50"><span className="grid h-6 w-6 place-items-center rounded border bg-muted text-xs">{i + 1}</span><RadioGroupItem value={o.id} />{o.texto}</label>)}</RadioGroup> : <div className="space-y-2">{q.opcoes.map((o, i) => <label key={o.id} className="grid min-h-12 cursor-pointer grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-3 rounded-md border p-3 text-sm hover:bg-muted/50"><span className="grid h-6 w-6 place-items-center rounded border bg-muted text-xs">{i + 1}</span><Checkbox checked={(answers[q.id] ?? []).includes(o.id)} onCheckedChange={() => toggle(q.id, o.id, true)} />{o.texto}</label>)}</div>}</Card>
-    <div className="flex items-center justify-between"><Button variant="ghost" disabled={index === 0} onClick={() => setIndex((i) => i - 1)}><ChevronLeft className="mr-1 h-4 w-4" />Pergunta anterior</Button><Button disabled={!answers[q.id]?.length} onClick={() => index < questions.length - 1 ? setIndex((i) => i + 1) : setReview(true)}>{index < questions.length - 1 ? "Pergunta seguinte" : "Rever respostas"}<ChevronRight className="ml-1 h-4 w-4" /></Button></div>
-    <ActionBar concluido={data.progresso?.estado === "concluido"} anterior={!!data.anterior} onPrevious={onPrevious} state={{ ready: false, help: "Conclui o quiz para continuar", onAction: () => undefined }} /></div>;
+    <BottomBar left={<Button variant="ghost" className="min-h-11" disabled={index === 0} onClick={() => setIndex((i) => i - 1)} aria-label="Pergunta anterior"><ChevronLeft className="h-4 w-4 lg:mr-1" /><span className="hidden lg:inline">Pergunta anterior</span></Button>} center={`Pergunta ${index + 1} de ${questions.length}`} right={<Button className="min-h-11" disabled={!answers[q.id]?.length} onClick={() => index < questions.length - 1 ? setIndex((i) => i + 1) : setReview(true)}>{index < questions.length - 1 ? "Seguinte" : "Rever respostas"}<ChevronRight className="ml-1 h-4 w-4" /></Button>} /></div>;
 }
 
 function Reflexao({ data, inscrito, onDone, refetch, onContinue, onPrevious, intro }: { data: PassoDetalhe; inscrito: boolean; onDone: (c?: boolean) => void; refetch: () => void; onContinue: () => void; onPrevious: () => void; intro: React.ReactNode }) {
@@ -343,11 +354,12 @@ function Reflexao({ data, inscrito, onDone, refetch, onContinue, onPrevious, int
   return <div className="space-y-4">{intro && <Card className="border-l-4 border-l-primary p-5"><p className="mb-2 text-xs font-semibold uppercase text-primary">Para refletir</p>{intro}</Card>}<RichTextEditor value={texto} onChange={setTexto} className="[&_.rich-text]:min-h-64" /><div className="flex items-center justify-between text-xs text-muted-foreground"><span>{words} {words === 1 ? "palavra" : "palavras"}</span><span>{saveState === "saving" ? "A guardar…" : saveState === "saved" && savedAt ? `Guardado às ${savedAt.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}` : ""}</span></div>{podePartilhar && <label className="flex min-h-11 items-center gap-2 text-sm"><Checkbox checked={partilhar} onCheckedChange={(v) => setPartilhar(!!v)} />Partilhar com a turma</label>}<ActionBar concluido={done} anterior={!!data.anterior} onPrevious={onPrevious} state={{ ready: inscrito && valid, pending: mutation.isPending, help: "Escreve e submete a tua reflexão para continuar", label: done ? "Continuar" : "Submeter e continuar", onAction: done ? onContinue : () => mutation.mutate() }} /></div>;
 }
 
-function PassoTabs({ data, inscrito }: { data: PassoDetalhe; inscrito: boolean }) {
-  return <Tabs defaultValue="sobre" className="mt-10 border-t pt-5"><TabsList className="grid h-auto w-full grid-cols-3"><TabsTrigger value="sobre" className="min-h-10 px-2 text-xs sm:text-sm">Sobre este passo</TabsTrigger><TabsTrigger value="materiais" className="min-h-10 px-2 text-xs sm:text-sm">Materiais</TabsTrigger><TabsTrigger value="notas" className="min-h-10 px-2 text-xs sm:text-sm">As minhas notas</TabsTrigger></TabsList>
-    <TabsContent value="sobre" className="py-5"><p className="text-sm leading-6 text-muted-foreground">{data.modulo.description || "Não foi adicionada uma descrição específica a este módulo."}</p></TabsContent>
+function PassoTabs({ data }: { data: PassoDetalhe; inscrito: boolean }) {
+  const sobre = <p className="text-sm leading-6 text-muted-foreground">{data.modulo.description || "Não foi adicionada uma descrição específica a este módulo."}</p>;
+  if (!data.materiais.length) return <section className="mt-10 border-t pt-5"><h2 className="text-sm font-semibold">Sobre o módulo</h2><div className="mt-3">{sobre}</div></section>;
+  return <Tabs defaultValue="sobre" className="mt-10 border-t pt-5"><TabsList className="grid h-auto w-full grid-cols-2"><TabsTrigger value="sobre" className="min-h-10 px-2 text-xs sm:text-sm">Sobre o módulo</TabsTrigger><TabsTrigger value="materiais" className="min-h-10 px-2 text-xs sm:text-sm">Materiais</TabsTrigger></TabsList>
+    <TabsContent value="sobre" className="py-5">{sobre}</TabsContent>
     <TabsContent value="materiais" className="py-5"><Materials materiais={data.materiais} /></TabsContent>
-    <TabsContent value="notas" className="py-5"><PersonalNotes data={data} inscrito={inscrito} /></TabsContent>
   </Tabs>;
 }
 
@@ -366,11 +378,11 @@ function PersonalNotes({ data, inscrito }: { data: PassoDetalhe; inscrito: boole
   return <div><Textarea value={text} onChange={(e) => setText(e.target.value)} disabled={!inscrito} placeholder={inscrito ? "Escreve aqui as tuas notas pessoais…" : "Inscreve-te para criares notas."} className="min-h-40 resize-y" /><p className="mt-2 text-xs text-muted-foreground">{status === "saving" ? "A guardar…" : status === "error" ? "Não foi possível guardar. Tenta novamente." : savedAt ? `Guardado às ${new Date(savedAt).toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" })}` : "As notas são privadas."}</p></div>;
 }
 
-function ModuleComplete({ transition, data, onContinue }: { transition: ModuleTransition; data: PassoDetalhe; onContinue: () => void }) {
+function ModuleComplete({ transition, data, onContinue, onOverview }: { transition: ModuleTransition; data: PassoDetalhe; onContinue: () => void; onOverview: () => void }) {
   const current = data.curso.modulos[transition.atual - 1];
   const minutes = current.passos.reduce((n, p) => n + (p.duracao_min ?? 0), 0);
-  const opens = transition.modulo.abre_em;
-  return <div className="mx-auto flex min-h-[calc(100svh-3.5rem)] max-w-2xl items-center px-4 py-10"><Card className="w-full p-6 text-center sm:p-10"><span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-primary text-primary-foreground"><Check className="h-8 w-8" /></span><p className="mt-5 text-sm font-semibold text-primary">Módulo {transition.atual} concluído</p><h1 className="mt-2 text-2xl font-semibold">{current.title}</h1><div className="mx-auto mt-6 grid max-w-md grid-cols-2 gap-3 sm:grid-cols-3"><Summary label="Passos" value={String(current.passos.length)} /><Summary label="Tempo" value={`${minutes} min`} />{transition.notaMedia != null && <Summary label="Quizzes" value={`${transition.notaMedia}%`} />}</div><div className="mt-8 border-t pt-7"><p className="text-sm text-muted-foreground">A seguir</p><p className="mt-1 text-lg font-semibold">Módulo {transition.proximo} · {transition.modulo.title}</p>{opens ? <p className="mt-3 text-sm text-muted-foreground">Abre a {new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${opens}T12:00:00`))}</p> : <Button className="mt-5" onClick={onContinue}>Começar Módulo {transition.proximo}<ChevronRight className="ml-1 h-4 w-4" /></Button>}</div></Card></div>;
+  const opens = transition.modulo?.abre_em;
+  return <div className="mx-auto flex max-w-2xl items-center px-4 py-10"><Card className="w-full p-6 text-center sm:p-10"><span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-primary text-primary-foreground"><Check className="h-8 w-8" /></span><p className="mt-5 text-sm font-semibold text-primary">Módulo {transition.atual} concluído</p><h1 className="mt-2 text-2xl font-semibold">{current.title}</h1><div className="mx-auto mt-6 grid max-w-md grid-cols-2 gap-3 sm:grid-cols-3"><Summary label="Passos" value={String(current.passos.length)} /><Summary label="Tempo" value={`${minutes} min`} />{transition.notaMedia != null && <Summary label="Quizzes" value={`${transition.notaMedia}%`} />}</div><div className="mt-8 border-t pt-7">{transition.modulo ? <><p className="text-sm text-muted-foreground">A seguir</p><p className="mt-1 text-lg font-semibold">Módulo {transition.proximo} · {transition.modulo.title}</p>{opens ? <><p className="mt-3 text-sm text-muted-foreground">Abre a {new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${opens}T12:00:00`))}</p><Button variant="outline" className="mt-5" onClick={onOverview}>Voltar à visão geral</Button></> : <Button className="mt-5" onClick={onContinue}>Começar Módulo {transition.proximo}<ChevronRight className="ml-1 h-4 w-4" /></Button>}</> : <><p className="text-base font-medium">Os próximos módulos estarão disponíveis em breve.</p><p className="mt-1 text-sm text-muted-foreground">Vamos avisar-te por email e na plataforma.</p><Button className="mt-5" onClick={onOverview}>Voltar à visão geral</Button></>}</div></Card></div>;
 }
 
 function Summary({ label, value }: { label: string; value: string }) { return <div className="rounded-md bg-muted p-3"><p className="text-xl font-semibold">{value}</p><p className="text-xs text-muted-foreground">{label}</p></div>; }
