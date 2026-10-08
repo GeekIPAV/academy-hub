@@ -159,6 +159,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
     badge_renovado_id: curso.badge_renovado_id,
     nota_minima_quiz: curso.nota_minima_quiz,
     pct_minima_video: curso.pct_minima_video,
+    progressao_sequencial: curso.progressao_sequencial,
     apresentacao: { percurso: [], como_funciona: [], sequencia: [], ...((curso.apresentacao ?? {}) as object) } as NonNullable<CursoInput["apresentacao"]>,
   });
   const [f, setF] = useState<CursoInput>(initial);
@@ -236,7 +237,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
         <div className="space-y-1"><Label>Referência de acreditação</Label><Input placeholder="ex. CCPFC/ACC-…" value={f.acreditacao_ref ?? ""} onChange={(e) => set("acreditacao_ref", e.target.value || null)} /><p className="text-xs text-muted-foreground">Referência oficial, quando aplicável.</p></div>
         </div>
       </Card>
-      <ApresentacaoEditor value={f.apresentacao!} onChange={(v) => set("apresentacao", v)} />
+      <ApresentacaoEditor value={f.apresentacao ?? { percurso: [], como_funciona: [], sequencia: [] }} onChange={(v) => set("apresentacao", v)} />
       <Card className="space-y-4 p-5">
         <div><h2 className="text-lg font-semibold">Conclusão e certificação</h2><p className="text-sm text-muted-foreground">Regras aplicadas automaticamente ao progresso do formando.</p></div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -247,6 +248,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
         <div className="space-y-1"><Label>% mínima de vídeo visto</Label><Input type="number" min={0} max={100} value={f.pct_minima_video} onChange={(e) => set("pct_minima_video", Number(e.target.value))} /></div>
       </div>
       <label className="flex items-center gap-2 text-sm"><Checkbox checked={f.tem_certificado} onCheckedChange={(v) => set("tem_certificado", !!v)} /> Emite certificado ao concluir</label>
+      <label className="flex items-center gap-2 text-sm"><Checkbox checked={f.progressao_sequencial ?? false} onCheckedChange={(v) => set("progressao_sequencial", !!v)} /> Progressão sequencial</label>
       <div className="flex justify-end"><Button onClick={() => save.mutate(f)} disabled={save.isPending || !f.title.trim() || !dirty}>Guardar alterações</Button></div>
       </Card>
     </div>
