@@ -4,3 +4,5 @@
 - Read the notebook through an authenticated, current-user-scoped function using RLS; never accept a target user identifier for private notebook reads.
 - Reuse existing reflection progress for notebook entries and export through a print stylesheet, so no parallel answer store or PDF service is required.
 - Keep course guidance and catalogue module lists in reusable learning components; catalogue cards fetch existing course detail to reuse server-calculated locks without duplicating progression logic.
+- Define the course shell width and horizontal gutters only in the shared course layout; child views fill it and only prose has a reading-width limit, preventing tab navigation from shifting the shell.
+- Adapt course module grids and header rows to available container width rather than viewport width, so the platform sidebar cannot squeeze their controls or cards.

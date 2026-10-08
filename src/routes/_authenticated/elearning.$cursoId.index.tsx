@@ -38,8 +38,8 @@ function CursoPage() {
   const naoComecou = !curso.inscricao || (!curso.inscricao.iniciado && !curso.inscricao.pct);
 
   return (
-    <div className="mx-auto max-w-6xl pb-8">
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="w-full min-w-0 pb-8">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <main className="min-w-0 space-y-6">
           {concluido ? <Celebracao data={data} /> : <ArranqueBloco />}
 
