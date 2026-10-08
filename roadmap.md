@@ -1,9 +1,9 @@
 # Cabeçalho compacto
 
 ## Larguras comuns do curso
-- [ ] Unificar contentor e alinhamento da barra nas três vistas
-- [ ] Adaptar percurso, lateral, leitura e grelha do Caderno
-- [ ] Validar 375, 768, 1024, 1280, 1440 e 1920px com navegação lateral aberta e fechada
+- [x] Unificar contentor e alinhamento da barra nas três vistas
+- [x] Adaptar percurso, lateral, leitura e grelha do Caderno
+- [x] Validar 375, 768, 1024, 1280, 1440 e 1920px com navegação lateral aberta e fechada (36 vistas; mobile com menu sobreposto verificado separadamente)
 
 ## Cursos de exemplo na galeria
 - [x] Criar dois cursos identificados como exemplos, com modalidades e percursos diferentes, sem alterar cursos reais
@@ -73,7 +73,7 @@
 - [x] Integrar nota Como funciona e Caderno privado com opção de impressão em PDF
 - [x] Preencher apresentação e ativar progressão no curso indicado
 - [x] Validar regras com testes automáticos
-- [ ] Validar experiência autenticada a 375px e 1280px — pré-visualização redireciona para iniciar sessão
+- [x] Validar experiência autenticada a 375px e 1280px — percurso, leitor e Caderno verificados nesta revisão
 
 ## Revisão do espaço do curso
 - [x] Barra única do curso (Visão geral, Formação, Caderno) com ajuda num só menu

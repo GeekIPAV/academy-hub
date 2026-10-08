@@ -18,6 +18,14 @@ import { getCurso, inscreverCurso } from "@/lib/elearning.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId")({
+  head: () => ({ meta: [
+    { title: "Espaço de formação — Escola Ubuntu Online" },
+    { name: "description", content: "Visão geral, momentos de formação e Caderno de Percurso da Escola Ubuntu Online." },
+    { property: "og:title", content: "Espaço de formação — Escola Ubuntu Online" },
+    { property: "og:description", content: "O teu curso, percurso de aprendizagem e reflexões pessoais." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RouteGate path="/elearning"><CourseLayout /></RouteGate>,
 });
 
@@ -146,5 +154,5 @@ function CourseLayout() {
 }
 
 function CourseLayoutSkeleton() {
-  return <div className="mx-auto w-full max-w-[1440px]"><div className="-mx-4 flex h-[52px] items-center gap-3 border-b bg-background px-4 sm:-mx-6 lg:-mx-8"><Skeleton className="h-8 w-10" /><div className="flex-1 space-y-1.5"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-1 w-48" /></div></div><div className="space-y-4 pt-6"><Skeleton className="h-8 w-2/3" /><Skeleton className="h-44 w-full" /></div></div>;
+  return <div className="w-full min-w-0"><div className="flex h-[52px] min-w-0 items-center gap-3 border-b bg-background"><Skeleton className="h-8 w-10 shrink-0" /><div className="min-w-0 flex-1 space-y-1.5"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-1 w-48 max-w-full" /></div></div><div className="space-y-4 pt-6"><Skeleton className="h-8 w-2/3" /><Skeleton className="h-44 w-full" /></div></div>;
 }
