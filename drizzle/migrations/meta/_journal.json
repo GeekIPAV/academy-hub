@@ -15,6 +15,13 @@
       "when": 1791484537073,
       "tag": "0001_projetos_visibilidade_acoes",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791486730933,
+      "tag": "0002_projetos_link_inscricao",
+      "breakpoints": true
     }
   ]
 }
