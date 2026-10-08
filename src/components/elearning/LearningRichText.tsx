@@ -37,7 +37,7 @@ function LinkButton({
         (tone === "document" ? "border-primary/25 bg-primary/[0.06] hover:border-primary/45" : "border-secondary/15 bg-secondary/[0.05] hover:border-secondary/35")
       }
     >
-      <a href={href} target="_blank" rel="noopener noreferrer" className="no-underline flex w-full items-center gap-3">
+      <a href={href} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }} className="no-underline flex w-full items-center gap-3">
         <span aria-hidden className={"grid size-9 shrink-0 place-items-center rounded-lg " + chip}>
           <Icon />
         </span>
