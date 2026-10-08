@@ -23,9 +23,10 @@ export interface CursoCardDTO {
   total_minutos: number;
   total_modulos: number;
   total_passos: number;
+  modulos_em_breve: number;
   badge_final: { id: string; title: string; cover_url: string | null } | null;
   turmas_abertas: { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscritos: number; formador: string | null }[];
-  inscricao: { id: string; estado: string; pct: number; proximo_passo_id: string | null; proximo_passo_titulo: string | null; proximo_modulo_titulo: string | null; ultima_atividade: string | null } | null;
+  inscricao: { id: string; estado: string; pct: number; proximo_passo_id: string | null; proximo_passo_titulo: string | null; proximo_modulo_titulo: string | null; ultima_atividade: string | null; iniciado?: boolean } | null;
 }
 
 function baseUrl() {
@@ -125,6 +126,7 @@ export const listCatalogo = createServerFn({ method: "GET" })
         total_minutos: sum + Math.round(Number(c.horas ?? 0) * 60),
         total_modulos: modulos.length,
         total_passos: passos.length,
+        modulos_em_breve: modulos.filter((m) => !(m.cursos_passos ?? []).length).length,
         badge_final: (c.bf as { id: string; title: string; cover_url: string | null } | null) ?? null,
         turmas_abertas: (c.cursos_turmas ?? [])
           .filter((t) => t.inscricoes_abertas)
@@ -264,6 +266,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
       total_minutos: totalMinutos,
       total_modulos: modulos.length,
       total_passos: total.length,
+      modulos_em_breve: modulos.filter((m) => !m.passos.length).length,
       acreditacao_ref: c.acreditacao_ref,
       nota_minima_quiz: c.nota_minima_quiz,
       pct_minima_video: c.pct_minima_video,
@@ -274,7 +277,8 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
         ? {
             id: insc.id,
             estado: insc.estado,
-            pct: total.length ? Math.round((concl / total.length) * 100) : 0,
+            pct: pctPorModulos(modulos.map((m) => ({ total: m.passos.length, feitos: m.passos.filter((p) => p.estado === "concluido").length }))),
+            iniciado: concl > 0 || insc.estado !== "inscrito",
             proximo_passo_id: total.find((p) => p.estado !== "concluido" && p.estado !== "bloqueado")?.id ?? null,
             proximo_passo_titulo: total.find((p) => p.estado !== "concluido" && p.estado !== "bloqueado")?.title ?? null,
             proximo_modulo_titulo: modulos.find((m) => m.passos.some((p) => p.estado !== "concluido" && p.estado !== "bloqueado"))?.title ?? null,
