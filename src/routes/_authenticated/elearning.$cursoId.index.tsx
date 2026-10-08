@@ -8,7 +8,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { formatarDuracao, PassoTipoIcon } from "@/components/elearning/shared";
+import { formatarDuracao, PassoTipoIcon, TIPO_PASSO } from "@/components/elearning/shared";
 import { getCurso } from "@/lib/elearning.functions";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
@@ -52,7 +52,7 @@ function CursoPage() {
           <SobreFormacao description={curso.description} a={curso.apresentacao} cluster={curso.cluster_name} acreditacao={curso.acreditacao_ref} />
         </main>
 
-        <aside className="min-w-0"><div className="space-y-4 lg:sticky lg:top-[calc(var(--course-top)+1rem)]"><ResumoCard /><BadgeCard /><CadernoCard data={data} /></div></aside>
+        <aside className="min-w-0"><div className="divide-y overflow-hidden rounded-xl border bg-card shadow-sm lg:sticky lg:top-[calc(var(--course-top)+1rem)]"><ResumoCard /><BadgeCard /><CadernoCard data={data} bare /></div></aside>
       </div>
     </div>
   );
