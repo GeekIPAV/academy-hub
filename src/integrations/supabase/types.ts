@@ -700,6 +700,7 @@ export type Database = {
           pct_minima_video: number
           program_id: string | null
           progressao_sequencial: boolean
+          quiz_permite_repetir: boolean
           tem_certificado: boolean
           tipo: string
           title: string
@@ -726,6 +727,7 @@ export type Database = {
           pct_minima_video?: number
           program_id?: string | null
           progressao_sequencial?: boolean
+          quiz_permite_repetir?: boolean
           tem_certificado?: boolean
           tipo?: string
           title: string
@@ -752,6 +754,7 @@ export type Database = {
           pct_minima_video?: number
           program_id?: string | null
           progressao_sequencial?: boolean
+          quiz_permite_repetir?: boolean
           tem_certificado?: boolean
           tipo?: string
           title?: string
