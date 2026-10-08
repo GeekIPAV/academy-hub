@@ -81,7 +81,10 @@ export async function avaliarConclusao(inscricaoId: string, baseUrl: string): Pr
     .from("cursos_modulos")
     .select("id, cursos_passos(id, obrigatorio)")
     .eq("curso_id", insc.curso_id);
-  const passos = (mods ?? []).flatMap((m) => (m.cursos_passos ?? []) as Passo[]);
+  if (!mods?.length) return false;
+  // Um curso só pode ser concluído quando TODOS os módulos têm pelo menos um passo obrigatório.
+  if (!mods.every((m) => ((m.cursos_passos ?? []) as Passo[]).some((p) => p.obrigatorio))) return false;
+  const passos = mods.flatMap((m) => (m.cursos_passos ?? []) as Passo[]);
   const obrig = passos.filter((p) => p.obrigatorio).map((p) => p.id);
   if (obrig.length === 0) return false;
 
