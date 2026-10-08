@@ -9,96 +9,75 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as FaqsRouteImport } from './routes/faqs'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as DadosCertificacaoRouteImport } from './routes/dados-certificacao'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as ActionsRouteImport } from './routes/actions'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PublicacoesRevistasRouteImport } from './routes/publicacoes.revistas'
-import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
-import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
-import { Route as InscricaoEntidadeTokenRouteImport } from './routes/inscricao-entidade.$token'
-import { Route as EventoIdRouteImport } from './routes/evento.$id'
-import { Route as EquipaProgramasRouteImport } from './routes/equipa.programas'
-import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
-import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
-import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
-import { Route as ComunicacaoPropriedadeIntelectualRouteImport } from './routes/comunicacao.propriedade-intelectual'
-import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
-import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
-import { Route as AdminManagerRouteImport } from './routes/admin.manager'
-import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
-import { Route as AdminEntidadesRouteImport } from './routes/admin.entidades'
-import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
-import { Route as AdminBibliotecaRouteImport } from './routes/admin.biblioteca'
-import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
-import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
-import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
-import { Route as AuthenticatedInscricaoProgramasRouteImport } from './routes/_authenticated/inscricao-programas'
-import { Route as AuthenticatedCulturaUbuntuRouteImport } from './routes/_authenticated/cultura-ubuntu'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as ActionsRouteImport } from './routes/actions'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DadosCertificacaoRouteImport } from './routes/dados-certificacao'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as FaqsRouteImport } from './routes/faqs'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedAcoesRouteImport } from './routes/_authenticated/acoes'
-import { Route as AdminElearningIndexRouteImport } from './routes/admin.elearning.index'
-import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
-import { Route as AuthenticatedElearningIndexRouteImport } from './routes/_authenticated/elearning.index'
-import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
-import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
-import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
-import { Route as CertificadosVerificarCodigoRouteImport } from './routes/certificados.verificar.$codigo'
-import { Route as AdminElearningCursoIdRouteImport } from './routes/admin.elearning.$cursoId'
-import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
-import { Route as AuthenticatedElearningCursoIdRouteImport } from './routes/_authenticated/elearning.$cursoId'
-import { Route as AuthenticatedCulturaUbuntuAvaliacaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao'
-import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
+import { Route as AuthenticatedCulturaUbuntuRouteImport } from './routes/_authenticated/cultura-ubuntu'
+import { Route as AuthenticatedInscricaoProgramasRouteImport } from './routes/_authenticated/inscricao-programas'
+import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
+import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
+import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
+import { Route as AdminBibliotecaRouteImport } from './routes/admin.biblioteca'
+import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
+import { Route as AdminEntidadesRouteImport } from './routes/admin.entidades'
+import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
+import { Route as AdminManagerRouteImport } from './routes/admin.manager'
+import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
+import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
+import { Route as ComunicacaoPropriedadeIntelectualRouteImport } from './routes/comunicacao.propriedade-intelectual'
+import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
+import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe'
+import { Route as EntidadeDashboardRouteImport } from './routes/entidade.dashboard'
+import { Route as EquipaProgramasRouteImport } from './routes/equipa.programas'
+import { Route as EventoIdRouteImport } from './routes/evento.$id'
+import { Route as InscricaoEntidadeTokenRouteImport } from './routes/inscricao-entidade.$token'
+import { Route as InscricaoTokenRouteImport } from './routes/inscricao.$token'
+import { Route as PublicacoesBibliotecaRouteImport } from './routes/publicacoes.biblioteca'
+import { Route as PublicacoesRevistasRouteImport } from './routes/publicacoes.revistas'
 import { Route as AuthenticatedActionsIdRouteImport } from './routes/_authenticated/actions.$id'
-import { Route as AuthenticatedRecursosClusterIndexRouteImport } from './routes/_authenticated/recursos.$cluster.index'
-import { Route as AuthenticatedElearningCursoIdIndexRouteImport } from './routes/_authenticated/elearning.$cursoId.index'
+import { Route as AuthenticatedAdminRecursosRouteImport } from './routes/_authenticated/admin.recursos'
+import { Route as AuthenticatedCulturaUbuntuAvaliacaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao'
+import { Route as AuthenticatedElearningIndexRouteImport } from './routes/_authenticated/elearning.index'
+import { Route as AuthenticatedElearningCursoIdRouteImport } from './routes/_authenticated/elearning.$cursoId'
+import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
+import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
+import { Route as AdminElearningIndexRouteImport } from './routes/admin.elearning.index'
+import { Route as AdminElearningCursoIdRouteImport } from './routes/admin.elearning.$cursoId'
+import { Route as CertificadosVerificarCodigoRouteImport } from './routes/certificados.verificar.$codigo'
+import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
+import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
+import { Route as PublicacoesRevistasIdRouteImport } from './routes/publicacoes.revistas.$id'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoIndexRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/index'
-import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
-import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
-import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './routes/api/certificates.$actionId.$participanteId'
-import { Route as AuthenticatedRecursosClusterTemaIdRouteImport } from './routes/_authenticated/recursos.$cluster.$temaId'
-import { Route as AuthenticatedElearningCursoIdCadernoRouteImport } from './routes/_authenticated/elearning.$cursoId.caderno'
-import { Route as AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/gestao'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug'
+import { Route as AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/gestao'
+import { Route as AuthenticatedElearningCursoIdIndexRouteImport } from './routes/_authenticated/elearning.$cursoId.index'
+import { Route as AuthenticatedElearningCursoIdCadernoRouteImport } from './routes/_authenticated/elearning.$cursoId.caderno'
+import { Route as AuthenticatedRecursosClusterIndexRouteImport } from './routes/_authenticated/recursos.$cluster.index'
+import { Route as AuthenticatedRecursosClusterTemaIdRouteImport } from './routes/_authenticated/recursos.$cluster.$temaId'
+import { Route as ApiCertificatesActionIdParticipanteIdRouteImport } from './routes/api/certificates.$actionId.$participanteId'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as LovableEmailTransactionalSendRouteImport } from './routes/lovable/email/transactional/send'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug/index'
-import { Route as AuthenticatedElearningCursoIdPassoPassoIdRouteImport } from './routes/_authenticated/elearning.$cursoId.passo.$passoId'
 import { Route as AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport } from './routes/_authenticated/cultura-ubuntu/avaliacao/$slug/$section'
+import { Route as AuthenticatedElearningCursoIdPassoPassoIdRouteImport } from './routes/_authenticated/elearning.$cursoId.passo.$passoId'
 
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FaqsRoute = FaqsRouteImport.update({
-  id: '/faqs',
-  path: '/faqs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DadosCertificacaoRoute = DadosCertificacaoRouteImport.update({
-  id: '/dados-certificacao',
-  path: '/dados-certificacao',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ActionsRoute = ActionsRouteImport.update({
@@ -106,100 +85,61 @@ const ActionsRoute = ActionsRouteImport.update({
   path: '/actions',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DadosCertificacaoRoute = DadosCertificacaoRouteImport.update({
+  id: '/dados-certificacao',
+  path: '/dados-certificacao',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PublicacoesRevistasRoute = PublicacoesRevistasRouteImport.update({
-  id: '/publicacoes/revistas',
-  path: '/publicacoes/revistas',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PublicacoesBibliotecaRoute = PublicacoesBibliotecaRouteImport.update({
-  id: '/publicacoes/biblioteca',
-  path: '/publicacoes/biblioteca',
+const FaqsRoute = FaqsRouteImport.update({
+  id: '/faqs',
+  path: '/faqs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InscricaoTokenRoute = InscricaoTokenRouteImport.update({
-  id: '/inscricao/$token',
-  path: '/inscricao/$token',
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InscricaoEntidadeTokenRoute = InscricaoEntidadeTokenRouteImport.update({
-  id: '/inscricao-entidade/$token',
-  path: '/inscricao-entidade/$token',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EventoIdRoute = EventoIdRouteImport.update({
-  id: '/evento/$id',
-  path: '/evento/$id',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedAcoesRoute = AuthenticatedAcoesRouteImport.update({
+  id: '/acoes',
+  path: '/acoes',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
-const EquipaProgramasRoute = EquipaProgramasRouteImport.update({
-  id: '/equipa/programas',
-  path: '/equipa/programas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
-  id: '/entidade/dashboard',
-  path: '/entidade/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
-  id: '/email/unsubscribe',
-  path: '/email/unsubscribe',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConviteTokenRoute = ConviteTokenRouteImport.update({
-  id: '/convite/$token',
-  path: '/convite/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ComunicacaoPropriedadeIntelectualRoute =
-  ComunicacaoPropriedadeIntelectualRouteImport.update({
-    id: '/comunicacao/propriedade-intelectual',
-    path: '/comunicacao/propriedade-intelectual',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedCulturaUbuntuRoute =
+  AuthenticatedCulturaUbuntuRouteImport.update({
+    id: '/cultura-ubuntu',
+    path: '/cultura-ubuntu',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
-const ComunicacaoPressMediaKitRoute =
-  ComunicacaoPressMediaKitRouteImport.update({
-    id: '/comunicacao/press-media-kit',
-    path: '/comunicacao/press-media-kit',
-    getParentRoute: () => rootRouteImport,
+const AuthenticatedInscricaoProgramasRoute =
+  AuthenticatedInscricaoProgramasRouteImport.update({
+    id: '/inscricao-programas',
+    path: '/inscricao-programas',
+    getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AdminProgramasRoute = AdminProgramasRouteImport.update({
-  id: '/admin/programas',
-  path: '/admin/programas',
-  getParentRoute: () => rootRouteImport,
+const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
+  id: '/recursos',
+  path: '/recursos',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AdminManagerRoute = AdminManagerRouteImport.update({
-  id: '/admin/manager',
-  path: '/admin/manager',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminGovernacaoRoute = AdminGovernacaoRouteImport.update({
-  id: '/admin/governacao',
-  path: '/admin/governacao',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminEntidadesRoute = AdminEntidadesRouteImport.update({
-  id: '/admin/entidades',
-  path: '/admin/entidades',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminEmailsRoute = AdminEmailsRouteImport.update({
-  id: '/admin/emails',
-  path: '/admin/emails',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminBibliotecaRoute = AdminBibliotecaRouteImport.update({
-  id: '/admin/biblioteca',
-  path: '/admin/biblioteca',
+const AdminAcoesRoute = AdminAcoesRouteImport.update({
+  id: '/admin/acoes',
+  path: '/admin/acoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminBadgesRoute = AdminBadgesRouteImport.update({
@@ -207,86 +147,102 @@ const AdminBadgesRoute = AdminBadgesRouteImport.update({
   path: '/admin/badges',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminAcoesRoute = AdminAcoesRouteImport.update({
-  id: '/admin/acoes',
-  path: '/admin/acoes',
+const AdminBibliotecaRoute = AdminBibliotecaRouteImport.update({
+  id: '/admin/biblioteca',
+  path: '/admin/biblioteca',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
-  id: '/recursos',
-  path: '/recursos',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedInscricaoProgramasRoute =
-  AuthenticatedInscricaoProgramasRouteImport.update({
-    id: '/inscricao-programas',
-    path: '/inscricao-programas',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedCulturaUbuntuRoute =
-  AuthenticatedCulturaUbuntuRouteImport.update({
-    id: '/cultura-ubuntu',
-    path: '/cultura-ubuntu',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedAcoesRoute = AuthenticatedAcoesRouteImport.update({
-  id: '/acoes',
-  path: '/acoes',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AdminElearningIndexRoute = AdminElearningIndexRouteImport.update({
-  id: '/admin/elearning/',
-  path: '/admin/elearning/',
+const AdminEmailsRoute = AdminEmailsRouteImport.update({
+  id: '/admin/emails',
+  path: '/admin/emails',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRecursosIndexRoute =
-  AuthenticatedRecursosIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedRecursosRoute,
-  } as any)
-const AuthenticatedElearningIndexRoute =
-  AuthenticatedElearningIndexRouteImport.update({
-    id: '/elearning/',
-    path: '/elearning/',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const PublicacoesRevistasIdRoute = PublicacoesRevistasIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => PublicacoesRevistasRoute,
-} as any)
-const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
-  id: '/lovable/email/suppression',
-  path: '/lovable/email/suppression',
+const AdminEntidadesRoute = AdminEntidadesRouteImport.update({
+  id: '/admin/entidades',
+  path: '/admin/entidades',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EntidadeAcoesIdRoute = EntidadeAcoesIdRouteImport.update({
-  id: '/entidade/acoes/$id',
-  path: '/entidade/acoes/$id',
+const AdminGovernacaoRoute = AdminGovernacaoRouteImport.update({
+  id: '/admin/governacao',
+  path: '/admin/governacao',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CertificadosVerificarCodigoRoute =
-  CertificadosVerificarCodigoRouteImport.update({
-    id: '/certificados/verificar/$codigo',
-    path: '/certificados/verificar/$codigo',
+const AdminManagerRoute = AdminManagerRouteImport.update({
+  id: '/admin/manager',
+  path: '/admin/manager',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProgramasRoute = AdminProgramasRouteImport.update({
+  id: '/admin/programas',
+  path: '/admin/programas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComunicacaoPressMediaKitRoute =
+  ComunicacaoPressMediaKitRouteImport.update({
+    id: '/comunicacao/press-media-kit',
+    path: '/comunicacao/press-media-kit',
     getParentRoute: () => rootRouteImport,
   } as any)
-const AdminElearningCursoIdRoute = AdminElearningCursoIdRouteImport.update({
-  id: '/admin/elearning/$cursoId',
-  path: '/admin/elearning/$cursoId',
+const ComunicacaoPropriedadeIntelectualRoute =
+  ComunicacaoPropriedadeIntelectualRouteImport.update({
+    id: '/comunicacao/propriedade-intelectual',
+    path: '/comunicacao/propriedade-intelectual',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ConviteTokenRoute = ConviteTokenRouteImport.update({
+  id: '/convite/$token',
+  path: '/convite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRecursosClusterRoute =
-  AuthenticatedRecursosClusterRouteImport.update({
-    id: '/$cluster',
-    path: '/$cluster',
-    getParentRoute: () => AuthenticatedRecursosRoute,
-  } as any)
-const AuthenticatedElearningCursoIdRoute =
-  AuthenticatedElearningCursoIdRouteImport.update({
-    id: '/elearning/$cursoId',
-    path: '/elearning/$cursoId',
+const EmailUnsubscribeRoute = EmailUnsubscribeRouteImport.update({
+  id: '/email/unsubscribe',
+  path: '/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EntidadeDashboardRoute = EntidadeDashboardRouteImport.update({
+  id: '/entidade/dashboard',
+  path: '/entidade/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EquipaProgramasRoute = EquipaProgramasRouteImport.update({
+  id: '/equipa/programas',
+  path: '/equipa/programas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventoIdRoute = EventoIdRouteImport.update({
+  id: '/evento/$id',
+  path: '/evento/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InscricaoEntidadeTokenRoute = InscricaoEntidadeTokenRouteImport.update({
+  id: '/inscricao-entidade/$token',
+  path: '/inscricao-entidade/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InscricaoTokenRoute = InscricaoTokenRouteImport.update({
+  id: '/inscricao/$token',
+  path: '/inscricao/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicacoesBibliotecaRoute = PublicacoesBibliotecaRouteImport.update({
+  id: '/publicacoes/biblioteca',
+  path: '/publicacoes/biblioteca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicacoesRevistasRoute = PublicacoesRevistasRouteImport.update({
+  id: '/publicacoes/revistas',
+  path: '/publicacoes/revistas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedActionsIdRoute = AuthenticatedActionsIdRouteImport.update({
+  id: '/actions/$id',
+  path: '/actions/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminRecursosRoute =
+  AuthenticatedAdminRecursosRouteImport.update({
+    id: '/admin/recursos',
+    path: '/admin/recursos',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const AuthenticatedCulturaUbuntuAvaliacaoRoute =
@@ -295,85 +251,65 @@ const AuthenticatedCulturaUbuntuAvaliacaoRoute =
     path: '/avaliacao',
     getParentRoute: () => AuthenticatedCulturaUbuntuRoute,
   } as any)
-const AuthenticatedAdminRecursosRoute =
-  AuthenticatedAdminRecursosRouteImport.update({
-    id: '/admin/recursos',
-    path: '/admin/recursos',
+const AuthenticatedElearningIndexRoute =
+  AuthenticatedElearningIndexRouteImport.update({
+    id: '/elearning/',
+    path: '/elearning/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedActionsIdRoute = AuthenticatedActionsIdRouteImport.update({
-  id: '/actions/$id',
-  path: '/actions/$id',
-  getParentRoute: () => AuthenticatedRoute,
+const AuthenticatedElearningCursoIdRoute =
+  AuthenticatedElearningCursoIdRouteImport.update({
+    id: '/elearning/$cursoId',
+    path: '/elearning/$cursoId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedRecursosIndexRoute =
+  AuthenticatedRecursosIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedRecursosRoute,
+  } as any)
+const AuthenticatedRecursosClusterRoute =
+  AuthenticatedRecursosClusterRouteImport.update({
+    id: '/$cluster',
+    path: '/$cluster',
+    getParentRoute: () => AuthenticatedRecursosRoute,
+  } as any)
+const AdminElearningIndexRoute = AdminElearningIndexRouteImport.update({
+  id: '/admin/elearning/',
+  path: '/admin/elearning/',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRecursosClusterIndexRoute =
-  AuthenticatedRecursosClusterIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedRecursosClusterRoute,
+const AdminElearningCursoIdRoute = AdminElearningCursoIdRouteImport.update({
+  id: '/admin/elearning/$cursoId',
+  path: '/admin/elearning/$cursoId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CertificadosVerificarCodigoRoute =
+  CertificadosVerificarCodigoRouteImport.update({
+    id: '/certificados/verificar/$codigo',
+    path: '/certificados/verificar/$codigo',
+    getParentRoute: () => rootRouteImport,
   } as any)
-const AuthenticatedElearningCursoIdIndexRoute =
-  AuthenticatedElearningCursoIdIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedElearningCursoIdRoute,
-  } as any)
+const EntidadeAcoesIdRoute = EntidadeAcoesIdRouteImport.update({
+  id: '/entidade/acoes/$id',
+  path: '/entidade/acoes/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailSuppressionRoute = LovableEmailSuppressionRouteImport.update({
+  id: '/lovable/email/suppression',
+  path: '/lovable/email/suppression',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PublicacoesRevistasIdRoute = PublicacoesRevistasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PublicacoesRevistasRoute,
+} as any)
 const AuthenticatedCulturaUbuntuAvaliacaoIndexRoute =
   AuthenticatedCulturaUbuntuAvaliacaoIndexRouteImport.update({
     id: '/',
     path: '/',
-    getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoRoute,
-  } as any)
-const LovableEmailTransactionalSendRoute =
-  LovableEmailTransactionalSendRouteImport.update({
-    id: '/lovable/email/transactional/send',
-    path: '/lovable/email/transactional/send',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailTransactionalPreviewRoute =
-  LovableEmailTransactionalPreviewRouteImport.update({
-    id: '/lovable/email/transactional/preview',
-    path: '/lovable/email/transactional/preview',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
-  id: '/lovable/email/auth/preview',
-  path: '/lovable/email/auth/preview',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiCertificatesActionIdParticipanteIdRoute =
-  ApiCertificatesActionIdParticipanteIdRouteImport.update({
-    id: '/api/certificates/$actionId/$participanteId',
-    path: '/api/certificates/$actionId/$participanteId',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedRecursosClusterTemaIdRoute =
-  AuthenticatedRecursosClusterTemaIdRouteImport.update({
-    id: '/$temaId',
-    path: '/$temaId',
-    getParentRoute: () => AuthenticatedRecursosClusterRoute,
-  } as any)
-const AuthenticatedElearningCursoIdCadernoRoute =
-  AuthenticatedElearningCursoIdCadernoRouteImport.update({
-    id: '/caderno',
-    path: '/caderno',
-    getParentRoute: () => AuthenticatedElearningCursoIdRoute,
-  } as any)
-const AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute =
-  AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport.update({
-    id: '/gestao',
-    path: '/gestao',
     getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoRoute,
   } as any)
 const AuthenticatedCulturaUbuntuAvaliacaoSlugRoute =
@@ -382,10 +318,80 @@ const AuthenticatedCulturaUbuntuAvaliacaoSlugRoute =
     path: '/$slug',
     getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoRoute,
   } as any)
+const AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute =
+  AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport.update({
+    id: '/gestao',
+    path: '/gestao',
+    getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoRoute,
+  } as any)
+const AuthenticatedElearningCursoIdIndexRoute =
+  AuthenticatedElearningCursoIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedElearningCursoIdRoute,
+  } as any)
+const AuthenticatedElearningCursoIdCadernoRoute =
+  AuthenticatedElearningCursoIdCadernoRouteImport.update({
+    id: '/caderno',
+    path: '/caderno',
+    getParentRoute: () => AuthenticatedElearningCursoIdRoute,
+  } as any)
+const AuthenticatedRecursosClusterIndexRoute =
+  AuthenticatedRecursosClusterIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedRecursosClusterRoute,
+  } as any)
+const AuthenticatedRecursosClusterTemaIdRoute =
+  AuthenticatedRecursosClusterTemaIdRouteImport.update({
+    id: '/$temaId',
+    path: '/$temaId',
+    getParentRoute: () => AuthenticatedRecursosClusterRoute,
+  } as any)
+const ApiCertificatesActionIdParticipanteIdRoute =
+  ApiCertificatesActionIdParticipanteIdRouteImport.update({
+    id: '/api/certificates/$actionId/$participanteId',
+    path: '/api/certificates/$actionId/$participanteId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailTransactionalPreviewRoute =
+  LovableEmailTransactionalPreviewRouteImport.update({
+    id: '/lovable/email/transactional/preview',
+    path: '/lovable/email/transactional/preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailTransactionalSendRoute =
+  LovableEmailTransactionalSendRouteImport.update({
+    id: '/lovable/email/transactional/send',
+    path: '/lovable/email/transactional/send',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRoute =
   AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRouteImport.update({
     id: '/',
     path: '/',
+    getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoSlugRoute,
+  } as any)
+const AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute =
+  AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport.update({
+    id: '/$section',
+    path: '/$section',
     getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoSlugRoute,
   } as any)
 const AuthenticatedElearningCursoIdPassoPassoIdRoute =
@@ -393,12 +399,6 @@ const AuthenticatedElearningCursoIdPassoPassoIdRoute =
     id: '/passo/$passoId',
     path: '/passo/$passoId',
     getParentRoute: () => AuthenticatedElearningCursoIdRoute,
-  } as any)
-const AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRoute =
-  AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport.update({
-    id: '/$section',
-    path: '/$section',
-    getParentRoute: () => AuthenticatedCulturaUbuntuAvaliacaoSlugRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -813,53 +813,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/faqs': {
-      id: '/faqs'
-      path: '/faqs'
-      fullPath: '/faqs'
-      preLoaderRoute: typeof FaqsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dados-certificacao': {
-      id: '/dados-certificacao'
-      path: '/dados-certificacao'
-      fullPath: '/dados-certificacao'
-      preLoaderRoute: typeof DadosCertificacaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/actions': {
-      id: '/actions'
-      path: '/actions'
-      fullPath: '/actions'
-      preLoaderRoute: typeof ActionsRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -869,158 +827,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/actions': {
+      id: '/actions'
+      path: '/actions'
+      fullPath: '/actions'
+      preLoaderRoute: typeof ActionsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/publicacoes/revistas': {
-      id: '/publicacoes/revistas'
-      path: '/publicacoes/revistas'
-      fullPath: '/publicacoes/revistas'
-      preLoaderRoute: typeof PublicacoesRevistasRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/publicacoes/biblioteca': {
-      id: '/publicacoes/biblioteca'
-      path: '/publicacoes/biblioteca'
-      fullPath: '/publicacoes/biblioteca'
-      preLoaderRoute: typeof PublicacoesBibliotecaRouteImport
+    '/dados-certificacao': {
+      id: '/dados-certificacao'
+      path: '/dados-certificacao'
+      fullPath: '/dados-certificacao'
+      preLoaderRoute: typeof DadosCertificacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/inscricao/$token': {
-      id: '/inscricao/$token'
-      path: '/inscricao/$token'
-      fullPath: '/inscricao/$token'
-      preLoaderRoute: typeof InscricaoTokenRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/inscricao-entidade/$token': {
-      id: '/inscricao-entidade/$token'
-      path: '/inscricao-entidade/$token'
-      fullPath: '/inscricao-entidade/$token'
-      preLoaderRoute: typeof InscricaoEntidadeTokenRouteImport
+    '/faqs': {
+      id: '/faqs'
+      path: '/faqs'
+      fullPath: '/faqs'
+      preLoaderRoute: typeof FaqsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/evento/$id': {
-      id: '/evento/$id'
-      path: '/evento/$id'
-      fullPath: '/evento/$id'
-      preLoaderRoute: typeof EventoIdRouteImport
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/equipa/programas': {
-      id: '/equipa/programas'
-      path: '/equipa/programas'
-      fullPath: '/equipa/programas'
-      preLoaderRoute: typeof EquipaProgramasRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/entidade/dashboard': {
-      id: '/entidade/dashboard'
-      path: '/entidade/dashboard'
-      fullPath: '/entidade/dashboard'
-      preLoaderRoute: typeof EntidadeDashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/email/unsubscribe': {
-      id: '/email/unsubscribe'
-      path: '/email/unsubscribe'
-      fullPath: '/email/unsubscribe'
-      preLoaderRoute: typeof EmailUnsubscribeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/convite/$token': {
-      id: '/convite/$token'
-      path: '/convite/$token'
-      fullPath: '/convite/$token'
-      preLoaderRoute: typeof ConviteTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/comunicacao/propriedade-intelectual': {
-      id: '/comunicacao/propriedade-intelectual'
-      path: '/comunicacao/propriedade-intelectual'
-      fullPath: '/comunicacao/propriedade-intelectual'
-      preLoaderRoute: typeof ComunicacaoPropriedadeIntelectualRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/comunicacao/press-media-kit': {
-      id: '/comunicacao/press-media-kit'
-      path: '/comunicacao/press-media-kit'
-      fullPath: '/comunicacao/press-media-kit'
-      preLoaderRoute: typeof ComunicacaoPressMediaKitRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/programas': {
-      id: '/admin/programas'
-      path: '/admin/programas'
-      fullPath: '/admin/programas'
-      preLoaderRoute: typeof AdminProgramasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/manager': {
-      id: '/admin/manager'
-      path: '/admin/manager'
-      fullPath: '/admin/manager'
-      preLoaderRoute: typeof AdminManagerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/governacao': {
-      id: '/admin/governacao'
-      path: '/admin/governacao'
-      fullPath: '/admin/governacao'
-      preLoaderRoute: typeof AdminGovernacaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/entidades': {
-      id: '/admin/entidades'
-      path: '/admin/entidades'
-      fullPath: '/admin/entidades'
-      preLoaderRoute: typeof AdminEntidadesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/emails': {
-      id: '/admin/emails'
-      path: '/admin/emails'
-      fullPath: '/admin/emails'
-      preLoaderRoute: typeof AdminEmailsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/biblioteca': {
-      id: '/admin/biblioteca'
-      path: '/admin/biblioteca'
-      fullPath: '/admin/biblioteca'
-      preLoaderRoute: typeof AdminBibliotecaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/badges': {
-      id: '/admin/badges'
-      path: '/admin/badges'
-      fullPath: '/admin/badges'
-      preLoaderRoute: typeof AdminBadgesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/acoes': {
-      id: '/admin/acoes'
-      path: '/admin/acoes'
-      fullPath: '/admin/acoes'
-      preLoaderRoute: typeof AdminAcoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/recursos': {
-      id: '/_authenticated/recursos'
-      path: '/recursos'
-      fullPath: '/recursos'
-      preLoaderRoute: typeof AuthenticatedRecursosRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/inscricao-programas': {
-      id: '/_authenticated/inscricao-programas'
-      path: '/inscricao-programas'
-      fullPath: '/inscricao-programas'
-      preLoaderRoute: typeof AuthenticatedInscricaoProgramasRouteImport
+    '/_authenticated/acoes': {
+      id: '/_authenticated/acoes'
+      path: '/acoes'
+      fullPath: '/acoes'
+      preLoaderRoute: typeof AuthenticatedAcoesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/cultura-ubuntu': {
@@ -1030,81 +890,165 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCulturaUbuntuRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/acoes': {
-      id: '/_authenticated/acoes'
-      path: '/acoes'
-      fullPath: '/acoes'
-      preLoaderRoute: typeof AuthenticatedAcoesRouteImport
+    '/_authenticated/inscricao-programas': {
+      id: '/_authenticated/inscricao-programas'
+      path: '/inscricao-programas'
+      fullPath: '/inscricao-programas'
+      preLoaderRoute: typeof AuthenticatedInscricaoProgramasRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/admin/elearning/': {
-      id: '/admin/elearning/'
-      path: '/admin/elearning'
-      fullPath: '/admin/elearning/'
-      preLoaderRoute: typeof AdminElearningIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/recursos/': {
-      id: '/_authenticated/recursos/'
-      path: '/'
-      fullPath: '/recursos/'
-      preLoaderRoute: typeof AuthenticatedRecursosIndexRouteImport
-      parentRoute: typeof AuthenticatedRecursosRoute
-    }
-    '/_authenticated/elearning/': {
-      id: '/_authenticated/elearning/'
-      path: '/elearning'
-      fullPath: '/elearning/'
-      preLoaderRoute: typeof AuthenticatedElearningIndexRouteImport
+    '/_authenticated/recursos': {
+      id: '/_authenticated/recursos'
+      path: '/recursos'
+      fullPath: '/recursos'
+      preLoaderRoute: typeof AuthenticatedRecursosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/publicacoes/revistas/$id': {
-      id: '/publicacoes/revistas/$id'
-      path: '/$id'
-      fullPath: '/publicacoes/revistas/$id'
-      preLoaderRoute: typeof PublicacoesRevistasIdRouteImport
-      parentRoute: typeof PublicacoesRevistasRoute
-    }
-    '/lovable/email/suppression': {
-      id: '/lovable/email/suppression'
-      path: '/lovable/email/suppression'
-      fullPath: '/lovable/email/suppression'
-      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+    '/admin/acoes': {
+      id: '/admin/acoes'
+      path: '/admin/acoes'
+      fullPath: '/admin/acoes'
+      preLoaderRoute: typeof AdminAcoesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/entidade/acoes/$id': {
-      id: '/entidade/acoes/$id'
-      path: '/entidade/acoes/$id'
-      fullPath: '/entidade/acoes/$id'
-      preLoaderRoute: typeof EntidadeAcoesIdRouteImport
+    '/admin/badges': {
+      id: '/admin/badges'
+      path: '/admin/badges'
+      fullPath: '/admin/badges'
+      preLoaderRoute: typeof AdminBadgesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/certificados/verificar/$codigo': {
-      id: '/certificados/verificar/$codigo'
-      path: '/certificados/verificar/$codigo'
-      fullPath: '/certificados/verificar/$codigo'
-      preLoaderRoute: typeof CertificadosVerificarCodigoRouteImport
+    '/admin/biblioteca': {
+      id: '/admin/biblioteca'
+      path: '/admin/biblioteca'
+      fullPath: '/admin/biblioteca'
+      preLoaderRoute: typeof AdminBibliotecaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/elearning/$cursoId': {
-      id: '/admin/elearning/$cursoId'
-      path: '/admin/elearning/$cursoId'
-      fullPath: '/admin/elearning/$cursoId'
-      preLoaderRoute: typeof AdminElearningCursoIdRouteImport
+    '/admin/emails': {
+      id: '/admin/emails'
+      path: '/admin/emails'
+      fullPath: '/admin/emails'
+      preLoaderRoute: typeof AdminEmailsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/recursos/$cluster': {
-      id: '/_authenticated/recursos/$cluster'
-      path: '/$cluster'
-      fullPath: '/recursos/$cluster'
-      preLoaderRoute: typeof AuthenticatedRecursosClusterRouteImport
-      parentRoute: typeof AuthenticatedRecursosRoute
+    '/admin/entidades': {
+      id: '/admin/entidades'
+      path: '/admin/entidades'
+      fullPath: '/admin/entidades'
+      preLoaderRoute: typeof AdminEntidadesRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/elearning/$cursoId': {
-      id: '/_authenticated/elearning/$cursoId'
-      path: '/elearning/$cursoId'
-      fullPath: '/elearning/$cursoId'
-      preLoaderRoute: typeof AuthenticatedElearningCursoIdRouteImport
+    '/admin/governacao': {
+      id: '/admin/governacao'
+      path: '/admin/governacao'
+      fullPath: '/admin/governacao'
+      preLoaderRoute: typeof AdminGovernacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/manager': {
+      id: '/admin/manager'
+      path: '/admin/manager'
+      fullPath: '/admin/manager'
+      preLoaderRoute: typeof AdminManagerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/programas': {
+      id: '/admin/programas'
+      path: '/admin/programas'
+      fullPath: '/admin/programas'
+      preLoaderRoute: typeof AdminProgramasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comunicacao/press-media-kit': {
+      id: '/comunicacao/press-media-kit'
+      path: '/comunicacao/press-media-kit'
+      fullPath: '/comunicacao/press-media-kit'
+      preLoaderRoute: typeof ComunicacaoPressMediaKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comunicacao/propriedade-intelectual': {
+      id: '/comunicacao/propriedade-intelectual'
+      path: '/comunicacao/propriedade-intelectual'
+      fullPath: '/comunicacao/propriedade-intelectual'
+      preLoaderRoute: typeof ComunicacaoPropriedadeIntelectualRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/convite/$token': {
+      id: '/convite/$token'
+      path: '/convite/$token'
+      fullPath: '/convite/$token'
+      preLoaderRoute: typeof ConviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/email/unsubscribe': {
+      id: '/email/unsubscribe'
+      path: '/email/unsubscribe'
+      fullPath: '/email/unsubscribe'
+      preLoaderRoute: typeof EmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entidade/dashboard': {
+      id: '/entidade/dashboard'
+      path: '/entidade/dashboard'
+      fullPath: '/entidade/dashboard'
+      preLoaderRoute: typeof EntidadeDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/equipa/programas': {
+      id: '/equipa/programas'
+      path: '/equipa/programas'
+      fullPath: '/equipa/programas'
+      preLoaderRoute: typeof EquipaProgramasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/evento/$id': {
+      id: '/evento/$id'
+      path: '/evento/$id'
+      fullPath: '/evento/$id'
+      preLoaderRoute: typeof EventoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inscricao-entidade/$token': {
+      id: '/inscricao-entidade/$token'
+      path: '/inscricao-entidade/$token'
+      fullPath: '/inscricao-entidade/$token'
+      preLoaderRoute: typeof InscricaoEntidadeTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inscricao/$token': {
+      id: '/inscricao/$token'
+      path: '/inscricao/$token'
+      fullPath: '/inscricao/$token'
+      preLoaderRoute: typeof InscricaoTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publicacoes/biblioteca': {
+      id: '/publicacoes/biblioteca'
+      path: '/publicacoes/biblioteca'
+      fullPath: '/publicacoes/biblioteca'
+      preLoaderRoute: typeof PublicacoesBibliotecaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publicacoes/revistas': {
+      id: '/publicacoes/revistas'
+      path: '/publicacoes/revistas'
+      fullPath: '/publicacoes/revistas'
+      preLoaderRoute: typeof PublicacoesRevistasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/actions/$id': {
+      id: '/_authenticated/actions/$id'
+      path: '/actions/$id'
+      fullPath: '/actions/$id'
+      preLoaderRoute: typeof AuthenticatedActionsIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin/recursos': {
+      id: '/_authenticated/admin/recursos'
+      path: '/admin/recursos'
+      fullPath: '/admin/recursos'
+      preLoaderRoute: typeof AuthenticatedAdminRecursosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/cultura-ubuntu/avaliacao': {
@@ -1114,102 +1058,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRouteImport
       parentRoute: typeof AuthenticatedCulturaUbuntuRoute
     }
-    '/_authenticated/admin/recursos': {
-      id: '/_authenticated/admin/recursos'
-      path: '/admin/recursos'
-      fullPath: '/admin/recursos'
-      preLoaderRoute: typeof AuthenticatedAdminRecursosRouteImport
+    '/_authenticated/elearning/': {
+      id: '/_authenticated/elearning/'
+      path: '/elearning'
+      fullPath: '/elearning/'
+      preLoaderRoute: typeof AuthenticatedElearningIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/actions/$id': {
-      id: '/_authenticated/actions/$id'
-      path: '/actions/$id'
-      fullPath: '/actions/$id'
-      preLoaderRoute: typeof AuthenticatedActionsIdRouteImport
+    '/_authenticated/elearning/$cursoId': {
+      id: '/_authenticated/elearning/$cursoId'
+      path: '/elearning/$cursoId'
+      fullPath: '/elearning/$cursoId'
+      preLoaderRoute: typeof AuthenticatedElearningCursoIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/recursos/$cluster/': {
-      id: '/_authenticated/recursos/$cluster/'
+    '/_authenticated/recursos/': {
+      id: '/_authenticated/recursos/'
       path: '/'
-      fullPath: '/recursos/$cluster/'
-      preLoaderRoute: typeof AuthenticatedRecursosClusterIndexRouteImport
-      parentRoute: typeof AuthenticatedRecursosClusterRoute
+      fullPath: '/recursos/'
+      preLoaderRoute: typeof AuthenticatedRecursosIndexRouteImport
+      parentRoute: typeof AuthenticatedRecursosRoute
     }
-    '/_authenticated/elearning/$cursoId/': {
-      id: '/_authenticated/elearning/$cursoId/'
-      path: '/'
-      fullPath: '/elearning/$cursoId/'
-      preLoaderRoute: typeof AuthenticatedElearningCursoIdIndexRouteImport
-      parentRoute: typeof AuthenticatedElearningCursoIdRoute
+    '/_authenticated/recursos/$cluster': {
+      id: '/_authenticated/recursos/$cluster'
+      path: '/$cluster'
+      fullPath: '/recursos/$cluster'
+      preLoaderRoute: typeof AuthenticatedRecursosClusterRouteImport
+      parentRoute: typeof AuthenticatedRecursosRoute
+    }
+    '/admin/elearning/': {
+      id: '/admin/elearning/'
+      path: '/admin/elearning'
+      fullPath: '/admin/elearning/'
+      preLoaderRoute: typeof AdminElearningIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/elearning/$cursoId': {
+      id: '/admin/elearning/$cursoId'
+      path: '/admin/elearning/$cursoId'
+      fullPath: '/admin/elearning/$cursoId'
+      preLoaderRoute: typeof AdminElearningCursoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/certificados/verificar/$codigo': {
+      id: '/certificados/verificar/$codigo'
+      path: '/certificados/verificar/$codigo'
+      fullPath: '/certificados/verificar/$codigo'
+      preLoaderRoute: typeof CertificadosVerificarCodigoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/entidade/acoes/$id': {
+      id: '/entidade/acoes/$id'
+      path: '/entidade/acoes/$id'
+      fullPath: '/entidade/acoes/$id'
+      preLoaderRoute: typeof EntidadeAcoesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/suppression': {
+      id: '/lovable/email/suppression'
+      path: '/lovable/email/suppression'
+      fullPath: '/lovable/email/suppression'
+      preLoaderRoute: typeof LovableEmailSuppressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/publicacoes/revistas/$id': {
+      id: '/publicacoes/revistas/$id'
+      path: '/$id'
+      fullPath: '/publicacoes/revistas/$id'
+      preLoaderRoute: typeof PublicacoesRevistasIdRouteImport
+      parentRoute: typeof PublicacoesRevistasRoute
     }
     '/_authenticated/cultura-ubuntu/avaliacao/': {
       id: '/_authenticated/cultura-ubuntu/avaliacao/'
       path: '/'
       fullPath: '/cultura-ubuntu/avaliacao/'
       preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoIndexRouteImport
-      parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRoute
-    }
-    '/lovable/email/transactional/send': {
-      id: '/lovable/email/transactional/send'
-      path: '/lovable/email/transactional/send'
-      fullPath: '/lovable/email/transactional/send'
-      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/transactional/preview': {
-      id: '/lovable/email/transactional/preview'
-      path: '/lovable/email/transactional/preview'
-      fullPath: '/lovable/email/transactional/preview'
-      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/webhook': {
-      id: '/lovable/email/auth/webhook'
-      path: '/lovable/email/auth/webhook'
-      fullPath: '/lovable/email/auth/webhook'
-      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/preview': {
-      id: '/lovable/email/auth/preview'
-      path: '/lovable/email/auth/preview'
-      fullPath: '/lovable/email/auth/preview'
-      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/certificates/$actionId/$participanteId': {
-      id: '/api/certificates/$actionId/$participanteId'
-      path: '/api/certificates/$actionId/$participanteId'
-      fullPath: '/api/certificates/$actionId/$participanteId'
-      preLoaderRoute: typeof ApiCertificatesActionIdParticipanteIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/recursos/$cluster/$temaId': {
-      id: '/_authenticated/recursos/$cluster/$temaId'
-      path: '/$temaId'
-      fullPath: '/recursos/$cluster/$temaId'
-      preLoaderRoute: typeof AuthenticatedRecursosClusterTemaIdRouteImport
-      parentRoute: typeof AuthenticatedRecursosClusterRoute
-    }
-    '/_authenticated/elearning/$cursoId/caderno': {
-      id: '/_authenticated/elearning/$cursoId/caderno'
-      path: '/caderno'
-      fullPath: '/elearning/$cursoId/caderno'
-      preLoaderRoute: typeof AuthenticatedElearningCursoIdCadernoRouteImport
-      parentRoute: typeof AuthenticatedElearningCursoIdRoute
-    }
-    '/_authenticated/cultura-ubuntu/avaliacao/gestao': {
-      id: '/_authenticated/cultura-ubuntu/avaliacao/gestao'
-      path: '/gestao'
-      fullPath: '/cultura-ubuntu/avaliacao/gestao'
-      preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport
       parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRoute
     }
     '/_authenticated/cultura-ubuntu/avaliacao/$slug': {
@@ -1219,11 +1142,95 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteImport
       parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRoute
     }
+    '/_authenticated/cultura-ubuntu/avaliacao/gestao': {
+      id: '/_authenticated/cultura-ubuntu/avaliacao/gestao'
+      path: '/gestao'
+      fullPath: '/cultura-ubuntu/avaliacao/gestao'
+      preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRouteImport
+      parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoRoute
+    }
+    '/_authenticated/elearning/$cursoId/': {
+      id: '/_authenticated/elearning/$cursoId/'
+      path: '/'
+      fullPath: '/elearning/$cursoId/'
+      preLoaderRoute: typeof AuthenticatedElearningCursoIdIndexRouteImport
+      parentRoute: typeof AuthenticatedElearningCursoIdRoute
+    }
+    '/_authenticated/elearning/$cursoId/caderno': {
+      id: '/_authenticated/elearning/$cursoId/caderno'
+      path: '/caderno'
+      fullPath: '/elearning/$cursoId/caderno'
+      preLoaderRoute: typeof AuthenticatedElearningCursoIdCadernoRouteImport
+      parentRoute: typeof AuthenticatedElearningCursoIdRoute
+    }
+    '/_authenticated/recursos/$cluster/': {
+      id: '/_authenticated/recursos/$cluster/'
+      path: '/'
+      fullPath: '/recursos/$cluster/'
+      preLoaderRoute: typeof AuthenticatedRecursosClusterIndexRouteImport
+      parentRoute: typeof AuthenticatedRecursosClusterRoute
+    }
+    '/_authenticated/recursos/$cluster/$temaId': {
+      id: '/_authenticated/recursos/$cluster/$temaId'
+      path: '/$temaId'
+      fullPath: '/recursos/$cluster/$temaId'
+      preLoaderRoute: typeof AuthenticatedRecursosClusterTemaIdRouteImport
+      parentRoute: typeof AuthenticatedRecursosClusterRoute
+    }
+    '/api/certificates/$actionId/$participanteId': {
+      id: '/api/certificates/$actionId/$participanteId'
+      path: '/api/certificates/$actionId/$participanteId'
+      fullPath: '/api/certificates/$actionId/$participanteId'
+      preLoaderRoute: typeof ApiCertificatesActionIdParticipanteIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/transactional/send': {
+      id: '/lovable/email/transactional/send'
+      path: '/lovable/email/transactional/send'
+      fullPath: '/lovable/email/transactional/send'
+      preLoaderRoute: typeof LovableEmailTransactionalSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/cultura-ubuntu/avaliacao/$slug/': {
       id: '/_authenticated/cultura-ubuntu/avaliacao/$slug/'
       path: '/'
       fullPath: '/cultura-ubuntu/avaliacao/$slug/'
       preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugIndexRouteImport
+      parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
+    }
+    '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section': {
+      id: '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section'
+      path: '/$section'
+      fullPath: '/cultura-ubuntu/avaliacao/$slug/$section'
+      preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport
       parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
     }
     '/_authenticated/elearning/$cursoId/passo/$passoId': {
@@ -1232,13 +1239,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/elearning/$cursoId/passo/$passoId'
       preLoaderRoute: typeof AuthenticatedElearningCursoIdPassoPassoIdRouteImport
       parentRoute: typeof AuthenticatedElearningCursoIdRoute
-    }
-    '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section': {
-      id: '/_authenticated/cultura-ubuntu/avaliacao/$slug/$section'
-      path: '/$section'
-      fullPath: '/cultura-ubuntu/avaliacao/$slug/$section'
-      preLoaderRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugSectionRouteImport
-      parentRoute: typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRoute
     }
   }
 }
