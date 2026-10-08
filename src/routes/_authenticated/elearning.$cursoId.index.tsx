@@ -41,8 +41,9 @@ function CursoPage() {
       <Link to="/elearning" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Voltar aos cursos</Link>
       <div className="grid gap-8 2xl:grid-cols-[minmax(0,1fr)_300px]">
         <main className="min-w-0 space-y-8">
+          {inscrito && !curso.inscricao?.iniciado && <CourseGuide data={data} />}
           {curso.inscricao && !concluido && <ContinuarBloco />}
-          {inscrito && <CourseGuide data={data} />}
+          {inscrito && curso.inscricao?.iniciado && <CourseGuide data={data} />}
           {!inscrito && <section>
              {(curso.cluster_name || curso.acreditacao_ref) && <div className="flex max-w-full flex-wrap gap-2">{curso.cluster_name && <Badge variant="outline" className="max-w-full whitespace-normal">{curso.cluster_name}</Badge>}{curso.acreditacao_ref && <Badge variant="outline" className="max-w-full whitespace-normal">Acreditação {curso.acreditacao_ref}</Badge>}</div>}
              {curso.description && <div className="rich-text mt-4 text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(curso.description) }} />}
