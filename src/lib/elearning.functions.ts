@@ -43,12 +43,11 @@ async function progressoResumo(inscricaoIds: string[], cursoIds: string[]) {
     sb.from("cursos_modulos").select("curso_id, sort_order, cursos_passos(id, sort_order, obrigatorio)").in("curso_id", cursoIds.length ? cursoIds : ["00000000-0000-0000-0000-000000000000"]),
     sb.from("cursos_progresso").select("inscricao_id, passo_id, estado").in("inscricao_id", inscricaoIds.length ? inscricaoIds : ["00000000-0000-0000-0000-000000000000"]),
   ]);
-  const passosPorCurso = new Map<string, { id: string; obrigatorio: boolean }[]>();
+  const modsPorCurso = new Map<string, { id: string }[][]>();
   for (const m of (mods ?? []).sort((a, b) => a.sort_order - b.sort_order)) {
-    const list = passosPorCurso.get(m.curso_id) ?? [];
-    for (const p of ((m.cursos_passos ?? []) as { id: string; sort_order: number; obrigatorio: boolean }[]).sort((a, b) => a.sort_order - b.sort_order))
-      list.push(p);
-    passosPorCurso.set(m.curso_id, list);
+    const list = modsPorCurso.get(m.curso_id) ?? [];
+    list.push(((m.cursos_passos ?? []) as { id: string; sort_order: number; obrigatorio: boolean }[]).sort((a, b) => a.sort_order - b.sort_order));
+    modsPorCurso.set(m.curso_id, list);
   }
   const done = new Map<string, Set<string>>();
   for (const p of prog ?? []) {
@@ -58,12 +57,20 @@ async function progressoResumo(inscricaoIds: string[], cursoIds: string[]) {
     done.set(p.inscricao_id, s);
   }
   return (inscricaoId: string, cursoId: string) => {
-    const passos = passosPorCurso.get(cursoId) ?? [];
+    const modulos = modsPorCurso.get(cursoId) ?? [];
+    const passos = modulos.flat();
     const d = done.get(inscricaoId) ?? new Set();
-    const pct = passos.length ? Math.round((passos.filter((p) => d.has(p.id)).length / passos.length) * 100) : 0;
+    const pct = pctPorModulos(modulos.map((m) => ({ total: m.length, feitos: m.filter((p) => d.has(p.id)).length })));
     const prox = passos.find((p) => !d.has(p.id))?.id ?? passos[0]?.id ?? null;
-    return { pct, proximo_passo_id: prox };
+    return { pct, proximo_passo_id: prox, iniciado: d.size > 0 };
   };
+}
+
+/** Progresso do curso: média por módulo; módulos sem passos ("em breve") contam como 0%. */
+export function pctPorModulos(modulos: { total: number; feitos: number }[]) {
+  if (!modulos.length) return 0;
+  const soma = modulos.reduce((n, m) => n + (m.total ? m.feitos / m.total : 0), 0);
+  return Math.round((soma / modulos.length) * 100);
 }
 
 export const listCatalogo = createServerFn({ method: "GET" })
