@@ -69,3 +69,8 @@
 - [x] Preencher apresentação e ativar progressão no curso indicado
 - [x] Validar regras com testes automáticos
 - [ ] Validar experiência autenticada a 375px e 1280px — pré-visualização redireciona para iniciar sessão
+
+## Revisão do espaço do curso
+- [x] Barra única do curso (Visão geral, Formação, Caderno) com ajuda num só menu
+- [x] Visão geral com cartões da plataforma, bloco de arranque correto, percurso e lateral
+- [x] Caderno com cartões da plataforma; validado a 375/1280px

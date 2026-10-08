@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useCourseLayout } from "@/components/elearning/CourseLayoutContext";
+import { SHORTCUTS_EVENT, useCourseLayout } from "@/components/elearning/CourseLayoutContext";
 import { toast } from "sonner";
 import {
   Check, CheckCircle2, ChevronLeft, ChevronRight, Circle,
@@ -76,7 +76,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
 
   return <div className="flex h-full min-h-0 flex-col bg-background">
     <div className="shrink-0 border-b p-5">
-      <p className="line-clamp-2 text-base font-semibold">{curso.curso.title}</p>
+      <p className="text-sm font-semibold text-secondary">Módulos e momentos</p>
       <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground"><span>{done} de {total} momentos</span><span>{curso.curso.inscricao?.pct ?? 0}%</span></div>
       <Progress value={curso.curso.inscricao?.pct ?? 0} className="mt-2 h-1.5" />
       {emBreve > 0 && <p className="mt-2 text-xs text-muted-foreground">{emBreve === 1 ? "1 módulo em breve" : `${emBreve} módulos em breve`}</p>}
@@ -138,6 +138,7 @@ function LeitorPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const { headerSlot } = useCourseLayout();
+  useEffect(() => { const open = () => setShortcuts(true); window.addEventListener(SHORTCUTS_EVENT, open); return () => window.removeEventListener(SHORTCUTS_EVENT, open); }, []);
   const [transition, setTransition] = useState<ModuleTransition | null>(null);
   const key = ["elearning", "passo", cursoId, passoId];
   const { data, isLoading, isFetching, error } = useQuery({ queryKey: key, queryFn: () => fetchFn({ data: { cursoId, passoId } }), placeholderData: (previous) => previous });
@@ -214,8 +215,7 @@ function LeitorPage() {
         <Button variant="ghost" size="icon" className="h-9 w-9" disabled={!data.seguinte} onClick={() => navigateTo(data.seguinte)} aria-label="Momento seguinte"><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <Button variant="ghost" size="sm" className="h-10 px-2 sm:px-3" onClick={() => setNotesOpen(true)} aria-label="Notas"><NotebookPen className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Notas</span></Button>
-      <Button variant="ghost" size="icon" className="hidden h-9 w-9 lg:inline-flex" onClick={() => setShortcuts(true)} aria-label="Atalhos de teclado"><HelpCircle className="h-4 w-4" /></Button>
-      <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => window.innerWidth < 1024 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5" /></Button>
+      <Button variant="ghost" size="sm" className="h-10 px-2 sm:px-3" onClick={() => window.innerWidth < 1024 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5 sm:mr-1.5" /><span className="hidden sm:inline">Módulos</span></Button>
     </>, headerSlot)}
 
     <div className={cn("relative grid min-w-0 transition-[grid-template-columns] duration-200", sidebarOpen ? "xl:grid-cols-[300px_minmax(0,1fr)]" : "xl:grid-cols-[0_minmax(0,1fr)]")}>
@@ -357,7 +357,7 @@ function Reflexao({ data, inscrito, onDone, refetch, onContinue, onPrevious, int
 }
 
 function PassoTabs({ data }: { data: PassoDetalhe; inscrito: boolean }) {
-  const sobre = <p className="text-sm leading-6 text-muted-foreground">{data.modulo.description || "Não foi adicionada uma descrição específica a este módulo."}</p>;
+  const sobre = data.modulo.description ? <div className="rich-text text-sm leading-6 text-muted-foreground" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(data.modulo.description) }} /> : <p className="text-sm leading-6 text-muted-foreground">Não foi adicionada uma descrição específica a este módulo.</p>;
   if (!data.materiais.length) return <section className="mt-10 border-t pt-5"><h2 className="text-sm font-semibold">Sobre o módulo</h2><div className="mt-3">{sobre}</div></section>;
   return <Tabs defaultValue="sobre" className="mt-10 border-t pt-5"><TabsList className="grid h-auto w-full grid-cols-2"><TabsTrigger value="sobre" className="min-h-10 px-2 text-xs sm:text-sm">Sobre o módulo</TabsTrigger><TabsTrigger value="materiais" className="min-h-10 px-2 text-xs sm:text-sm">Materiais</TabsTrigger></TabsList>
     <TabsContent value="sobre" className="py-5">{sobre}</TabsContent>
