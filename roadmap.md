@@ -101,3 +101,8 @@
 - [x] Apresentar vídeos junto do texto correspondente sem alterar conteúdos ou progressão
 - [x] Dar aos documentos sugeridos botão para abrir num novo separador
 - [x] Formação autenticada validada a 375/1280px com dois vídeos visíveis; seis testes de ligações passaram. Não há documentos associados nos cursos atuais para verificar a abertura de um documento real.
+
+## Botões de ligação na Formação
+- [x] Ligações sem relação com vídeo passam a botões destacados: chip azul-escuro com ícone do mundo, etiqueta a azul, seta laranja e elevação ao passar o rato
+- [x] Documentos sugeridos com o mesmo formato mas chip laranja e ícone de documento; os vídeos mantêm o link discreto por baixo do player
+- [x] Validado a 375px e 1280px: sem sublinhado, sem corte de texto e sem scroll horizontal
