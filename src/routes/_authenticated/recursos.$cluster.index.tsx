@@ -22,7 +22,7 @@ export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
   ),
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl py-16 text-center text-destructive">
-      {error.message}
+      {error instanceof Error ? error.message : "Não foi possível carregar os recursos."}
     </div>
   ),
 });

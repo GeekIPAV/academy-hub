@@ -8,10 +8,10 @@ export function bloqueiosSequenciais(modulos: ModuloSequencial[], concluidos: Se
   modulos.forEach((modulo, indice) => {
     modulo.passos.forEach((passo, posicao) => {
       if (moduloPendente !== null) bloqueios.set(passo.id, `Abre após concluir o Módulo ${moduloPendente + 1}`);
-      else if (posicao > 0 && !concluidos.has(modulo.passos[posicao - 1].id)) bloqueios.set(passo.id, "Conclui o momento anterior");
+      else if (modulo.passos.slice(0, posicao).some((anterior) => !concluidos.has(anterior.id))) bloqueios.set(passo.id, "Conclui o momento anterior");
     });
     const obrigatorios = modulo.passos.filter((p) => p.obrigatorio);
-    if (moduloPendente === null && (!obrigatorios.length || obrigatorios.some((p) => !concluidos.has(p.id)))) moduloPendente = indice;
+    if (moduloPendente === null && (!modulo.passos.length || obrigatorios.some((p) => !concluidos.has(p.id)))) moduloPendente = indice;
   });
   return bloqueios;
 }
