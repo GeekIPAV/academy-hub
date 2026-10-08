@@ -70,9 +70,9 @@ function ArranqueBloco() {
   const proximo = momentos.find((p) => p.id === insc?.proximo_passo_id) ?? momentos.find((p) => p.id === formationStepId) ?? momentos[0];
   if (!proximo) return null;
   const emCurso = !!insc && insc.pct > 0;
-  return <div className={`${CARD} grid gap-4 border-l-4 border-l-primary sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center`}>
-    <div className="min-w-0"><p className="text-xs font-semibold uppercase tracking-wide text-primary">{emCurso ? "Continuar onde paraste" : "Começa aqui"}</p><p className="mt-1 text-sm text-muted-foreground">Módulo {proximo.indice} · {proximo.modulo.title}</p><p className="mt-1 flex items-center gap-2 font-semibold"><PassoTipoIcon tipo={proximo.tipo} className="h-4 w-4 shrink-0 text-secondary" /><span className="truncate">{proximo.title}</span>{proximo.duracao_min ? <span className="shrink-0 text-xs font-normal text-muted-foreground">{proximo.duracao_min} min</span> : null}</p></div>
-    {insc ? <Button asChild className="min-h-11"><Link to="/elearning/$cursoId/passo/$passoId" params={{ cursoId, passoId: proximo.id }}>{emCurso ? "Continuar" : "Começar"}</Link></Button> : <Button className="min-h-11" onClick={primary.run} disabled={primary.disabled}>{primary.label}</Button>}
+  return <div className={`${CARD} flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between`}>
+    <div className="min-w-0"><p className="text-xs font-bold uppercase tracking-wider text-primary">O que faço agora</p><h2 className="mt-1.5 truncate text-lg font-bold text-secondary">{proximo.title}</h2><p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground"><PassoTipoIcon tipo={proximo.tipo} className="h-4 w-4 shrink-0" /><span className="truncate">Módulo {proximo.indice} · {TIPO_PASSO[proximo.tipo]}{proximo.duracao_min ? ` · ~${proximo.duracao_min} min` : ""}</span></p></div>
+    {insc ? <Button asChild className="min-h-11 shrink-0"><Link to="/elearning/$cursoId/passo/$passoId" params={{ cursoId, passoId: proximo.id }}>{emCurso ? "Continuar" : "Começar"}</Link></Button> : <Button className="min-h-11 shrink-0" onClick={primary.run} disabled={primary.disabled}>{primary.label}</Button>}
   </div>;
 }
 
@@ -80,7 +80,7 @@ function ResumoCard() {
   const { data } = useCourseLayout();
   const { curso } = data;
   const modality = curso.modalidade === "turma" ? "Em turma · B-learning" : "Autónomo · Online";
-  return <div className={CARD}><h3 className="font-semibold text-secondary">Resumo</h3>
+  return <div className="p-5"><h3 className="text-sm font-bold text-secondary">Resumo da formação</h3>
     <div className="mt-4"><div className="mb-2 flex justify-between text-sm"><span>Progresso</span><strong>{curso.inscricao?.pct ?? 0}%</strong></div><Progress value={curso.inscricao?.pct ?? 0} /></div>
     <dl className="mt-4 space-y-3 text-sm"><Stat icon={Clock} label="Duração" value={formatarDuracao(curso.total_minutos)} /><Stat icon={Layers3} label="Conteúdos" value={`${curso.total_modulos} módulos · ${curso.total_passos} momentos${curso.modulos_em_breve ? ` · ${curso.modulos_em_breve} em breve` : ""}`} /><Stat icon={MonitorPlay} label="Modalidade" value={modality} />{data.turma && <><Stat icon={CalendarDays} label={data.turma.nome} value={`${fmt(data.turma.data_inicio)} — ${fmt(data.turma.data_fim)}`} />{data.turma.formador && <Stat icon={UserRound} label="Formador" value={data.turma.formador} />}</>}</dl>
   </div>;
@@ -90,7 +90,7 @@ function BadgeCard() {
   const { data } = useCourseLayout();
   const { curso } = data;
   if (!curso.badge_final && !curso.tem_certificado) return null;
-  return <div className={`${CARD} space-y-4`}>{curso.badge_final && <div className="flex items-center gap-3">{curso.badge_final.cover_url ? <img src={curso.badge_final.cover_url} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" /> : <Award className="h-10 w-10 shrink-0 text-secondary" />}<div className="min-w-0 text-sm"><p className="text-xs text-muted-foreground">Badge ao concluir</p><p className="font-semibold">{curso.badge_final.title}</p></div></div>}{curso.tem_certificado && <p className="flex items-center gap-2 text-sm"><FileCheck2 className="h-5 w-5 text-secondary" />{data.certificado ? <a href={data.certificado.url} target="_blank" rel="noreferrer" className="underline">Ver certificado</a> : "Certificado digital incluído"}</p>}</div>;
+  return <div className="space-y-4 p-5">{curso.badge_final && <div className="flex items-center gap-3">{curso.badge_final.cover_url ? <img src={curso.badge_final.cover_url} alt="" className="h-12 w-12 shrink-0 rounded-full object-cover" /> : <Award className="h-10 w-10 shrink-0 text-secondary" />}<div className="min-w-0 text-sm"><p className="text-xs text-muted-foreground">Badge ao concluir</p><p className="font-semibold">{curso.badge_final.title}</p></div></div>}{curso.tem_certificado && <p className="flex items-center gap-2 text-sm"><FileCheck2 className="h-5 w-5 text-secondary" />{data.certificado ? <a href={data.certificado.url} target="_blank" rel="noreferrer" className="underline">Ver certificado</a> : "Certificado digital incluído"}</p>}</div>;
 }
 
 function SobreFormacao({ description, a, cluster, acreditacao }: { description: string | null; a: Apresentacao; cluster: string | null; acreditacao: string | null }) {
