@@ -235,7 +235,7 @@ export const getAcaoResultados = createServerFn({ method: "POST" })
     if (userIds.length > 0) {
       const { data: users } = await supabaseAdmin
         .from("utilizadores")
-        .select("id, entity_id, localidade")
+        .select("id, entity_id, locality")
         .in("id", userIds);
       const entityIds = Array.from(
         new Set((users ?? []).map((u) => u.entity_id as string | null).filter((x): x is string => !!x)),
@@ -250,7 +250,7 @@ export const getAcaoResultados = createServerFn({ method: "POST" })
       (users ?? []).forEach((u) =>
         userInfo.set(u.id as string, {
           entity_id: (u.entity_id as string | null) ?? null,
-          localidade: (u.localidade as string | null) ?? null,
+          localidade: (u.locality as string | null) ?? null,
         }),
       );
     }
