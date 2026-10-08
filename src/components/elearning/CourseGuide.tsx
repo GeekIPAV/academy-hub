@@ -13,7 +13,7 @@ export function CourseGuide({ data, compact = false }: { data: CursoDetalhe; com
   const total = data.modulos.flatMap((m) => m.passos).filter((p) => p.tipo === "reflexao").length;
   const a = data.curso.apresentacao;
   if (!a.como_funciona.length && !a.sequencia.length && !total) return null;
-  return <section className={`grid min-w-0 gap-5 ${compact ? "" : "xl:grid-cols-[minmax(0,1fr)_300px]"}`}>
+  return <section id={compact ? undefined : "como-funciona"} className={`grid min-w-0 scroll-mt-[var(--course-top)] gap-5 ${compact ? "" : "xl:grid-cols-[minmax(0,1fr)_300px]"}`}>
     <div className="min-w-0 space-y-4"><h2 className="text-lg font-semibold">Como funciona esta formação</h2>
       <div className={`grid gap-3 ${compact ? "" : "md:grid-cols-3"}`}>{a.como_funciona.map((c, i) => <div key={i} className={`rounded-lg p-4 ${["bg-learning-reflection", "bg-learning-check", "bg-learning-case"][i % 3]}`}><p className="font-semibold">{c.titulo}</p><p className="mt-2 text-sm leading-6">{c.descricao}</p></div>)}</div>
       <ol className="flex flex-wrap items-center gap-2 text-xs">{a.sequencia.map((s, i) => <li key={i} className="flex items-center gap-2"><span className={`rounded-md px-3 py-2 ${i === a.sequencia.length - 1 && s === "Abre o módulo seguinte" ? "bg-notebook text-notebook-foreground" : "border bg-card"}`}>{s}</span>{i < a.sequencia.length - 1 && <ArrowRight className="h-3 w-3 text-muted-foreground" />}</li>)}</ol>

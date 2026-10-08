@@ -70,7 +70,7 @@ function ContinuarBloco() {
   const proximo = momentos.find((p) => p.id === data.curso.inscricao?.proximo_passo_id) ?? momentos.find((p) => p.id === formationStepId);
   const emBreve = data.curso.modulos_em_breve > 0;
   if (!data.curso.inscricao?.proximo_passo_id) {
-    if (!emBreve || !passos.length) return null;
+    if (!emBreve || !momentos.length) return null;
     return <Card className="border-l-4 border-l-primary p-5"><p className="text-xs font-semibold uppercase tracking-wide text-primary">Estás em dia</p><p className="mt-1 font-semibold">Concluíste todos os módulos disponíveis</p><p className="mt-1 text-sm text-muted-foreground">Os restantes módulos estarão disponíveis em breve. Vamos avisar-te por email e na plataforma.</p></Card>;
   }
   if (!proximo) return null;

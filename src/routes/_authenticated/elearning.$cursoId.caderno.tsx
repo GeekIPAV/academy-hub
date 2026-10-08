@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BookOpen, Printer } from "lucide-react";
@@ -25,6 +26,13 @@ function CadernoPage() {
   const { data: course } = useCourseLayout();
   const fn = useServerFn(getCaderno);
   const { data, isLoading, error } = useQuery({ queryKey: ["elearning", "caderno", cursoId], queryFn: () => fn({ data: { cursoId } }) });
+  const hash = useRouterState({ select: (state) => state.location.hash });
+  const printed = useRef(false);
+  useEffect(() => {
+    if (!data || hash !== "pdf" || printed.current) return;
+    const timer = window.setTimeout(() => { printed.current = true; window.print(); }, 400);
+    return () => window.clearTimeout(timer);
+  }, [data, hash]);
   if (isLoading) return <Skeleton className="h-64 w-full" />;
   if (!data || error) return <p className="text-sm text-destructive">{(error as Error)?.message ?? "Não foi possível abrir o Caderno."}</p>;
   const entradas = data.modulos.flatMap((m) => m.entradas);
@@ -40,7 +48,7 @@ function CadernoPage() {
       return <div key={e.passoId} className={`notebook-entry border-l-2 pl-4 ${e.resposta ? "border-primary" : "notebook-unanswered border-border text-muted-foreground"}`}>
         <h3 className="text-base">{e.title}</h3>
         <div className="rich-text mt-2 text-sm" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(e.pergunta) }} />
-        {e.resposta ? <><div className="rich-text mt-4 rounded-md bg-learning-paper p-4 text-sm" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(e.resposta) }} />{e.data && <p className="mt-2 text-xs text-muted-foreground">{new Date(e.data).toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" })}</p>}</> : <p className="mt-3 text-sm">Ainda sem resposta. {passo?.estado !== "bloqueado" ? <Link to="/elearning/$cursoId/passo/$passoId" params={{ cursoId, passoId: e.passoId }} className="text-primary underline">Abrir momento</Link> : <span>{passo.bloqueio_motivo}</span>}</p>}
+        {e.resposta ? <><div className="rich-text mt-4 rounded-md bg-learning-paper p-4 text-sm" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(e.resposta) }} />{e.data && <p className="mt-2 text-xs text-muted-foreground">{new Date(e.data).toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" })}</p>}</> : <p className="mt-3 text-sm">Ainda sem resposta. {passo && passo.estado !== "bloqueado" ? <Link to="/elearning/$cursoId/passo/$passoId" params={{ cursoId, passoId: e.passoId }} className="text-primary underline">Abrir momento</Link> : <span>{passo?.bloqueio_motivo}</span>}</p>}
       </div>;
     })}</section>)}
     {!entradas.length && <p className="text-sm text-muted-foreground">Este curso ainda não tem perguntas de reflexão.</p>}

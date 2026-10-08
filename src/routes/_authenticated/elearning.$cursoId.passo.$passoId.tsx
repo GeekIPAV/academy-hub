@@ -96,7 +96,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed text-xs font-semibold">{moduleIndex + 1}</span>
             <span className="min-w-0 flex-1"><span className="line-clamp-2 font-semibold">{modulo.title}</span><span className="mt-1 inline-flex rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium">Em breve</span></span>
           </div>;
-          if (onlyPending && !passos.length) return null;
+          if (onlyPending && !momentos.length) return null;
           return <AccordionItem value={modulo.id} key={modulo.id} className="border-b">
             <AccordionTrigger className="px-4 py-4 hover:no-underline">
               <div className="flex min-w-0 flex-1 items-start gap-3 pr-2 text-left">
@@ -105,7 +105,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-2">
-              <ul>{passos.map((passo) => {
+              <ul>{momentos.map((passo) => {
                 const reason = getBlockReason(passo, !!curso.curso.inscricao);
                 const inner = <div className="grid min-h-14 grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-2 px-4 py-2.5">
                   <StatusCircle estado={passo.estado} />
