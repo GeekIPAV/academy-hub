@@ -35,9 +35,9 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId/passo/$passoId")({
   head: () => ({ meta: [
-    { title: "Passo do curso — Escola Ubuntu Online" },
+    { title: "Momento do curso — Escola Ubuntu Online" },
     { name: "description", content: "Leitor de conteúdos do curso da Escola Ubuntu Online." },
-    { property: "og:title", content: "Passo do curso — Escola Ubuntu Online" },
+    { property: "og:title", content: "Momento do curso — Escola Ubuntu Online" },
     { property: "og:description", content: "Leitor de conteúdos do curso." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
@@ -77,7 +77,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
   return <div className="flex h-full min-h-0 flex-col bg-background">
     <div className="shrink-0 border-b p-5">
       <p className="line-clamp-2 text-base font-semibold">{curso.curso.title}</p>
-      <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground"><span>{done} de {total} passos</span><span>{curso.curso.inscricao?.pct ?? 0}%</span></div>
+      <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground"><span>{done} de {total} momentos</span><span>{curso.curso.inscricao?.pct ?? 0}%</span></div>
       <Progress value={curso.curso.inscricao?.pct ?? 0} className="mt-2 h-1.5" />
       {emBreve > 0 && <p className="mt-2 text-xs text-muted-foreground">{emBreve === 1 ? "1 módulo em breve" : `${emBreve} módulos em breve`}</p>}
       <label className="mt-4 flex min-h-11 cursor-pointer items-center gap-3 text-sm">
@@ -91,7 +91,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
           const feitos = modulo.passos.filter((p) => p.estado === "concluido").length;
           const minutos = modulo.passos.filter((p) => p.estado !== "concluido").reduce((n, p) => n + (p.duracao_min ?? 0), 0);
           const complete = modulo.passos.length > 0 && feitos === modulo.passos.length;
-          const passos = onlyPending ? modulo.passos.filter((p) => p.estado !== "concluido" || p.id === atual) : modulo.passos;
+          const momentos = onlyPending ? modulo.passos.filter((p) => p.estado !== "concluido" || p.id === atual) : modulo.passos;
           if (!modulo.passos.length) return <div key={modulo.id} className="flex items-start gap-3 border-b px-4 py-4 text-muted-foreground">
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-dashed text-xs font-semibold">{moduleIndex + 1}</span>
             <span className="min-w-0 flex-1"><span className="line-clamp-2 font-semibold">{modulo.title}</span><span className="mt-1 inline-flex rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium">Em breve</span></span>
@@ -101,7 +101,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
             <AccordionTrigger className="px-4 py-4 hover:no-underline">
               <div className="flex min-w-0 flex-1 items-start gap-3 pr-2 text-left">
                 <span className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-full border text-xs font-semibold", complete && "border-primary bg-primary text-primary-foreground")}>{complete ? <Check className="h-4 w-4" /> : moduleIndex + 1}</span>
-                <span className="min-w-0 flex-1"><span className="line-clamp-2 font-semibold">{modulo.title}</span><span className="mt-1 block text-xs font-normal text-muted-foreground">{feitos}/{modulo.passos.length} passos{minutos ? ` · ${minutos} min por concluir` : ""}</span></span>
+                <span className="min-w-0 flex-1"><span className="line-clamp-2 font-semibold">{modulo.title}</span><span className="mt-1 block text-xs font-normal text-muted-foreground">{feitos}/{modulo.passos.length} momentos{minutos ? ` · ${minutos} min por concluir` : ""}</span></span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="pb-2">
@@ -110,7 +110,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
                 const inner = <div className="grid min-h-14 grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-2 px-4 py-2.5">
                   <StatusCircle estado={passo.estado} />
                   <PassoTipoIcon tipo={passo.tipo} className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                  <span className="min-w-0"><span className="line-clamp-2 text-sm leading-5">{passo.title}</span>{passo.duracao_min ? <span className="mt-0.5 block text-xs text-muted-foreground">{passo.duracao_min} min</span> : null}</span>
+                  <span className="min-w-0"><span className="line-clamp-2 text-sm leading-5">Momento {modulo.passos.findIndex((p) => p.id === passo.id) + 1} — {passo.title}</span>{passo.duracao_min ? <span className="mt-0.5 block text-xs text-muted-foreground">{passo.duracao_min} min</span> : null}</span>
                 </div>;
                 return <li key={passo.id} className="relative">
                   {reason ? <Tooltip><TooltipTrigger asChild><div className="cursor-not-allowed text-muted-foreground" aria-disabled="true">{inner}</div></TooltipTrigger><TooltipContent side="right">{reason}</TooltipContent></Tooltip> :
@@ -161,13 +161,14 @@ function LeitorPage() {
     navigate({ to: "/elearning/$cursoId/passo/$passoId", params: { cursoId, passoId: id } });
   }, [cursoId, navigate]);
 
-  const showTransitionOrNext = useCallback(() => {
+  const showTransitionOrNext = useCallback(async () => {
+    const data = await fetchFn({ data: { cursoId, passoId, prefetch: true } });
     if (!data) return;
     const moduleIndex = data.curso.modulos.findIndex((m) => m.id === data.modulo.id);
     const stepIndex = data.curso.modulos[moduleIndex]?.passos.findIndex((p) => p.id === data.passo.id) ?? -1;
     const lastInModule = stepIndex === (data.curso.modulos[moduleIndex]?.passos.length ?? 0) - 1;
     const after = data.curso.modulos.slice(moduleIndex + 1);
-    const nextModule = after.find((m) => m.passos.length > 0) ?? null;
+    const nextModule = after.find((m) => m.passos.some((p) => p.estado !== "bloqueado")) ?? null;
     if (lastInModule && after.length) {
       const scores = data.curso.modulos[moduleIndex].passos.map((p) => p.id === data.passo.id ? (data.progresso?.nota ?? p.nota) : p.nota).filter((n): n is number => n != null);
       setTransition({ atual: moduleIndex + 1, proximo: nextModule ? data.curso.modulos.indexOf(nextModule) + 1 : null, modulo: nextModule, notaMedia: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null });
@@ -175,7 +176,7 @@ function LeitorPage() {
     }
     if (data.seguinte) navigateTo(data.seguinte);
     else navigate({ to: "/elearning/$cursoId", params: { cursoId } });
-  }, [cursoId, data, navigate, navigateTo]);
+  }, [cursoId, passoId, fetchFn, navigate, navigateTo]);
 
   const onDone = useCallback((cursoConcluido?: boolean) => {
     qc.invalidateQueries({ queryKey: ["elearning"] });
@@ -196,7 +197,7 @@ function LeitorPage() {
   }, [data, navigateTo, toggleSidebar]);
 
   if (!data && isLoading) return <ReaderSkeleton />;
-  if (error || !data) return <ReaderError message={(error as Error)?.message ?? "Passo não encontrado."} cursoId={cursoId} />;
+  if (error || !data) return <ReaderError message={(error as Error)?.message ?? "Momento não encontrado."} cursoId={cursoId} />;
 
   const flat = data.curso.modulos.flatMap((m) => m.passos);
   const position = flat.findIndex((p) => p.id === passoId) + 1;
@@ -206,11 +207,11 @@ function LeitorPage() {
 
   return <TooltipProvider delayDuration={250}><div className="min-w-0 bg-background">
     {headerSlot && createPortal(<>
-      <span className="hidden whitespace-nowrap px-1 text-xs text-muted-foreground lg:inline">Passo {position} de {flat.length}</span>
+      <span className="hidden whitespace-nowrap px-1 text-xs text-muted-foreground lg:inline">Momento {position} de {flat.length}</span>
       <span className="whitespace-nowrap px-1 text-xs text-muted-foreground lg:hidden">{position}/{flat.length}</span>
       <div className="hidden items-center xl:flex">
-        <Button variant="ghost" size="icon" className="h-9 w-9" disabled={!data.anterior} onClick={() => navigateTo(data.anterior)} aria-label="Passo anterior"><ChevronLeft className="h-4 w-4" /></Button>
-        <Button variant="ghost" size="icon" className="h-9 w-9" disabled={!data.seguinte} onClick={() => navigateTo(data.seguinte)} aria-label="Passo seguinte"><ChevronRight className="h-4 w-4" /></Button>
+        <Button variant="ghost" size="icon" className="h-9 w-9" disabled={!data.anterior} onClick={() => navigateTo(data.anterior)} aria-label="Momento anterior"><ChevronLeft className="h-4 w-4" /></Button>
+        <Button variant="ghost" size="icon" className="h-9 w-9" disabled={!data.seguinte} onClick={() => navigateTo(data.seguinte)} aria-label="Momento seguinte"><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <Button variant="ghost" size="sm" className="h-10 px-2 sm:px-3" onClick={() => setNotesOpen(true)} aria-label="Notas"><NotebookPen className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Notas</span></Button>
       <Button variant="ghost" size="icon" className="hidden h-9 w-9 lg:inline-flex" onClick={() => setShortcuts(true)} aria-label="Atalhos de teclado"><HelpCircle className="h-4 w-4" /></Button>
@@ -227,11 +228,11 @@ function LeitorPage() {
       </main>
     </div>
 
-    <Sheet open={drawer} onOpenChange={setDrawer}><SheetContent side="left" className="flex h-full w-[min(92vw,360px)] flex-col p-0 sm:max-w-none"><SheetHeader className="sr-only"><SheetTitle>Módulos do curso</SheetTitle><SheetDescription>Escolhe um módulo ou passo.</SheetDescription></SheetHeader><div className="min-h-0 flex-1"><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} onSelect={() => setDrawer(false)} /></div><div className="shrink-0 border-t px-5 py-3 text-xs text-muted-foreground">Módulo {data.modulo.indice} · Passo {moduleStep + 1}/{data.curso.modulos.find((m) => m.id === data.modulo.id)?.passos.length ?? 0}</div></SheetContent></Sheet>
+    <Sheet open={drawer} onOpenChange={setDrawer}><SheetContent side="left" className="flex h-full w-[min(92vw,360px)] flex-col p-0 sm:max-w-none"><SheetHeader className="sr-only"><SheetTitle>Módulos do curso</SheetTitle><SheetDescription>Escolhe um módulo ou passo.</SheetDescription></SheetHeader><div className="min-h-0 flex-1"><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} onSelect={() => setDrawer(false)} /></div><div className="shrink-0 border-t px-5 py-3 text-xs text-muted-foreground">Módulo {data.modulo.indice} · Momento {moduleStep + 1}/{data.curso.modulos.find((m) => m.id === data.modulo.id)?.passos.length ?? 0}</div></SheetContent></Sheet>
 
     <Sheet open={notesOpen} onOpenChange={setNotesOpen}><SheetContent side="right" className="flex w-[min(92vw,420px)] flex-col sm:max-w-none"><SheetHeader><SheetTitle>As minhas notas</SheetTitle><SheetDescription className="line-clamp-2">{data.passo.title}</SheetDescription></SheetHeader><PersonalNotes key={data.passo.id} data={data} inscrito={inscrito} /></SheetContent></Sheet>
 
-    <Dialog open={shortcuts} onOpenChange={setShortcuts}><DialogContent><DialogHeader><DialogTitle>Atalhos de teclado</DialogTitle><DialogDescription>Navega no curso sem tirar as mãos do teclado.</DialogDescription></DialogHeader><dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 text-sm"><kbd className="rounded border bg-muted px-2 py-1 text-center">←</kbd><dd>Passo anterior</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">→</kbd><dd>Passo seguinte</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">M</kbd><dd>Abrir ou fechar os módulos</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">?</kbd><dd>Mostrar estes atalhos</dd></dl></DialogContent></Dialog>
+    <Dialog open={shortcuts} onOpenChange={setShortcuts}><DialogContent><DialogHeader><DialogTitle>Atalhos de teclado</DialogTitle><DialogDescription>Navega no curso sem tirar as mãos do teclado.</DialogDescription></DialogHeader><dl className="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 text-sm"><kbd className="rounded border bg-muted px-2 py-1 text-center">←</kbd><dd>Momento anterior</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">→</kbd><dd>Momento seguinte</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">M</kbd><dd>Abrir ou fechar os módulos</dd><kbd className="rounded border bg-muted px-2 py-1 text-center">?</kbd><dd>Mostrar estes atalhos</dd></dl></DialogContent></Dialog>
     <Dialog open={celebrar} onOpenChange={setCelebrar}><DialogContent className="text-center"><DialogHeader><DialogTitle className="text-center text-2xl">Parabéns!</DialogTitle></DialogHeader><CheckCircle2 className="mx-auto h-16 w-16 text-primary" /><p>Concluíste o curso. O teu badge e certificado estão a ser preparados.</p><Button onClick={() => navigate({ to: "/elearning/$cursoId", params: { cursoId } })}>Ver a conclusão do curso</Button></DialogContent></Dialog>
   </div></TooltipProvider>;
 }
@@ -242,6 +243,7 @@ function ReaderContent({ data, inscrito, titleRef, onDone, refetch, onContinue, 
     <div className="mb-7">
       <p className="text-sm text-muted-foreground">Módulo {data.modulo.indice} · {data.modulo.title}</p>
       <p className="mt-3 flex items-center gap-2 text-xs font-semibold uppercase text-primary"><PassoTipoIcon tipo={data.passo.tipo} />{TIPO_PASSO[data.passo.tipo]}{data.passo.duracao_min ? ` · ${data.passo.duracao_min} min` : ""}</p>
+      {!data.anterior && data.curso.modulos.flatMap((m) => m.passos)[0]?.id === data.passo.id && <p className="mt-4 rounded-md bg-learning-reflection p-3 text-sm">Antes de começar, conhece as atividades e o teu Caderno. <Link to="/elearning/$cursoId" params={{ cursoId: data.curso.curso.id }} hash="como-funciona" className="text-primary underline">Como funciona esta formação</Link></p>}
       <h1 ref={titleRef} tabIndex={-1} className="mt-2 text-2xl font-semibold outline-none sm:text-3xl">{data.passo.title}</h1>
       {!inscrito && <p className="mt-4 border border-dashed p-3 text-xs text-muted-foreground">Pré-visualização da equipa — o progresso não é registado.</p>}
     </div>
