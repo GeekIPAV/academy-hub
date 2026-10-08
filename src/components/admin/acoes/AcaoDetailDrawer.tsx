@@ -710,3 +710,116 @@ function VisibilidadeSection({ actionId }: { actionId: string }) {
     </section>
   );
 }
+
+function ResultadosTab({ actionId }: { actionId: string }) {
+  const fn = useServerFn(getAcaoResultados);
+  const { data, isLoading } = useQuery({
+    queryKey: ["acao-resultados", actionId],
+    queryFn: () => fn({ data: { actionId } }),
+  });
+  if (isLoading) return <Skeleton className="h-40 w-full" />;
+  const r = data as AcaoResultados | undefined;
+  if (!r || r.total === 0) {
+    return (
+      <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
+        Ainda não há inscrições para mostrar estatísticas.
+      </p>
+    );
+  }
+  const fmt = (d: string | null) =>
+    d ? new Date(d).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" }) : "—";
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <ResumoCard label="Total de inscritos" value={String(r.total)} />
+        <ResumoCard label="Certificados emitidos" value={String(r.certificados)} />
+        <ResumoCard label="1.ª inscrição" value={fmt(r.primeiraInscricao)} small />
+        <ResumoCard label="Última inscrição" value={fmt(r.ultimaInscricao)} small />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Painel titulo="Organizações" descricao="Pessoas inscritas por entidade">
+          <BarList items={r.organizacoes} total={r.total} />
+        </Painel>
+        <Painel titulo="Cidades" descricao="Pessoas inscritas por localidade">
+          <BarList items={r.cidades} total={r.total} />
+        </Painel>
+        <Painel titulo="Estado das inscrições">
+          <Chips items={r.porEstado} />
+        </Painel>
+        <Painel titulo="Tamanhos de t-shirt">
+          <Chips items={r.tamanhos} />
+        </Painel>
+      </div>
+    </div>
+  );
+}
+
+function ResumoCard({ label, value, small }: { label: string; value: string; small?: boolean }) {
+  return (
+    <div className="rounded-xl border bg-card p-4 shadow-sm">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className={`mt-1 font-semibold text-secondary ${small ? "text-base" : "text-2xl"}`}>{value}</p>
+    </div>
+  );
+}
+
+function Painel({
+  titulo,
+  descricao,
+  children,
+}: {
+  titulo: string;
+  descricao?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-xl border bg-card p-4 shadow-sm">
+      <h3 className="font-bold text-secondary">{titulo}</h3>
+      {descricao && <p className="mb-2 text-xs text-muted-foreground">{descricao}</p>}
+      <div className="mt-3 space-y-2">{children}</div>
+    </section>
+  );
+}
+
+function BarList({ items, total }: { items: Contagem[]; total: number }) {
+  if (items.length === 0) {
+    return <p className="text-sm text-muted-foreground">Sem dados.</p>;
+  }
+  const max = items[0].count || 1;
+  return (
+    <div className="space-y-2">
+      {items.map((it) => (
+        <div key={it.name}>
+          <div className="flex items-baseline justify-between gap-2 text-sm">
+            <span className="min-w-0 truncate">{it.name}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {it.count} ({total > 0 ? Math.round((it.count / total) * 100) : 0}%)
+            </span>
+          </div>
+          <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-secondary/70"
+              style={{ width: `${Math.max((it.count / max) * 100, 4)}%` }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Chips({ items }: { items: Contagem[] }) {
+  if (items.length === 0) {
+    return <p className="text-sm text-muted-foreground">Sem dados.</p>;
+  }
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map((it) => (
+        <Badge key={it.name} variant="secondary" className="text-xs">
+          {it.name}: {it.count}
+        </Badge>
+      ))}
+    </div>
+  );
+}
