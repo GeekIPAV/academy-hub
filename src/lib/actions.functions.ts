@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const listActions = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await supabaseAdmin
@@ -8,6 +9,7 @@ export const listActions = createServerFn({ method: "GET" }).handler(async () =>
     .select(
       "id, title, description, start_date, formato, max_capacity, registration_status, program_id, programas(title)",
     )
+    .eq("visibilidade", "todos")
     .order("start_date", { ascending: true, nullsFirst: false });
   if (error) throw new Error(error.message);
   return data ?? [];
@@ -59,19 +61,22 @@ export type AcaoPublicaRow = {
  * ou que já foram/ainda vão acontecer com inscrições anunciadas.
  * Nunca devolve ações fechadas/canceladas ou sem estado de inscrição.
  */
-export const listAcoesPublicas = createServerFn({ method: "GET" }).handler(async () => {
+export const listAcoesPublicas = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
   const today = new Date().toISOString().slice(0, 10);
   const { data, error } = await supabaseAdmin
     .from("acoes")
     .select(
-      "id, title, description, start_date, end_date, formato, localizacao, pais, produto_id, action_type, max_capacity, registration_status, cover_url, cover_position, cover_scale, programas(title), produtos(name)",
+      "id, title, description, start_date, end_date, formato, localizacao, pais, produto_id, action_type, max_capacity, registration_status, cover_url, cover_position, cover_scale, visibilidade, programas(title), produtos(name), acoes_projetos(project_id)",
     )
     .or(`registration_status.eq.Aberto,and(registration_status.eq.Em breve,start_date.gte.${today})`)
     .order("start_date", { ascending: true, nullsFirst: false })
     .limit(500);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((r: Record<string, unknown>): AcaoPublicaRow => {
-    const { programas, produtos, ...rest } = r as Record<string, unknown> & {
+  const visiveis = await filtrarPorProjeto(context.userId, data ?? []);
+  return visiveis.map((r: Record<string, unknown>): AcaoPublicaRow => {
+    const { programas, produtos, acoes_projetos: _ap, visibilidade: _v, ...rest } = r as Record<string, unknown> & {
       programas: { title?: string | null } | null;
       produtos: { name?: string | null } | null;
     };
@@ -83,3 +88,22 @@ export const listAcoesPublicas = createServerFn({ method: "GET" }).handler(async
   });
 });
 
+
+/** Ações restritas só aparecem a quem tem um dos projetos (direto ou herdado da entidade). */
+async function filtrarPorProjeto<
+  T extends { visibilidade?: string | null; acoes_projetos?: { project_id: string }[] | null },
+>(userId: string, rows: T[]): Promise<T[]> {
+  if (!rows.some((r) => r.visibilidade === "projetos")) return rows;
+  const [{ data: isAdmin }, { data: isEquipa }, { data: projs }] = await Promise.all([
+    supabaseAdmin.rpc("is_admin", { _user_id: userId }),
+    supabaseAdmin.rpc("is_equipa", { _user_id: userId }),
+    supabaseAdmin.rpc("user_projetos_efetivos", { _user_id: userId }),
+  ]);
+  if (isAdmin || isEquipa) return rows;
+  const meus = new Set((projs ?? []).map((p: { project_id: string }) => p.project_id));
+  return rows.filter(
+    (r) =>
+      r.visibilidade !== "projetos" ||
+      (r.acoes_projetos ?? []).some((ap) => meus.has(ap.project_id)),
+  );
+}
