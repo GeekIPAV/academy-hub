@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import parse, { domToReact, Element, type DOMNode, type HTMLReactParserOptions } from "html-react-parser";
 import { ArrowUpRight, ExternalLink, FileText, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
