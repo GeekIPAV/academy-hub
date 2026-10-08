@@ -25,6 +25,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { VimeoPlayer } from "@/components/elearning/VimeoPlayer";
+import { LearningRichText } from "@/components/elearning/LearningRichText";
 import { PassoTipoIcon, TIPO_PASSO } from "@/components/elearning/shared";
 import {
   concluirPasso, getPasso, guardarNotaPasso, guardarRascunhoReflexao, registarVideo,
@@ -278,12 +279,12 @@ function PassoConteudo({ data, inscrito, onDone, refetch, onContinue, onPrevious
   const [videoPct, setVideoPct] = useState(progresso?.video_pct ?? 0);
   const [countdown, setCountdown] = useState<number | null>(null);
   const concluir = useMutation({ mutationFn: () => concluirFn({ data: { passoId: passo.id } }), onSuccess: (r) => { onDone(r.cursoConcluido); refetch(); if (!r.cursoConcluido) onContinue(); }, onError: (e: Error) => toast.error(e.message) });
-  const intro = typeof c.html === "string" && c.html ? <div className="rich-text text-[17px] leading-[1.7] [&_h2]:mt-8 [&_h2]:text-2xl [&_img]:w-full [&_li]:my-1 [&_p]:my-4" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(c.html) }} /> : null;
+  const intro = typeof c.html === "string" && c.html ? <LearningRichText html={c.html} className="rich-text min-w-0 break-words text-[17px] leading-[1.7] [&_h2]:mt-8 [&_h2]:text-2xl [&_img]:w-full [&_li]:my-1 [&_p]:my-4" /> : null;
   useEffect(() => { if (countdown == null) return; if (countdown <= 0) { onContinue(); return; } const id = window.setTimeout(() => setCountdown((v) => v == null ? null : v - 1), 1000); return () => window.clearTimeout(id); }, [countdown, onContinue]);
 
   if (passo.tipo === "video") {
     const ready = concluido || videoPct >= data.curso.curso.pct_minima_video;
-    return <div className="space-y-4"><VimeoPlayer video={String(c.vimeo ?? "")} startAt={progresso?.video_posicao_s ?? 0} onEnded={() => { if (data.seguinte) setCountdown(5); }} onProgress={(pct, sec) => { if (!inscrito) return; setVideoPct((v) => Math.max(v, pct)); videoFn({ data: { passoId: passo.id, pct, posicao: sec } }).then((r) => { if (r.concluido && !concluido) { onDone(r.cursoConcluido); refetch(); } }).catch(() => undefined); }} />
+    return <div className="space-y-4">{intro}<VimeoPlayer video={String(c.vimeo ?? "")} startAt={progresso?.video_posicao_s ?? 0} onEnded={() => { if (data.seguinte) setCountdown(5); }} onProgress={(pct, sec) => { if (!inscrito) return; setVideoPct((v) => Math.max(v, pct)); videoFn({ data: { passoId: passo.id, pct, posicao: sec } }).then((r) => { if (r.concluido && !concluido) { onDone(r.cursoConcluido); refetch(); } }).catch(() => undefined); }} />
       {inscrito && <div><Progress value={videoPct} className="h-1" /><p className="mt-2 text-xs text-muted-foreground">{ready ? <span className="font-medium text-primary">✓ Concluído</span> : `${Math.round(videoPct)}% visto · necessário ${data.curso.curso.pct_minima_video}%`}</p></div>}
       {countdown != null && <Card className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-4"><div className="min-w-0"><p className="text-xs text-muted-foreground">A continuar automaticamente</p><p className="truncate font-medium">Próximo passo em {countdown} s</p></div><Button variant="outline" size="sm" onClick={() => setCountdown(null)}><X className="mr-1 h-4 w-4" />Cancelar</Button></Card>}
       <ActionBar concluido={ready} anterior={!!data.anterior} onPrevious={onPrevious} state={{ ready, help: `Vê o vídeo até ${data.curso.curso.pct_minima_video}% para continuar`, onAction: onContinue }} />
@@ -360,7 +361,7 @@ function Reflexao({ data, inscrito, onDone, refetch, onContinue, onPrevious, int
 }
 
 function PassoTabs({ data }: { data: PassoDetalhe; inscrito: boolean }) {
-  const sobre = data.modulo.description ? <div className="rich-text text-sm leading-6 text-muted-foreground" dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(data.modulo.description) }} /> : <p className="text-sm leading-6 text-muted-foreground">Não foi adicionada uma descrição específica a este módulo.</p>;
+  const sobre = data.modulo.description ? <LearningRichText html={data.modulo.description} className="rich-text min-w-0 break-words text-sm leading-6 text-muted-foreground" /> : <p className="text-sm leading-6 text-muted-foreground">Não foi adicionada uma descrição específica a este módulo.</p>;
   if (!data.materiais.length) return <section className="mt-10 border-t pt-5"><h2 className="text-sm font-semibold">Sobre o módulo</h2><div className="mt-3">{sobre}</div></section>;
   return <Tabs defaultValue="sobre" className="mt-10 border-t pt-5"><TabsList className="grid h-auto w-full grid-cols-2"><TabsTrigger value="sobre" className="min-h-10 px-2 text-xs sm:text-sm">Sobre o módulo</TabsTrigger><TabsTrigger value="materiais" className="min-h-10 px-2 text-xs sm:text-sm">Materiais</TabsTrigger></TabsList>
     <TabsContent value="sobre" className="py-5">{sobre}</TabsContent>
@@ -370,7 +371,7 @@ function PassoTabs({ data }: { data: PassoDetalhe; inscrito: boolean }) {
 
 function Materials({ materiais }: { materiais: PassoDetalhe["materiais"] }) {
   if (!materiais.length) return <EmptyContent text="Não existem materiais adicionais." />;
-  return <div className="space-y-2">{materiais.map((r) => <div key={r.id} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-md border p-3">{r.cover_url ? <img src={r.cover_url} alt="" className="h-12 w-12 rounded object-cover" /> : <PassoTipoIcon tipo="recurso" className="h-6 w-6 text-muted-foreground" />}<div className="min-w-0"><p className="truncate text-sm font-medium">{r.title}</p><p className="truncate text-xs text-muted-foreground">{r.resource_type}</p></div><Button variant="ghost" size="icon" asChild><a href={r.file_url} target="_blank" rel="noreferrer" aria-label={`Descarregar ${r.title}`}><Download className="h-4 w-4" /></a></Button></div>)}</div>;
+  return <div className="space-y-2">{materiais.map((r) => <div key={r.id} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-md border p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]">{r.cover_url ? <img src={r.cover_url} alt="" className="h-12 w-12 rounded object-cover" /> : <PassoTipoIcon tipo="recurso" className="h-6 w-6 text-muted-foreground" />}<div className="min-w-0"><p className="break-words text-sm font-medium">{r.title}</p><p className="text-xs text-muted-foreground">{r.resource_type}</p></div><Button variant="outline" size="sm" asChild className="col-span-2 justify-self-start sm:col-span-1"><a href={r.file_url} target="_blank" rel="noopener noreferrer" aria-label={`Abrir documento: ${r.title}`}><ExternalLink className="mr-2 h-4 w-4" />Abrir documento</a></Button></div>)}</div>;
 }
 
 function PersonalNotes({ data, inscrito }: { data: PassoDetalhe; inscrito: boolean }) {
