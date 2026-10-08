@@ -52,3 +52,10 @@
 - [x] Visão geral com "Continuar onde paraste"; navegação livre com Seguinte
 - [x] Widget "Tens um curso à tua espera"; Inscritos com situação, último acesso, resumo e CSV
 - [ ] Testar no navegador a 375/1280px — aguarda sessão iniciada na pré-visualização
+
+## Percurso e Caderno de formação
+- [ ] Mostrar percurso pessoal à entrada do E-learning e catálogo compacto abaixo
+- [ ] Aplicar progressão sequencial opcional no servidor e em todas as vistas
+- [ ] Integrar nota Como funciona e Caderno privado com exportação PDF
+- [ ] Preencher apresentação e ativar progressão no curso indicado
+- [ ] Validar regras e experiência a 375px e 1280px
