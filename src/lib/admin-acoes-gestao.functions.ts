@@ -201,3 +201,95 @@ export const listInscritosAcao = createServerFn({ method: "POST" })
       };
     });
   });
+
+export type Contagem = { name: string; count: number };
+
+export interface AcaoResultados {
+  total: number;
+  porEstado: Contagem[];
+  organizacoes: Contagem[];
+  cidades: Contagem[];
+  tamanhos: Contagem[];
+  certificados: number;
+  primeiraInscricao: string | null;
+  ultimaInscricao: string | null;
+}
+
+export const getAcaoResultados = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ actionId: z.string().uuid() }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { data: rows, error } = await supabaseAdmin
+      .from("inscritos_acoes")
+      .select("id, status, submitted_at, tshirt_size, certificate_sent, user_id")
+      .eq("action_id", data.actionId);
+    if (error) throw new Error(error.message);
+    const list = rows ?? [];
+
+    const userIds = Array.from(
+      new Set(list.map((r) => r.user_id).filter((x): x is string => !!x)),
+    );
+    const userInfo = new Map<string, { entity_id: string | null; localidade: string | null }>();
+    const entityNames = new Map<string, string>();
+    if (userIds.length > 0) {
+      const { data: users } = await supabaseAdmin
+        .from("utilizadores")
+        .select("id, entity_id, localidade")
+        .in("id", userIds);
+      const entityIds = Array.from(
+        new Set((users ?? []).map((u) => u.entity_id as string | null).filter((x): x is string => !!x)),
+      );
+      if (entityIds.length > 0) {
+        const { data: ents } = await supabaseAdmin
+          .from("entidades")
+          .select("id, name")
+          .in("id", entityIds);
+        (ents ?? []).forEach((e) => entityNames.set(e.id as string, (e.name as string) ?? "Sem nome"));
+      }
+      (users ?? []).forEach((u) =>
+        userInfo.set(u.id as string, {
+          entity_id: (u.entity_id as string | null) ?? null,
+          localidade: (u.localidade as string | null) ?? null,
+        }),
+      );
+    }
+
+    const tally = (values: (string | null)[]) => {
+      const m = new Map<string, number>();
+      for (const v of values) {
+        const key = v && v.trim() ? v.trim() : "—";
+        m.set(key, (m.get(key) ?? 0) + 1);
+      }
+      return Array.from(m.entries())
+        .map(([name, count]): Contagem => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "pt-PT"));
+    };
+
+    const datas = list
+      .map((r) => r.submitted_at as string | null)
+      .filter((d): d is string => !!d)
+      .sort();
+
+    return {
+      total: list.length,
+      porEstado: tally(list.map((r) => (r.status as string | null) ?? "—")),
+      organizacoes: tally(
+        list.map((r) => {
+          const uid = r.user_id as string | null;
+          const info = uid ? userInfo.get(uid) : null;
+          if (!info?.entity_id) return null;
+          return entityNames.get(info.entity_id) ?? null;
+        }),
+      ),
+      cidades: tally(list.map((r) => {
+        const uid = r.user_id as string | null;
+        const info = uid ? userInfo.get(uid) : null;
+        return info?.localidade ?? null;
+      })),
+      tamanhos: tally(list.map((r) => (r.tshirt_size as string | null) ?? null)),
+      certificados: list.filter((r) => !!r.certificate_sent).length,
+      primeiraInscricao: datas[0] ?? null,
+      ultimaInscricao: datas[datas.length - 1] ?? null,
+    };
+  });
