@@ -221,7 +221,7 @@ function LeitorPage() {
     <div className={cn("relative grid min-w-0 transition-[grid-template-columns] duration-200", sidebarOpen ? "xl:grid-cols-[300px_minmax(0,1fr)]" : "xl:grid-cols-[0_minmax(0,1fr)]")}>
       <aside className={cn("absolute inset-y-0 left-0 z-20 hidden w-[300px] overflow-hidden border-r bg-background shadow-lg lg:block xl:hidden", !sidebarOpen && "invisible")}><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} /></aside>
       <aside className={cn("sticky top-[var(--course-top)] hidden h-[calc(100svh-var(--course-top))] min-h-0 overflow-hidden border-r xl:block", !sidebarOpen && "invisible")}><CourseIndex curso={data.curso} cursoId={cursoId} atual={passoId} /></aside>
-      <main ref={scrollRef} className="relative min-w-0 scroll-mt-[var(--course-top)] scroll-smooth pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:pb-0">
+      <main ref={scrollRef} className={cn("relative min-w-0 scroll-mt-[var(--course-top)] scroll-smooth pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:pb-0", sidebarOpen && "xl:pl-6")}>
         {isFetching && <div className="absolute inset-x-0 top-0 z-20"><Progress value={35} className="h-0.5 animate-pulse" /></div>}
         {isFetching && data.passo.id !== passoId ? <ContentSkeleton /> : transition ? <ModuleComplete transition={transition} data={data} onContinue={() => { const first = transition.modulo?.passos.find((p) => p.estado !== "bloqueado"); if (first) navigateTo(first.id); }} onOverview={() => navigate({ to: "/elearning/$cursoId", params: { cursoId } })} /> :
           <ReaderContent key={data.passo.id} data={data} inscrito={inscrito} titleRef={titleRef} onDone={onDone} refetch={() => qc.invalidateQueries({ queryKey: key })} onContinue={showTransitionOrNext} onPrevious={() => navigateTo(data.anterior)} />}
@@ -238,8 +238,8 @@ function LeitorPage() {
 }
 
 function ReaderContent({ data, inscrito, titleRef, onDone, refetch, onContinue, onPrevious }: { data: PassoDetalhe; inscrito: boolean; titleRef: React.RefObject<HTMLHeadingElement | null>; onDone: (c?: boolean) => void; refetch: () => void; onContinue: () => void; onPrevious: () => void }) {
-  const wide = data.passo.tipo === "video" || data.passo.tipo === "recurso";
-  return <div className={cn("mx-auto w-full px-4 py-6 sm:px-6 sm:py-8", wide ? "max-w-[1048px]" : "max-w-[768px]")}>
+  const wide = data.passo.tipo === "video" || data.passo.tipo === "recurso" || data.passo.tipo === "quiz";
+  return <div className={cn("mx-auto w-full min-w-0 pb-8", wide ? "max-w-none" : "max-w-[760px]")}>
     <div className="mb-7">
       <p className="text-sm text-muted-foreground">Módulo {data.modulo.indice} · {data.modulo.title}</p>
       <p className="mt-3 flex items-center gap-2 text-xs font-semibold uppercase text-primary"><PassoTipoIcon tipo={data.passo.tipo} />{TIPO_PASSO[data.passo.tipo]}{data.passo.duracao_min ? ` · ${data.passo.duracao_min} min` : ""}</p>

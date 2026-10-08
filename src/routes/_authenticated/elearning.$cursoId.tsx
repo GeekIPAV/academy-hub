@@ -18,6 +18,14 @@ import { getCurso, inscreverCurso } from "@/lib/elearning.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId")({
+  head: () => ({ meta: [
+    { title: "Espaço de formação — Escola Ubuntu Online" },
+    { name: "description", content: "Visão geral, momentos de formação e Caderno de Percurso da Escola Ubuntu Online." },
+    { property: "og:title", content: "Espaço de formação — Escola Ubuntu Online" },
+    { property: "og:description", content: "O teu curso, percurso de aprendizagem e reflexões pessoais." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: () => <RouteGate path="/elearning"><CourseLayout /></RouteGate>,
 });
 
@@ -111,15 +119,17 @@ function CourseLayout() {
 
   return <TooltipProvider delayDuration={250}>
     <CourseLayoutProvider value={{ data, turmaId, setTurmaId, isPreview, isEnrolling: enrollment.isPending, enroll: () => enrollment.mutate(), formationStepId, headerSlot, primary: { label: primaryLabel, disabled: actionDisabled, run: primaryAction } }}>
-      <div className="mx-auto w-full min-w-0 max-w-[1440px] pb-4 lg:pb-0" style={{ ["--course-top" as string]: `calc(3.5rem + ${headerH}px)` }}>
-        <section ref={headerRef} className="sticky top-14 z-20 -mx-4 border-b bg-background/95 shadow-sm backdrop-blur sm:-mx-6 lg:-mx-8">
-          <div className="flex h-[52px] min-w-0 items-center gap-2 px-3 sm:gap-3 sm:px-4 lg:px-6">
+      <div className="-mx-4 min-w-0 sm:-mx-6 lg:-mx-8">
+      <div className="course-space mx-auto w-full min-w-0 max-w-[1440px] px-4 pb-4 sm:px-6 lg:px-8 lg:pb-0" style={{ ["--course-top" as string]: `calc(3.5rem + ${headerH}px)` }}>
+        <section ref={headerRef} className="sticky top-14 z-20 border-b bg-background/95 shadow-sm backdrop-blur">
+          <div className="grid h-[52px] min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:gap-3">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <div className="h-8 w-10 shrink-0 overflow-hidden rounded bg-muted">{curso.cover_url ? <CoverImage src={curso.cover_url} position={curso.cover_position} scale={curso.cover_scale} loading="eager" /> : <div className="grid h-full place-items-center bg-secondary/10"><GraduationCap className="h-4 w-4 text-secondary" /></div>}</div>
             <div className="min-w-0 flex-1 md:max-w-xs lg:max-w-sm">
               <Tooltip><TooltipTrigger asChild><p className="truncate text-sm font-semibold text-secondary">{curso.title}</p></TooltipTrigger><TooltipContent className="max-w-sm">{curso.title}</TooltipContent></Tooltip>
               <div className="flex items-center gap-2"><Progress value={pct} className="h-1" /><span className="shrink-0 text-[11px] text-muted-foreground">{pct}%</span></div>
             </div>
-            <nav aria-label="Secções do curso" className="hidden h-[52px] shrink-0 items-stretch gap-5 md:flex md:flex-1 md:justify-center">{tabs}</nav>
+            </div>
             <div className="flex shrink-0 items-center gap-1">
               {isOverview && <><Button size="sm" className="hidden sm:inline-flex" onClick={primaryAction} disabled={actionDisabled}>{completed && data.certificado ? <Download className="mr-2 h-4 w-4" /> : <PlayCircle className="mr-2 h-4 w-4" />}{primaryLabel}</Button><Button size="icon" className="h-9 w-9 sm:hidden" onClick={primaryAction} disabled={actionDisabled} aria-label={primaryLabel}>{completed && data.certificado ? <Download className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}</Button></>}
               {isNotebook && <Button variant="outline" size="sm" className="h-9 px-2 sm:px-3" onClick={() => window.print()} aria-label="Descarregar PDF"><Printer className="h-4 w-4 sm:mr-2" /><span className="hidden sm:inline">Descarregar PDF</span></Button>}
@@ -133,9 +143,10 @@ function CourseLayout() {
               </DropdownMenu>
             </div>
           </div>
-          <nav aria-label="Secções do curso" className="flex h-10 items-stretch gap-5 overflow-x-auto border-t px-3 md:hidden">{tabs}</nav>
+          <nav aria-label="Secções do curso" className="course-tabs flex h-10 min-w-0 items-stretch gap-5 overflow-x-auto border-t">{tabs}</nav>
         </section>
-        <div className={cn("min-w-0", isFormation ? "pt-0" : "pt-5 sm:pt-6")}><Outlet /></div>
+        <div className="course-content min-w-0 pt-6"><Outlet /></div>
+      </div>
       </div>
       <Sheet open={guideOpen} onOpenChange={setGuideOpen}><SheetContent side="right" className="w-full overflow-y-auto sm:max-w-md"><SheetHeader><SheetTitle>Como funciona esta formação</SheetTitle><SheetDescription>{curso.title}</SheetDescription></SheetHeader><div className="mt-5"><ComoFuncionaList data={data} /></div></SheetContent></Sheet>
     </CourseLayoutProvider>
@@ -143,5 +154,5 @@ function CourseLayout() {
 }
 
 function CourseLayoutSkeleton() {
-  return <div className="mx-auto w-full max-w-[1440px]"><div className="-mx-4 flex h-[52px] items-center gap-3 border-b bg-background px-4 sm:-mx-6 lg:-mx-8"><Skeleton className="h-8 w-10" /><div className="flex-1 space-y-1.5"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-1 w-48" /></div></div><div className="space-y-4 pt-6"><Skeleton className="h-8 w-2/3" /><Skeleton className="h-44 w-full" /></div></div>;
+  return <div className="w-full min-w-0"><div className="flex h-[52px] min-w-0 items-center gap-3 border-b bg-background"><Skeleton className="h-8 w-10 shrink-0" /><div className="min-w-0 flex-1 space-y-1.5"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-1 w-48 max-w-full" /></div></div><div className="space-y-4 pt-6"><Skeleton className="h-8 w-2/3" /><Skeleton className="h-44 w-full" /></div></div>;
 }
