@@ -350,6 +350,7 @@ export interface PassoDetalhe {
     conteudo: Record<string, any>;
     recurso: { id: string; title: string; description: string | null; resource_type: string; file_url: string; cover_url: string | null } | null;
     perguntas: { id: string; enunciado: string; tipo: "unica" | "multipla"; opcoes: { id: string; texto: string }[] }[];
+    permite_repetir: boolean;
   };
   modulo: { id: string; title: string; description: string | null; indice: number };
   materiais: { id: string; title: string; description: string | null; resource_type: string; file_url: string; cover_url: string | null }[];
@@ -443,7 +444,7 @@ export const getPasso = createServerFn({ method: "POST" })
     }
     return {
       curso,
-      passo: { id: p.id, modulo_id: p.modulo_id, title: p.title, tipo: p.tipo as PassoTipo, obrigatorio: p.obrigatorio, duracao_min: p.duracao_min, conteudo, recurso, perguntas },
+      passo: { id: p.id, modulo_id: p.modulo_id, title: p.title, tipo: p.tipo as PassoTipo, obrigatorio: p.obrigatorio, duracao_min: p.duracao_min, conteudo, recurso, perguntas, permite_repetir: p.tipo === "quiz" ? (await sb.from("cursos").select("quiz_permite_repetir").eq("id", data.cursoId).single()).data?.quiz_permite_repetir !== false : true },
       modulo: { id: moduloAtual.id, title: moduloAtual.title, description: moduloAtual.description, indice: curso.modulos.findIndex((m) => m.id === moduloAtual.id) + 1 },
       materiais,
       nota: nota ?? null,
@@ -477,7 +478,7 @@ async function getInscricaoPasso(userId: string, passoId: string) {
   const detalhe = await carregarCurso(userId, mod.curso_id);
   const resumo = detalhe.modulos.flatMap((m) => m.passos).find((p) => p.id === passoId);
   if (!resumo || resumo.estado === "bloqueado") throw new Error(resumo?.bloqueio_motivo ?? "Este momento ainda não está disponível.");
-  const { data: curso } = await sb.from("cursos").select("modalidade, nota_minima_quiz, pct_minima_video").eq("id", mod.curso_id).single();
+  const { data: curso } = await sb.from("cursos").select("modalidade, nota_minima_quiz, pct_minima_video, quiz_permite_repetir").eq("id", mod.curso_id).single();
   if (!curso) throw new Error("Curso não encontrado.");
   const turma = insc.turma_id ? (await sb.from("cursos_turmas").select("data_inicio").eq("id", insc.turma_id).maybeSingle()).data : null;
   const { aberturaModulo } = await import("@/lib/elearning.server");
@@ -548,8 +549,12 @@ export const submeterQuiz = createServerFn({ method: "POST" })
     }
     const nota = qs?.length ? Math.round((certas / qs.length) * 100) : 100;
     const { data: pr } = await sb.from("cursos_progresso").select("estado, nota, tentativas").eq("inscricao_id", insc.id).eq("passo_id", passo.id).maybeSingle();
+    const permiteRepetir = curso.quiz_permite_repetir !== false;
+    if (!permiteRepetir && (pr?.tentativas ?? 0) > 0) throw new Error("Este quiz só permite uma tentativa.");
     const aprovado = nota >= curso.nota_minima_quiz;
     const jaConcluido = pr?.estado === "concluido";
+    // Sem repetição, a única tentativa conclui o momento mesmo sem aprovação.
+    const conclui = aprovado || !permiteRepetir;
     await upsertProg(sb, {
       inscricao_id: insc.id,
       passo_id: passo.id,
@@ -557,13 +562,13 @@ export const submeterQuiz = createServerFn({ method: "POST" })
       nota: Math.max(nota, Number(pr?.nota ?? 0)),
       tentativas: (pr?.tentativas ?? 0) + 1,
       resposta: data.respostas,
-      estado: aprovado || jaConcluido ? "concluido" : "em_curso",
-      ...(aprovado && !jaConcluido ? { concluido_em: new Date().toISOString() } : {}),
+      estado: conclui || jaConcluido ? "concluido" : "em_curso",
+      ...(conclui && !jaConcluido ? { concluido_em: new Date().toISOString() } : {}),
     });
     const { logAtividade, avaliarConclusao } = await import("@/lib/elearning.server");
-    await logAtividade(context.userId, insc.id, passo.id, "submissao_quiz", { nota, aprovado });
-    const cursoConcluido = aprovado && !jaConcluido ? await avaliarConclusao(insc.id, baseUrl()) : false;
-    return { nota, aprovado, minimo: curso.nota_minima_quiz, feedback, cursoConcluido };
+    await logAtividade(context.userId, insc.id, passo.id, "submissao_quiz", { nota, aprovado, respostas: data.respostas, certas, total: qs?.length ?? 0 });
+    const cursoConcluido = conclui && !jaConcluido ? await avaliarConclusao(insc.id, baseUrl()) : false;
+    return { nota, aprovado, avanca: conclui, permiteRepetir, minimo: curso.nota_minima_quiz, feedback, cursoConcluido };
   });
 
 export const submeterReflexao = createServerFn({ method: "POST" })

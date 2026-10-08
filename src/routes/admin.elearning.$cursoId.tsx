@@ -12,6 +12,7 @@ import { RichTextEditor } from "@/components/rich-text-editor";
 import { ConteudoBuilder } from "@/components/admin/elearning/ConteudoBuilder";
 import { TurmasTab } from "@/components/admin/elearning/TurmasTab";
 import { ReflexoesTab } from "@/components/admin/elearning/ReflexoesTab";
+import { QuizRespostasTab } from "@/components/admin/elearning/QuizRespostasTab";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -87,6 +88,7 @@ function CursoAdminPage() {
            {data.curso.modalidade === "turma" && <TabsTrigger value="turmas" className="min-w-0 px-2 sm:px-4">Turmas</TabsTrigger>}
            <TabsTrigger value="inscritos" className="min-w-0 px-2 sm:px-4">Inscritos</TabsTrigger>
            <TabsTrigger value="reflexoes" className="min-w-0 px-2 sm:px-4">Reflexões</TabsTrigger>
+           <TabsTrigger value="quizzes" className="min-w-0 px-2 sm:px-4">Quizzes</TabsTrigger>
         </TabsList>
          <TabsContent value="dados" className="w-full min-w-0 pt-4"><DadosTab curso={data.curso} /></TabsContent>
          <TabsContent value="conteudo" className="w-full min-w-0 pt-4">
@@ -97,6 +99,7 @@ function CursoAdminPage() {
         )}
          <TabsContent value="inscritos" className="w-full min-w-0 pt-4"><InscritosTab cursoId={cursoId} turmas={data.turmas} /></TabsContent>
          <TabsContent value="reflexoes" className="w-full min-w-0 pt-4"><ReflexoesTab cursoId={cursoId} /></TabsContent>
+         <TabsContent value="quizzes" className="w-full min-w-0 pt-4"><QuizRespostasTab cursoId={cursoId} /></TabsContent>
       </Tabs>
     </div>
   );
@@ -163,6 +166,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
     nota_minima_quiz: curso.nota_minima_quiz,
     pct_minima_video: curso.pct_minima_video,
     progressao_sequencial: curso.progressao_sequencial,
+    quiz_permite_repetir: curso.quiz_permite_repetir ?? true,
     apresentacao: { percurso: [], como_funciona: [], sequencia: [], ...((curso.apresentacao ?? {}) as object) } as NonNullable<CursoInput["apresentacao"]>,
   });
   const [f, setF] = useState<CursoInput>(initial);
@@ -252,6 +256,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
       </div>
       <label className="flex items-center gap-2 text-sm"><Checkbox checked={f.tem_certificado} onCheckedChange={(v) => set("tem_certificado", !!v)} /> Emite certificado ao concluir</label>
       <label className="flex items-center gap-2 text-sm"><Checkbox checked={f.progressao_sequencial ?? false} onCheckedChange={(v) => set("progressao_sequencial", !!v)} /> Progressão sequencial</label>
+      <label className="flex items-start gap-2 text-sm"><Checkbox className="mt-0.5" checked={f.quiz_permite_repetir ?? true} onCheckedChange={(v) => set("quiz_permite_repetir", !!v)} /><span>Permitir responder novamente aos quizzes sem aprovação<span className="block text-xs text-muted-foreground">Se desligado, há uma só tentativa e o formando avança com a nota obtida.</span></span></label>
       <div className="flex justify-end"><Button onClick={() => save.mutate(f)} disabled={save.isPending || !f.title.trim() || !dirty}>Guardar alterações</Button></div>
       </Card>
     </div>

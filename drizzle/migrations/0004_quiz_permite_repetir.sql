@@ -1,0 +1,1 @@
+ALTER TABLE public.cursos ADD COLUMN IF NOT EXISTS quiz_permite_repetir boolean NOT NULL DEFAULT true;

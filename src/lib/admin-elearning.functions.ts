@@ -60,6 +60,7 @@ const cursoSchema = z.object({
   nota_minima_quiz: z.number().int().min(0).max(100),
   pct_minima_video: z.number().int().min(0).max(100),
   progressao_sequencial: z.boolean().optional(),
+  quiz_permite_repetir: z.boolean().optional(),
   apresentacao: z.object({
     percurso: z.array(z.object({ titulo: z.string().max(200), descricao: z.string().max(1000), estado: z.enum(["concluido", "atual", "seguinte", "aplicacao"]) })).max(12).default([]),
     como_funciona: z.array(z.object({ titulo: z.string().max(200), descricao: z.string().max(1000) })).max(12).default([]),
