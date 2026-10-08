@@ -134,7 +134,7 @@ function CourseLayout() {
             </div>
             <Button size="sm" className="hidden shrink-0 sm:inline-flex" onClick={primaryAction} disabled={actionDisabled}>{completed && data.certificado ? <Download className="mr-2 h-4 w-4" /> : <PlayCircle className="mr-2 h-4 w-4" />}{primaryLabel}</Button>
           </div>
-          <nav aria-label="Secções do curso" className="flex h-11 items-end gap-6 px-4 sm:px-6 lg:px-8">{overviewTab}{formationTab}</nav>
+          <nav aria-label="Secções do curso" className="flex h-11 items-end gap-4 px-4 sm:gap-6 sm:px-6 lg:px-8">{overviewTab}{formationTab}{curso.inscricao && <Link to="/elearning/$cursoId/caderno" params={{ cursoId }} className="flex h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><BookOpen className="h-4 w-4" />Caderno</Link>}</nav>
           </>}
         </section>
         <div className={cn("min-w-0", isFormation ? "pt-0" : "pt-5 sm:pt-6")}><Outlet /></div>
