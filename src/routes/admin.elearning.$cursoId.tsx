@@ -163,6 +163,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
     nota_minima_quiz: curso.nota_minima_quiz,
     pct_minima_video: curso.pct_minima_video,
     progressao_sequencial: curso.progressao_sequencial,
+    quiz_permite_repetir: curso.quiz_permite_repetir ?? true,
     apresentacao: { percurso: [], como_funciona: [], sequencia: [], ...((curso.apresentacao ?? {}) as object) } as NonNullable<CursoInput["apresentacao"]>,
   });
   const [f, setF] = useState<CursoInput>(initial);
@@ -252,6 +253,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
       </div>
       <label className="flex items-center gap-2 text-sm"><Checkbox checked={f.tem_certificado} onCheckedChange={(v) => set("tem_certificado", !!v)} /> Emite certificado ao concluir</label>
       <label className="flex items-center gap-2 text-sm"><Checkbox checked={f.progressao_sequencial ?? false} onCheckedChange={(v) => set("progressao_sequencial", !!v)} /> Progressão sequencial</label>
+      <label className="flex items-start gap-2 text-sm"><Checkbox className="mt-0.5" checked={f.quiz_permite_repetir ?? true} onCheckedChange={(v) => set("quiz_permite_repetir", !!v)} /><span>Permitir responder novamente aos quizzes sem aprovação<span className="block text-xs text-muted-foreground">Se desligado, há uma só tentativa e o formando avança com a nota obtida.</span></span></label>
       <div className="flex justify-end"><Button onClick={() => save.mutate(f)} disabled={save.isPending || !f.title.trim() || !dirty}>Guardar alterações</Button></div>
       </Card>
     </div>
