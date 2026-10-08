@@ -1,6 +1,6 @@
 # Architecture rules
 
-- Keep route roots shrinkable in the shared app shell and contain horizontal scrolling inside tables and tab lists, so dense views cannot widen the mobile page.
+- Keep route roots and grid items shrinkable in the shared app shell (full-bleed negative-margin wrappers excepted) and contain horizontal scrolling inside tables and tab lists, giving wide tables a phone minimum width, so dense views cannot widen or squash the mobile page.
 - Constrain shared dialogs and sheets to the dynamic viewport and allow vertical scrolling, so forms and their actions remain reachable on mobile.
 
 - Calculate sequential learning locks in a shared pure module and enforce them on server reads and writes, so navigation cannot bypass progression.
