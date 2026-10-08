@@ -182,8 +182,8 @@ function DadosTab({ curso }: { curso: CursoRow }) {
       {dirty && <div className="sticky top-16 z-20 flex items-center justify-between border border-accent bg-accent/10 px-4 py-3 text-sm"><span className="flex items-center gap-2"><AlertTriangle className="h-4 w-4" />Tens alterações por guardar.</span><Button size="sm" onClick={() => save.mutate(f)} disabled={save.isPending || !f.title.trim()}><Save className="mr-2 h-4 w-4" />Guardar</Button></div>}
       <Card className="space-y-5 p-5">
       <div><h2 className="text-lg font-semibold">Informação</h2><p className="text-sm text-muted-foreground">Identificação e apresentação pública do curso.</p></div>
-      <div className="grid gap-5 md:grid-cols-[1fr_280px]">
-        <div className="space-y-4">
+      <div className="grid min-w-0 gap-5 md:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="min-w-0 space-y-4">
           <div className="space-y-1"><Label>Título</Label><Input value={f.title} onChange={(e) => set("title", e.target.value)} /></div>
           <div className="space-y-1"><Label>Descrição</Label><RichTextEditor value={f.description ?? ""} onChange={(v) => set("description", v)} /></div>
         </div>

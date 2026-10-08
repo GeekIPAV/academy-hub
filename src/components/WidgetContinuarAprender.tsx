@@ -24,14 +24,14 @@ export function WidgetContinuarAprender() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {emCurso.slice(0, 4).map((c) => (
-            <Link key={c.id} to="/elearning/$cursoId/passo/$passoId" params={{ cursoId: c.id, passoId: c.inscricao?.proximo_passo_id ?? "" }}>
-              <Card className="flex items-center gap-3 p-4 transition-colors hover:bg-muted/50">
+            <Link key={c.id} className="block min-w-0" to="/elearning/$cursoId/passo/$passoId" params={{ cursoId: c.id, passoId: c.inscricao?.proximo_passo_id ?? "" }}>
+              <Card className="flex min-w-0 items-center gap-3 p-4 transition-colors hover:bg-muted/50">
                 <PlayCircle className="h-8 w-8 shrink-0 text-accent" />
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <p className="truncate text-sm font-medium">{c.title}</p>
                   <Progress value={c.inscricao?.pct ?? 0} className="h-1.5" />
                 </div>
-                <span className="text-xs text-muted-foreground">{c.inscricao?.pct ?? 0}%</span>
+                <span className="shrink-0 text-xs text-muted-foreground">{c.inscricao?.pct ?? 0}%</span>
               </Card>
             </Link>
           ))}
