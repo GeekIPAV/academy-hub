@@ -47,6 +47,7 @@ export type Database = {
           start_date: string | null
           status: string
           title: string | null
+          visibilidade: string
         }
         Insert: {
           action_type?: string | null
@@ -80,6 +81,7 @@ export type Database = {
           start_date?: string | null
           status?: string
           title?: string | null
+          visibilidade?: string
         }
         Update: {
           action_type?: string | null
@@ -113,6 +115,7 @@ export type Database = {
           start_date?: string | null
           status?: string
           title?: string | null
+          visibilidade?: string
         }
         Relationships: [
           {
@@ -134,6 +137,46 @@ export type Database = {
             columns: ["program_id"]
             isOneToOne: false
             referencedRelation: "programas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      acoes_projetos: {
+        Row: {
+          action_id: string
+          created_at: string
+          project_id: string
+        }
+        Insert: {
+          action_id: string
+          created_at?: string
+          project_id: string
+        }
+        Update: {
+          action_id?: string
+          created_at?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "acoes_projetos_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "acoes_projetos_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_publica"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "acoes_projetos_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
             referencedColumns: ["id"]
           },
         ]
@@ -2674,6 +2717,35 @@ export type Database = {
           },
         ]
       }
+      utilizadores_projetos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          project_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          project_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          project_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "utilizadores_projetos_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       action_stats: {
@@ -2814,6 +2886,17 @@ export type Database = {
       user_can_access_recurso: {
         Args: { _recurso_id: string; _user_id: string }
         Returns: boolean
+      }
+      user_can_see_acao: {
+        Args: { _action_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_projetos_efetivos: {
+        Args: { _user_id: string }
+        Returns: {
+          origem: string
+          project_id: string
+        }[]
       }
     }
     Enums: {

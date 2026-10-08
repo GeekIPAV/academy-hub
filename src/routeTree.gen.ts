@@ -29,6 +29,7 @@ import { Route as EmailUnsubscribeRouteImport } from './routes/email/unsubscribe
 import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as ComunicacaoPropriedadeIntelectualRouteImport } from './routes/comunicacao.propriedade-intelectual'
 import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
+import { Route as AdminProjetosRouteImport } from './routes/admin.projetos'
 import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
@@ -172,6 +173,11 @@ const ComunicacaoPressMediaKitRoute =
     path: '/comunicacao/press-media-kit',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminProjetosRoute = AdminProjetosRouteImport.update({
+  id: '/admin/projetos',
+  path: '/admin/projetos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminProgramasRoute = AdminProgramasRouteImport.update({
   id: '/admin/programas',
   path: '/admin/programas',
@@ -422,6 +428,7 @@ export interface FileRoutesByFullPath {
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
+  '/admin/projetos': typeof AdminProjetosRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -483,6 +490,7 @@ export interface FileRoutesByTo {
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
+  '/admin/projetos': typeof AdminProjetosRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -543,6 +551,7 @@ export interface FileRoutesById {
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/programas': typeof AdminProgramasRoute
+  '/admin/projetos': typeof AdminProjetosRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
   '/comunicacao/propriedade-intelectual': typeof ComunicacaoPropriedadeIntelectualRoute
   '/convite/$token': typeof ConviteTokenRoute
@@ -607,6 +616,7 @@ export interface FileRouteTypes {
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
+    | '/admin/projetos'
     | '/comunicacao/press-media-kit'
     | '/comunicacao/propriedade-intelectual'
     | '/convite/$token'
@@ -668,6 +678,7 @@ export interface FileRouteTypes {
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
+    | '/admin/projetos'
     | '/comunicacao/press-media-kit'
     | '/comunicacao/propriedade-intelectual'
     | '/convite/$token'
@@ -727,6 +738,7 @@ export interface FileRouteTypes {
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
+    | '/admin/projetos'
     | '/comunicacao/press-media-kit'
     | '/comunicacao/propriedade-intelectual'
     | '/convite/$token'
@@ -787,6 +799,7 @@ export interface RootRouteChildren {
   AdminGovernacaoRoute: typeof AdminGovernacaoRoute
   AdminManagerRoute: typeof AdminManagerRoute
   AdminProgramasRoute: typeof AdminProgramasRoute
+  AdminProjetosRoute: typeof AdminProjetosRoute
   ComunicacaoPressMediaKitRoute: typeof ComunicacaoPressMediaKitRoute
   ComunicacaoPropriedadeIntelectualRoute: typeof ComunicacaoPropriedadeIntelectualRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
@@ -951,6 +964,13 @@ declare module '@tanstack/react-router' {
       path: '/comunicacao/press-media-kit'
       fullPath: '/comunicacao/press-media-kit'
       preLoaderRoute: typeof ComunicacaoPressMediaKitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/projetos': {
+      id: '/admin/projetos'
+      path: '/admin/projetos'
+      fullPath: '/admin/projetos'
+      preLoaderRoute: typeof AdminProjetosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/programas': {
@@ -1408,6 +1428,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminGovernacaoRoute: AdminGovernacaoRoute,
   AdminManagerRoute: AdminManagerRoute,
   AdminProgramasRoute: AdminProgramasRoute,
+  AdminProjetosRoute: AdminProjetosRoute,
   ComunicacaoPressMediaKitRoute: ComunicacaoPressMediaKitRoute,
   ComunicacaoPropriedadeIntelectualRoute:
     ComunicacaoPropriedadeIntelectualRoute,

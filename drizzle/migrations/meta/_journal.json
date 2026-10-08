@@ -8,6 +8,13 @@
       "when": 1791448353323,
       "tag": "0000_curso_progressao_sequencial",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791484537073,
+      "tag": "0001_projetos_visibilidade_acoes",
+      "breakpoints": true
     }
   ]
 }

@@ -194,6 +194,13 @@ export const enrollInPublicEventForUser = createServerFn({ method: "POST" })
     if (action.registration_status && action.registration_status !== "Aberto") {
       throw new Error("As inscrições para este evento não estão abertas.");
     }
+    const { data: podeVer } = await supabaseAdmin.rpc("user_can_see_acao", {
+      _user_id: data.user_id,
+      _action_id: action.id,
+    });
+    if (!podeVer) {
+      throw new Error("Esta ação está reservada a participantes de projetos específicos.");
+    }
 
     // Garante sempre o email no perfil (pesquisa nativa por email).
     const baseProfilePatch: Record<string, unknown> = {
