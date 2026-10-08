@@ -15,6 +15,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { CoverUploader } from "@/components/CoverUploader";
 import { CoverImage } from "@/components/CoverImage";
 import {
+  listProjetos,
+  getAcaoVisibilidade,
+  saveAcaoVisibilidade,
+} from "@/lib/projetos.functions";
+import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -198,6 +203,8 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
   };
 
   return (
+    <div className="space-y-6">
+    <VisibilidadeSection actionId={acao.id} />
     <form
       className="space-y-4"
       onSubmit={(e) => {
@@ -468,6 +475,7 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
         </Button>
       </div>
     </form>
+    </div>
   );
 }
 
@@ -623,5 +631,75 @@ function PaginaTab({ acao }: { acao: AcaoRow }) {
       </div>
       <PaginaInscricaoEditor value={doc} onChange={setDoc} defaultTitle={acao.title ?? undefined} acaoId={acao.id} />
     </div>
+  );
+}
+
+function VisibilidadeSection({ actionId }: { actionId: string }) {
+  const qc = useQueryClient();
+  const fetchProj = useServerFn(listProjetos);
+  const fetchVis = useServerFn(getAcaoVisibilidade);
+  const saveFn = useServerFn(saveAcaoVisibilidade);
+  const { data: projetos = [] } = useQuery({ queryKey: ["projetos"], queryFn: () => fetchProj() });
+  const { data: vis } = useQuery({
+    queryKey: ["acao-visibilidade", actionId],
+    queryFn: () => fetchVis({ data: { actionId } }),
+  });
+  const [modo, setModo] = useState<"todos" | "projetos">("todos");
+  const [sel, setSel] = useState<string[]>([]);
+  useEffect(() => {
+    if (vis) {
+      setModo(vis.visibilidade);
+      setSel(vis.projectIds);
+    }
+  }, [vis]);
+  const mut = useMutation({
+    mutationFn: () => saveFn({ data: { actionId, visibilidade: modo, projectIds: sel } }),
+    onSuccess: () => {
+      toast.success("Visibilidade guardada.");
+      qc.invalidateQueries({ queryKey: ["acao-visibilidade", actionId] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao guardar"),
+  });
+  return (
+    <section className="space-y-3 rounded-xl border bg-card p-4 shadow-sm">
+      <div>
+        <h3 className="font-bold text-secondary">Quem vê esta ação</h3>
+        <p className="text-sm text-muted-foreground">
+          Quem pertence à entidade de um projeto ganha o acesso; se a entidade sair do projeto, perde-o logo.
+        </p>
+      </div>
+      <Select value={modo} onValueChange={(v) => setModo(v as "todos" | "projetos")}>
+        <SelectTrigger className="w-full sm:w-80">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="todos">Todos os utilizadores</SelectItem>
+          <SelectItem value="projetos">Só participantes de projetos selecionados</SelectItem>
+        </SelectContent>
+      </Select>
+      {modo === "projetos" && (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {projetos.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              Ainda não há projetos. Cria-os em Gestão de Projetos.
+            </p>
+          )}
+          {projetos.map((p) => (
+            <label key={p.id} className="flex min-w-0 items-center gap-2 text-sm">
+              <Checkbox
+                checked={sel.includes(p.id)}
+                onCheckedChange={(c) =>
+                  setSel((s) => (c ? [...s, p.id] : s.filter((x) => x !== p.id)))
+                }
+              />
+              <span className="truncate">{p.title}</span>
+            </label>
+          ))}
+        </div>
+      )}
+      <Button type="button" size="sm" onClick={() => mut.mutate()} disabled={mut.isPending}>
+        Guardar visibilidade
+      </Button>
+    </section>
   );
 }
