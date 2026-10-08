@@ -96,3 +96,8 @@
 ## Projetos via links de inscrição
 - [x] Link de inscrição de organização com projeto escondido (?p=) liga a entidade ao projeto
 - [x] Formandos inscritos na turma da entidade ficam associados à entidade e herdam o projeto
+
+## Vídeos e documentos na Formação
+- [ ] Apresentar vídeos junto do texto correspondente sem alterar conteúdos ou progressão
+- [ ] Dar aos documentos sugeridos botão para abrir num novo separador
+- [ ] Verificar a Formação autenticada e os links no navegador
