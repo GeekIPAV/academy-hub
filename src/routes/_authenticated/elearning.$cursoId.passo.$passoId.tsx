@@ -76,7 +76,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
 
   return <div className="flex h-full min-h-0 flex-col bg-background">
     <div className="shrink-0 border-b p-5">
-      <p className="line-clamp-2 text-base font-semibold">{curso.curso.title}</p>
+      <p className="text-sm font-semibold text-secondary">Módulos e momentos</p>
       <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground"><span>{done} de {total} momentos</span><span>{curso.curso.inscricao?.pct ?? 0}%</span></div>
       <Progress value={curso.curso.inscricao?.pct ?? 0} className="mt-2 h-1.5" />
       {emBreve > 0 && <p className="mt-2 text-xs text-muted-foreground">{emBreve === 1 ? "1 módulo em breve" : `${emBreve} módulos em breve`}</p>}
@@ -215,7 +215,7 @@ function LeitorPage() {
         <Button variant="ghost" size="icon" className="h-9 w-9" disabled={!data.seguinte} onClick={() => navigateTo(data.seguinte)} aria-label="Momento seguinte"><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <Button variant="ghost" size="sm" className="h-10 px-2 sm:px-3" onClick={() => setNotesOpen(true)} aria-label="Notas"><NotebookPen className="h-4 w-4 sm:mr-1.5" /><span className="hidden sm:inline">Notas</span></Button>
-      <Button variant="ghost" size="icon" className="h-10 px-2 sm:px-3" onClick={() => window.innerWidth < 1024 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5 sm:mr-1.5" /><span className="hidden sm:inline">Módulos</span></Button>
+      <Button variant="ghost" size="sm" className="h-10 px-2 sm:px-3" onClick={() => window.innerWidth < 1024 ? setDrawer(true) : toggleSidebar()} aria-label="Abrir ou fechar módulos"><Menu className="h-5 w-5 sm:mr-1.5" /><span className="hidden sm:inline">Módulos</span></Button>
     </>, headerSlot)}
 
     <div className={cn("relative grid min-w-0 transition-[grid-template-columns] duration-200", sidebarOpen ? "xl:grid-cols-[300px_minmax(0,1fr)]" : "xl:grid-cols-[0_minmax(0,1fr)]")}>
