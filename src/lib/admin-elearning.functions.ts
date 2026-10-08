@@ -392,11 +392,12 @@ export const listInscritos = createServerFn({ method: "POST" })
       await sb.from("cursos_inscricoes").select("id, user_id, turma_id, estado, inscrito_em, concluido_em, utilizadores(full_name, email)").eq("curso_id", data.cursoId).order("inscrito_em"),
     );
     const mods = must(await sb.from("cursos_modulos").select("cursos_passos(id, tipo)").eq("curso_id", data.cursoId));
+    const { pctPorModulos, situacaoInscrito } = await import("@/lib/elearning-progress");
     const passos = (mods ?? []).flatMap((m) => m.cursos_passos ?? []);
     const quizIds = new Set(passos.filter((p) => p.tipo === "quiz").map((p) => p.id));
     const ids = (inscs ?? []).map((i) => i.id);
-    const prog = ids.length ? must(await sb.from("cursos_progresso").select("inscricao_id, passo_id, estado, nota").in("inscricao_id", ids)) : [];
-    const atividade = ids.length ? must(await sb.from("cursos_atividade").select("inscricao_id, created_at").in("inscricao_id", ids).order("created_at", { ascending: false })) : [];
+    const prog = ids.length ? must(await sb.from("cursos_progresso").select("inscricao_id, passo_id, estado, nota, updated_at").in("inscricao_id", ids)) : [];
+    const atividade = ids.length ? must(await sb.from("cursos_atividade").select("inscricao_id, created_at, evento").in("inscricao_id", ids).order("created_at", { ascending: false })) : [];
     const certs = ids.length ? must(await sb.from("certificados_elearning").select("inscricao_id, codigo, storage_path").in("inscricao_id", ids)) : [];
     const { data: curso } = await sb.from("cursos").select("badge_final_id").eq("id", data.cursoId).single();
     const badges = curso?.badge_final_id
@@ -405,10 +406,12 @@ export const listInscritos = createServerFn({ method: "POST" })
     const comBadge = new Set((badges ?? []).map((b) => b.user_id));
     return (inscs ?? []).map((i) => {
       const mine = (prog ?? []).filter((p) => p.inscricao_id === i.id);
-      const done = mine.filter((p) => p.estado === "concluido").length;
       const notas = mine.filter((p) => quizIds.has(p.passo_id) && p.nota != null).map((p) => Number(p.nota));
       const cert = (certs ?? []).find((c) => c.inscricao_id === i.id);
-      const ultima = (atividade ?? []).find((a) => a.inscricao_id === i.id)?.created_at ?? null;
+      const acts = (atividade ?? []).filter((a) => a.inscricao_id === i.id && a.evento !== "inscricao");
+      const datas = [...acts.map((a) => a.created_at), ...mine.map((p) => p.updated_at)].filter(Boolean).sort();
+      const ultima = datas[datas.length - 1] ?? null;
+      const comecou = mine.length > 0 || acts.length > 0;
       const u = i.utilizadores as { full_name: string | null; email: string | null } | null;
       return {
         id: i.id,
@@ -418,7 +421,8 @@ export const listInscritos = createServerFn({ method: "POST" })
         estado: i.estado,
         inscrito_em: i.inscrito_em,
         concluido_em: i.concluido_em,
-        pct: passos.length ? Math.round((done / passos.length) * 100) : 0,
+        pct: pctPorModulos((mods ?? []).map((m) => ({ total: (m.cursos_passos ?? []).length, feitos: (m.cursos_passos ?? []).filter((p) => mine.some((x) => x.passo_id === p.id && x.estado === "concluido")).length }))),
+        situacao: situacaoInscrito(i.estado, comecou, ultima),
         nota_media: notas.length ? Math.round(notas.reduce((a, b) => a + b, 0) / notas.length) : null,
         badge: comBadge.has(i.user_id),
         certificado: cert?.storage_path ? sb.storage.from("certificados").getPublicUrl(cert.storage_path).data.publicUrl : null,

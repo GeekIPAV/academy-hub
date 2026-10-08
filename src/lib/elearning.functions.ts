@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { pctPorModulos } from "@/lib/elearning-progress";
 
 export type PassoTipo = "video" | "texto" | "recurso" | "quiz" | "reflexao";
 export type PassoEstado = "bloqueado" | "disponivel" | "em_curso" | "concluido";
@@ -23,9 +24,10 @@ export interface CursoCardDTO {
   total_minutos: number;
   total_modulos: number;
   total_passos: number;
+  modulos_em_breve: number;
   badge_final: { id: string; title: string; cover_url: string | null } | null;
   turmas_abertas: { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscritos: number; formador: string | null }[];
-  inscricao: { id: string; estado: string; pct: number; proximo_passo_id: string | null; proximo_passo_titulo: string | null; proximo_modulo_titulo: string | null; ultima_atividade: string | null } | null;
+  inscricao: { id: string; estado: string; pct: number; proximo_passo_id: string | null; proximo_passo_titulo: string | null; proximo_modulo_titulo: string | null; ultima_atividade: string | null; iniciado?: boolean } | null;
 }
 
 function baseUrl() {
@@ -43,12 +45,11 @@ async function progressoResumo(inscricaoIds: string[], cursoIds: string[]) {
     sb.from("cursos_modulos").select("curso_id, sort_order, cursos_passos(id, sort_order, obrigatorio)").in("curso_id", cursoIds.length ? cursoIds : ["00000000-0000-0000-0000-000000000000"]),
     sb.from("cursos_progresso").select("inscricao_id, passo_id, estado").in("inscricao_id", inscricaoIds.length ? inscricaoIds : ["00000000-0000-0000-0000-000000000000"]),
   ]);
-  const passosPorCurso = new Map<string, { id: string; obrigatorio: boolean }[]>();
+  const modsPorCurso = new Map<string, { id: string }[][]>();
   for (const m of (mods ?? []).sort((a, b) => a.sort_order - b.sort_order)) {
-    const list = passosPorCurso.get(m.curso_id) ?? [];
-    for (const p of ((m.cursos_passos ?? []) as { id: string; sort_order: number; obrigatorio: boolean }[]).sort((a, b) => a.sort_order - b.sort_order))
-      list.push(p);
-    passosPorCurso.set(m.curso_id, list);
+    const list = modsPorCurso.get(m.curso_id) ?? [];
+    list.push(((m.cursos_passos ?? []) as { id: string; sort_order: number; obrigatorio: boolean }[]).sort((a, b) => a.sort_order - b.sort_order));
+    modsPorCurso.set(m.curso_id, list);
   }
   const done = new Map<string, Set<string>>();
   for (const p of prog ?? []) {
@@ -58,13 +59,15 @@ async function progressoResumo(inscricaoIds: string[], cursoIds: string[]) {
     done.set(p.inscricao_id, s);
   }
   return (inscricaoId: string, cursoId: string) => {
-    const passos = passosPorCurso.get(cursoId) ?? [];
+    const modulos = modsPorCurso.get(cursoId) ?? [];
+    const passos = modulos.flat();
     const d = done.get(inscricaoId) ?? new Set();
-    const pct = passos.length ? Math.round((passos.filter((p) => d.has(p.id)).length / passos.length) * 100) : 0;
+    const pct = pctPorModulos(modulos.map((m) => ({ total: m.length, feitos: m.filter((p) => d.has(p.id)).length })));
     const prox = passos.find((p) => !d.has(p.id))?.id ?? passos[0]?.id ?? null;
-    return { pct, proximo_passo_id: prox };
+    return { pct, proximo_passo_id: prox, iniciado: d.size > 0 };
   };
 }
+
 
 export const listCatalogo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -118,6 +121,7 @@ export const listCatalogo = createServerFn({ method: "GET" })
         total_minutos: sum + Math.round(Number(c.horas ?? 0) * 60),
         total_modulos: modulos.length,
         total_passos: passos.length,
+        modulos_em_breve: modulos.filter((m) => !(m.cursos_passos ?? []).length).length,
         badge_final: (c.bf as { id: string; title: string; cover_url: string | null } | null) ?? null,
         turmas_abertas: (c.cursos_turmas ?? [])
           .filter((t) => t.inscricoes_abertas)
@@ -257,6 +261,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
       total_minutos: totalMinutos,
       total_modulos: modulos.length,
       total_passos: total.length,
+      modulos_em_breve: modulos.filter((m) => !m.passos.length).length,
       acreditacao_ref: c.acreditacao_ref,
       nota_minima_quiz: c.nota_minima_quiz,
       pct_minima_video: c.pct_minima_video,
@@ -267,7 +272,8 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
         ? {
             id: insc.id,
             estado: insc.estado,
-            pct: total.length ? Math.round((concl / total.length) * 100) : 0,
+            pct: pctPorModulos(modulos.map((m) => ({ total: m.passos.length, feitos: m.passos.filter((p) => p.estado === "concluido").length }))),
+            iniciado: concl > 0 || insc.estado !== "inscrito",
             proximo_passo_id: total.find((p) => p.estado !== "concluido" && p.estado !== "bloqueado")?.id ?? null,
             proximo_passo_titulo: total.find((p) => p.estado !== "concluido" && p.estado !== "bloqueado")?.title ?? null,
             proximo_modulo_titulo: modulos.find((m) => m.passos.some((p) => p.estado !== "concluido" && p.estado !== "bloqueado"))?.title ?? null,

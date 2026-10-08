@@ -9,6 +9,8 @@ export type CourseLayoutValue = {
   isEnrolling: boolean;
   enroll: () => void;
   formationStepId: string | null;
+  /** Elemento do cabeçalho do curso onde o leitor injeta os seus controlos (Passo X de Y, módulos, notas). */
+  headerSlot: HTMLElement | null;
 };
 
 const CourseLayoutContext = createContext<CourseLayoutValue | null>(null);

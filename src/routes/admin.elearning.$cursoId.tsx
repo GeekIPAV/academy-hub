@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { AlertTriangle, Archive, ArrowLeft, CheckCircle2, Download, Eye, RefreshCw, Rocket, Save } from "lucide-react";
+import { AlertTriangle, Archive, ArrowLeft, ArrowUpDown, CheckCircle2, Download, Eye, RefreshCw, Rocket, Save } from "lucide-react";
+import { SITUACAO_LABEL, tempoRelativo, type SituacaoInscrito } from "@/lib/elearning-progress";
 import { RouteGate } from "@/components/RouteGate";
 import { CoverUploader } from "@/components/CoverUploader";
 import { CoverImage } from "@/components/CoverImage";
@@ -253,6 +254,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
 }
 
 const ESTADO_INSC: Record<string, string> = { inscrito: "Inscrito", em_curso: "Em curso", concluido: "Concluído", cancelado: "Cancelado" };
+const SITUACOES: SituacaoInscrito[] = ["nao_comecou", "em_curso", "parado", "concluido"];
 
 function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: string; nome: string }[] }) {
   const fn = useServerFn(listInscritos);
@@ -260,18 +262,22 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
   const qc = useQueryClient();
   const [turma, setTurma] = useState("all");
   const [estado, setEstado] = useState("all");
+  const [sortDir, setSortDir] = useState<"desc" | "asc" | null>(null);
   const { data, isLoading } = useQuery({ queryKey: ["admin-elearning", "inscritos", cursoId], queryFn: () => fn({ data: { cursoId } }) });
   const regen = useMutation({
     mutationFn: (inscricaoId: string) => regenFn({ data: { inscricaoId } }),
     onSuccess: () => { toast.success("Certificado gerado."); qc.invalidateQueries({ queryKey: ["admin-elearning", "inscritos", cursoId] }); },
     onError: (e: Error) => toast.error(e.message),
   });
-  const rows = (data ?? []).filter((r) => (turma === "all" || r.turma_id === turma) && (estado === "all" || r.estado === estado));
+  const base = (data ?? []).filter((r) => turma === "all" || r.turma_id === turma);
+  const filtered = base.filter((r) => estado === "all" || r.situacao === estado);
+  const rows = sortDir ? [...filtered].sort((a, b) => { const x = a.ultima_atividade ?? ""; const y = b.ultima_atividade ?? ""; return sortDir === "asc" ? x.localeCompare(y) : y.localeCompare(x); }) : filtered;
+  const count = (s: SituacaoInscrito) => base.filter((r) => r.situacao === s).length;
   const turmaNome = (id: string | null) => turmas.find((t) => t.id === id)?.nome ?? "—";
   const exportCsv = () => {
-    const head = ["Nome", "Email", "Turma", "Estado", "Progresso %", "Nota média", "Badge", "Certificado", "Inscrito em", "Concluído em"];
+    const head = ["Nome", "Email", "Turma", "Estado", "Situação", "Último acesso", "Progresso %", "Nota média", "Badge", "Certificado", "Inscrito em", "Concluído em"];
     const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const lines = rows.map((r) => [r.nome, r.email, turmaNome(r.turma_id), ESTADO_INSC[r.estado], r.pct, r.nota_media ?? "", r.badge ? "Sim" : "Não", r.codigo ?? "", r.inscrito_em?.slice(0, 10), r.concluido_em?.slice(0, 10) ?? ""].map(esc).join(";"));
+    const lines = rows.map((r) => [r.nome, r.email, turmaNome(r.turma_id), ESTADO_INSC[r.estado], SITUACAO_LABEL[r.situacao], r.ultima_atividade ? new Date(r.ultima_atividade).toLocaleString("pt-PT") : "", r.pct, r.nota_media ?? "", r.badge ? "Sim" : "Não", r.codigo ?? "", r.inscrito_em?.slice(0, 10), r.concluido_em?.slice(0, 10) ?? ""].map(esc).join(";"));
     const blob = new Blob(["\ufeff" + [head.join(";"), ...lines].join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -280,6 +286,7 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
   };
   return (
      <Card className="w-full min-w-0 space-y-3 overflow-hidden p-4">
+       <p className="text-sm"><strong>{base.length}</strong> inscritos · <strong>{count("nao_comecou")}</strong> não começaram · <strong>{count("em_curso") + count("parado")}</strong> em curso{count("parado") ? ` (${count("parado")} parados)` : ""} · <strong>{count("concluido")}</strong> concluídos</p>
        <div className="grid gap-2 sm:grid-cols-[auto_auto_minmax(0,1fr)_auto] sm:items-center">
         {turmas.length > 0 && (
           <Select value={turma} onValueChange={setTurma}>
@@ -290,7 +297,7 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
             </SelectContent>
           </Select>
         )}
-         <Select value={estado} onValueChange={setEstado}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os estados</SelectItem>{Object.entries(ESTADO_INSC).map(([id, label]) => <SelectItem key={id} value={id}>{label}</SelectItem>)}</SelectContent></Select>
+         <Select value={estado} onValueChange={setEstado}><SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os estados</SelectItem>{SITUACOES.map((id) => <SelectItem key={id} value={id}>{SITUACAO_LABEL[id]}</SelectItem>)}</SelectContent></Select>
         <span className="flex-1 text-sm text-muted-foreground">{rows.length} inscrito(s)</span>
         <Button variant="outline" size="sm" onClick={exportCsv} disabled={!rows.length}><Download className="mr-1 h-4 w-4" /> Exportar CSV</Button>
       </div>
@@ -302,7 +309,7 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
             <TableHead>Estado</TableHead>
             <TableHead>Progresso</TableHead>
             <TableHead className="text-right">Nota</TableHead>
-            <TableHead>Última atividade</TableHead>
+            <TableHead aria-sort={sortDir === "asc" ? "ascending" : sortDir === "desc" ? "descending" : "none"}><button type="button" className="inline-flex items-center gap-1 hover:text-foreground" onClick={() => setSortDir((d) => d === "desc" ? "asc" : "desc")}>Último acesso<ArrowUpDown className="h-3.5 w-3.5" /></button></TableHead>
             <TableHead>Badge</TableHead>
             <TableHead>Certificado</TableHead>
           </TableRow>
@@ -314,10 +321,10 @@ function InscritosTab({ cursoId, turmas }: { cursoId: string; turmas: { id: stri
             <TableRow key={r.id}>
               <TableCell><p className="font-medium">{r.nome}</p><p className="text-xs text-muted-foreground">{r.email}</p></TableCell>
               {turmas.length > 0 && <TableCell className="text-sm">{turmaNome(r.turma_id)}</TableCell>}
-              <TableCell><Badge variant={r.estado === "concluido" ? "default" : "secondary"}>{ESTADO_INSC[r.estado]}</Badge></TableCell>
+              <TableCell><Badge variant={r.situacao === "concluido" ? "default" : r.situacao === "parado" ? "destructive" : "secondary"}>{SITUACAO_LABEL[r.situacao]}</Badge></TableCell>
                <TableCell><div className="min-w-28"><div className="mb-1 text-right text-xs">{r.pct}%</div><Progress value={r.pct} className="h-1.5" /></div></TableCell>
               <TableCell className="text-right">{r.nota_media != null ? `${r.nota_media}%` : "—"}</TableCell>
-               <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{r.ultima_atividade ? new Date(r.ultima_atividade).toLocaleDateString("pt-PT") : "—"}</TableCell>
+               <TableCell className="whitespace-nowrap text-xs text-muted-foreground"><span title={r.ultima_atividade ? new Date(r.ultima_atividade).toLocaleString("pt-PT") : undefined}>{tempoRelativo(r.ultima_atividade)}</span></TableCell>
               <TableCell>{r.badge ? "Sim" : "—"}</TableCell>
               <TableCell className="space-x-1 whitespace-nowrap">
                 {r.certificado && <a href={r.certificado} target="_blank" rel="noreferrer" className="text-sm text-primary underline">PDF</a>}

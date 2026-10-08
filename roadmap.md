@@ -42,3 +42,13 @@
 - [x] Estruturar o Módulo 1 com leituras, reflexões, caso, quiz e síntese
 - [x] Validar a estrutura, ordenação e conteúdos guardados
 - [ ] Rever visualmente na gestão e no leitor — aguarda uma sessão autenticada no preview
+
+## Correções E-learning (out 2026)
+- [x] Conclusão exige todos os módulos com passos obrigatórios concluídos (+ testes)
+- [x] Módulos vazios "Em breve" e progresso por módulo
+- [x] Fim de módulo sem beco sem saída
+- [x] Uma só barra fixa no telemóvel; topo compacto na Formação com altura medida
+- [x] Quiz sem barra duplicada; texto sem ajuda enganadora; "Sobre o módulo"; Notas em painel
+- [x] Visão geral com "Continuar onde paraste"; navegação livre com Seguinte
+- [x] Widget "Tens um curso à tua espera"; Inscritos com situação, último acesso, resumo e CSV
+- [ ] Testar no navegador a 375/1280px — aguarda sessão iniciada na pré-visualização
