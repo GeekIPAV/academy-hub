@@ -38,7 +38,7 @@ function AvaliacaoGallery() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Cultura Ubuntu</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-secondary">Avaliação de Impacto</h1>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
@@ -60,7 +60,22 @@ function AvaliacaoGallery() {
         ) : error ? (
           <p className="py-8 text-sm text-destructive">Não foi possível carregar as avaliações.</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border bg-card">
+          <>
+          <div className="space-y-3 md:hidden">
+            {rows.map(({ page, referenciais }, index) => {
+              const row = AVALIACAO_OVERVIEW[index];
+              return <article key={page.id} className="min-w-0 rounded-lg border bg-card p-4 shadow-sm">
+                <p className="text-xs font-semibold text-primary">Avaliação {page.sort_order}</p>
+                <h3 className="mt-1 text-base font-semibold text-secondary">{page.title}</h3>
+                <dl className="mt-3 space-y-2 text-sm">
+                  {(row ? row.slice(1) : []).map((cell, i) => <div key={i}><dt className="font-medium text-secondary">{["Destinatários", "Objetivo", "Metodologias", "Indicadores"][i]}</dt><dd className="mt-0.5 break-words text-muted-foreground">{cell}</dd></div>)}
+                  {referenciais.length > 0 && <div><dt className="font-medium text-secondary">Referenciais</dt><dd className="mt-0.5 text-muted-foreground">{referenciais.join(" · ")}</dd></div>}
+                </dl>
+                <Button asChild variant="outline" className="mt-4 w-full"><Link to="/cultura-ubuntu/avaliacao/$slug" params={{ slug: page.slug }}>Abrir avaliação<ArrowRight className="h-4 w-4" /></Link></Button>
+              </article>;
+            })}
+          </div>
+          <div className="hidden min-w-0 overflow-x-auto rounded-lg border bg-card md:block">
             <table className="w-full min-w-[1180px] text-left text-sm">
               <thead className="bg-muted/60">
                 <tr>{["Avaliação", "Destinatários", "Objetivo", "Metodologias", "Indicadores", "Referenciais", ""].map((header, i) => <th key={i} className="px-4 py-3 font-semibold text-secondary">{header}</th>)}</tr>
@@ -107,6 +122,7 @@ function AvaliacaoGallery() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </section>
     </div>

@@ -116,10 +116,10 @@ export function ConteudoBuilder({ cursoId, clusterId, modalidade, modulos: initi
             <Sortable key={m.id} id={m.id}>
               {(handle) => (
                  <Card className="mb-3 min-w-0 p-4">
-                   <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
+                   <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
                     {handle}
                      <div className="min-w-0 flex-1"><p className="font-medium">{i + 1}. {m.title}</p><p className="text-xs text-muted-foreground">{m.passos.length ? `${m.passos.length} passos · ${formatarDuracao(m.passos.reduce((n, p) => n + (p.duracao_min ?? 0), 0))}` : "Módulo sem passos"}{modalidade === "turma" && m.abertura_dias != null ? ` · Abre ao dia ${m.abertura_dias}` : ""}</p></div>
-                     <div className="flex shrink-0 items-center">
+                     <div className="col-span-2 flex shrink-0 items-center justify-end sm:col-span-1">
                        <Button size="icon" variant="ghost" aria-label="Editar módulo" title="Editar módulo" onClick={() => setModEdit(m)}><Pencil className="h-4 w-4" /></Button>
                        <Button size="icon" variant="ghost" aria-label="Duplicar módulo" title="Duplicar módulo" disabled={duplicate.isPending} onClick={() => duplicate.mutate({ tipo: "modulo", id: m.id })}><Copy className="h-4 w-4" /></Button>
                        <Button size="icon" variant="ghost" aria-label="Eliminar módulo" title="Eliminar módulo" onClick={() => setDeleteTarget({ tabela: "cursos_modulos", id: m.id, label: "o módulo e todos os seus passos" })}><Trash2 className="h-4 w-4" /></Button>
@@ -131,11 +131,11 @@ export function ConteudoBuilder({ cursoId, clusterId, modalidade, modulos: initi
                         {m.passos.map((p) => (
                           <Sortable key={p.id} id={p.id}>
                             {(h) => (
-                                <div className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-1 rounded-md border px-2 py-1.5 text-sm sm:gap-2">
+                                <div className="grid min-w-0 grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-1 rounded-md border px-2 py-1.5 text-sm sm:grid-cols-[auto_auto_minmax(0,1fr)_auto] sm:gap-2">
                                 {h}
                                  <PassoTipoIcon tipo={p.tipo} className="h-4 w-4 text-muted-foreground" />
-                                  <span className="min-w-0 truncate"><span className="hidden text-xs text-muted-foreground sm:inline">{TIPO_PASSO[p.tipo]} · </span>{p.title}{!p.obrigatorio && <span className="text-xs text-muted-foreground"> · opcional</span>}</span>
-                                  <div className="flex shrink-0 items-center">
+                                  <span className="min-w-0 break-words sm:truncate"><span className="hidden text-xs text-muted-foreground sm:inline">{TIPO_PASSO[p.tipo]} · </span>{p.title}{!p.obrigatorio && <span className="text-xs text-muted-foreground"> · opcional</span>}</span>
+                                  <div className="col-span-3 flex shrink-0 items-center justify-end sm:col-span-1">
                                     <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Pré-visualizar passo" title="Pré-visualizar passo" asChild><a href={`/elearning/${cursoId}/passo/${p.id}`} target="_blank" rel="noreferrer"><Eye className="h-3.5 w-3.5" /></a></Button>
                                     <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Editar passo" title="Editar passo" onClick={() => setPassoEdit({ modulo_id: m.id, passo: p })}><Pencil className="h-3.5 w-3.5" /></Button>
                                     <Button size="icon" variant="ghost" className="h-7 w-7" aria-label="Duplicar passo" title="Duplicar passo" disabled={duplicate.isPending} onClick={() => duplicate.mutate({ tipo: "passo", id: p.id })}><Copy className="h-3.5 w-3.5" /></Button>

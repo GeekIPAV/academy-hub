@@ -201,8 +201,8 @@ const Sidebar = React.forwardRef<
             side={side}
           >
             <SheetHeader className="sr-only">
-              <SheetTitle>Sidebar</SheetTitle>
-              <SheetDescription>Displays the mobile sidebar.</SheetDescription>
+              <SheetTitle>Menu de navegação</SheetTitle>
+              <SheetDescription>Páginas da Academia de Líderes Ubuntu.</SheetDescription>
             </SheetHeader>
             <div className="flex h-full w-full flex-col">{children}</div>
           </SheetContent>
@@ -269,7 +269,7 @@ const SidebarTrigger = React.forwardRef<
       data-sidebar="trigger"
       variant="ghost"
       size="icon"
-      className={cn("h-7 w-7", className)}
+      className={cn("h-10 w-10 sm:h-7 sm:w-7", className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
@@ -277,7 +277,7 @@ const SidebarTrigger = React.forwardRef<
       {...props}
     >
       <PanelLeft />
-      <span className="sr-only">Toggle Sidebar</span>
+      <span className="sr-only">Abrir ou fechar menu</span>
     </Button>
   );
 });

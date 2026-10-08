@@ -193,7 +193,7 @@ function InscricaoPage() {
               >
                 {cohort.info_pdf_url ? (
                   <>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <FileText className="h-4 w-4" />
                         Documento informativo
@@ -206,7 +206,7 @@ function InscricaoPage() {
                     </div>
                     <iframe
                       src={`${cohort.info_pdf_url}#toolbar=0&view=FitH`}
-                      className="w-full h-[60vh] rounded-md border bg-muted"
+                      className="w-full h-[55dvh] min-h-[240px] sm:h-[60vh] rounded-md border bg-muted"
                       title="PDF do programa"
                     />
                     {!scrolledToEnd && (

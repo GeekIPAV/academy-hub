@@ -100,10 +100,10 @@ function AdminAcoesPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <ListChecks className="h-6 w-6" />
         </div>
-        <div>
+        <div className="min-w-0">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
           <h1 className="text-2xl font-semibold tracking-tight">Gestão de Ações</h1>
           <p className="text-sm text-muted-foreground">
@@ -113,8 +113,8 @@ function AdminAcoesPage() {
       </div>
 
       <Card className="p-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[200px] flex-1">
+        <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap">
+          <div className="min-w-0 sm:col-span-2 xl:min-w-[200px] xl:flex-1">
             <Label className="mb-1 block text-xs uppercase text-muted-foreground">Pesquisar</Label>
             <Input
               placeholder="Título, programa, entidade…"
@@ -125,7 +125,7 @@ function AdminAcoesPage() {
           <div>
             <Label className="mb-1 block text-xs uppercase text-muted-foreground">Formato</Label>
             <Select value={formato} onValueChange={setFormato}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full xl:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -141,7 +141,7 @@ function AdminAcoesPage() {
           <div>
             <Label className="mb-1 block text-xs uppercase text-muted-foreground">Inscrições</Label>
             <Select value={regStatus} onValueChange={setRegStatus}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full xl:w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -157,7 +157,7 @@ function AdminAcoesPage() {
           <div>
             <Label className="mb-1 block text-xs uppercase text-muted-foreground">Ordenar</Label>
             <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full xl:w-[200px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -168,7 +168,7 @@ function AdminAcoesPage() {
             </Select>
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 xl:ml-auto">
             {view === "calendar" && <CardConfigPopover value={cardFields} onChange={setCardFields} />}
             <div className="inline-flex rounded-md border bg-background p-1">
               <Button

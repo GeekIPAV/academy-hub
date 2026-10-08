@@ -142,7 +142,7 @@ export function AcoesDataTable({ data, onOpen }: Props) {
   }
 
   return (
-    <div className="rounded-md border bg-card overflow-auto">
+    <div className="min-w-0 max-w-full rounded-md border bg-card overflow-auto" tabIndex={0} role="region" aria-label="Tabela de ações">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <table className="w-full text-sm" style={{ width: table.getTotalSize() }}>
           <thead className="border-b bg-muted/40 text-xs uppercase tracking-wide">

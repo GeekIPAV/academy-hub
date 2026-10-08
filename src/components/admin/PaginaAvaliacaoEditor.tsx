@@ -47,7 +47,7 @@ function SortableBlock({ block, onPatch, onRemove }: { block: PageBlock; onPatch
       <div className="min-w-0 flex-1">
         {block.type === "table" ? <TableEditor block={block} onPatch={onPatch} /> : <RichTextEditor value={block.content} onChange={(content) => onPatch({ content })} />}
       </div>
-      <Button type="button" variant="ghost" size="icon" onClick={onRemove} className="h-8 w-8 opacity-0 group-hover:opacity-100" aria-label="Remover bloco"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      <Button type="button" variant="ghost" size="icon" onClick={onRemove} className="h-8 w-8 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100" aria-label="Remover bloco"><Trash2 className="h-4 w-4 text-destructive" /></Button>
     </div>
   );
 }
@@ -62,7 +62,7 @@ function TableEditor({ block, onPatch }: { block: PageBlock; onPatch: (changes: 
   const addColumn = () => onPatch({ headers: [...headers, `Coluna ${headers.length + 1}`], rows: rows.map((row) => [...row, ""]) });
   const addRow = () => onPatch({ rows: [...rows, headers.map(() => "")] });
   return (
-    <div className="space-y-2 overflow-x-auto">
+    <div className="min-w-0 max-w-full space-y-2 overflow-x-auto">
       <p className="text-xs font-semibold text-muted-foreground">Tabela-resumo</p>
       <table className="w-full min-w-[520px] border-collapse text-sm"><thead><tr>{headers.map((cell, index) => <th key={index} className="border bg-muted p-1"><Input value={cell} onChange={(event) => patchCell(-1, index, event.target.value)} /></th>)}</tr></thead><tbody>{rows.map((row, rowIndex) => <tr key={rowIndex}>{headers.map((_, colIndex) => <td key={colIndex} className="border p-1"><Input value={row[colIndex] ?? ""} onChange={(event) => patchCell(rowIndex, colIndex, event.target.value)} /></td>)}</tr>)}</tbody></table>
       <div className="flex gap-2"><Button type="button" size="sm" variant="ghost" onClick={addRow}>+ Linha</Button><Button type="button" size="sm" variant="ghost" onClick={addColumn}>+ Coluna</Button></div>

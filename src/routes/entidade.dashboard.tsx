@@ -382,11 +382,12 @@ function ProgramsMasterTable({
                       <Button
                         size="sm"
                         variant="outline"
+                        aria-label="Copiar link de inscrição"
                         disabled={!c.invite_token}
                         onClick={(e) => copy(e, url)}
                       >
                         <Copy className="mr-1.5 h-3 w-3" />
-                        Copiar Link
+                        <span className="hidden sm:inline">Copiar link</span>
                       </Button>
                     </TableCell>
                   </TableRow>

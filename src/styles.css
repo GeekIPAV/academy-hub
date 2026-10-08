@@ -360,6 +360,18 @@
   background: color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
+/* Route roots must shrink independently of wide tables and tab strips. */
+.app-main > * { min-width: 0; width: 100%; }
+[data-app-dialog] { max-width: calc(100vw - 2rem); max-height: calc(100dvh - 2rem); overflow-y: auto; }
+[data-app-sheet] { max-width: 100vw; max-height: 100dvh; overflow-y: auto; }
+@media (max-width: 639px) {
+  [data-app-dialog] { padding: 1rem; }
+  [data-app-dialog] > :first-child { min-width: 0; }
+  .rich-text { overflow-wrap: anywhere; }
+  .rich-text img, .rich-text video, .rich-text iframe { max-width: 100%; }
+  .rich-text table { display: block; max-width: 100%; overflow-x: auto; }
+}
+
 .course-space { container-type: inline-size; container-name: course; }
 @container course (min-width: 1100px) {
   .course-space > section { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 1.5rem; }
