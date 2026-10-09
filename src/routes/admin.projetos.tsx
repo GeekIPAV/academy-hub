@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, Copy, Link2, Trash2, UserRound } from "lucide-react";
+import { Building2, Copy, Link2, Trash2, Upload, UserRound } from "lucide-react";
+import { parseProjetosCsv } from "@/lib/projetos-import";
 import { toast } from "sonner";
 import { RouteGate } from "@/components/RouteGate";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import {
 import {
   addEntidadeProjeto,
   getProjetoMembros,
+  importProjetos,
   listEntidadesUtilizadores,
   listProjetos,
   listProgramasComLink,
@@ -295,5 +297,42 @@ function LinkInscricao({ token }: { token: string | null }) {
         </div>
       )}
     </div>
+  );
+}
+
+function ImportarProjetos() {
+  const qc = useQueryClient();
+  const importFn = useServerFn(importProjetos);
+  const [busy, setBusy] = useState(false);
+  async function onFile(f: File) {
+    setBusy(true);
+    try {
+      const { rows, errors } = parseProjetosCsv(await f.text());
+      if (errors.length) toast.warning(`${errors.length} linha(s) ignorada(s): ${errors.slice(0, 3).join(" ")}`);
+      if (!rows.length) return;
+      const r = await importFn({ data: { rows } });
+      toast.success(`${r.criados} criado(s), ${r.atualizados} atualizado(s).`);
+      qc.invalidateQueries({ queryKey: ["projetos"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao importar");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-3 py-2 text-sm font-medium text-secondary hover:bg-muted">
+      <Upload className="h-4 w-4" /> {busy ? "A importar…" : "Importar CSV"}
+      <input
+        type="file"
+        accept=".csv,.tsv,.txt,text/csv"
+        className="sr-only"
+        disabled={busy}
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          e.target.value = "";
+          if (f) void onFile(f);
+        }}
+      />
+    </label>
   );
 }

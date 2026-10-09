@@ -11,7 +11,7 @@ async function admin(userId: string, path = "/admin/projetos") {
   return supabaseAdmin;
 }
 
-export type ProjetoRow = { id: string; title: string; description: string | null; status: string; inscricao_token: string | null };
+export type ProjetoRow = { id: string; title: string; description: string | null; status: string; inscricao_token: string | null; data_inicio: string | null; data_fim: string | null };
 
 export const listProjetos = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -19,7 +19,7 @@ export const listProjetos = createServerFn({ method: "GET" })
     const db = await admin(context.userId, "/admin/acoes");
     const { data, error } = await db
       .from("projetos")
-      .select("id, title, description, status, inscricao_token")
+      .select("id, title, description, status, inscricao_token, data_inicio, data_fim")
       .order("title");
     if (error) throw new Error(error.message);
     return (data ?? []) as ProjetoRow[];
