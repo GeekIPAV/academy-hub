@@ -2100,6 +2100,8 @@ export type Database = {
       projetos: {
         Row: {
           created_at: string
+          data_fim: string | null
+          data_inicio: string | null
           description: string | null
           id: string
           inscricao_token: string | null
@@ -2109,6 +2111,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
           description?: string | null
           id?: string
           inscricao_token?: string | null
@@ -2118,6 +2122,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          data_fim?: string | null
+          data_inicio?: string | null
           description?: string | null
           id?: string
           inscricao_token?: string | null
