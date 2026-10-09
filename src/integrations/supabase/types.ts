@@ -2924,7 +2924,18 @@ export type Database = {
       }
     }
     Enums: {
-      projeto_status: "planeado" | "em_curso" | "concluido" | "suspenso"
+      projeto_status:
+        | "planeado"
+        | "em_curso"
+        | "concluido"
+        | "suspenso"
+        | "possibilidade"
+        | "em_arranque"
+        | "em_contratualizacao"
+        | "em_progresso"
+        | "institucional"
+        | "em_fecho"
+        | "terminado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3052,7 +3063,19 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      projeto_status: ["planeado", "em_curso", "concluido", "suspenso"],
+      projeto_status: [
+        "planeado",
+        "em_curso",
+        "concluido",
+        "suspenso",
+        "possibilidade",
+        "em_arranque",
+        "em_contratualizacao",
+        "em_progresso",
+        "institucional",
+        "em_fecho",
+        "terminado",
+      ],
     },
   },
 } as const
