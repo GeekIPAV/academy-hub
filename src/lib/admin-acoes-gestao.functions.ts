@@ -57,6 +57,8 @@ export type AcaoRow = {
   cover_position: string | null;
   cover_scale: number | null;
   required_fields: RequiredFieldDef[];
+  visibilidade?: string | null;
+  project_ids: string[];
   programa_title?: string | null;
   entidade_nome?: string | null;
 };
@@ -68,7 +70,7 @@ export const listAcoesFull = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("acoes")
       .select(
-        "id, title, description, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, formato, localizacao, produto, produto_id, projeto, pais, email_responsavel, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, cover_url, cover_position, cover_scale, required_fields, programas(title), entidades(name), produtos(name)",
+        "id, title, description, start_date, end_date, registration_status, status, action_type, max_capacity, entity_id, program_id, formato, localizacao, produto, produto_id, projeto, pais, email_responsavel, fotos_link, avaliacao_satisfacao, avaliacao_satisfacao_link, avaliacao_impacto, avaliacao_impacto_link, conteudo_pagina_inscricao, cover_url, cover_position, cover_scale, required_fields, visibilidade, programas(title), entidades(name), produtos(name), acoes_projetos(project_id)",
       )
       .order("start_date", { ascending: false, nullsFirst: false })
       .limit(1000);
@@ -77,11 +79,12 @@ export const listAcoesFull = createServerFn({ method: "GET" })
       const programa = r.programas as { title?: string | null } | null;
       const entidade = r.entidades as { name?: string | null } | null;
       const produto = r.produtos as { name?: string | null } | null;
-      const { programas: _p, entidades: _e, produtos: _pr, ...rest } = r;
+      const { programas: _p, entidades: _e, produtos: _pr, acoes_projetos: ap, ...rest } = r;
       const rf = (rest as { required_fields?: unknown }).required_fields;
       return {
-        ...(rest as Omit<AcaoRow, "programa_title" | "entidade_nome" | "produto_nome" | "required_fields">),
+        ...(rest as Omit<AcaoRow, "programa_title" | "entidade_nome" | "produto_nome" | "required_fields" | "project_ids">),
         required_fields: Array.isArray(rf) ? (rf as RequiredFieldDef[]) : [],
+        project_ids: ((ap as { project_id: string }[] | null) ?? []).map((x) => x.project_id),
         programa_title: programa?.title ?? null,
         entidade_nome: entidade?.name ?? null,
         produto_nome: produto?.name ?? null,

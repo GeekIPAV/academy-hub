@@ -223,7 +223,8 @@ export const saveAcaoVisibilidade = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const db = await admin(context.userId, "/admin/acoes");
-    const ids = data.visibilidade === "todos" ? [] : data.projectIds;
+    // Os projetos são a relação da ação; a visibilidade é independente.
+    const ids = Array.from(new Set(data.projectIds));
     const { error: e1 } = await db
       .from("acoes")
       .update({ visibilidade: data.visibilidade })

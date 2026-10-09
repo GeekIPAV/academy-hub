@@ -12,6 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { EstadoSelect, FormatoSelect, PaisSelect } from "@/components/admin/acoes/AcaoCampos";
+import { INSCRICOES_ABERTAS, INSCRICOES_FECHADAS } from "@/lib/acoes-opcoes";
 import { CoverUploader } from "@/components/CoverUploader";
 import { CoverImage } from "@/components/CoverImage";
 import {
@@ -162,7 +165,6 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
             localizacao: form.localizacao || null,
             pais: form.pais || null,
             produto_id: form.produto_id || null,
-            projeto: form.projeto || null,
             email_responsavel: form.email_responsavel || null,
             start_date: form.start_date || null,
             end_date: form.end_date || null,
@@ -258,14 +260,20 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
 
       <div className="grid gap-3 sm:grid-cols-4">
         <Field label="Estado">
-          <Input value={form.status} onChange={(e) => set("status", e.target.value)} />
+          <EstadoSelect value={form.status} onChange={(v) => set("status", v)} />
         </Field>
         <Field label="Inscrições">
-          <Input
-            value={form.registration_status}
-            onChange={(e) => set("registration_status", e.target.value)}
-            placeholder="Aberto / Fechado"
-          />
+          <div className="flex h-10 items-center gap-2">
+            <Switch
+              checked={form.registration_status === INSCRICOES_ABERTAS}
+              onCheckedChange={(c) =>
+                set("registration_status", c ? INSCRICOES_ABERTAS : INSCRICOES_FECHADAS)
+              }
+            />
+            <span className="text-sm">
+              {form.registration_status === INSCRICOES_ABERTAS ? "Abertas" : "Fechadas"}
+            </span>
+          </div>
         </Field>
         <Field label="Início">
           <Input type="date" value={form.start_date} onChange={(e) => set("start_date", e.target.value)} />
@@ -280,7 +288,7 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
           <Input value={form.action_type} onChange={(e) => set("action_type", e.target.value)} />
         </Field>
         <Field label="Formato">
-          <Input value={form.formato} onChange={(e) => set("formato", e.target.value)} />
+          <FormatoSelect value={form.formato} onChange={(v) => set("formato", v)} />
         </Field>
         <Field label="Produto">
           <Select
@@ -302,16 +310,13 @@ function DadosTab({ acao }: { acao: AcaoRow }) {
           </Select>
         </Field>
 
-        <Field label="Projeto">
-          <Input value={form.projeto} onChange={(e) => set("projeto", e.target.value)} />
-        </Field>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Field label="País">
-          <Input value={form.pais} onChange={(e) => set("pais", e.target.value)} />
+          <PaisSelect value={form.pais} onChange={(v) => set("pais", v)} />
         </Field>
-        <Field label="Localização">
+        <Field label={form.formato === "Online" ? "Link da sessão" : "Localização"}>
           <Input value={form.localizacao} onChange={(e) => set("localizacao", e.target.value)} />
         </Field>
         <Field label="Email responsável">
@@ -687,17 +692,19 @@ function VisibilidadeSection({ actionId }: { actionId: string }) {
     onSuccess: () => {
       toast.success("Visibilidade guardada.");
       qc.invalidateQueries({ queryKey: ["acao-visibilidade", actionId] });
+      qc.invalidateQueries({ queryKey: ["admin-acoes-full"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao guardar"),
   });
   return (
     <section className="space-y-3 rounded-xl border bg-card p-4 shadow-sm">
       <div>
-        <h3 className="font-bold text-secondary">Quem vê esta ação</h3>
+        <h3 className="font-bold text-secondary">Projetos e visibilidade</h3>
         <p className="text-sm text-muted-foreground">
-          Quem pertence à entidade de um projeto ganha o acesso; se a entidade sair do projeto, perde-o logo.
+          Ao associar um projeto, a ação passa a ser visível só para os participantes desse projeto (pode mudar abaixo).
         </p>
       </div>
+      <Label className="text-xs uppercase text-muted-foreground">Quem vê</Label>
       <Select value={modo} onValueChange={(v) => setModo(v as "todos" | "projetos")}>
         <SelectTrigger className="w-full sm:w-80">
           <SelectValue />
@@ -707,7 +714,7 @@ function VisibilidadeSection({ actionId }: { actionId: string }) {
           <SelectItem value="projetos">Só participantes de projetos selecionados</SelectItem>
         </SelectContent>
       </Select>
-      {modo === "projetos" && (
+      {(
         <div className="space-y-3">
           {sel.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
@@ -720,6 +727,7 @@ function VisibilidadeSection({ actionId }: { actionId: string }) {
                       type="button"
                       aria-label="Remover"
                       onClick={() => setSel((s) => s.filter((x) => x !== id))}
+
                       className="ml-0.5 opacity-70 hover:opacity-100"
                     >
                       ×
@@ -767,9 +775,10 @@ function VisibilidadeSection({ actionId }: { actionId: string }) {
                 <label key={p.id} className="flex min-w-0 items-center gap-2 text-sm">
                   <Checkbox
                     checked={sel.includes(p.id)}
-                    onCheckedChange={(c) =>
-                      setSel((s) => (c ? [...s, p.id] : s.filter((x) => x !== p.id)))
-                    }
+                    onCheckedChange={(c) => {
+                      if (c && sel.length === 0) setModo("projetos");
+                      setSel((s) => (c ? [...s, p.id] : s.filter((x) => x !== p.id)));
+                    }}
                   />
                   <span className="truncate">{p.title}</span>
                 </label>

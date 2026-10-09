@@ -1,4 +1,11 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { EstadoSelect, FormatoSelect, PaisSelect } from "@/components/admin/acoes/AcaoCampos";
+import { INSCRICOES_ABERTAS, INSCRICOES_FECHADAS } from "@/lib/acoes-opcoes";
+import { listProjetos } from "@/lib/projetos.functions";
 import {
   flexRender,
   getCoreRowModel,
@@ -24,10 +31,10 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowUpDown, GripVertical, Pencil } from "lucide-react";
+import { ArrowUpDown, GripVertical, Lock, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { AcaoRow } from "@/lib/admin-acoes-gestao.functions";
+import { patchAcao, type AcaoRow } from "@/lib/admin-acoes-gestao.functions";
 
 interface Props {
   data: AcaoRow[];
@@ -35,6 +42,28 @@ interface Props {
 }
 
 export function AcoesDataTable({ data, onOpen }: Props) {
+  const qc = useQueryClient();
+  const patchFn = useServerFn(patchAcao);
+  const fetchProj = useServerFn(listProjetos);
+  const { data: projetos = [] } = useQuery({ queryKey: ["projetos"], queryFn: () => fetchProj() });
+  const projNome = useMemo(
+    () => new Map(projetos.map((p: { id: string; title: string }) => [p.id, p.title])),
+    [projetos],
+  );
+  const patch = useCallback(
+    async (id: string, fields: Partial<Record<"status" | "registration_status" | "formato" | "localizacao" | "pais", string | null>>) => {
+      qc.setQueryData<AcaoRow[]>(["admin-acoes-full"], (old) =>
+        old?.map((a) => (a.id === id ? { ...a, ...fields } : a)),
+      );
+      try {
+        await patchFn({ data: { actionId: id, fields: fields as never } });
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Erro ao guardar");
+      }
+      qc.invalidateQueries({ queryKey: ["admin-acoes-full"] });
+    },
+    [qc, patchFn],
+  );
   const columns = useMemo<ColumnDef<AcaoRow>[]>(
     () => [
       {
@@ -60,37 +89,102 @@ export function AcoesDataTable({ data, onOpen }: Props) {
         cell: (info) => info.getValue<string | null>() ?? "—",
       },
       {
-        accessorKey: "formato",
-        header: "Formato",
-        size: 110,
-        cell: (info) => {
-          const v = info.getValue<string | null>();
-          return v ? <Badge variant="outline">{v}</Badge> : "—";
-        },
-      },
-      {
-        accessorKey: "start_date",
-        header: "Data",
-        size: 120,
+        accessorKey: "status",
+        header: "Estado",
+        size: 190,
+        cell: ({ row }) => (
+          <EstadoSelect
+            className="h-8 border-transparent bg-transparent px-1 shadow-none"
+            value={row.original.status ?? ""}
+            onChange={(v) => patch(row.original.id, { status: v })}
+          />
+        ),
       },
       {
         accessorKey: "registration_status",
         header: "Inscrições",
         size: 120,
-        cell: (info) => {
-          const v = info.getValue<string | null>();
-          return v ? <Badge variant="secondary">{v}</Badge> : "—";
+        cell: ({ row }) => {
+          const on = row.original.registration_status === INSCRICOES_ABERTAS;
+          return (
+            <label className="flex items-center gap-2">
+              <Switch
+                checked={on}
+                onCheckedChange={(c) =>
+                  patch(row.original.id, {
+                    registration_status: c ? INSCRICOES_ABERTAS : INSCRICOES_FECHADAS,
+                  })
+                }
+                aria-label="Inscrições abertas"
+              />
+              <span className="text-xs text-muted-foreground">{on ? "Abertas" : "Fechadas"}</span>
+            </label>
+          );
         },
       },
       {
-        accessorKey: "status",
-        header: "Estado",
+        accessorKey: "formato",
+        header: "Formato",
+        size: 300,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-1">
+            <FormatoSelect
+              className="h-8 w-[110px] shrink-0 px-2"
+              value={row.original.formato ?? ""}
+              onChange={(v) => patch(row.original.id, { formato: v })}
+            />
+            <InlineText
+              key={row.original.id + (row.original.localizacao ?? "")}
+              value={row.original.localizacao ?? ""}
+              placeholder={row.original.formato === "Online" ? "Link…" : "Localização…"}
+              onSave={(v) => patch(row.original.id, { localizacao: v || null })}
+            />
+          </div>
+        ),
+      },
+      {
+        accessorKey: "pais",
+        header: "País",
+        size: 170,
+        cell: ({ row }) => (
+          <PaisSelect
+            className="h-8 px-2"
+            value={row.original.pais ?? ""}
+            onChange={(v) => patch(row.original.id, { pais: v })}
+          />
+        ),
+      },
+      {
+        accessorKey: "start_date",
+        header: "Data",
         size: 110,
+      },
+      {
+        id: "projetos",
+        header: "Projetos",
+        size: 220,
+        accessorFn: (r) => r.project_ids.map((id) => projNome.get(id) ?? "").join(", "),
+        cell: ({ row }) => {
+          const ids = row.original.project_ids;
+          if (!ids.length) return <span className="text-muted-foreground">—</span>;
+          return (
+            <div className="flex items-center gap-1 overflow-hidden" title={ids.map((i) => projNome.get(i)).join(", ")}>
+              {row.original.visibilidade === "projetos" && (
+                <Lock className="h-3 w-3 shrink-0 text-muted-foreground" aria-label="Só para estes projetos" />
+              )}
+              {ids.map((id) => (
+                <Badge key={id} variant="secondary" className="max-w-[10rem] shrink-0">
+                  <span className="truncate">{projNome.get(id) ?? "Projeto"}</span>
+                </Badge>
+              ))}
+            </div>
+          );
+        },
       },
       {
         accessorKey: "max_capacity",
         header: "Capacidade",
-        size: 110,
+        size: 100,
       },
       {
         accessorKey: "programa_title",
@@ -103,7 +197,7 @@ export function AcoesDataTable({ data, onOpen }: Props) {
         size: 180,
       },
     ],
-    [onOpen],
+    [onOpen, patch, projNome],
   );
 
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -229,5 +323,31 @@ function DraggableHeader({ headerId, children }: { headerId: string; children: R
     >
       {children}
     </th>
+  );
+}
+
+function InlineText({
+  value,
+  placeholder,
+  onSave,
+}: {
+  value: string;
+  placeholder: string;
+  onSave: (v: string) => void;
+}) {
+  const [v, setV] = useState(value);
+  return (
+    <input
+      value={v}
+      placeholder={placeholder}
+      onChange={(e) => setV(e.target.value)}
+      onPointerDown={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        e.stopPropagation();
+        if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+      }}
+      onBlur={() => v.trim() !== value && onSave(v.trim())}
+      className="h-8 min-w-0 flex-1 truncate rounded-md border border-transparent bg-transparent px-2 text-sm hover:border-input focus:border-input focus:outline-none"
+    />
   );
 }
