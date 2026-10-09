@@ -2,9 +2,18 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, Copy, Link2, Trash2, Upload, UserRound } from "lucide-react";
+import { Building2, ClipboardPaste, Copy, Link2, Trash2, Upload, UserRound } from "lucide-react";
 import { parseProjetosCsv } from "@/lib/projetos-import";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { RouteGate } from "@/components/RouteGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
