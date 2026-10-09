@@ -2,9 +2,18 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Building2, Copy, Link2, Trash2, Upload, UserRound } from "lucide-react";
+import { Building2, ClipboardPaste, Copy, Link2, Trash2, Upload, UserRound } from "lucide-react";
 import { parseProjetosCsv } from "@/lib/projetos-import";
 import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { RouteGate } from "@/components/RouteGate";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,7 +103,7 @@ function ProjetosPage() {
           </form>
           <ImportarProjetos />
           <p className="text-xs text-muted-foreground">
-            CSV com colunas: Projeto, Data início, Data fim, Status. Projetos com o mesmo nome são atualizados.
+            Importe por ficheiro ou colando linhas do Excel/Sheets. Colunas: Projeto, Data início, Data fim, Status. Projetos com o mesmo nome são atualizados.
           </p>
           <ul className="space-y-1">
             {projetos.length === 0 && <li className="text-sm text-muted-foreground">Sem projetos.</li>}
@@ -311,35 +320,80 @@ function ImportarProjetos() {
   const qc = useQueryClient();
   const importFn = useServerFn(importProjetos);
   const [busy, setBusy] = useState(false);
-  async function onFile(f: File) {
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState("");
+  async function importar(text: string, origem: string) {
     setBusy(true);
     try {
-      const { rows, errors } = parseProjetosCsv(await f.text());
+      const { rows, errors } = parseProjetosCsv(text);
       if (errors.length) toast.warning(`${errors.length} linha(s) ignorada(s): ${errors.slice(0, 3).join(" ")}`);
-      if (!rows.length) return;
+      if (!rows.length) {
+        toast.error(`Nenhuma linha válida ${origem}.`);
+        return;
+      }
       const r = await importFn({ data: { rows } });
       toast.success(`${r.criados} criado(s), ${r.atualizados} atualizado(s).`);
       qc.invalidateQueries({ queryKey: ["projetos"] });
+      setPasteOpen(false);
+      setPasteText("");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro ao importar");
     } finally {
       setBusy(false);
     }
   }
+  async function onFile(f: File) {
+    await importar(await f.text(), "no ficheiro");
+  }
   return (
-    <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-3 py-2 text-sm font-medium text-secondary hover:bg-muted">
-      <Upload className="h-4 w-4" /> {busy ? "A importar…" : "Importar CSV"}
-      <input
-        type="file"
-        accept=".csv,.tsv,.txt,text/csv"
-        className="sr-only"
-        disabled={busy}
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          e.target.value = "";
-          if (f) void onFile(f);
-        }}
-      />
-    </label>
+    <>
+      <div className="grid grid-cols-2 gap-2">
+        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed px-3 py-2 text-sm font-medium text-secondary hover:bg-muted">
+          <Upload className="h-4 w-4" /> {busy ? "A importar…" : "Importar CSV"}
+          <input
+            type="file"
+            accept=".csv,.tsv,.txt,text/csv"
+            className="sr-only"
+            disabled={busy}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = "";
+              if (f) void onFile(f);
+            }}
+          />
+        </label>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setPasteOpen(true)}
+          className="flex items-center justify-center gap-2 rounded-md border border-dashed px-3 py-2 text-sm font-medium text-secondary hover:bg-muted"
+        >
+          <ClipboardPaste className="h-4 w-4" /> Colar dados
+        </button>
+      </div>
+      <Dialog open={pasteOpen} onOpenChange={setPasteOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Colar projetos</DialogTitle>
+            <DialogDescription>
+              Copie as linhas do Excel ou Google Sheets (colunas Projeto, Data início, Data fim, Status) e cole aqui. A primeira linha pode ser o cabeçalho.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            value={pasteText}
+            onChange={(e) => setPasteText(e.target.value)}
+            rows={8}
+            placeholder={"Projeto;Data início;Data fim;Status\nFormação Cívica;01/01/2026;31/07/2026;Em curso"}
+            className="font-mono text-xs"
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPasteOpen(false)}>Cancelar</Button>
+            <Button disabled={busy || !pasteText.trim()} onClick={() => void importar(pasteText, "no texto colado")}>
+              {busy ? "A importar…" : "Importar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
