@@ -58,7 +58,7 @@ function splitLine(line: string, sep: string): string[] {
   return out.map((x) => x.trim());
 }
 
-/** Lê CSV/TSV com colunas Projeto, Data início, Data fim, Status. */
+/** Lê CSV/TSV com colunas Projeto, Data início, Data fim, Status (com ou sem cabeçalho). */
 export function parseProjetosCsv(text: string): { rows: ProjetoImportRow[]; errors: string[] } {
   const lines = text.replace(/^\uFEFF/, "").split(/\r?\n/).filter((l) => l.trim());
   if (!lines.length) return { rows: [], errors: ["Ficheiro vazio."] };
@@ -66,21 +66,26 @@ export function parseProjetosCsv(text: string): { rows: ProjetoImportRow[]; erro
   const sep = h.includes("\t") ? "\t" : h.split(";").length > h.split(",").length ? ";" : ",";
   const head = splitLine(h, sep).map(norm);
   const idx = (names: string[]) => head.findIndex((c) => names.includes(c));
-  const iT = idx(["projeto", "project", "nome", "titulo"]);
-  const iI = idx(["data inicio", "inicio", "start date"]);
-  const iF = idx(["data fim", "fim", "end date"]);
-  const iS = idx(["status", "estado"]);
-  if (iT < 0) return { rows: [], errors: ["Falta a coluna «Projeto»."] };
+  let iT = idx(["projeto", "project", "nome", "titulo"]);
+  let iI = idx(["data inicio", "inicio", "start date"]);
+  let iF = idx(["data fim", "fim", "end date"]);
+  let iS = idx(["status", "estado"]);
+  let firstDataRow = 1;
+  if (iT < 0) {
+    // Sem cabeçalho: assume-se a ordem Projeto, Data início, Data fim, Status.
+    firstDataRow = 0;
+    iT = 0; iI = 1; iF = 2; iS = 3;
+  }
   const rows: ProjetoImportRow[] = [];
   const errors: string[] = [];
-  lines.slice(1).forEach((l, n) => {
+  lines.slice(firstDataRow).forEach((l, n) => {
     const c = splitLine(l, sep);
     const title = c[iT] ?? "";
     if (!title) return;
     const di = iI >= 0 ? parseDate(c[iI] ?? "") : null;
     const df = iF >= 0 ? parseDate(c[iF] ?? "") : null;
     const st = iS >= 0 ? parseStatus(c[iS] ?? "") : "em_curso";
-    const linha = `Linha ${n + 2} (${title})`;
+    const linha = `Linha ${n + firstDataRow + 1} (${title})`;
     if (di === undefined) errors.push(`${linha}: data de início inválida.`);
     else if (df === undefined) errors.push(`${linha}: data de fim inválida.`);
     else if (!st) errors.push(`${linha}: status «${c[iS]}» desconhecido.`);
