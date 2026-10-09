@@ -641,6 +641,21 @@ function PaginaTab({ acao }: { acao: AcaoRow }) {
   );
 }
 
+const STATUS_OPCOES: [string, string][] = [
+  ["possibilidade", "Possibilidade"],
+  ["em_arranque", "Em arranque"],
+  ["em_contratualizacao", "Em contratualização"],
+  ["em_progresso", "Em progresso"],
+  ["institucional", "Institucional"],
+  ["em_fecho", "Em fecho"],
+  ["terminado", "Terminado"],
+  ["em_curso", "Em curso"],
+];
+
+function normTxt(s: string) {
+  return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
+
 function VisibilidadeSection({ actionId }: { actionId: string }) {
   const qc = useQueryClient();
   const fetchProj = useServerFn(listProjetos);
@@ -653,6 +668,14 @@ function VisibilidadeSection({ actionId }: { actionId: string }) {
   });
   const [modo, setModo] = useState<"todos" | "projetos">("todos");
   const [sel, setSel] = useState<string[]>([]);
+  const [q, setQ] = useState("");
+  const [statusSel, setStatusSel] = useState<string[]>(["em_progresso"]);
+  const nq = normTxt(q.trim());
+  const filtrados = projetos.filter(
+    (p) =>
+      (statusSel.length === 0 || statusSel.includes(p.status)) &&
+      (!nq || normTxt(p.title).includes(nq)),
+  );
   useEffect(() => {
     if (vis) {
       setModo(vis.visibilidade);
@@ -685,23 +708,74 @@ function VisibilidadeSection({ actionId }: { actionId: string }) {
         </SelectContent>
       </Select>
       {modo === "projetos" && (
-        <div className="grid gap-2 sm:grid-cols-2">
-          {projetos.length === 0 && (
+        <div className="space-y-3">
+          {sel.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {sel.map((id) => {
+                const p = projetos.find((x) => x.id === id);
+                return (
+                  <Badge key={id} variant="secondary" className="gap-1">
+                    <span className="max-w-[16rem] truncate">{p?.title ?? "Projeto"}</span>
+                    <button
+                      type="button"
+                      aria-label="Remover"
+                      onClick={() => setSel((s) => s.filter((x) => x !== id))}
+                      className="ml-0.5 opacity-70 hover:opacity-100"
+                    >
+                      ×
+                    </button>
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
+          <Input
+            placeholder="Escreve o nome do projeto…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+          <div className="flex flex-wrap gap-1.5">
+            {STATUS_OPCOES.map(([k, label]) => {
+              const on = statusSel.includes(k);
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() =>
+                    setStatusSel((s) => (on ? s.filter((x) => x !== k) : [...s, k]))
+                  }
+                  className={`rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+                    on
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "bg-background text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {projetos.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               Ainda não há projetos. Cria-os em Gestão de Projetos.
             </p>
+          ) : filtrados.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum projeto encontrado.</p>
+          ) : (
+            <div className="grid max-h-72 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+              {filtrados.map((p) => (
+                <label key={p.id} className="flex min-w-0 items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={sel.includes(p.id)}
+                    onCheckedChange={(c) =>
+                      setSel((s) => (c ? [...s, p.id] : s.filter((x) => x !== p.id)))
+                    }
+                  />
+                  <span className="truncate">{p.title}</span>
+                </label>
+              ))}
+            </div>
           )}
-          {projetos.map((p) => (
-            <label key={p.id} className="flex min-w-0 items-center gap-2 text-sm">
-              <Checkbox
-                checked={sel.includes(p.id)}
-                onCheckedChange={(c) =>
-                  setSel((s) => (c ? [...s, p.id] : s.filter((x) => x !== p.id)))
-                }
-              />
-              <span className="truncate">{p.title}</span>
-            </label>
-          ))}
         </div>
       )}
       <Button type="button" size="sm" onClick={() => mut.mutate()} disabled={mut.isPending}>
