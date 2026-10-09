@@ -2,16 +2,26 @@ export type ProjetoImportRow = {
   title: string;
   data_inicio: string | null;
   data_fim: string | null;
-  status: "planeado" | "em_curso" | "concluido" | "suspenso";
+  status:
+    | "possibilidade" | "em_arranque" | "em_contratualizacao" | "em_progresso"
+    | "institucional" | "em_fecho" | "terminado"
+    | "planeado" | "em_curso" | "concluido" | "suspenso";
 };
 
 const norm = (s: string) =>
   s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase().replace(/[\s_-]+/g, " ");
 
 const STATUS_MAP: Record<string, ProjetoImportRow["status"]> = {
+  possibilidade: "possibilidade", potencial: "possibilidade",
+  "em arranque": "em_arranque", arranque: "em_arranque",
+  "em contratualizacao": "em_contratualizacao", contratualizacao: "em_contratualizacao", "em contratos": "em_contratualizacao",
+  "em progresso": "em_progresso", progresso: "em_progresso",
+  institucional: "institucional",
+  "em fecho": "em_fecho", fecho: "em_fecho",
+  terminado: "terminado", terminada: "terminado",
   planeado: "planeado", planejado: "planeado", "por iniciar": "planeado", "nao iniciado": "planeado",
   "em curso": "em_curso", ativo: "em_curso", "em andamento": "em_curso", "em execucao": "em_curso",
-  concluido: "concluido", terminado: "concluido", finalizado: "concluido", fechado: "concluido",
+  concluido: "concluido", finalizado: "concluido", fechado: "concluido",
   suspenso: "suspenso", pausado: "suspenso", cancelado: "suspenso",
 };
 

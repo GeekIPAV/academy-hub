@@ -56,6 +56,13 @@ export const Route = createFileRoute("/admin/projetos")({
 });
 
 const STATUS: Record<string, string> = {
+  possibilidade: "Possibilidade",
+  em_arranque: "Em arranque",
+  em_contratualizacao: "Em contratualização",
+  em_progresso: "Em progresso",
+  institucional: "Institucional",
+  em_fecho: "Em fecho",
+  terminado: "Terminado",
   planeado: "Planeado",
   em_curso: "Em curso",
   concluido: "Concluído",
