@@ -33,7 +33,7 @@ export const saveProjeto = createServerFn({ method: "POST" })
         id: uuid.optional(),
         title: z.string().trim().min(1).max(200),
         description: z.string().max(2000).nullable().optional(),
-        status: z.enum(["planeado", "em_curso", "concluido", "suspenso"]),
+        status: z.enum(["possibilidade", "em_arranque", "em_contratualizacao", "em_progresso", "institucional", "em_fecho", "terminado", "planeado", "em_curso", "concluido", "suspenso"]),
       })
       .parse(i),
   )
@@ -60,7 +60,7 @@ export const importProjetos = createServerFn({ method: "POST" })
               title: z.string().trim().min(1).max(200),
               data_inicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
               data_fim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
-              status: z.enum(["planeado", "em_curso", "concluido", "suspenso"]),
+              status: z.enum(["possibilidade", "em_arranque", "em_contratualizacao", "em_progresso", "institucional", "em_fecho", "terminado", "planeado", "em_curso", "concluido", "suspenso"]),
             }),
           )
           .min(1)

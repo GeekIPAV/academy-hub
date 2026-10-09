@@ -43,6 +43,13 @@
       "when": 1791552811215,
       "tag": "0005_projetos_datas",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791553273244,
+      "tag": "0006_projeto_status_novos_valores",
+      "breakpoints": true
     }
   ]
 }
