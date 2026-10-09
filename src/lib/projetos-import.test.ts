@@ -24,6 +24,14 @@ describe("parseProjetosCsv", () => {
       "institucional", "em_fecho", "terminado",
     ]);
   });
+  it("lê linhas coladas sem cabeçalho", () => {
+    const r = parseProjetosCsv("Projeto Sem Cabeçalho;01/07/2024;31/12/2025;Em fecho\nOutro;;;Em arranque");
+    expect(r.errors).toHaveLength(0);
+    expect(r.rows).toEqual([
+      { title: "Projeto Sem Cabeçalho", data_inicio: "2024-07-01", data_fim: "2025-12-31", status: "em_fecho" },
+      { title: "Outro", data_inicio: null, data_fim: null, status: "em_arranque" },
+    ]);
+  });
   it("assinala status desconhecido", () => {
     const r = parseProjetosCsv("Projeto,Status\nBeta,xpto");
     expect(r.rows).toHaveLength(0);
