@@ -105,7 +105,14 @@ function ProjetosPage() {
                   onClick={() => setSelId(p.id)}
                   className={`flex w-full min-w-0 items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-muted ${p.id === selId ? "bg-muted font-semibold" : ""}`}
                 >
-                  <span className="truncate">{p.title}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate">{p.title}</span>
+                    {(p.data_inicio || p.data_fim) && (
+                      <span className="block text-xs font-normal text-muted-foreground">
+                        {p.data_inicio ?? "…"} → {p.data_fim ?? "…"}
+                      </span>
+                    )}
+                  </span>
                   <Badge variant="outline" className="shrink-0">{STATUS[p.status] ?? p.status}</Badge>
                 </button>
               </li>
