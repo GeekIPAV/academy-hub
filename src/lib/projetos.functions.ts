@@ -48,6 +48,56 @@ export const saveProjeto = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Importa projetos: atualiza os que já existem com o mesmo nome, cria os restantes. */
+export const importProjetos = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) =>
+    z
+      .object({
+        rows: z
+          .array(
+            z.object({
+              title: z.string().trim().min(1).max(200),
+              data_inicio: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+              data_fim: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+              status: z.enum(["planeado", "em_curso", "concluido", "suspenso"]),
+            }),
+          )
+          .min(1)
+          .max(1000),
+      })
+      .parse(i),
+  )
+  .handler(async ({ data, context }) => {
+    const db = await admin(context.userId);
+    const { data: existentes, error } = await db.from("projetos").select("id, title");
+    if (error) throw new Error(error.message);
+    const byTitle = new Map((existentes ?? []).map((p) => [p.title.trim().toLowerCase(), p.id]));
+    let criados = 0;
+    let atualizados = 0;
+    const novos: typeof data.rows = [];
+    for (const r of data.rows) {
+      const id = byTitle.get(r.title.toLowerCase());
+      if (id) {
+        const { error: e } = await db
+          .from("projetos")
+          .update({ status: r.status, data_inicio: r.data_inicio, data_fim: r.data_fim })
+          .eq("id", id);
+        if (e) throw new Error(e.message);
+        atualizados++;
+      } else {
+        byTitle.set(r.title.toLowerCase(), "pending");
+        novos.push(r);
+      }
+    }
+    if (novos.length) {
+      const { error: e } = await db.from("projetos").insert(novos);
+      if (e) throw new Error(e.message);
+      criados = novos.length;
+    }
+    return { criados, atualizados };
+  });
+
 export const getProjetoMembros = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ projectId: uuid }).parse(i))
