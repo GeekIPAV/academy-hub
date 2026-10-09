@@ -103,7 +103,7 @@ function ProjetosPage() {
           </form>
           <ImportarProjetos />
           <p className="text-xs text-muted-foreground">
-            CSV com colunas: Projeto, Data início, Data fim, Status. Projetos com o mesmo nome são atualizados.
+            Importe por ficheiro ou colando linhas do Excel/Sheets. Colunas: Projeto, Data início, Data fim, Status. Projetos com o mesmo nome são atualizados.
           </p>
           <ul className="space-y-1">
             {projetos.length === 0 && <li className="text-sm text-muted-foreground">Sem projetos.</li>}
