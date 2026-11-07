@@ -89,6 +89,57 @@ export const listAcoesPublicas = createServerFn({ method: "GET" })
 });
 
 
+export type ProximoEvento = Pick<
+  AcaoPublicaRow,
+  | "id"
+  | "title"
+  | "start_date"
+  | "end_date"
+  | "formato"
+  | "localizacao"
+  | "pais"
+  | "produto"
+  | "registration_status"
+>;
+
+/**
+ * Próximos eventos para a página inicial: os mesmos que o utilizador vê na
+ * galeria (inscrições abertas ou anunciadas, respeitando a visibilidade por
+ * projeto), mas só os que ainda não terminaram, por ordem de data.
+ */
+export const listProximosEventos = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<ProximoEvento[]> => {
+    const today = new Date().toISOString().slice(0, 10);
+    const { data, error } = await supabaseAdmin
+      .from("acoes")
+      .select(
+        "id, title, start_date, end_date, formato, localizacao, pais, registration_status, visibilidade, produtos(name), acoes_projetos(project_id)",
+      )
+      .or(`registration_status.eq.Aberto,and(registration_status.eq.Em breve,start_date.gte.${today})`)
+      .not("start_date", "is", null)
+      .order("start_date", { ascending: true })
+      .limit(500);
+    if (error) throw new Error(error.message);
+
+    // Ainda não terminou: a data de fim, ou a de início se não houver fim.
+    const futuros = (data ?? []).filter(
+      (r) => String(r.end_date ?? r.start_date ?? "").slice(0, 10) >= today,
+    );
+    const visiveis = await filtrarPorProjeto(context.userId, futuros);
+    return visiveis.slice(0, 6).map((r) => ({
+      id: r.id,
+      title: r.title,
+      start_date: r.start_date,
+      end_date: r.end_date,
+      formato: r.formato,
+      localizacao: r.localizacao,
+      pais: r.pais,
+      produto: (r.produtos as { name?: string | null } | null)?.name ?? null,
+      registration_status: r.registration_status,
+    }));
+  });
+
 /** Ações restritas só aparecem a quem tem um dos projetos (direto ou herdado da entidade). */
 async function filtrarPorProjeto<
   T extends { visibilidade?: string | null; acoes_projetos?: { project_id: string }[] | null },
