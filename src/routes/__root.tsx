@@ -148,6 +148,7 @@ function AppShell() {
     pathname.startsWith("/inscricao/") ||
     pathname.startsWith("/inscricao-entidade/") ||
     pathname.startsWith("/evento/") ||
+    pathname.startsWith("/avaliar/") ||
     pathname.startsWith("/convite/") ||
     pathname.startsWith("/certificados/verificar/");
 
@@ -178,7 +179,11 @@ function AppShell() {
   // /reset-password e /inscricao/:token renderizam sempre como páginas
   // autónomas (sem sidebar), mesmo com sessão iniciada — para não permitir
   // sair do fluxo a meio.
-  if (pathname === "/reset-password" || pathname.startsWith("/inscricao/")) {
+  if (
+    pathname === "/reset-password" ||
+    pathname.startsWith("/inscricao/") ||
+    pathname.startsWith("/avaliar/")
+  ) {
     return (
       <div className="min-h-screen bg-muted/30">
         {isRouterLoading ? <InlineLoader /> : <Outlet />}
