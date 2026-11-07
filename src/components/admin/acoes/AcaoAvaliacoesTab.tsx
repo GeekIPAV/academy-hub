@@ -14,6 +14,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { PerguntasListEditor } from "@/components/avaliacao/PerguntasListEditor";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -613,17 +614,6 @@ function PerguntasEditor({ avaliacao, actionId }: { avaliacao: AvaliacaoAcao; ac
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao guardar"),
   });
 
-  const alterar = (i: number, patch: Partial<Pergunta>) =>
-    setPerguntas((l) => l.map((p, idx) => (idx === i ? { ...p, ...patch } : p)));
-  const mover = (i: number, d: -1 | 1) =>
-    setPerguntas((l) => {
-      const j = i + d;
-      if (j < 0 || j >= l.length) return l;
-      const c = [...l];
-      [c[i], c[j]] = [c[j], c[i]];
-      return c;
-    });
-
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-[1fr_12rem]">
@@ -655,106 +645,9 @@ function PerguntasEditor({ avaliacao, actionId }: { avaliacao: AvaliacaoAcao; ac
         </p>
       )}
 
-      <div className="space-y-3">
-        {perguntas.map((p, i) => (
-          <div key={p.id} className="min-w-0 space-y-2 rounded-lg border p-3">
-            <div className="flex items-start gap-2">
-              <Textarea
-                rows={2}
-                value={p.texto}
-                placeholder="Texto da pergunta"
-                onChange={(e) => alterar(i, { texto: e.target.value })}
-              />
-              <div className="flex shrink-0 flex-col">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  aria-label="Subir"
-                  disabled={i === 0}
-                  onClick={() => mover(i, -1)}
-                >
-                  <ArrowUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-8 w-8"
-                  aria-label="Descer"
-                  disabled={i === perguntas.length - 1}
-                  onClick={() => mover(i, 1)}
-                >
-                  <ArrowDown className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-[12rem_1fr_auto_auto]">
-              <Select value={p.tipo} onValueChange={(v) => alterar(i, { tipo: v as TipoPergunta })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIPOS_PERGUNTA.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {TIPO_PERGUNTA_LABEL[t]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Input
-                value={p.grupo ?? ""}
-                placeholder="Dimensão / grupo (opcional)"
-                onChange={(e) => alterar(i, { grupo: e.target.value || undefined })}
-              />
-              <Label className="flex items-center gap-2 text-xs font-normal">
-                <Switch
-                  checked={!!p.obrigatoria}
-                  onCheckedChange={(v) => alterar(i, { obrigatoria: v })}
-                />
-                Obrigatória
-              </Label>
-              <Button
-                size="icon"
-                variant="ghost"
-                aria-label="Remover pergunta"
-                onClick={() => setPerguntas((l) => l.filter((_, idx) => idx !== i))}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-            {p.tipo === "escolha" && (
-              <Textarea
-                rows={3}
-                value={(p.opcoes ?? []).join("\n")}
-                placeholder="Uma opção por linha"
-                onChange={(e) =>
-                  alterar(i, {
-                    opcoes: e.target.value
-                      .split("\n")
-                      .map((o) => o.trim())
-                      .filter(Boolean),
-                  })
-                }
-              />
-            )}
-          </div>
-        ))}
-      </div>
+      <PerguntasListEditor perguntas={perguntas} onChange={setPerguntas} />
 
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() =>
-            setPerguntas((l) => [
-              ...l,
-              { id: novoIdPergunta(), tipo: "escala", texto: "", obrigatoria: true },
-            ])
-          }
-        >
-          <Plus className="mr-1.5 h-4 w-4" />
-          Adicionar pergunta
-        </Button>
+      <div className="flex justify-end">
         <Button size="sm" onClick={() => mut.mutate()} disabled={mut.isPending}>
           <Save className="mr-1.5 h-4 w-4" />
           Guardar

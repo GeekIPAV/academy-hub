@@ -51,6 +51,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { path: "/admin/programas", label: "Gestão de Programas", icon: Shield },
     { path: "/admin/entidades", label: "Gestão de Entidades", icon: Shield },
     { path: "/admin/acoes", label: "Gestão de Ações", icon: CalendarCog },
+    { path: "/admin/avaliacoes", label: "Modelos de Avaliação", icon: ClipboardCheck },
     { path: "/admin/projetos", label: "Gestão de Projetos", icon: FolderKanban },
     { path: "/admin/recursos", label: "Gestão de Recursos", icon: FolderCog },
     { path: "/admin/badges", label: "Gestão de Badges", icon: Medal },
