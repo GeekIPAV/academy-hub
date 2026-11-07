@@ -53,6 +53,15 @@ import {
   type RequiredFieldDef,
 } from "@/lib/admin-acoes-gestao.functions";
 import { listProdutos } from "@/lib/produtos.functions";
+import { listAvaliacoesAcao } from "@/lib/avaliacao-acoes.functions";
+import { AcaoAvaliacoesTab } from "@/components/admin/acoes/AcaoAvaliacoesTab";
+import { avaliacoesQueryKey, copiarLinkAvaliacao } from "@/lib/avaliacao-acoes-link";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import {
   PaginaInscricaoEditor,
@@ -77,7 +86,59 @@ interface Props {
   onOpenChange: (v: boolean) => void;
 }
 
+/** Botão do cabeçalho: copia o link de avaliação (ou escolhe, se houver várias). */
+function CopiarLinkAvaliacaoButton({
+  actionId,
+  onIrParaAvaliacoes,
+}: {
+  actionId: string;
+  onIrParaAvaliacoes: () => void;
+}) {
+  const listFn = useServerFn(listAvaliacoesAcao);
+  const { data } = useQuery({
+    queryKey: avaliacoesQueryKey(actionId),
+    queryFn: () => listFn({ data: { actionId } }),
+  });
+  const avaliacoes = data ?? [];
+
+  if (avaliacoes.length === 0) {
+    return (
+      <Button size="sm" variant="outline" onClick={onIrParaAvaliacoes}>
+        <LinkIcon className="mr-1.5 h-4 w-4" />
+        Criar avaliação
+      </Button>
+    );
+  }
+  if (avaliacoes.length === 1) {
+    return (
+      <Button size="sm" variant="outline" onClick={() => copiarLinkAvaliacao(avaliacoes[0].token)}>
+        <Copy className="mr-1.5 h-4 w-4" />
+        Copiar link de avaliação
+      </Button>
+    );
+  }
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="sm" variant="outline">
+          <Copy className="mr-1.5 h-4 w-4" />
+          Copiar link de avaliação
+          <ChevronDown className="ml-1.5 h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        {avaliacoes.map((a) => (
+          <DropdownMenuItem key={a.id} onClick={() => copiarLinkAvaliacao(a.token)}>
+            {a.titulo}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function AcaoDetailDrawer({ acao, open, onOpenChange }: Props) {
+  const [tab, setTab] = useState("dados");
   if (!acao) return null;
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -87,13 +148,20 @@ export function AcaoDetailDrawer({ acao, open, onOpenChange }: Props) {
             {acao.title ?? "(sem título)"}
             {acao.formato && <Badge variant="outline">{acao.formato}</Badge>}
           </SheetTitle>
+          <div className="pt-1">
+            <CopiarLinkAvaliacaoButton
+              actionId={acao.id}
+              onIrParaAvaliacoes={() => setTab("avaliacoes")}
+            />
+          </div>
         </SheetHeader>
         <div className="min-w-0 p-4 sm:p-6">
-          <Tabs defaultValue="dados">
+          <Tabs value={tab} onValueChange={setTab}>
             <TabsList>
               <TabsTrigger value="dados">Dados da ação</TabsTrigger>
               <TabsTrigger value="inscritos">Inscritos</TabsTrigger>
               <TabsTrigger value="resultados">Resultados</TabsTrigger>
+              <TabsTrigger value="avaliacoes">Avaliações</TabsTrigger>
               <TabsTrigger value="pagina">Página de inscrição</TabsTrigger>
             </TabsList>
             <TabsContent value="dados" className="mt-4">
@@ -104,6 +172,9 @@ export function AcaoDetailDrawer({ acao, open, onOpenChange }: Props) {
             </TabsContent>
             <TabsContent value="resultados" className="mt-4">
               <ResultadosTab actionId={acao.id} />
+            </TabsContent>
+            <TabsContent value="avaliacoes" className="mt-4">
+              <AcaoAvaliacoesTab actionId={acao.id} />
             </TabsContent>
             <TabsContent value="pagina" className="mt-4">
               <PaginaTab acao={acao} />
