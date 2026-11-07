@@ -768,13 +768,23 @@ function VisibilidadeSection({ actionId }: { actionId: string }) {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao guardar"),
   });
   return (
-    <section className="space-y-3 rounded-xl border bg-card p-4 shadow-sm">
-      <div>
-        <h3 className="font-bold text-secondary">Projetos e visibilidade</h3>
-        <p className="text-sm text-muted-foreground">
-          Ao associar um projeto, a ação passa a ser visível só para os participantes desse projeto (pode mudar abaixo).
-        </p>
-      </div>
+    // Fechado por defeito: a secção é longa e raramente é preciso mexer nela.
+    <Collapsible className="rounded-xl border bg-card p-4 shadow-sm">
+      <CollapsibleTrigger className="group flex w-full items-start justify-between gap-3 text-left">
+        <div className="min-w-0">
+          <h3 className="font-bold text-secondary">Projetos e visibilidade</h3>
+          <p className="text-sm text-muted-foreground">
+            {modo === "projetos"
+              ? `Só participantes de ${sel.length} ${sel.length === 1 ? "projeto" : "projetos"}`
+              : "Visível para todos os utilizadores"}
+          </p>
+        </div>
+        <ChevronDown className="mt-1 h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="mt-3 space-y-3">
+      <p className="text-sm text-muted-foreground">
+        Ao associar um projeto, a ação passa a ser visível só para os participantes desse projeto (pode mudar abaixo).
+      </p>
       <Label className="text-xs uppercase text-muted-foreground">Quem vê</Label>
       <Select value={modo} onValueChange={(v) => setModo(v as "todos" | "projetos")}>
         <SelectTrigger className="w-full sm:w-80">
@@ -861,7 +871,8 @@ function VisibilidadeSection({ actionId }: { actionId: string }) {
       <Button type="button" size="sm" onClick={() => mut.mutate()} disabled={mut.isPending}>
         Guardar visibilidade
       </Button>
-    </section>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
