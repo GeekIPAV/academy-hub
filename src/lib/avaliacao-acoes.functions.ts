@@ -308,3 +308,28 @@ export const submitAvaliacao = createServerFn({ method: "POST" })
     if (iErr) throw new Error(iErr.message);
     return { ok: true };
   });
+
+export type ResumoAvaliacoesAcao = { avaliacoes: number; abertas: number; respostas: number };
+
+/** Resumo das avaliações de todas as ações, para a lista de gestão. */
+export const resumoAvaliacoesAcoes = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<Record<string, ResumoAvaliacoesAcao>> => {
+    await assertAdmin(context.userId);
+    const { data: rows, error } = await db
+      .from("avaliacoes")
+      .select("acao_id, aberta, avaliacao_respostas(count)")
+      .limit(5000);
+    if (error) throw new Error(error.message);
+    const out: Record<string, ResumoAvaliacoesAcao> = {};
+    for (const r of (rows ?? []) as Record<string, unknown>[]) {
+      const acaoId = r.acao_id as string;
+      const contagem = r.avaliacao_respostas as { count?: number }[] | null;
+      const atual = out[acaoId] ?? { avaliacoes: 0, abertas: 0, respostas: 0 };
+      atual.avaliacoes += 1;
+      if (r.aberta) atual.abertas += 1;
+      atual.respostas += contagem?.[0]?.count ?? 0;
+      out[acaoId] = atual;
+    }
+    return out;
+  });

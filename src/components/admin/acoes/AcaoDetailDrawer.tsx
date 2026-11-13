@@ -55,6 +55,15 @@ import {
 import { listProdutos } from "@/lib/produtos.functions";
 import { listAvaliacoesAcao } from "@/lib/avaliacao-acoes.functions";
 import { AcaoAvaliacoesTab } from "@/components/admin/acoes/AcaoAvaliacoesTab";
+import { StatusChip, type ChipTone } from "@/components/shell/StatusChip";
+
+function inscritoTone(status: string | null | undefined): ChipTone {
+  const s = (status ?? "").toLowerCase();
+  if (s.includes("espera") || s.includes("suplente")) return "yellow";
+  if (s.includes("cancel") || s.includes("desist") || s.includes("rejeit")) return "red";
+  if (s.includes("conclu") || s.includes("presen")) return "green";
+  return "navy";
+}
 import { avaliacoesQueryKey, copiarLinkAvaliacao } from "@/lib/avaliacao-acoes-link";
 import {
   DropdownMenu,
@@ -87,7 +96,7 @@ interface Props {
 }
 
 /** Botão do cabeçalho: copia o link de avaliação (ou escolhe, se houver várias). */
-function CopiarLinkAvaliacaoButton({
+export function CopiarLinkAvaliacaoButton({
   actionId,
   onIrParaAvaliacoes,
 }: {
@@ -581,7 +590,7 @@ function Field({
   );
 }
 
-function InscritosTab({ actionId }: { actionId: string }) {
+export function InscritosTab({ actionId }: { actionId: string }) {
   const fn = useServerFn(listInscritosAcao);
   const { data, isLoading } = useQuery({
     queryKey: ["inscritos-acao", actionId],
@@ -597,7 +606,8 @@ function InscritosTab({ actionId }: { actionId: string }) {
     );
   }
   return (
-    <Table>
+    <div className="overflow-x-auto rounded-xl border bg-card">
+    <Table className="min-w-[560px]">
       <TableHeader>
         <TableRow>
           <TableHead>Nome</TableHead>
@@ -612,7 +622,7 @@ function InscritosTab({ actionId }: { actionId: string }) {
             <TableCell>{r.full_name ?? "—"}</TableCell>
             <TableCell className="text-xs text-muted-foreground">{r.email ?? "—"}</TableCell>
             <TableCell>
-              <Badge variant="secondary">{r.status ?? "—"}</Badge>
+              <StatusChip tone={inscritoTone(r.status)}>{r.status ?? "Sem estado"}</StatusChip>
             </TableCell>
             <TableCell className="text-xs text-muted-foreground">
               {r.submitted_at ? new Date(r.submitted_at).toLocaleDateString("pt-PT") : "—"}
@@ -621,10 +631,11 @@ function InscritosTab({ actionId }: { actionId: string }) {
         ))}
       </TableBody>
     </Table>
+    </div>
   );
 }
 
-function PaginaTab({ acao }: { acao: AcaoRow }) {
+export function PaginaTab({ acao }: { acao: AcaoRow }) {
   const qc = useQueryClient();
   const saveFn = useServerFn(savePaginaInscricao);
   const [doc, setDoc] = useState<PageDoc>(() => loadDoc(acao.conteudo_pagina_inscricao));
@@ -876,7 +887,7 @@ function VisibilidadeSection({ actionId }: { actionId: string }) {
   );
 }
 
-function ResultadosTab({ actionId }: { actionId: string }) {
+export function ResultadosTab({ actionId }: { actionId: string }) {
   const fn = useServerFn(getAcaoResultados);
   const { data, isLoading } = useQuery({
     queryKey: ["acao-resultados", actionId],
@@ -922,8 +933,8 @@ function ResultadosTab({ actionId }: { actionId: string }) {
 
 function ResumoCard({ label, value, small }: { label: string; value: string; small?: boolean }) {
   return (
-    <div className="rounded-xl border bg-card p-4 shadow-sm">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+    <div className="rounded-xl bg-muted/60 p-4">
+      <p className="text-xs text-muted-foreground">{label}</p>
       <p className={`mt-1 font-semibold text-secondary ${small ? "text-base" : "text-2xl"}`}>{value}</p>
     </div>
   );
@@ -939,8 +950,8 @@ function Painel({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-xl border bg-card p-4 shadow-sm">
-      <h3 className="font-bold text-secondary">{titulo}</h3>
+    <section className="rounded-xl border bg-card p-4">
+      <h3 className="text-sm font-semibold text-secondary">{titulo}</h3>
       {descricao && <p className="mb-2 text-xs text-muted-foreground">{descricao}</p>}
       <div className="mt-3 space-y-2">{children}</div>
     </section>

@@ -16,6 +16,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PerguntasListEditor } from "@/components/avaliacao/PerguntasListEditor";
 import { Badge } from "@/components/ui/badge";
+import { StatusChip } from "@/components/shell/StatusChip";
+import { QrCodeButton } from "@/components/shell/QrCodeButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -84,7 +86,13 @@ import {
 
 const SEM_MODELO = "__raiz";
 
-export function AcaoAvaliacoesTab({ actionId }: { actionId: string }) {
+export function AcaoAvaliacoesTab({
+  actionId,
+  totalInscritos,
+}: {
+  actionId: string;
+  totalInscritos?: number;
+}) {
   const listFn = useServerFn(listAvaliacoesAcao);
   const { data, isLoading } = useQuery({
     queryKey: avaliacoesQueryKey(actionId),
@@ -94,11 +102,14 @@ export function AcaoAvaliacoesTab({ actionId }: { actionId: string }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="min-w-0 text-sm text-muted-foreground">
-          Cada avaliação tem o seu link público e anónimo. Uma ação pode ter uma ou várias.
-        </p>
-        <Button size="sm" onClick={() => setCriarAberto(true)}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold text-secondary">Avaliações desta ação</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Cada avaliação parte de um modelo e tem o seu link anónimo. Uma ação pode ter várias.
+          </p>
+        </div>
+        <Button onClick={() => setCriarAberto(true)}>
           <Plus className="mr-1.5 h-4 w-4" />
           Nova avaliação
         </Button>
@@ -107,11 +118,19 @@ export function AcaoAvaliacoesTab({ actionId }: { actionId: string }) {
       {isLoading ? (
         <Skeleton className="h-32 w-full" />
       ) : !data || data.length === 0 ? (
-        <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-          Ainda não há avaliações para esta ação.
-        </p>
+        <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+          <p>Ainda não há avaliações para esta ação.</p>
+          <Button variant="outline" className="mt-3" onClick={() => setCriarAberto(true)}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            Criar a primeira avaliação
+          </Button>
+        </div>
       ) : (
-        data.map((a) => <AvaliacaoCard key={a.id} avaliacao={a} actionId={actionId} />)
+        <div className="space-y-4">
+          {data.map((a) => (
+            <AvaliacaoCard key={a.id} avaliacao={a} actionId={actionId} totalInscritos={totalInscritos} />
+          ))}
+        </div>
       )}
 
       <CriarAvaliacaoDialog actionId={actionId} open={criarAberto} onOpenChange={setCriarAberto} />
@@ -238,7 +257,15 @@ function CriarAvaliacaoDialog({
 
 // ---------- Cartão de uma avaliação ----------
 
-function AvaliacaoCard({ avaliacao, actionId }: { avaliacao: AvaliacaoAcao; actionId: string }) {
+function AvaliacaoCard({
+  avaliacao,
+  actionId,
+  totalInscritos,
+}: {
+  avaliacao: AvaliacaoAcao;
+  actionId: string;
+  totalInscritos?: number;
+}) {
   const qc = useQueryClient();
   const updateFn = useServerFn(updateAvaliacao);
   const deleteFn = useServerFn(deleteAvaliacao);
@@ -269,17 +296,21 @@ function AvaliacaoCard({ avaliacao, actionId }: { avaliacao: AvaliacaoAcao; acti
   };
 
   return (
-    <div className="min-w-0 space-y-3 rounded-xl border bg-card p-4 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-2">
+    <article className="min-w-0 rounded-xl border bg-card">
+      <div className="flex flex-wrap items-start justify-between gap-3 p-4 sm:p-5">
         <div className="min-w-0">
-          <p className="break-words font-medium">{avaliacao.titulo}</p>
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <Badge variant="outline">{TIPO_AVALIACAO_LABEL[avaliacao.tipo]}</Badge>
-            <span>
-              {avaliacao.total_respostas}{" "}
-              {avaliacao.total_respostas === 1 ? "resposta" : "respostas"}
-            </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="break-words text-[15px] font-semibold text-secondary">{avaliacao.titulo}</h3>
+            <StatusChip tone="tag">{TIPO_AVALIACAO_LABEL[avaliacao.tipo]}</StatusChip>
+            <StatusChip tone={avaliacao.aberta ? "green" : "grey"} dot>
+              {avaliacao.aberta ? "A receber respostas" : "Fechada"}
+            </StatusChip>
           </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {avaliacao.total_respostas}{" "}
+            {avaliacao.total_respostas === 1 ? "resposta" : "respostas"}
+            {totalInscritos ? ` · ${Math.round((avaliacao.total_respostas / totalInscritos) * 100)}% dos inscritos responderam` : ""}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Label className="flex items-center gap-2 text-xs font-normal">
@@ -288,12 +319,17 @@ function AvaliacaoCard({ avaliacao, actionId }: { avaliacao: AvaliacaoAcao; acti
               onCheckedChange={(v) => abertaMut.mutate(v)}
               disabled={abertaMut.isPending}
             />
-            {avaliacao.aberta ? "Aberta" : "Fechada"}
+            Aceita respostas
           </Label>
           <Button size="sm" variant="outline" onClick={copiar}>
             {copiado ? <Check className="mr-1.5 h-4 w-4" /> : <Copy className="mr-1.5 h-4 w-4" />}
             Copiar link
           </Button>
+          <QrCodeButton
+            url={avaliacaoUrl(avaliacao.token)}
+            titulo={avaliacao.titulo}
+            ficheiro={`qr-${avaliacao.token.slice(0, 8)}`}
+          />
           <Button size="icon" variant="ghost" asChild aria-label="Abrir avaliação">
             <a href={avaliacaoUrl(avaliacao.token)} target="_blank" rel="noreferrer">
               <ExternalLink className="h-4 w-4" />
@@ -310,9 +346,9 @@ function AvaliacaoCard({ avaliacao, actionId }: { avaliacao: AvaliacaoAcao; acti
         </div>
       </div>
 
-      <Tabs defaultValue="respostas">
-        <TabsList>
-          <TabsTrigger value="respostas">Respostas</TabsTrigger>
+      <Tabs defaultValue="respostas" className="border-t px-4 pb-4 sm:px-5 sm:pb-5">
+        <TabsList className="mt-3">
+          <TabsTrigger value="respostas">Resultados e respostas</TabsTrigger>
           <TabsTrigger value="perguntas">Perguntas</TabsTrigger>
         </TabsList>
         <TabsContent value="respostas" className="mt-3 min-w-0">
@@ -338,7 +374,7 @@ function AvaliacaoCard({ avaliacao, actionId }: { avaliacao: AvaliacaoAcao; acti
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </article>
   );
 }
 
@@ -639,7 +675,7 @@ function PerguntasEditor({ avaliacao, actionId }: { avaliacao: AvaliacaoAcao; ac
       </div>
 
       {avaliacao.total_respostas > 0 && (
-        <p className="rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900">
+        <p className="rounded-lg bg-[#FFF1CC] p-3 text-xs text-[#6B4200]">
           Esta avaliação já tem respostas. Mudar o texto de uma pergunta altera o que se lê nos
           resultados antigos; apagar uma pergunta esconde as respostas que lhe correspondem.
         </p>

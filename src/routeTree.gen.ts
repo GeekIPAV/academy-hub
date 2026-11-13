@@ -22,7 +22,8 @@ import { Route as AuthenticatedAcoesRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedCulturaUbuntuRouteImport } from './routes/_authenticated/cultura-ubuntu'
 import { Route as AuthenticatedInscricaoProgramasRouteImport } from './routes/_authenticated/inscricao-programas'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
-import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
+import { Route as AdminAcoesIndexRouteImport } from './routes/admin.acoes.index'
+import { Route as AdminAcoesIdRouteImport } from './routes/admin.acoes.$id'
 import { Route as AdminAvaliacoesRouteImport } from './routes/admin.avaliacoes'
 import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
 import { Route as AdminBibliotecaRouteImport } from './routes/admin.biblioteca'
@@ -140,9 +141,14 @@ const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
   path: '/recursos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AdminAcoesRoute = AdminAcoesRouteImport.update({
-  id: '/admin/acoes',
-  path: '/admin/acoes',
+const AdminAcoesIndexRoute = AdminAcoesIndexRouteImport.update({
+  id: '/admin/acoes/',
+  path: '/admin/acoes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAcoesIdRoute = AdminAcoesIdRouteImport.update({
+  id: '/admin/acoes/$id',
+  path: '/admin/acoes/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAvaliacoesRoute = AdminAvaliacoesRouteImport.update({
@@ -432,7 +438,8 @@ export interface FileRoutesByFullPath {
   '/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/recursos': typeof AuthenticatedRecursosRouteWithChildren
-  '/admin/acoes': typeof AdminAcoesRoute
+  '/admin/acoes/': typeof AdminAcoesIndexRoute
+  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
@@ -496,7 +503,8 @@ export interface FileRoutesByTo {
   '/acoes': typeof AuthenticatedAcoesRoute
   '/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
-  '/admin/acoes': typeof AdminAcoesRoute
+  '/admin/acoes': typeof AdminAcoesIndexRoute
+  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
@@ -559,7 +567,8 @@ export interface FileRoutesById {
   '/_authenticated/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/_authenticated/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRouteWithChildren
-  '/admin/acoes': typeof AdminAcoesRoute
+  '/admin/acoes/': typeof AdminAcoesIndexRoute
+  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
@@ -626,7 +635,8 @@ export interface FileRouteTypes {
     | '/cultura-ubuntu'
     | '/inscricao-programas'
     | '/recursos'
-    | '/admin/acoes'
+    | '/admin/acoes/'
+    | '/admin/acoes/$id'
     | '/admin/avaliacoes'
     | '/admin/badges'
     | '/admin/biblioteca'
@@ -691,6 +701,7 @@ export interface FileRouteTypes {
     | '/cultura-ubuntu'
     | '/inscricao-programas'
     | '/admin/acoes'
+    | '/admin/acoes/$id'
     | '/admin/avaliacoes'
     | '/admin/badges'
     | '/admin/biblioteca'
@@ -752,7 +763,8 @@ export interface FileRouteTypes {
     | '/_authenticated/cultura-ubuntu'
     | '/_authenticated/inscricao-programas'
     | '/_authenticated/recursos'
-    | '/admin/acoes'
+    | '/admin/acoes/'
+    | '/admin/acoes/$id'
     | '/admin/avaliacoes'
     | '/admin/badges'
     | '/admin/biblioteca'
@@ -815,7 +827,8 @@ export interface RootRouteChildren {
   FaqsRoute: typeof FaqsRoute
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  AdminAcoesRoute: typeof AdminAcoesRoute
+  AdminAcoesIndexRoute: typeof AdminAcoesIndexRoute
+  AdminAcoesIdRoute: typeof AdminAcoesIdRoute
   AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
   AdminBadgesRoute: typeof AdminBadgesRoute
   AdminBibliotecaRoute: typeof AdminBibliotecaRoute
@@ -943,11 +956,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/admin/acoes': {
-      id: '/admin/acoes'
+    '/admin/acoes/': {
+      id: '/admin/acoes/'
       path: '/admin/acoes'
-      fullPath: '/admin/acoes'
-      preLoaderRoute: typeof AdminAcoesRouteImport
+      fullPath: '/admin/acoes/'
+      preLoaderRoute: typeof AdminAcoesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/acoes/$id': {
+      id: '/admin/acoes/$id'
+      path: '/admin/acoes/$id'
+      fullPath: '/admin/acoes/$id'
+      preLoaderRoute: typeof AdminAcoesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/avaliacoes': {
@@ -1460,7 +1480,8 @@ const rootRouteChildren: RootRouteChildren = {
   FaqsRoute: FaqsRoute,
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  AdminAcoesRoute: AdminAcoesRoute,
+  AdminAcoesIndexRoute: AdminAcoesIndexRoute,
+  AdminAcoesIdRoute: AdminAcoesIdRoute,
   AdminAvaliacoesRoute: AdminAvaliacoesRoute,
   AdminBadgesRoute: AdminBadgesRoute,
   AdminBibliotecaRoute: AdminBibliotecaRoute,

@@ -1217,3 +1217,47 @@ export const transferEntityOwnershipDirect = createServerFn({ method: "POST" })
     return { ok: true, newOwnerId: target.id };
   });
 
+
+export type AvaliacaoEntidade = {
+  id: string;
+  titulo: string;
+  tipo: string;
+  token: string;
+  aberta: boolean;
+  total_respostas: number;
+};
+
+/**
+ * Avaliações internas de uma ação da organização, com o link anónimo
+ * e quantas respostas já tem. A organização só lê; não altera.
+ */
+export const listAvaliacoesEntidadeAcao = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => actionIdSchema.parse(input))
+  .handler(async ({ data, context }): Promise<AvaliacaoEntidade[]> => {
+    await assertActionBelongsToUserEntity(context.userId, data.actionId);
+    // Tabela fora dos tipos gerados: cliente sem tipos de tabela.
+    const db = supabaseAdmin as unknown as {
+      from: (t: string) => {
+        select: (s: string) => {
+          eq: (c: string, v: string) => {
+            order: (c: string, o: { ascending: boolean }) => Promise<{ data: unknown; error: { message: string } | null }>;
+          };
+        };
+      };
+    };
+    const { data: rows, error } = await db
+      .from("avaliacoes")
+      .select("id, titulo, tipo, token, aberta, avaliacao_respostas(count)")
+      .eq("acao_id", data.actionId)
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    return ((rows as Record<string, unknown>[] | null) ?? []).map((r) => ({
+      id: r.id as string,
+      titulo: r.titulo as string,
+      tipo: r.tipo as string,
+      token: r.token as string,
+      aberta: Boolean(r.aberta),
+      total_respostas: (r.avaliacao_respostas as { count?: number }[] | null)?.[0]?.count ?? 0,
+    }));
+  });

@@ -3,7 +3,8 @@ import { Eye, LogIn, LogOut } from "lucide-react";
 import { useApp } from "@/lib/app-context";
 import { useAuth } from "@/hooks/use-auth";
 import { useRoles } from "@/hooks/use-roles";
-import { NAV_GROUPS } from "@/lib/nav-config";
+import { useEffect, useState } from "react";
+import { groupsForMode, modeForPath, type NavMode } from "@/lib/nav-config";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -34,6 +35,13 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { isMobile, setOpenMobile } = useSidebar();
   const { activeRoleNames } = useRoles();
+  // Quem é admin alterna entre o menu da plataforma e o menu de gestão.
+  // Abrir uma página de gestão muda o menu para gestão, e vice-versa.
+  const [mode, setMode] = useState<NavMode>(() => modeForPath(path));
+  useEffect(() => {
+    setMode(modeForPath(path));
+  }, [path]);
+  const shownMode: NavMode = isAdmin ? mode : "plataforma";
 
   const displayName = profile?.full_name ?? user?.email ?? "";
   const initials = displayName
@@ -47,7 +55,33 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="top-14 h-[calc(100svh-3.5rem)]">
       <SidebarContent className="pt-2">
-        {NAV_GROUPS.map((group, idx) => {
+        {isAdmin && (
+          <div className="px-2 pb-1 group-data-[collapsible=icon]:hidden">
+            <div
+              role="group"
+              aria-label="Menu"
+              className="grid grid-cols-2 gap-0.5 rounded-lg bg-sidebar-accent/60 p-0.5"
+            >
+              {(["plataforma", "gestao"] as const).map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  aria-pressed={shownMode === m}
+                  onClick={() => setMode(m)}
+                  className={
+                    "h-8 rounded-md text-xs font-medium transition-colors " +
+                    (shownMode === m
+                      ? "bg-white text-secondary shadow-sm"
+                      : "text-sidebar-foreground/80 hover:text-sidebar-foreground")
+                  }
+                >
+                  {m === "plataforma" ? "Plataforma" : "Gestão"}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {groupsForMode(shownMode).map((group, idx) => {
           if (group.adminOnly && !isAdmin) return null;
           const items = group.items.filter((it) => (it.gated ? canAccess(it.path) : true));
           if (items.length === 0) return null;
