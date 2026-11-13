@@ -11,9 +11,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CertificacaoForm } from "@/components/CertificacaoForm";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
+import aluLogo from "@/assets/alu-logo.svg";
+
+function PublicShell({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) {
+  return (
+    <div className="min-h-[100dvh] bg-background">
+      <header className="flex items-center justify-between gap-4 bg-secondary px-[5%] py-3">
+        <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-10 w-auto" />
+        {right}
+      </header>
+      <main className="px-4 py-8 sm:px-[5%] sm:py-10">{children}</main>
+    </div>
+  );
+}
+
+const PASSOS = [
+  { id: "pdf", label: "Documento informativo" },
+  { id: "form", label: "Dados de certificação" },
+  { id: "confirm", label: "Confirmar" },
+] as const;
 
 export const Route = createFileRoute("/inscricao/$token")({
-  head: () => ({ meta: [{ title: "Inscrição — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Inscrição | Academia de Líderes Ubuntu" }] }),
   component: InscricaoPage,
 });
 
@@ -32,6 +53,7 @@ function InscricaoPage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<null | { already: boolean }>(null);
   const [scrolledToEnd, setScrolledToEnd] = useState(false);
+  const [leu, setLeu] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -165,114 +187,157 @@ function InscricaoPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background p-4 sm:p-6">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-3 flex items-center justify-end">
-          <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-            <Link to="/dashboard">
-              <X className="mr-1 h-4 w-4" /> Sair
-            </Link>
-          </Button>
-        </div>
-        <Card className="flex flex-col max-h-[92vh]">
-          <CardHeader className="border-b">
-            <CardTitle>{cohort.program_title ?? "Programa"}</CardTitle>
-            <p className="text-xs text-muted-foreground">
-              {step === "pdf" && "1 de 3 · Documento informativo"}
-              {step === "form" && "2 de 3 · Dados de certificação"}
-              {step === "confirm" && "3 de 3 · Confirmar inscrição"}
-            </p>
-          </CardHeader>
+  const passos = cohort.info_pdf_url ? PASSOS : PASSOS.filter((p) => p.id !== "pdf");
+  const atual = step === "done" ? passos.length : passos.findIndex((p) => p.id === step);
 
-          {step === "pdf" && (
-            <>
-              <div
-                ref={scrollerRef}
-                className="flex-1 overflow-y-auto p-4 space-y-3"
-              >
+  return (
+    <PublicShell
+      right={
+        <Link to="/dashboard" className="text-sm font-medium text-white hover:text-white/80">
+          <X className="mr-1 inline h-4 w-4" aria-hidden="true" />
+          Sair
+        </Link>
+      }
+    >
+      <div className="mx-auto max-w-3xl space-y-6">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Inscrição no programa</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-secondary sm:text-[28px]">
+            {cohort.program_title ?? "Programa"}
+          </h1>
+        </div>
+
+        {step !== "done" && (
+          <ol className="flex flex-wrap gap-x-2 gap-y-3" aria-label="Passos da inscrição">
+            {passos.map((p, i) => {
+              const feito = i < atual;
+              const agora = i === atual;
+              return (
+                <li
+                  key={p.id}
+                  aria-current={agora ? "step" : undefined}
+                  className={`flex flex-1 basis-40 items-center gap-2.5 text-sm font-medium ${agora ? "text-secondary" : "text-muted-foreground"}`}
+                >
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                      agora ? "bg-primary text-white" : feito ? "bg-secondary text-white" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {i + 1}
+                  </span>
+                  {p.label}
+                  {i < passos.length - 1 && <span className="hidden h-0.5 min-w-4 flex-1 bg-border sm:block" />}
+                </li>
+              );
+            })}
+          </ol>
+        )}
+
+        {step === "pdf" && (
+          <>
+            <section className="overflow-hidden rounded-xl border bg-card">
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b px-5 py-4">
+                <div>
+                  <h2 className="flex items-center gap-2 text-base font-semibold text-secondary">
+                    <FileText className="h-4 w-4" aria-hidden="true" />
+                    Documento informativo
+                  </h2>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Explica o programa. Lê até ao fim para continuares.
+                  </p>
+                </div>
+                {cohort.info_pdf_url && (
+                  <Button asChild size="sm" variant="outline">
+                    <a href={cohort.info_pdf_url} download target="_blank" rel="noreferrer">
+                      <Download className="mr-1.5 h-4 w-4" /> Descarregar PDF
+                    </a>
+                  </Button>
+                )}
+              </div>
+              <div ref={scrollerRef} className="max-h-[62dvh] overflow-y-auto bg-muted/50 p-3 sm:p-5">
                 {cohort.info_pdf_url ? (
-                  <>
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <FileText className="h-4 w-4" />
-                        Documento informativo
-                      </div>
-                      <Button asChild size="sm" variant="outline">
-                        <a href={cohort.info_pdf_url} download target="_blank" rel="noreferrer">
-                          <Download className="mr-1 h-4 w-4" /> Descarregar
-                        </a>
-                      </Button>
-                    </div>
-                    <iframe
-                      src={`${cohort.info_pdf_url}#toolbar=0&view=FitH`}
-                      className="w-full h-[55dvh] min-h-[240px] sm:h-[60vh] rounded-md border bg-muted"
-                      title="PDF do programa"
-                    />
-                    {!scrolledToEnd && (
-                      <p className="text-xs text-muted-foreground">
-                        Faz scroll até ao fim desta página para continuares.
-                      </p>
-                    )}
-                  </>
+                  <iframe
+                    src={`${cohort.info_pdf_url}#toolbar=0&view=FitH`}
+                    className="h-[55dvh] min-h-[240px] w-full rounded-md border bg-white sm:h-[60vh]"
+                    title="Documento informativo do programa"
+                  />
                 ) : (
-                  <div className="rounded-md border border-dashed p-6 text-sm text-center text-muted-foreground">
+                  <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
                     Sem documento informativo para este programa.
                   </div>
                 )}
                 <div ref={sentinelRef} className="h-2" />
               </div>
-              <div className="border-t p-4 flex justify-end">
-                <Button onClick={goAfterPdf} disabled={!scrolledToEnd || !perfilFetched}>
-                  Li e percebi — continuar
-                </Button>
+              <div className="space-y-3 border-t px-5 py-4">
+                {scrolledToEnd ? (
+                  <p className="flex items-center gap-1.5 text-xs font-medium text-[#11643F]">
+                    <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                    Chegaste ao fim do documento.
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">Faz scroll até ao fim do documento para continuares.</p>
+                )}
+                <label className={`flex items-center gap-2.5 text-sm font-medium ${scrolledToEnd ? "cursor-pointer" : "cursor-not-allowed opacity-60"}`}>
+                  <Checkbox checked={leu} disabled={!scrolledToEnd} onCheckedChange={(v) => setLeu(v === true)} />
+                  Li e percebi o documento informativo
+                </label>
               </div>
-            </>
-          )}
-
-          {step === "form" && (
-            <div className="flex-1 overflow-y-auto p-4">
-              <CertificacaoForm
-                onCancel={cohort.info_pdf_url ? () => setStep("pdf") : undefined}
-                onSaved={() => {
-                  qc.invalidateQueries({ queryKey: ["meu-perfil-certificacao"] });
-                  setStep("confirm");
-                }}
-              />
-            </div>
-          )}
-
-          {step === "confirm" && (
-            <CardContent className="space-y-4 pt-6">
-              <p className="text-sm">
-                Vais inscrever-te no programa <strong>{cohort.program_title}</strong>.
-              </p>
-              <div className="flex justify-between gap-2">
-                <Button variant="ghost" onClick={() => setStep("form")}>
-                  Editar dados
-                </Button>
-                <Button onClick={handleEnroll} disabled={submitting || !certCompleto}>
-                  {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Confirmar inscrição
-                </Button>
-              </div>
-            </CardContent>
-          )}
-
-          {step === "done" && (
-            <CardContent className="space-y-4 pt-6">
-              <p className="text-sm">
-                {done?.already
-                  ? "Já estavas inscrito neste programa."
-                  : "Inscrição submetida com sucesso!"}
-              </p>
-              <Button asChild className="w-full">
-                <Link to="/dashboard">Ir para o dashboard</Link>
+            </section>
+            <div className="flex flex-wrap justify-between gap-3">
+              <Button asChild variant="ghost">
+                <Link to="/dashboard">Sair da inscrição</Link>
               </Button>
-            </CardContent>
-          )}
-        </Card>
+              <Button onClick={goAfterPdf} disabled={!scrolledToEnd || !leu || !perfilFetched} className="h-11 px-5">
+                Continuar
+                <ArrowRight className="ml-1.5 h-4 w-4" />
+              </Button>
+            </div>
+          </>
+        )}
+
+        {step === "form" && (
+          <CertificacaoForm
+            onCancel={cohort.info_pdf_url ? () => setStep("pdf") : undefined}
+            onSaved={() => {
+              qc.invalidateQueries({ queryKey: ["meu-perfil-certificacao"] });
+              setStep("confirm");
+            }}
+          />
+        )}
+
+        {step === "confirm" && (
+          <section className="space-y-5 rounded-xl border bg-card p-6">
+            <div>
+              <h2 className="text-base font-semibold text-secondary">Confirmar inscrição</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Vais inscrever-te no programa <strong className="font-semibold text-secondary">{cohort.program_title}</strong>.
+                Os teus dados de certificação já estão guardados.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-between gap-3">
+              <Button variant="ghost" onClick={() => setStep("form")}>
+                Rever dados
+              </Button>
+              <Button onClick={handleEnroll} disabled={submitting || !certCompleto} className="h-11 px-5">
+                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Confirmar inscrição
+              </Button>
+            </div>
+          </section>
+        )}
+
+        {step === "done" && (
+          <section className="flex flex-col items-center gap-3 rounded-xl border bg-card p-8 text-center">
+            <CheckCircle2 className="h-10 w-10 text-primary" aria-hidden="true" />
+            <p className="text-lg font-semibold text-secondary">
+              {done?.already ? "Já estavas inscrito neste programa." : "Inscrição feita."}
+            </p>
+            <Button asChild className="mt-2">
+              <Link to="/dashboard">Ir para a página inicial</Link>
+            </Button>
+          </section>
+        )}
       </div>
-    </div>
+    </PublicShell>
   );
 }

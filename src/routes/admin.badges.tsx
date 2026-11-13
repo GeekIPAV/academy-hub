@@ -1,3 +1,5 @@
+import { PageHeader, PageShell } from "@/components/shell/PageHeader";
+import { StatusChip } from "@/components/shell/StatusChip";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,7 +80,7 @@ import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { RouteGate } from "@/components/RouteGate";
 
 export const Route = createFileRoute("/admin/badges")({
-  head: () => ({ meta: [{ title: "Gestão de Badges — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Badges | Gestão" }] }),
   component: () => (
     <RouteGate path="/admin/badges">
       <AdminBadgesPage />
@@ -110,36 +112,69 @@ function AdminBadgesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <PageShell>
+      <PageHeader
+        eyebrow="Pessoas e organizações"
+        title="Badges"
+        description="Reconhecem formação feita e desbloqueiam tipos de ação. Atribui a pessoas escolhidas, em massa, ou automaticamente a um perfil."
+      />
 
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Gestão de Badges</h1>
-        <p className="text-sm text-muted-foreground">
-          Catálogo de credenciais e atribuição manual a utilizadores.
-        </p>
-      </div>
+      <Tabs defaultValue="catalogo" className="space-y-5">
+        <div className="overflow-x-auto">
+          <TabsList>
+            <TabsTrigger value="catalogo">Badges</TabsTrigger>
+            <TabsTrigger value="utilizadores">Quem tem badges</TabsTrigger>
+            <TabsTrigger value="atribuir">Atribuir</TabsTrigger>
+          </TabsList>
+        </div>
 
-      <Tabs defaultValue="catalogo">
-        <TabsList>
-          <TabsTrigger value="catalogo">Catálogo de Badges</TabsTrigger>
-          <TabsTrigger value="utilizadores">Utilizadores Credenciados</TabsTrigger>
-          <TabsTrigger value="massa">Atribuição em Massa</TabsTrigger>
-          <TabsTrigger value="auto">Auto por Perfil</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="catalogo" className="mt-4">
+        <TabsContent value="catalogo">
           <CatalogoTab />
         </TabsContent>
-        <TabsContent value="utilizadores" className="mt-4">
+        <TabsContent value="utilizadores">
           <UtilizadoresTab />
         </TabsContent>
-        <TabsContent value="massa" className="mt-4">
-          <AtribuicaoMassaTab />
-        </TabsContent>
-        <TabsContent value="auto" className="mt-4">
-          <AutoPorPerfilTab />
+        <TabsContent value="atribuir">
+          <AtribuirTab />
         </TabsContent>
       </Tabs>
+    </PageShell>
+  );
+}
+
+/** Um só sítio para atribuir: em massa ou automaticamente por perfil. */
+function AtribuirTab() {
+  const [modo, setModo] = useState<"massa" | "auto">("massa");
+  const opcoes = [
+    { id: "massa" as const, titulo: "A pessoas escolhidas", texto: "Uma ou várias pessoas, por nome ou email." },
+    { id: "auto" as const, titulo: "A todas as pessoas de um perfil", texto: "Também a quem receber o perfil no futuro." },
+  ];
+  return (
+    <div className="space-y-5">
+      <fieldset className="grid gap-3 sm:grid-cols-2">
+        <legend className="sr-only">A quem atribuir</legend>
+        {opcoes.map((o) => (
+          <label
+            key={o.id}
+            className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${
+              modo === o.id ? "border-primary bg-primary/5" : "bg-card hover:border-secondary/40"
+            }`}
+          >
+            <input
+              type="radio"
+              name="modo-atribuir"
+              className="mt-1 accent-[var(--primary)]"
+              checked={modo === o.id}
+              onChange={() => setModo(o.id)}
+            />
+            <span>
+              <span className="block text-sm font-medium text-secondary">{o.titulo}</span>
+              <span className="block text-xs text-muted-foreground">{o.texto}</span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
+      {modo === "massa" ? <AtribuicaoMassaTab /> : <AutoPorPerfilTab />}
     </div>
   );
 }
@@ -157,8 +192,8 @@ function CatalogoTab() {
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-2">
         <div>
-          <CardTitle>Catálogo</CardTitle>
-          <CardDescription>Crie e edite os badges disponíveis.</CardDescription>
+          <CardTitle className="text-secondary">Badges disponíveis</CardTitle>
+          <CardDescription>Cria e edita os badges. Cada um pode desbloquear tipos de ação.</CardDescription>
         </div>
         <Button
           onClick={() => {
@@ -175,69 +210,50 @@ function CatalogoTab() {
         ) : !badges || badges.length === 0 ? (
           <p className="text-sm text-muted-foreground">Ainda não existem badges.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16"></TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Cluster</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Validade</TableHead>
-                <TableHead className="w-32 text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {badges.map((b) => (
-                <TableRow key={b.id}>
-                  <TableCell>
-                    {b.cover_url ? (
-                      <div className="h-10 w-10 overflow-hidden rounded-full">
-                        <CoverImage
-                          src={b.cover_url}
-                          position={b.cover_position}
-                          scale={b.cover_scale}
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                        <Award className="h-5 w-5 text-primary" />
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{b.title}</div>
-                    {b.description && (
-                      <div className="line-clamp-1 text-xs text-muted-foreground">
-                        {b.description}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{b.cluster_name}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {b.kind === "em_formacao" ? "Em formação" : "Formado"}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+            {badges.map((b) => (
+              <article key={b.id} className="flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4">
+                <div className="flex items-start gap-3">
+                  {b.cover_url ? (
+                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl">
+                      <CoverImage src={b.cover_url} position={b.cover_position} scale={b.cover_scale} />
+                    </div>
+                  ) : (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FFEBDC] text-[#A1420A]">
+                      <Award className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="break-words text-[15px] font-semibold text-secondary">{b.title}</h3>
+                    <p className="text-xs text-muted-foreground">{b.cluster_name}</p>
+                  </div>
+                </div>
+                {b.description && <p className="line-clamp-3 text-sm text-muted-foreground">{b.description}</p>}
+                <div className="flex flex-wrap gap-1.5">
+                  <StatusChip tone="tag">{b.kind === "em_formacao" ? "Em formação" : "Formado"}</StatusChip>
+                  <StatusChip tone="grey">
                     {formatValidity(b.validity_type, b.validity_years, b.validity_fixed_date)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => {
-                        setEditing(b);
-                        setOpen(true);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => setToDelete(b)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </StatusChip>
+                </div>
+                <div className="mt-auto flex gap-1 pt-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditing(b);
+                      setOpen(true);
+                    }}
+                  >
+                    <Pencil className="mr-1.5 h-4 w-4" />
+                    Editar
+                  </Button>
+                  <Button size="icon" variant="ghost" aria-label={`Apagar ${b.title}`} onClick={() => setToDelete(b)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </div>
         )}
       </CardContent>
 
@@ -246,9 +262,9 @@ function CatalogoTab() {
       <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar badge?</AlertDialogTitle>
+            <AlertDialogTitle>Apagar este badge?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação é irreversível e removerá também todas as atribuições deste badge.
+              Também apaga todas as atribuições deste badge. Não dá para desfazer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -525,8 +541,8 @@ function UtilizadoresTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Utilizadores credenciados</CardTitle>
-        <CardDescription>Selecione um badge para ver quem o possui.</CardDescription>
+        <CardTitle className="text-secondary">Quem tem badges</CardTitle>
+        <CardDescription>Escolhe um badge para ver quem o tem.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -754,7 +770,7 @@ function AtribuicaoMassaTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Atribuição em massa</CardTitle>
+        <CardTitle className="text-secondary">Atribuir a pessoas escolhidas</CardTitle>
         <CardDescription>
           Atribua um badge a todos os utilizadores que pertencem a determinados perfis.
         </CardDescription>
@@ -905,7 +921,7 @@ function AutoPorPerfilTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Auto-atribuição por perfil</CardTitle>
+        <CardTitle className="text-secondary">Atribuir automaticamente a um perfil</CardTitle>
         <CardDescription>
           Quando um utilizador receber um perfil aqui listado, recebe automaticamente o badge associado. Aplica-se a novos registos e a futuras atribuições de perfil.
         </CardDescription>

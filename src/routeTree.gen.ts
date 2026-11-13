@@ -22,7 +22,8 @@ import { Route as AuthenticatedAcoesRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedCulturaUbuntuRouteImport } from './routes/_authenticated/cultura-ubuntu'
 import { Route as AuthenticatedInscricaoProgramasRouteImport } from './routes/_authenticated/inscricao-programas'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
-import { Route as AdminAcoesRouteImport } from './routes/admin.acoes'
+import { Route as AdminAcoesIndexRouteImport } from './routes/admin.acoes.index'
+import { Route as AdminAcoesIdRouteImport } from './routes/admin.acoes.$id'
 import { Route as AdminAvaliacoesRouteImport } from './routes/admin.avaliacoes'
 import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
 import { Route as AdminBibliotecaRouteImport } from './routes/admin.biblioteca'
@@ -30,7 +31,8 @@ import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as AdminEntidadesRouteImport } from './routes/admin.entidades'
 import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
-import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
+import { Route as AdminProgramasIndexRouteImport } from './routes/admin.programas.index'
+import { Route as AdminProgramasIdRouteImport } from './routes/admin.programas.$id'
 import { Route as AdminProjetosRouteImport } from './routes/admin.projetos'
 import { Route as AvaliarTokenRouteImport } from './routes/avaliar.$token'
 import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
@@ -140,9 +142,14 @@ const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
   path: '/recursos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AdminAcoesRoute = AdminAcoesRouteImport.update({
-  id: '/admin/acoes',
-  path: '/admin/acoes',
+const AdminAcoesIndexRoute = AdminAcoesIndexRouteImport.update({
+  id: '/admin/acoes/',
+  path: '/admin/acoes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAcoesIdRoute = AdminAcoesIdRouteImport.update({
+  id: '/admin/acoes/$id',
+  path: '/admin/acoes/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAvaliacoesRoute = AdminAvaliacoesRouteImport.update({
@@ -180,9 +187,14 @@ const AdminManagerRoute = AdminManagerRouteImport.update({
   path: '/admin/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminProgramasRoute = AdminProgramasRouteImport.update({
-  id: '/admin/programas',
-  path: '/admin/programas',
+const AdminProgramasIndexRoute = AdminProgramasIndexRouteImport.update({
+  id: '/admin/programas/',
+  path: '/admin/programas/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProgramasIdRoute = AdminProgramasIdRouteImport.update({
+  id: '/admin/programas/$id',
+  path: '/admin/programas/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminProjetosRoute = AdminProjetosRouteImport.update({
@@ -432,7 +444,8 @@ export interface FileRoutesByFullPath {
   '/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/recursos': typeof AuthenticatedRecursosRouteWithChildren
-  '/admin/acoes': typeof AdminAcoesRoute
+  '/admin/acoes/': typeof AdminAcoesIndexRoute
+  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
@@ -440,7 +453,8 @@ export interface FileRoutesByFullPath {
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
-  '/admin/programas': typeof AdminProgramasRoute
+  '/admin/programas/': typeof AdminProgramasIndexRoute
+  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -496,7 +510,8 @@ export interface FileRoutesByTo {
   '/acoes': typeof AuthenticatedAcoesRoute
   '/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
-  '/admin/acoes': typeof AdminAcoesRoute
+  '/admin/acoes': typeof AdminAcoesIndexRoute
+  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
@@ -504,7 +519,8 @@ export interface FileRoutesByTo {
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
-  '/admin/programas': typeof AdminProgramasRoute
+  '/admin/programas': typeof AdminProgramasIndexRoute
+  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -559,7 +575,8 @@ export interface FileRoutesById {
   '/_authenticated/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/_authenticated/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRouteWithChildren
-  '/admin/acoes': typeof AdminAcoesRoute
+  '/admin/acoes/': typeof AdminAcoesIndexRoute
+  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
@@ -567,7 +584,8 @@ export interface FileRoutesById {
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
-  '/admin/programas': typeof AdminProgramasRoute
+  '/admin/programas/': typeof AdminProgramasIndexRoute
+  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -626,7 +644,8 @@ export interface FileRouteTypes {
     | '/cultura-ubuntu'
     | '/inscricao-programas'
     | '/recursos'
-    | '/admin/acoes'
+    | '/admin/acoes/'
+    | '/admin/acoes/$id'
     | '/admin/avaliacoes'
     | '/admin/badges'
     | '/admin/biblioteca'
@@ -634,7 +653,8 @@ export interface FileRouteTypes {
     | '/admin/entidades'
     | '/admin/governacao'
     | '/admin/manager'
-    | '/admin/programas'
+    | '/admin/programas/'
+    | '/admin/programas/$id'
     | '/admin/projetos'
     | '/avaliar/$token'
     | '/comunicacao/press-media-kit'
@@ -691,6 +711,7 @@ export interface FileRouteTypes {
     | '/cultura-ubuntu'
     | '/inscricao-programas'
     | '/admin/acoes'
+    | '/admin/acoes/$id'
     | '/admin/avaliacoes'
     | '/admin/badges'
     | '/admin/biblioteca'
@@ -699,6 +720,7 @@ export interface FileRouteTypes {
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
+    | '/admin/programas/$id'
     | '/admin/projetos'
     | '/avaliar/$token'
     | '/comunicacao/press-media-kit'
@@ -752,7 +774,8 @@ export interface FileRouteTypes {
     | '/_authenticated/cultura-ubuntu'
     | '/_authenticated/inscricao-programas'
     | '/_authenticated/recursos'
-    | '/admin/acoes'
+    | '/admin/acoes/'
+    | '/admin/acoes/$id'
     | '/admin/avaliacoes'
     | '/admin/badges'
     | '/admin/biblioteca'
@@ -760,7 +783,8 @@ export interface FileRouteTypes {
     | '/admin/entidades'
     | '/admin/governacao'
     | '/admin/manager'
-    | '/admin/programas'
+    | '/admin/programas/'
+    | '/admin/programas/$id'
     | '/admin/projetos'
     | '/avaliar/$token'
     | '/comunicacao/press-media-kit'
@@ -815,7 +839,8 @@ export interface RootRouteChildren {
   FaqsRoute: typeof FaqsRoute
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  AdminAcoesRoute: typeof AdminAcoesRoute
+  AdminAcoesIndexRoute: typeof AdminAcoesIndexRoute
+  AdminAcoesIdRoute: typeof AdminAcoesIdRoute
   AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
   AdminBadgesRoute: typeof AdminBadgesRoute
   AdminBibliotecaRoute: typeof AdminBibliotecaRoute
@@ -823,7 +848,8 @@ export interface RootRouteChildren {
   AdminEntidadesRoute: typeof AdminEntidadesRoute
   AdminGovernacaoRoute: typeof AdminGovernacaoRoute
   AdminManagerRoute: typeof AdminManagerRoute
-  AdminProgramasRoute: typeof AdminProgramasRoute
+  AdminProgramasIndexRoute: typeof AdminProgramasIndexRoute
+  AdminProgramasIdRoute: typeof AdminProgramasIdRoute
   AdminProjetosRoute: typeof AdminProjetosRoute
   AvaliarTokenRoute: typeof AvaliarTokenRoute
   ComunicacaoPressMediaKitRoute: typeof ComunicacaoPressMediaKitRoute
@@ -943,11 +969,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/admin/acoes': {
-      id: '/admin/acoes'
+    '/admin/acoes/': {
+      id: '/admin/acoes/'
       path: '/admin/acoes'
-      fullPath: '/admin/acoes'
-      preLoaderRoute: typeof AdminAcoesRouteImport
+      fullPath: '/admin/acoes/'
+      preLoaderRoute: typeof AdminAcoesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/acoes/$id': {
+      id: '/admin/acoes/$id'
+      path: '/admin/acoes/$id'
+      fullPath: '/admin/acoes/$id'
+      preLoaderRoute: typeof AdminAcoesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/avaliacoes': {
@@ -999,11 +1032,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/programas': {
-      id: '/admin/programas'
+    '/admin/programas/': {
+      id: '/admin/programas/'
       path: '/admin/programas'
-      fullPath: '/admin/programas'
-      preLoaderRoute: typeof AdminProgramasRouteImport
+      fullPath: '/admin/programas/'
+      preLoaderRoute: typeof AdminProgramasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/programas/$id': {
+      id: '/admin/programas/$id'
+      path: '/admin/programas/$id'
+      fullPath: '/admin/programas/$id'
+      preLoaderRoute: typeof AdminProgramasIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/projetos': {
@@ -1460,7 +1500,8 @@ const rootRouteChildren: RootRouteChildren = {
   FaqsRoute: FaqsRoute,
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  AdminAcoesRoute: AdminAcoesRoute,
+  AdminAcoesIndexRoute: AdminAcoesIndexRoute,
+  AdminAcoesIdRoute: AdminAcoesIdRoute,
   AdminAvaliacoesRoute: AdminAvaliacoesRoute,
   AdminBadgesRoute: AdminBadgesRoute,
   AdminBibliotecaRoute: AdminBibliotecaRoute,
@@ -1468,7 +1509,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminEntidadesRoute: AdminEntidadesRoute,
   AdminGovernacaoRoute: AdminGovernacaoRoute,
   AdminManagerRoute: AdminManagerRoute,
-  AdminProgramasRoute: AdminProgramasRoute,
+  AdminProgramasIndexRoute: AdminProgramasIndexRoute,
+  AdminProgramasIdRoute: AdminProgramasIdRoute,
   AdminProjetosRoute: AdminProjetosRoute,
   AvaliarTokenRoute: AvaliarTokenRoute,
   ComunicacaoPressMediaKitRoute: ComunicacaoPressMediaKitRoute,

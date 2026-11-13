@@ -2,9 +2,21 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Copy, Pencil, Plus, Save, Trash2 } from "lucide-react";
+import { Copy, Eye, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { RouteGate } from "@/components/RouteGate";
+import { PerguntaCampo } from "@/components/avaliacao/PerguntaCampo";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { PageHeader, PageShell } from "@/components/shell/PageHeader";
+import { FormField } from "@/components/shell/FormField";
+import { StatusChip } from "@/components/shell/StatusChip";
 import { PerguntasListEditor } from "@/components/avaliacao/PerguntasListEditor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,10 +62,11 @@ import {
   TIPO_AVALIACAO_LABEL,
   type Pergunta,
   type TipoAvaliacao,
+  type ValorResposta,
 } from "@/lib/avaliacao-acoes-types";
 
 export const Route = createFileRoute("/admin/avaliacoes")({
-  head: () => ({ meta: [{ title: "Modelos de Avaliação — Admin" }] }),
+  head: () => ({ meta: [{ title: "Modelos de avaliação | Gestão" }] }),
   component: () => (
     <RouteGate path="/admin/avaliacoes">
       <AdminAvaliacoesPage />
@@ -113,6 +126,14 @@ function AdminAvaliacoesPage() {
   });
 
   const [rascunho, setRascunho] = useState<Rascunho | null>(null);
+  const [filtroTipo, setFiltroTipo] = useState<TipoAvaliacao | "todos">("todos");
+  const [pesquisa, setPesquisa] = useState("");
+  const visiveis = useMemo(() => {
+    const q = pesquisa.trim().toLowerCase();
+    return (modelos ?? []).filter(
+      (m) => (filtroTipo === "todos" || m.tipo === filtroTipo) && (!q || m.nome.toLowerCase().includes(q)),
+    );
+  }, [modelos, filtroTipo, pesquisa]);
   const [aApagar, setAApagar] = useState<ModeloGestao | null>(null);
 
   const nomeProduto = useMemo(
@@ -131,107 +152,119 @@ function AdminAvaliacoesPage() {
   });
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-5xl space-y-6 p-4 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold text-secondary">Modelos de avaliação</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Os modelos são o ponto de partida das avaliações de cada ação. Ligar um modelo a
-            produtos faz com que seja sugerido, e pré-selecionado, nas ações desse produto.
-          </p>
+    <PageShell>
+      <PageHeader
+        eyebrow="Programas e ações"
+        title="Modelos de avaliação"
+        description="Os modelos são o ponto de partida das avaliações de cada ação. Liga um modelo a produtos do catálogo para que seja sugerido nas ações desses produtos."
+        actions={
+          <Button onClick={() => setRascunho({ ...RASCUNHO_NOVO })}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            Novo modelo
+          </Button>
+        }
+      />
+
+      <div className="flex flex-wrap items-start gap-6">
+        <div className="min-w-0 flex-[1_1_300px] space-y-3 lg:max-w-sm">
+          <Input
+            value={pesquisa}
+            onChange={(e) => setPesquisa(e.target.value)}
+            placeholder="Pesquisar modelos"
+            aria-label="Pesquisar modelos"
+          />
+          <Select value={filtroTipo} onValueChange={(v) => setFiltroTipo(v as TipoAvaliacao | "todos")}>
+            <SelectTrigger aria-label="Filtrar por tipo">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os tipos</SelectItem>
+              {TIPOS_AVALIACAO.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {TIPO_AVALIACAO_LABEL[t]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {isLoading ? (
+            <Skeleton className="h-40 w-full" />
+          ) : visiveis.length === 0 ? (
+            <p className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+              {(modelos ?? []).length === 0 ? "Ainda não há modelos. Cria o primeiro." : "Nenhum modelo encontrado."}
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {visiveis.map((m) => {
+                const ativo = rascunho?.id === m.id;
+                return (
+                  <li key={m.id}>
+                    <button
+                      type="button"
+                      onClick={() => setRascunho(deModelo(m))}
+                      aria-current={ativo ? "true" : undefined}
+                      className={`w-full rounded-xl border p-4 text-left transition-colors ${
+                        ativo ? "border-primary bg-primary/5" : "bg-card hover:border-secondary/40"
+                      }`}
+                    >
+                      <span className="flex items-start justify-between gap-2">
+                        <span className="min-w-0 break-words text-sm font-medium text-secondary">{m.nome}</span>
+                        <StatusChip tone="tag">{TIPO_AVALIACAO_LABEL[m.tipo]}</StatusChip>
+                      </span>
+                      <span className="mt-1.5 block text-xs text-muted-foreground">
+                        {m.perguntas.length} {m.perguntas.length === 1 ? "pergunta" : "perguntas"} · usado em{" "}
+                        {m.em_uso} {m.em_uso === 1 ? "avaliação" : "avaliações"}
+                      </span>
+                      <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                        {m.produto_ids.length === 0
+                          ? "Sem produtos ligados"
+                          : m.produto_ids.map((id) => nomeProduto.get(id) ?? "Produto removido").join(", ")}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
-        <Button onClick={() => setRascunho({ ...RASCUNHO_NOVO })}>
-          <Plus className="mr-1.5 h-4 w-4" />
-          Novo modelo
-        </Button>
-      </div>
 
-      {isLoading ? (
-        <Skeleton className="h-40 w-full" />
-      ) : !modelos || modelos.length === 0 ? (
-        <p className="rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground">
-          Ainda não há modelos. Cria o primeiro.
-        </p>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {modelos.map((m) => (
-            <div key={m.id} className="min-w-0 space-y-3 rounded-xl border bg-card p-4 shadow-sm">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="break-words font-medium">{m.nome}</p>
-                  <Badge variant="outline">{TIPO_AVALIACAO_LABEL[m.tipo]}</Badge>
-                </div>
-                {m.descricao && <p className="mt-1 text-sm text-muted-foreground">{m.descricao}</p>}
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {m.perguntas.length} {m.perguntas.length === 1 ? "pergunta" : "perguntas"} ·{" "}
-                  {m.em_uso} {m.em_uso === 1 ? "avaliação criada" : "avaliações criadas"}
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-1.5">
-                {m.produto_ids.length === 0 ? (
-                  <span className="text-xs text-muted-foreground">Sem produtos ligados</span>
-                ) : (
-                  m.produto_ids.map((id) => (
-                    <Badge key={id} variant="secondary">
-                      {nomeProduto.get(id) ?? "Produto removido"}
-                    </Badge>
-                  ))
-                )}
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={() => setRascunho(deModelo(m))}>
-                  <Pencil className="mr-1.5 h-4 w-4" />
-                  Ver e editar
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() =>
-                    setRascunho({
-                      ...deModelo(m),
-                      id: null,
-                      nome: `${m.nome} (cópia)`,
-                      // Uma cópia começa sem produtos, para não duplicar sugestões.
-                      produtoIds: [],
-                      emUso: 0,
-                    })
-                  }
-                >
-                  <Copy className="mr-1.5 h-4 w-4" />
-                  Duplicar
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  aria-label={`Apagar ${m.nome}`}
-                  onClick={() => setAApagar(m)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <Sheet open={rascunho !== null} onOpenChange={(v) => !v && setRascunho(null)}>
-        <SheetContent side="right" className="w-full overflow-y-auto p-0 sm:max-w-3xl">
-          {rascunho && (
-            // `key` recria o editor ao abrir outro modelo.
+        <section className="min-w-0 flex-[999_1_560px] overflow-hidden rounded-xl border bg-card">
+          {rascunho ? (
             <ModeloEditor
               key={rascunho.id ?? `novo-${rascunho.nome}`}
               inicial={rascunho}
               produtos={produtos ?? []}
-              onGuardado={() => {
+              onGuardado={(novo) => {
                 qc.invalidateQueries({ queryKey: MODELOS_KEY });
-                setRascunho(null);
+                // Um modelo novo fecha o editor, para não ser criado duas vezes.
+                if (novo) setRascunho(null);
+              }}
+              onDuplicar={() =>
+                setRascunho({
+                  ...rascunho,
+                  id: null,
+                  nome: `${rascunho.nome} (cópia)`,
+                  // Uma cópia começa sem produtos, para não duplicar sugestões.
+                  produtoIds: [],
+                  emUso: 0,
+                })
+              }
+              onApagar={() => {
+                const m = (modelos ?? []).find((x) => x.id === rascunho.id);
+                if (m) setAApagar(m);
               }}
             />
+          ) : (
+            <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 p-8 text-center">
+              <p className="text-sm text-muted-foreground">Escolhe um modelo da lista para o ver e editar.</p>
+              <Button variant="outline" onClick={() => setRascunho({ ...RASCUNHO_NOVO })}>
+                <Plus className="mr-1.5 h-4 w-4" />
+                Criar modelo novo
+              </Button>
+            </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </section>
+      </div>
 
       <AlertDialog open={aApagar !== null} onOpenChange={(v) => !v && setAApagar(null)}>
         <AlertDialogContent>
@@ -251,7 +284,7 @@ function AdminAvaliacoesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   );
 }
 
@@ -259,10 +292,14 @@ function ModeloEditor({
   inicial,
   produtos,
   onGuardado,
+  onDuplicar,
+  onApagar,
 }: {
   inicial: Rascunho;
   produtos: ProdutoRow[];
-  onGuardado: () => void;
+  onGuardado: (novo: boolean) => void;
+  onDuplicar: () => void;
+  onApagar: () => void;
 }) {
   const createFn = useServerFn(createModelo);
   const updateFn = useServerFn(updateModelo);
@@ -295,7 +332,7 @@ function ModeloEditor({
     },
     onSuccess: () => {
       toast.success(inicial.id ? "Modelo guardado." : "Modelo criado.");
-      onGuardado();
+      onGuardado(!inicial.id);
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Erro ao guardar"),
   });
@@ -305,26 +342,38 @@ function ModeloEditor({
 
   return (
     <>
-      <SheetHeader className="border-b px-4 py-4 pr-12 sm:px-6 sm:pr-12">
-        <SheetTitle className="text-left">
-          {inicial.id ? "Editar modelo" : "Novo modelo"}
-        </SheetTitle>
-        <SheetDescription className="text-left">
-          Alterar um modelo só afeta as avaliações que forem criadas a partir de agora. As
-          avaliações existentes têm a sua própria cópia das perguntas.
-        </SheetDescription>
-      </SheetHeader>
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b px-4 py-4 sm:px-6">
+        <div className="min-w-0">
+          <h2 className="break-words text-base font-semibold text-secondary">
+            {inicial.id ? inicial.nome || "Modelo sem nome" : "Novo modelo"}
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Alterar um modelo só afeta as avaliações criadas a partir de agora. As avaliações
+            existentes têm a sua própria cópia das perguntas.
+          </p>
+        </div>
+        {inicial.id && (
+          <div className="flex gap-2">
+            <Button type="button" size="sm" variant="outline" onClick={onDuplicar}>
+              <Copy className="mr-1.5 h-4 w-4" />
+              Duplicar
+            </Button>
+            <Button type="button" size="icon" variant="ghost" aria-label="Apagar modelo" onClick={onApagar}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+      </div>
 
       <div className="min-w-0 space-y-6 p-4 sm:p-6">
         <div className="grid gap-3 sm:grid-cols-[1fr_12rem]">
+          <FormField id="modelo-nome" label="Nome" required>
+            <Input id="modelo-nome" value={nome} onChange={(e) => setNome(e.target.value)} />
+          </FormField>
           <div className="space-y-1.5">
-            <Label>Nome</Label>
-            <Input value={nome} onChange={(e) => setNome(e.target.value)} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Tipo</Label>
+            <Label htmlFor="modelo-tipo" className="text-[13px] font-medium text-secondary">Tipo</Label>
             <Select value={tipo} onValueChange={(v) => setTipo(v as TipoAvaliacao)}>
-              <SelectTrigger>
+              <SelectTrigger id="modelo-tipo">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -339,8 +388,9 @@ function ModeloEditor({
         </div>
 
         <div className="space-y-1.5">
-          <Label>Descrição</Label>
+          <Label htmlFor="modelo-descricao" className="text-[13px] font-medium text-secondary">Descrição</Label>
           <Textarea
+            id="modelo-descricao"
             rows={2}
             value={descricao}
             placeholder="Para que serve este modelo (opcional)"
@@ -350,7 +400,7 @@ function ModeloEditor({
 
         <div className="space-y-2">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <Label>Produtos ligados</Label>
+            <span className="text-[13px] font-medium text-secondary">Produtos ligados</span>
             <span className="text-xs text-muted-foreground">
               {produtoIds.length} {produtoIds.length === 1 ? "selecionado" : "selecionados"}
             </span>
@@ -393,7 +443,10 @@ function ModeloEditor({
         </div>
 
         <div className="space-y-2">
-          <Label>Perguntas ({perguntas.length})</Label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[13px] font-medium text-secondary">Perguntas ({perguntas.length})</span>
+            <PreVisualizar titulo={nome || "Avaliação"} perguntas={perguntas} />
+          </div>
           {perguntas.length === 0 && (
             <p className="text-xs text-muted-foreground">
               Ainda sem perguntas. Podes ter perguntas de escala, antes e depois, texto ou escolha.
@@ -403,12 +456,56 @@ function ModeloEditor({
         </div>
       </div>
 
-      <div className="sticky bottom-0 flex justify-end gap-2 border-t bg-background px-4 py-3 sm:px-6">
-        <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+      <div className="sticky bottom-0 flex justify-end gap-2 border-t bg-card px-4 py-3 sm:px-6">
+        <Button onClick={() => mut.mutate()} disabled={mut.isPending || !nome.trim()}>
           <Save className="mr-1.5 h-4 w-4" />
-          {inicial.id ? "Guardar" : "Criar modelo"}
+          {inicial.id ? "Guardar modelo" : "Criar modelo"}
         </Button>
       </div>
     </>
+  );
+}
+
+/** Mostra o formulário como os participantes o vão ver, sem guardar respostas. */
+function PreVisualizar({ titulo, perguntas }: { titulo: string; perguntas: Pergunta[] }) {
+  const [respostas, setRespostas] = useState<Record<string, ValorResposta | undefined>>({});
+  let grupoAnterior: string | undefined;
+  return (
+    <Dialog onOpenChange={(v) => !v && setRespostas({})}>
+      <DialogTrigger asChild>
+        <Button type="button" size="sm" variant="ghost" disabled={perguntas.length === 0}>
+          <Eye className="mr-1.5 h-4 w-4" />
+          Pré-visualizar
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[90dvh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{titulo}</DialogTitle>
+          <DialogDescription>Assim vê quem responde. Nada do que escreveres aqui fica guardado.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          {perguntas.map((p) => {
+            const novoGrupo = p.grupo && p.grupo !== grupoAnterior;
+            grupoAnterior = p.grupo;
+            return (
+              <div key={p.id} className="space-y-2">
+                {novoGrupo && <p className="pt-2 text-xs font-semibold text-[#A1420A]">{p.grupo}</p>}
+                <div className="space-y-3 rounded-2xl border p-4">
+                  <p className="text-[15px] font-medium text-secondary">
+                    {p.texto || "(pergunta sem texto)"}
+                    {p.obrigatoria && <span className="text-[#B42318]"> *</span>}
+                  </p>
+                  <PerguntaCampo
+                    pergunta={p}
+                    valor={respostas[p.id]}
+                    onChange={(v) => setRespostas((r) => ({ ...r, [p.id]: v }))}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

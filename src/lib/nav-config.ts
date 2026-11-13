@@ -22,45 +22,65 @@ import {
 } from "lucide-react";
 
 export type NavItem = { path: string; label: string; icon: LucideIcon; gated?: boolean };
-export type NavGroup = { label?: string; adminOnly?: boolean; items: NavItem[] };
+/**
+ * `mode` separa o menu em dois: "plataforma" (o que se usa como participante)
+ * e "gestao" (o que a equipa usa para gerir). Só quem é admin vê o interruptor
+ * e os grupos de gestão.
+ */
+export type NavMode = "plataforma" | "gestao";
+export type NavGroup = { label?: string; adminOnly?: boolean; mode?: NavMode; items: NavItem[] };
 
 export const NAV_GROUPS: NavGroup[] = [
   { items: [
-    { path: "/dashboard", label: "Página Inicial", icon: LayoutDashboard, gated: true },
-    { path: "/entidade/dashboard", label: "Página da Organização", icon: Building2, gated: true },
+    { path: "/dashboard", label: "Página inicial", icon: LayoutDashboard, gated: true },
+    { path: "/entidade/dashboard", label: "A minha organização", icon: Building2, gated: true },
     { path: "/acoes", label: "Ações", icon: CalendarDays, gated: true },
   ] },
-  { label: "Formação", items: [
+  { label: "Aprender", items: [
     { path: "/elearning", label: "E-learning", icon: GraduationCap, gated: true },
-    { path: "/recursos", label: "Centro de Recursos", icon: BookMarked, gated: true },
-  ] },
-  { label: "Cultura Ubuntu", items: [
-    { path: "/cultura-ubuntu/avaliacao", label: "Avaliação de Impacto", icon: ClipboardCheck },
+    { path: "/recursos", label: "Centro de recursos", icon: BookMarked, gated: true },
+    { path: "/cultura-ubuntu/avaliacao", label: "Avaliação de impacto", icon: ClipboardCheck },
   ] },
   { label: "Publicações", items: [
-    { path: "/publicacoes/revistas", label: "Revista Científica", icon: BookOpen, gated: true },
+    { path: "/publicacoes/revistas", label: "Revista científica", icon: BookOpen, gated: true },
     { path: "/publicacoes/biblioteca", label: "Biblioteca", icon: Library, gated: true },
   ] },
   { label: "Comunicação", items: [
-    { path: "/comunicacao/press-media-kit", label: "Press Media Kit", icon: Megaphone, gated: true },
-    { path: "/comunicacao/propriedade-intelectual", label: "Propriedade Intelectual", icon: Copyright, gated: true },
+    { path: "/comunicacao/press-media-kit", label: "Press media kit", icon: Megaphone, gated: true },
+    { path: "/comunicacao/propriedade-intelectual", label: "Propriedade intelectual", icon: Copyright, gated: true },
     { path: "/faqs", label: "FAQs", icon: HelpCircle, gated: true },
   ] },
   { label: "Equipa", items: [{ path: "/equipa/programas", label: "Programas", icon: Users, gated: true }] },
-  { label: "Admin", adminOnly: true, items: [
-    { path: "/admin/programas", label: "Gestão de Programas", icon: Shield },
-    { path: "/admin/entidades", label: "Gestão de Entidades", icon: Shield },
-    { path: "/admin/acoes", label: "Gestão de Ações", icon: CalendarCog },
-    { path: "/admin/avaliacoes", label: "Modelos de Avaliação", icon: ClipboardCheck },
-    { path: "/admin/projetos", label: "Gestão de Projetos", icon: FolderKanban },
-    { path: "/admin/recursos", label: "Gestão de Recursos", icon: FolderCog },
-    { path: "/admin/badges", label: "Gestão de Badges", icon: Medal },
-    { path: "/admin/elearning", label: "Gestão de E-learning", icon: GraduationCap },
-    { path: "/admin/manager", label: "Central de Comando", icon: Shield },
-    { path: "/admin/governacao", label: "Governação de Dados", icon: Lock },
-    { path: "/admin/emails", label: "Gestão de Emails", icon: Mail },
-    { path: "/admin/biblioteca", label: "Gestão da Biblioteca", icon: Library },
+  { label: "Programas e ações", adminOnly: true, mode: "gestao", items: [
+    { path: "/admin/programas", label: "Programas", icon: Shield },
+    { path: "/admin/acoes", label: "Ações", icon: CalendarCog },
+    { path: "/admin/avaliacoes", label: "Modelos de avaliação", icon: ClipboardCheck },
+    { path: "/admin/projetos", label: "Projetos", icon: FolderKanban },
+  ] },
+  { label: "Pessoas e organizações", adminOnly: true, mode: "gestao", items: [
+    { path: "/admin/manager", label: "Utilizadores e acessos", icon: Users },
+    { path: "/admin/entidades", label: "Organizações", icon: Building2 },
+    { path: "/admin/badges", label: "Badges", icon: Medal },
+  ] },
+  { label: "Conteúdos", adminOnly: true, mode: "gestao", items: [
+    { path: "/admin/elearning", label: "E-learning", icon: GraduationCap },
+    { path: "/admin/recursos", label: "Centro de recursos", icon: FolderCog },
+    { path: "/admin/biblioteca", label: "Biblioteca de publicações", icon: Library },
+    { path: "/admin/emails", label: "Emails", icon: Mail },
+  ] },
+  { label: "Sistema", adminOnly: true, mode: "gestao", items: [
+    { path: "/admin/governacao", label: "Governação de dados", icon: Lock },
   ] },
 ];
+
+/** Grupos do modo indicado. Os grupos sem `mode` pertencem à plataforma. */
+export function groupsForMode(mode: NavMode): NavGroup[] {
+  return NAV_GROUPS.filter((g) => (g.mode ?? "plataforma") === mode);
+}
+
+/** Um caminho de gestão abre o menu em modo gestão. */
+export function modeForPath(path: string): NavMode {
+  return path === "/admin" || path.startsWith("/admin/") ? "gestao" : "plataforma";
+}
 
 export const ALL_NAV_ITEMS: NavItem[] = NAV_GROUPS.flatMap((group) => group.items.map((item) => ({ ...item, _group: group.label, _adminOnly: group.adminOnly })));

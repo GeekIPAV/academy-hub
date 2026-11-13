@@ -35,13 +35,17 @@ import { ArrowUpDown, GripVertical, Lock, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { patchAcao, type AcaoRow } from "@/lib/admin-acoes-gestao.functions";
+import type { ResumoAvaliacoesAcao } from "@/lib/avaliacao-acoes.functions";
+import { StatusChip } from "@/components/shell/StatusChip";
+import { ChevronRight } from "lucide-react";
 
 interface Props {
   data: AcaoRow[];
   onOpen: (id: string) => void;
+  resumoAvaliacoes?: Record<string, ResumoAvaliacoesAcao>;
 }
 
-export function AcoesDataTable({ data, onOpen }: Props) {
+export function AcoesDataTable({ data, onOpen, resumoAvaliacoes }: Props) {
   const qc = useQueryClient();
   const patchFn = useServerFn(patchAcao);
   const fetchProj = useServerFn(listProjetos);
@@ -67,26 +71,26 @@ export function AcoesDataTable({ data, onOpen }: Props) {
   const columns = useMemo<ColumnDef<AcaoRow>[]>(
     () => [
       {
-        id: "open",
-        header: "",
-        size: 70,
-        enableSorting: false,
-        cell: ({ row }) => (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 px-2"
-            onClick={() => onOpen(row.original.id)}
-          >
-            <Pencil className="mr-1 h-3.5 w-3.5" /> Abrir
-          </Button>
-        ),
-      },
-      {
         accessorKey: "title",
-        header: "Título",
-        size: 260,
-        cell: (info) => info.getValue<string | null>() ?? "—",
+        header: "Ação",
+        size: 280,
+        cell: ({ row }) => (
+          <button
+            type="button"
+            onClick={() => onOpen(row.original.id)}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="block w-full min-w-0 text-left"
+          >
+            <span className="block truncate font-medium text-secondary hover:text-primary">
+              {row.original.title ?? "(sem título)"}
+            </span>
+            {(row.original.programa_title || row.original.produto_nome) && (
+              <span className="block truncate text-xs text-muted-foreground">
+                {row.original.programa_title ?? row.original.produto_nome}
+              </span>
+            )}
+          </button>
+        ),
       },
       {
         accessorKey: "status",
@@ -193,11 +197,44 @@ export function AcoesDataTable({ data, onOpen }: Props) {
       },
       {
         accessorKey: "entidade_nome",
-        header: "Entidade",
+        header: "Organização",
         size: 180,
       },
+      {
+        id: "avaliacoes",
+        header: "Avaliações",
+        size: 150,
+        accessorFn: (r) => resumoAvaliacoes?.[r.id]?.respostas ?? -1,
+        cell: ({ row }) => {
+          const r = resumoAvaliacoes?.[row.original.id];
+          if (!resumoAvaliacoes) return <span className="text-muted-foreground">…</span>;
+          if (!r) return <StatusChip tone="yellow">Por criar</StatusChip>;
+          return (
+            <StatusChip tone={r.abertas > 0 ? "green" : "grey"}>
+              {r.respostas} {r.respostas === 1 ? "resposta" : "respostas"}
+            </StatusChip>
+          );
+        },
+      },
+      {
+        id: "abrir",
+        header: "",
+        size: 48,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8"
+            aria-label={`Abrir ${row.original.title ?? "ação"}`}
+            onClick={() => onOpen(row.original.id)}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        ),
+      },
     ],
-    [onOpen, patch, projNome],
+    [onOpen, patch, projNome, resumoAvaliacoes],
   );
 
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -236,10 +273,10 @@ export function AcoesDataTable({ data, onOpen }: Props) {
   }
 
   return (
-    <div className="min-w-0 max-w-full rounded-md border bg-card overflow-auto" tabIndex={0} role="region" aria-label="Tabela de ações">
+    <div className="min-w-0 max-w-full overflow-auto" tabIndex={0} role="region" aria-label="Tabela de ações">
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <table className="w-full text-sm" style={{ width: table.getTotalSize() }}>
-          <thead className="border-b bg-muted/40 text-xs uppercase tracking-wide">
+          <thead className="border-b bg-muted/40 text-xs font-medium text-muted-foreground">
             {table.getHeaderGroups().map((hg) => (
               <SortableContext
                 key={hg.id}
@@ -250,10 +287,10 @@ export function AcoesDataTable({ data, onOpen }: Props) {
                   {hg.headers.map((header) => (
                     <DraggableHeader key={header.id} headerId={header.column.id}>
                       <div
-                        className="relative flex items-center gap-1 px-2 py-2"
+                        className="relative flex items-center gap-1 px-3 py-2.5"
                         style={{ width: header.getSize() }}
                       >
-                        <GripVertical className="h-3 w-3 cursor-grab text-muted-foreground" />
+                        <GripVertical className="h-3 w-3 shrink-0 cursor-grab text-muted-foreground/50" aria-hidden="true" />
                         <button
                           type="button"
                           onClick={header.column.getToggleSortingHandler()}
@@ -279,11 +316,11 @@ export function AcoesDataTable({ data, onOpen }: Props) {
           </thead>
           <tbody>
             {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="border-b hover:bg-muted/30">
+              <tr key={row.id} className="border-b last:border-b-0 hover:bg-muted/30">
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className="truncate px-2 py-1.5"
+                    className="truncate px-3 py-2.5 align-middle"
                     style={{ width: cell.column.getSize() }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -319,7 +356,7 @@ function DraggableHeader({ headerId, children }: { headerId: string; children: R
       }}
       {...attributes}
       {...listeners}
-      className="border-r last:border-r-0 align-top"
+      className="align-top"
     >
       {children}
     </th>

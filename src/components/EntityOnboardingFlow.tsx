@@ -131,7 +131,7 @@ export function EntityOnboardingFlow() {
         },
       }),
     onSuccess: () => {
-      toast.success("Conta vinculada à organização.");
+      toast.success("Conta ligada à organização.");
       refreshAll();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -151,7 +151,7 @@ export function EntityOnboardingFlow() {
         },
       }),
     onSuccess: () => {
-      toast.success("Organização registada — aguarda aprovação.");
+      toast.success("Organização registada. Fica à espera de aprovação.");
       refreshAll();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -228,18 +228,18 @@ export function EntityOnboardingFlow() {
     return (
       <Card className="mx-auto max-w-2xl">
         <CardHeader className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-[#FFF1CC] text-[#6B4200]">
             <Clock className="h-6 w-6" />
           </div>
           <CardTitle className="text-2xl">Pedido de transferência enviado</CardTitle>
           <CardDescription>
-            O seu pedido para assumir a responsabilidade de{" "}
+            O teu pedido para ficares responsável por{" "}
             <strong>{pending.entity_name ?? "uma organização"}</strong> está a aguardar
-            aprovação pela equipa da Academia Ubuntu.
+            aprovação pela equipa da Academia.
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center text-sm text-muted-foreground">
-          Receberá acesso à organização assim que o pedido for aprovado.
+          Recebes acesso à organização assim que o pedido for aprovado.
         </CardContent>
       </Card>
     );
@@ -265,8 +265,8 @@ export function EntityOnboardingFlow() {
             </AlertDescription>
           </Alert>
           <div className="rounded-md border bg-muted/30 p-4 text-sm text-muted-foreground">
-            Pode pedir para assumir a responsabilidade desta organização. O pedido será
-            analisado por um administrador da Academia Ubuntu antes de tomar efeito.
+            Podes pedir para ficar responsável por esta organização. A equipa da Academia
+            analisa o pedido antes de a mudança acontecer.
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={back} disabled={transferMut.isPending}>
@@ -297,12 +297,12 @@ export function EntityOnboardingFlow() {
             </Button>
           </div>
           <CardTitle className="text-xl">
-            {isCreate ? "Registar nova organização" : `Confirmar dados — ${selected?.name}`}
+            {isCreate ? "Registar nova organização" : `Confirma os dados de ${selected?.name ?? "organização"}`}
           </CardTitle>
           <CardDescription>
             {isCreate
-              ? "O registo ficará pendente até aprovação pela equipa da Academia Ubuntu."
-              : "Reveja os dados e atualize o ponto de contacto se necessário."}
+              ? "O registo fica à espera de aprovação pela equipa da Academia."
+              : "Revê os dados e atualiza a pessoa de contacto, se for preciso."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -311,7 +311,7 @@ export function EntityOnboardingFlow() {
               e.preventDefault();
               if (isCreate) {
                 if (form.name.trim().length < 3) {
-                  toast.error("Nome demasiado curto. Procure primeiro para evitar duplicados.");
+                  toast.error("O nome é demasiado curto. Procura primeiro, para não haver organizações repetidas.");
                   return;
                 }
                 createMut.mutate();
@@ -322,7 +322,7 @@ export function EntityOnboardingFlow() {
             className="grid gap-4 sm:grid-cols-2"
           >
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="onb-name">Nome da Organização</Label>
+              <Label htmlFor="onb-name">Nome da organização</Label>
               <Input
                 id="onb-name"
                 value={form.name}
@@ -350,7 +350,7 @@ export function EntityOnboardingFlow() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="onb-cp">Código Postal</Label>
+                  <Label htmlFor="onb-cp">Código postal</Label>
                   <Input
                     id="onb-cp"
                     value={form.postal_code}
@@ -372,16 +372,16 @@ export function EntityOnboardingFlow() {
             )}
 
             <div className="space-y-2 sm:col-span-2 border-t pt-4">
-              <p className="text-sm font-medium">Ponto de Contacto</p>
+              <p className="text-[15px] font-semibold text-secondary">Pessoa de contacto</p>
               {!isCreate && (
                 <p className="text-xs text-muted-foreground">
-                  Será automaticamente o ponto de contacto desta organização.
-                  Apenas pode editar campos ainda por preencher.
+                  Passas a ser a pessoa de contacto desta organização.
+                  Só podes editar os campos que ainda estão vazios.
                 </p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="onb-cname">Nome do Responsável</Label>
+              <Label htmlFor="onb-cname">Nome</Label>
               {!isCreate && locked.contact_name ? (
                 <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
                   {form.contact_name}
@@ -412,7 +412,7 @@ export function EntityOnboardingFlow() {
               )}
             </div>
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="onb-cphone">Telefone</Label>
+              <Label htmlFor="onb-cphone">Telemóvel</Label>
               {!isCreate && locked.contact_phone ? (
                 <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
                   {form.contact_phone}
@@ -435,7 +435,7 @@ export function EntityOnboardingFlow() {
               </Button>
               <Button type="submit" disabled={submitting || !canSubmit}>
                 {submitting
-                  ? "A submeter…"
+                  ? "A enviar…"
                   : isCreate
                     ? "Registar organização"
                     : "Confirmar e entrar"}
@@ -453,9 +453,9 @@ export function EntityOnboardingFlow() {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Building2 className="h-6 w-6" />
         </div>
-        <CardTitle className="text-2xl">Bem-vindo à Academia Ubuntu</CardTitle>
+        <CardTitle className="text-2xl text-secondary">Bem-vindo à Academia de Líderes Ubuntu</CardTitle>
         <CardDescription>
-          Para começar, vincule a sua conta à organização que representa.
+          Para começar, liga a tua conta à organização que representas.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -465,7 +465,7 @@ export function EntityOnboardingFlow() {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Procure pela sua Organização/Escola…"
+            placeholder="Procura a tua organização ou escola"
             className="pl-9"
           />
         </div>
@@ -510,7 +510,7 @@ export function EntityOnboardingFlow() {
         </div>
 
         <div className="flex flex-col items-center gap-2 border-t pt-4 text-center">
-          <p className="text-sm text-muted-foreground">Não encontrou a sua organização?</p>
+          <p className="text-sm text-muted-foreground">Não encontras a tua organização?</p>
           <Button variant="outline" onClick={startCreate} disabled={query.trim().length < 3}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Registar nova organização

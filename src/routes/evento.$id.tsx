@@ -313,13 +313,13 @@ function PublicEventPage() {
 
   return (
     <div
-      className="relative min-h-screen bg-gradient-to-b from-muted/40 to-muted/10 px-4 py-10"
+      className="relative min-h-[100dvh] bg-background px-4 py-10"
       style={containerStyle}
     >
       {bg?.type === "image" && bgOpacity < 1 && (
         <div className="pointer-events-none absolute inset-0 bg-white" style={{ opacity: 1 - bgOpacity }} />
       )}
-      <div className="relative mx-auto flex max-w-xl flex-col items-center gap-6">
+      <div className="relative mx-auto flex max-w-xl flex-col items-center gap-6 lg:max-w-5xl">
         <div className="flex w-full items-center justify-start">
           <Button
             type="button"
@@ -377,7 +377,8 @@ function PublicEventPage() {
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-6">
+            <CardContent className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
+              <div className="min-w-0 space-y-4">
               {pageDoc && pageDoc.blocks.length > 0 ? (
                 <div className="space-y-4">
                   {pageDoc.blocks.map((b) =>
@@ -403,6 +404,8 @@ function PublicEventPage() {
 
 
 
+              </div>
+              <div className="min-w-0 lg:border-l lg:pl-8">
               {closed ? (
                 <p className="rounded-md bg-muted p-3 text-sm">
                   As inscrições para este evento não estão abertas.
@@ -438,7 +441,7 @@ function PublicEventPage() {
 
                       {/* Email */}
                       <div className="space-y-1.5">
-                        <Label htmlFor="email">E-mail</Label>
+                        <Label htmlFor="email">Email <span className="text-[#B42318]" aria-hidden="true">*</span></Label>
                         <Input
                           id="email"
                           type="email"
@@ -456,10 +459,10 @@ function PublicEventPage() {
                           <Label htmlFor="doc">
                             {docType === "nif"
                               ? "NIF"
-                              : "Número de Passaporte / ID"}
+                              : "Número do passaporte ou documento"}
                           </Label>
                           <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-                            Não tenho NIF (Sou estrangeiro)
+                            Não tenho NIF português
                             <Switch
                               checked={docType === "passport"}
                               onCheckedChange={(v) =>
@@ -499,10 +502,10 @@ function PublicEventPage() {
                         <Sparkles className="h-4 w-4 text-primary" />
                         Bem-vindo de volta
                         {identity.full_name ? `, ${identity.full_name}` : ""}.
-                        Confirma a tua password para te inscreveres.
+                        Confirma a tua palavra-passe para te inscreveres.
                       </p>
                       <div className="space-y-1.5">
-                        <Label htmlFor="pwd">Password</Label>
+                        <Label htmlFor="pwd">Palavra-passe</Label>
                         <Input
                           id="pwd"
                           type="password"
@@ -524,7 +527,7 @@ function PublicEventPage() {
                   {identity.status === "new" && (
                     <div className="space-y-5 border-t pt-5 duration-300 animate-in fade-in slide-in-from-top-2">
                       <p className="text-sm text-muted-foreground">
-                        Vamos criar a tua conta para finalizar a inscrição.
+                        Ainda não tens conta. Cria uma aqui, faz parte da inscrição.
                       </p>
                       <div className="space-y-1.5">
                         <Label htmlFor="name">Nome completo</Label>
@@ -537,7 +540,7 @@ function PublicEventPage() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="newpwd">Cria uma password</Label>
+                        <Label htmlFor="newpwd">Cria uma palavra-passe</Label>
                         <Input
                           id="newpwd"
                           type="password"
@@ -586,10 +589,10 @@ function PublicEventPage() {
                               <Label htmlFor="gdoc">
                                 {docType === "nif"
                                   ? "NIF"
-                                  : "Número de Passaporte / ID"}
+                                  : "Número do passaporte ou documento"}
                               </Label>
                               <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-                                Não tenho NIF (Sou estrangeiro)
+                                Não tenho NIF português
                                 <Switch
                                   checked={docType === "passport"}
                                   onCheckedChange={(v) =>
@@ -619,7 +622,7 @@ function PublicEventPage() {
 
                   {expanded && (
                     <div className="space-y-1.5">
-                      <Label htmlFor="obs">Observações (opcional)</Label>
+                      <Label htmlFor="obs">Observações <span className="font-normal text-muted-foreground">(opcional)</span></Label>
                       <Textarea
                         id="obs"
                         value={obs}
@@ -628,6 +631,11 @@ function PublicEventPage() {
                     </div>
                   )}
 
+                  {!expanded && (
+                    <p className="text-center text-xs text-muted-foreground">
+                      Escreve o teu email e o NIF (ou continua com o Google) para veres o resto do formulário.
+                    </p>
+                  )}
                   <Button
                     type="submit"
                     className="w-full"
@@ -643,13 +651,14 @@ function PublicEventPage() {
                       <>
                         <Check className="mr-2 h-4 w-4" />
                         {isFull
-                          ? "Inscrever (lista de espera)"
-                          : "Confirmar Inscrição"}
+                          ? "Inscrever em lista de espera"
+                          : "Confirmar inscrição"}
                       </>
                     )}
                   </Button>
                 </form>
               )}
+              </div>
             </CardContent>
           </Card>
         )}

@@ -87,7 +87,7 @@ function ProfilePage() {
         <TabsContent value="certificacao" className="space-y-6 pt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Dados de Certificação</CardTitle>
+              <CardTitle>Dados de certificação</CardTitle>
               <CardDescription>
                 Dados oficiais utilizados na emissão dos certificados de participação.
               </CardDescription>
