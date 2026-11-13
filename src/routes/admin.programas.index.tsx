@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { PageHeader, PageShell } from "@/components/shell/PageHeader";
+import { StatusChip } from "@/components/shell/StatusChip";
+import { Switch } from "@/components/ui/switch";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -70,15 +73,15 @@ import { listAllBadges } from "@/lib/badges.functions";
 import { RouteGate } from "@/components/RouteGate";
 import { slugifyCluster } from "@/lib/cluster-utils";
 
-export const Route = createFileRoute("/admin/programas")({
+export const Route = createFileRoute("/admin/programas/")({
   head: () => ({
     meta: [
-      { title: "Gestão de Programas — Academia de Líderes Ubuntu" },
+      { title: "Programas | Gestão" },
       {
         name: "description",
         content: "Área administrativa para editar programas, instituições inscritas e participantes.",
       },
-      { property: "og:title", content: "Gestão de Programas — Academia de Líderes Ubuntu" },
+      { property: "og:title", content: "Programas | Gestão" },
       {
         property: "og:description",
         content: "Área administrativa para editar programas, instituições inscritas e participantes.",
@@ -105,32 +108,17 @@ function currentAcademicYear(): string {
 
 function AdminProgramasPage() {
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <GraduationCap className="h-6 w-6" />
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Gestão de Programas</h1>
-          <p className="text-sm text-muted-foreground">
-            Visão centralizada de instituições, participantes e clusters.
-          </p>
-        </div>
-      </div>
-
-      <Tabs defaultValue="programas" className="space-y-4">
+    <PageShell>
+      <PageHeader
+        eyebrow="Programas e ações"
+        title="Programas"
+        description="Os programas da Academia, com as organizações e os participantes de cada um. Abre um programa para o editar."
+      />
+      <Tabs defaultValue="programas" className="space-y-5">
         <TabsList>
-          <TabsTrigger value="programas">
-            <GraduationCap className="mr-2 h-4 w-4" />
-            Programas
-          </TabsTrigger>
-          <TabsTrigger value="clusters">
-            <Layers className="mr-2 h-4 w-4" />
-            Clusters
-          </TabsTrigger>
+          <TabsTrigger value="programas">Programas</TabsTrigger>
+          <TabsTrigger value="clusters">Clusters</TabsTrigger>
         </TabsList>
-
         <TabsContent value="programas">
           <ProgramasSection />
         </TabsContent>
@@ -138,7 +126,7 @@ function AdminProgramasPage() {
           <ClustersSection />
         </TabsContent>
       </Tabs>
-    </div>
+    </PageShell>
   );
 }
 
@@ -164,73 +152,74 @@ function ProgramasSection() {
     [clustersRaw],
   );
 
-  const [open, setOpen] = useState(true);
+  const [filtro, setFiltro] = useState<"ativos" | "abertas" | "todos">("ativos");
+  const [q, setQ] = useState("");
+  const contagem = {
+    ativos: programas.filter((p) => p.is_active).length,
+    abertas: programas.filter((p) => p.enrollment_open).length,
+    todos: programas.length,
+  };
+  const visiveis = programas.filter((p) => {
+    if (filtro === "ativos" && !p.is_active) return false;
+    if (filtro === "abertas" && !p.enrollment_open) return false;
+    const t = q.trim().toLowerCase();
+    return !t || (p.title ?? "").toLowerCase().includes(t);
+  });
 
   return (
-    <div className="space-y-6">
-      <Card className="p-4">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="flex items-center gap-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            aria-expanded={open}
-          >
-            <ChevronDown
-              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "" : "-rotate-90"}`}
-            />
-            <span>
-              <span className="block text-sm font-medium">Programas</span>
-              <span className="block text-xs text-muted-foreground">
-                Lista completa de programas registados.
-              </span>
-            </span>
-          </button>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary">{programas.length}</Badge>
-            <ProgramaFormDialog mode="create" clusters={clusters} />
-          </div>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtros rápidos">
+          {(
+            [
+              ["ativos", "Ativos"],
+              ["abertas", "Com inscrições abertas"],
+              ["todos", "Todos"],
+            ] as const
+          ).map(([id, label]) => {
+            const on = filtro === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setFiltro(id)}
+                className={`inline-flex h-9 items-center gap-2 rounded-full border px-3.5 text-sm font-medium transition-colors ${
+                  on ? "border-secondary bg-secondary text-white" : "bg-card text-secondary hover:border-secondary"
+                }`}
+              >
+                {label}
+                <span className={`rounded-full px-2 text-xs ${on ? "bg-white/20" : "bg-muted"}`}>{contagem[id]}</span>
+              </button>
+            );
+          })}
         </div>
+        <div className="flex flex-wrap gap-2">
+          <ProgramaFormDialog mode="create" clusters={clusters} />
+        </div>
+      </div>
 
+      <div className="min-w-0 overflow-hidden rounded-xl border bg-card">
+        <div className="border-b p-4">
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Pesquisar programa"
+            aria-label="Pesquisar programa"
+            className="max-w-md"
+          />
+        </div>
         {programasError && (
-          <p className="mb-3 text-xs text-destructive">
-            Não foi possível carregar programas ({(programasError as Error).message}).
+          <p className="p-4 text-xs text-destructive">
+            Não foi possível carregar os programas ({(programasError as Error).message}).
           </p>
         )}
-
-        {open &&
-          (loadingProgramas ? (
-            <Skeleton className="h-24 w-full" />
-          ) : (
-            <Tabs defaultValue="ativos" className="space-y-3">
-            <TabsList>
-              <TabsTrigger value="ativos">
-                Ativos
-                <Badge variant="secondary" className="ml-2">
-                  {programas.filter((p) => p.is_active).length}
-                </Badge>
-              </TabsTrigger>
-              <TabsTrigger value="geral">
-                Geral
-                <Badge variant="secondary" className="ml-2">{programas.length}</Badge>
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="ativos">
-              <ProgramasTable
-                rows={programas.filter((p) => p.is_active)}
-                clusters={clusters}
-              />
-            </TabsContent>
-            <TabsContent value="geral">
-              <ProgramasTable
-                rows={programas}
-                clusters={clusters}
-              />
-            </TabsContent>
-          </Tabs>
-          )
+        {loadingProgramas ? (
+          <Skeleton className="m-4 h-24" />
+        ) : (
+          <ProgramasTable rows={visiveis} clusters={clusters} />
         )}
-      </Card>
+      </div>
     </div>
   );
 }
@@ -243,34 +232,25 @@ function ProgramasTable({
   clusters: Array<{ id: string; name: string }>;
 }) {
   if (rows.length === 0) {
-    return (
-      <p className="py-6 text-center text-sm text-muted-foreground">
-        Nenhum programa encontrado.
-      </p>
-    );
+    return <p className="py-8 text-center text-sm text-muted-foreground">Nenhum programa encontrado.</p>;
   }
   return (
-    <div className="rounded-md border">
-      <Table>
+    <div className="overflow-x-auto">
+      <Table className="min-w-[760px]">
         <TableHeader>
           <TableRow>
-            <TableHead className="w-10" />
             <TableHead className="min-w-[240px]">Programa</TableHead>
-            <TableHead className="w-36">Estado</TableHead>
+            <TableHead className="w-40">Estado</TableHead>
             <TableHead className="w-44">Datas</TableHead>
             <TableHead className="w-40">Cluster</TableHead>
-            <TableHead className="w-28">Produtos</TableHead>
-            <TableHead className="w-32">Inscrições abertas</TableHead>
+            <TableHead className="w-24 text-right">Produtos</TableHead>
+            <TableHead className="w-40">Inscrições</TableHead>
             <TableHead className="w-12" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {rows.map((p) => (
-            <ProgramaRow
-              key={p.id}
-              p={p}
-              clusters={clusters}
-            />
+            <ProgramaRow key={p.id} p={p} clusters={clusters} />
           ))}
         </TableBody>
       </Table>
@@ -291,10 +271,9 @@ function ProgramaRow({
   clusters: Array<{ id: string; name: string }>;
 }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const toggleFn = useServerFn(setProgramaEnrollmentOpen);
-  const deleteFn = useServerFn(deletePrograma);
   const updateFn = useServerFn(updateProgramaAdmin);
-  const [expanded, setExpanded] = useState(false);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["admin-programas"] });
@@ -305,7 +284,6 @@ function ProgramaRow({
       (old ?? []).map((r) => (r.id === p.id ? { ...r, ...patch } : r)),
     );
   };
-
   const toggle = useMutation({
     mutationFn: (open: boolean) => toggleFn({ data: { programId: p.id, open } }),
     onMutate: (open) => patchLocal({ enrollment_open: open }),
@@ -315,17 +293,8 @@ function ProgramaRow({
     },
     onSettled: invalidate,
   });
-  const remove = useMutation({
-    mutationFn: () => deleteFn({ data: { id: p.id } }),
-    onSuccess: () => {
-      toast.success("Programa eliminado.");
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
   const changeStatus = useMutation({
-    mutationFn: (status: (typeof PROGRAMA_STATUS)[number]) =>
-      updateFn({ data: { id: p.id, status } }),
+    mutationFn: (status: (typeof PROGRAMA_STATUS)[number]) => updateFn({ data: { id: p.id, status } }),
     onMutate: (status) => patchLocal({ status, is_active: status === "Ativo" }),
     onError: (e: Error) => {
       toast.error(e.message);
@@ -335,476 +304,70 @@ function ProgramaRow({
   });
 
   const clusterName = clusters.find((c) => c.id === p.cluster_id)?.name ?? "—";
+  const abrir = () => navigate({ to: "/admin/programas/$id", params: { id: p.id } });
 
   return (
-    <>
-      <TableRow
-        onClick={() => setExpanded((v) => !v)}
-        data-state={expanded ? "selected" : undefined}
-        className="cursor-pointer"
-      >
-        <TableCell>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            onClick={(e) => {
-              e.stopPropagation();
-              setExpanded((v) => !v);
-            }}
-            aria-label={expanded ? "Recolher programa" : "Abrir programa"}
-          >
-            {expanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </Button>
-        </TableCell>
-        <TableCell className="font-medium">
-          {p.title ?? "(sem título)"}
-          <div className="mt-0.5 flex flex-wrap gap-1">
-            {p.certificacao && (
-              <Badge variant="outline" className="text-[10px]">Certificação</Badge>
-            )}
-            {p.acreditacao && (
-              <Badge variant="outline" className="text-[10px]">Acreditação</Badge>
-            )}
-          </div>
-        </TableCell>
-        <TableCell onClick={(e) => e.stopPropagation()}>
-          <Select
-            value={p.status ?? "Não começado"}
-            onValueChange={(v) => changeStatus.mutate(v as (typeof PROGRAMA_STATUS)[number])}
-            disabled={changeStatus.isPending}
-          >
-            <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PROGRAMA_STATUS.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </TableCell>
-        <TableCell className="text-xs text-muted-foreground">
-          {fmtDate(p.date_start)} → {fmtDate(p.date_end)}
-        </TableCell>
-        <TableCell className="text-xs text-muted-foreground">{clusterName}</TableCell>
-        <TableCell>
-          <Badge variant="secondary">{p.produto_ids.length}</Badge>
-        </TableCell>
-        <TableCell onClick={(e) => e.stopPropagation()}>
-          <Checkbox
+    <TableRow className="cursor-pointer" onClick={abrir}>
+      <TableCell>
+        <span className="block font-medium text-secondary">{p.title ?? "(sem título)"}</span>
+        {(p.certificacao || p.acreditacao) && (
+          <span className="mt-1 flex flex-wrap gap-1">
+            {p.certificacao && <StatusChip tone="tag" className="h-5 text-[11px]">Certificação</StatusChip>}
+            {p.acreditacao && <StatusChip tone="tag" className="h-5 text-[11px]">Acreditação</StatusChip>}
+          </span>
+        )}
+      </TableCell>
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <Select
+          value={p.status ?? "Não começado"}
+          onValueChange={(v) => changeStatus.mutate(v as (typeof PROGRAMA_STATUS)[number])}
+          disabled={changeStatus.isPending}
+        >
+          <SelectTrigger className="h-8 w-36 text-xs" aria-label={`Estado de ${p.title ?? "programa"}`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PROGRAMA_STATUS.map((s) => (
+              <SelectItem key={s} value={s}>
+                {s}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground">
+        {fmtDate(p.date_start)} a {fmtDate(p.date_end)}
+      </TableCell>
+      <TableCell className="text-xs text-muted-foreground">{clusterName}</TableCell>
+      <TableCell className="text-right tabular-nums">{p.produto_ids.length}</TableCell>
+      <TableCell onClick={(e) => e.stopPropagation()}>
+        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Switch
             checked={!!p.enrollment_open}
             onCheckedChange={(v) => toggle.mutate(v === true)}
-            aria-label="Inscrições abertas"
+            aria-label={`Inscrições de ${p.title ?? "programa"}`}
           />
-        </TableCell>
-        <TableCell onClick={(e) => e.stopPropagation()}>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            onClick={() => {
-              if (confirm(`Eliminar o programa "${p.title ?? ""}"?`)) remove.mutate();
-            }}
-            aria-label="Eliminar programa"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </TableCell>
-      </TableRow>
-      {expanded && (
-        <TableRow>
-          <TableCell colSpan={8} className="bg-muted/20 p-0">
-            <div className="px-4 py-4">
-              <Tabs defaultValue="editar" className="space-y-4">
-                <TabsList>
-                  <TabsTrigger value="editar">
-                    <Pencil className="mr-2 h-4 w-4" />
-                    Editar
-                  </TabsTrigger>
-                  <TabsTrigger value="instituicoes">
-                    <Building2 className="mr-2 h-4 w-4" />
-                    Instituições
-                  </TabsTrigger>
-                  <TabsTrigger value="participantes">
-                    <Users className="mr-2 h-4 w-4" />
-                    Participantes
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="editar">
-                  <ProgramaInlineEditor programa={p} clusters={clusters} />
-                </TabsContent>
-                <TabsContent value="instituicoes">
-                  <InstituicoesTab programId={p.id} />
-                </TabsContent>
-                <TabsContent value="participantes">
-                  <ParticipantesTab programId={p.id} />
-                </TabsContent>
-              </Tabs>
-            </div>
-          </TableCell>
-        </TableRow>
-      )}
-    </>
-  );
-}
-
-function ProgramaInlineEditor({
-  programa,
-  clusters,
-}: {
-  programa: ProgramaAdminRow;
-  clusters: Array<{ id: string; name: string }>;
-}) {
-  const qc = useQueryClient();
-  const updateFn = useServerFn(updateProgramaAdmin);
-  const fetchProdutos = useServerFn(listProdutos);
-  const { data: produtos } = useQuery({
-    queryKey: ["produtos-catalogo"],
-    queryFn: () => fetchProdutos(),
-    retry: false,
-  });
-
-  const NONE = "__none__";
-  const [title, setTitle] = useState(programa.title ?? "");
-  const [status, setStatus] = useState<string>(programa.status ?? "Não começado");
-  const [dateStart, setDateStart] = useState(programa.date_start ?? "");
-  const [dateEnd, setDateEnd] = useState(programa.date_end ?? "");
-  const [certificacao, setCertificacao] = useState(!!programa.certificacao);
-  const [acreditacao, setAcreditacao] = useState(!!programa.acreditacao);
-  const [email, setEmail] = useState(programa.email_contacto_ipav ?? "");
-  const [cluster, setCluster] = useState<string>(programa.cluster_id ?? NONE);
-  const [produtoIds, setProdutoIds] = useState<string[]>(programa.produto_ids ?? []);
-
-  useEffect(() => {
-    setTitle(programa.title ?? "");
-    setStatus(programa.status ?? "Não começado");
-    setDateStart(programa.date_start ?? "");
-    setDateEnd(programa.date_end ?? "");
-    setCertificacao(!!programa.certificacao);
-    setAcreditacao(!!programa.acreditacao);
-    setEmail(programa.email_contacto_ipav ?? "");
-    setCluster(programa.cluster_id ?? NONE);
-    setProdutoIds(programa.produto_ids ?? []);
-  }, [programa]);
-
-  const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ["admin-programas"] });
-    qc.invalidateQueries({ queryKey: ["admin-programas-clusters"] });
-  };
-
-  const save = useMutation({
-    mutationFn: () =>
-      updateFn({
-        data: {
-          id: programa.id,
-          title: title.trim(),
-          status: status as (typeof PROGRAMA_STATUS)[number],
-          date_start: dateStart || null,
-          date_end: dateEnd || null,
-          certificacao,
-          acreditacao,
-          email_contacto_ipav: email.trim() || null,
-          cluster_id: cluster === NONE ? null : cluster,
-          produto_ids: produtoIds,
-        },
-      }),
-    onSuccess: () => {
-      toast.success("Programa atualizado.");
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const toggleProduto = (id: string) =>
-    setProdutoIds((arr) => (arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id]));
-
-  return (
-    <div className="rounded-md border bg-background p-4">
-      <div className="space-y-4">
-        <div>
-          <Label htmlFor={`pi-title-${programa.id}`}>Título</Label>
-          <Input
-            id={`pi-title-${programa.id}`}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div>
-            <Label>Estado</Label>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PROGRAMA_STATUS.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor={`pi-d1-${programa.id}`}>Data de início</Label>
-            <Input
-              id={`pi-d1-${programa.id}`}
-              type="date"
-              value={dateStart}
-              onChange={(e) => setDateStart(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor={`pi-d2-${programa.id}`}>Data de fim</Label>
-            <Input
-              id={`pi-d2-${programa.id}`}
-              type="date"
-              value={dateEnd}
-              onChange={(e) => setDateEnd(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div>
-            <Label>Cluster (opcional)</Label>
-            <Select value={cluster} onValueChange={setCluster}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sem cluster" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE}>Sem cluster</SelectItem>
-                {clusters.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor={`pi-email-${programa.id}`}>Email de contacto IPAV</Label>
-            <Input
-              id={`pi-email-${programa.id}`}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-6">
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={certificacao}
-              onCheckedChange={(v) => setCertificacao(v === true)}
-            />
-            Certificação
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <Checkbox
-              checked={acreditacao}
-              onCheckedChange={(v) => setAcreditacao(v === true)}
-            />
-            Acreditação
-          </label>
-        </div>
-
-        <div>
-          <Label className="mb-2 block">
-            Produtos{" "}
-            <span className="text-xs text-muted-foreground">
-              ({produtoIds.length} selecionado(s))
-            </span>
-          </Label>
-          <div className="max-h-56 space-y-1 overflow-y-auto rounded-md border p-2">
-            {(produtos ?? []).map((pr) => (
-              <label
-                key={pr.id}
-                className="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-muted"
-              >
-                <Checkbox
-                  checked={produtoIds.includes(pr.id)}
-                  onCheckedChange={() => toggleProduto(pr.id)}
-                />
-                <span className="flex-1">{pr.name}</span>
-                {pr.tipo && (
-                  <Badge variant="outline" className="text-[10px]">
-                    {pr.tipo}
-                  </Badge>
-                )}
-              </label>
-            ))}
-            {(produtos ?? []).length === 0 && (
-              <p className="p-2 text-xs text-muted-foreground">Catálogo vazio.</p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 flex justify-end">
-        <Button disabled={!title.trim() || save.isPending} onClick={() => save.mutate()}>
-          Guardar alterações
+          {p.enrollment_open ? "Abertas" : "Fechadas"}
+        </label>
+      </TableCell>
+      <TableCell>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          aria-label={`Abrir ${p.title ?? "programa"}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            abrir();
+          }}
+        >
+          <ChevronRight className="h-4 w-4" />
         </Button>
-      </div>
-    </div>
+      </TableCell>
+    </TableRow>
   );
 }
-
-function InstituicoesTab({ programId }: { programId: string }) {
-  const fn = useServerFn(listProgramaEntidades);
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["admin-programa-entidades", programId],
-    queryFn: () => fn({ data: { programId } }),
-    retry: false,
-  });
-  const rows = Array.isArray(data) ? data : [];
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-base">Instituições inscritas</CardTitle>
-            <CardDescription>Entidades associadas ao programa selecionado.</CardDescription>
-          </div>
-          <Badge variant="secondary">{rows.length}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <p className="mb-3 text-sm text-destructive">
-            Erro: {(error as Error).message}
-          </p>
-        )}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Instituição</TableHead>
-                <TableHead>Localidade</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading && (
-                <TableRow>
-                  <TableCell colSpan={3}>
-                    <Skeleton className="h-5 w-full" />
-                  </TableCell>
-                </TableRow>
-              )}
-              {!isLoading && rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    Nenhuma instituição inscrita neste programa.
-                  </TableCell>
-                </TableRow>
-              )}
-              {rows.map((r) => (
-                <TableRow key={r.cohort_id}>
-                  <TableCell className="font-medium">{r.entity_name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {r.entity_locality ?? "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={r.is_active ? "default" : "outline"}>
-                      {r.is_active ? "Ativo" : "Inativo"}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ParticipantesTab({ programId }: { programId: string }) {
-  const fn = useServerFn(listProgramaParticipantes);
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["admin-programa-participantes", programId],
-    queryFn: () => fn({ data: { programId } }),
-    retry: false,
-  });
-  const rows = Array.isArray(data) ? data : [];
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-base">Participantes</CardTitle>
-            <CardDescription>
-              Formandos inscritos em qualquer instituição deste programa.
-            </CardDescription>
-          </div>
-          <Badge variant="secondary">{rows.length}</Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <p className="mb-3 text-sm text-destructive">
-            Erro: {(error as Error).message}
-          </p>
-        )}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome Completo</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Instituição</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading && (
-                <TableRow>
-                  <TableCell colSpan={4}>
-                    <Skeleton className="h-5 w-full" />
-                  </TableCell>
-                </TableRow>
-              )}
-              {!isLoading && rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
-                    Sem participantes inscritos neste programa.
-                  </TableCell>
-                </TableRow>
-              )}
-              {rows.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.full_name}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.email ?? "—"}</TableCell>
-                  <TableCell className="text-muted-foreground">{r.entity_name}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{r.status ?? "—"}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ================== Tab 2: Clusters ==================
 
 type ClusterRow = {
   id: string;

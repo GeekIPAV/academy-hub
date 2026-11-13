@@ -31,7 +31,8 @@ import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as AdminEntidadesRouteImport } from './routes/admin.entidades'
 import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
-import { Route as AdminProgramasRouteImport } from './routes/admin.programas'
+import { Route as AdminProgramasIndexRouteImport } from './routes/admin.programas.index'
+import { Route as AdminProgramasIdRouteImport } from './routes/admin.programas.$id'
 import { Route as AdminProjetosRouteImport } from './routes/admin.projetos'
 import { Route as AvaliarTokenRouteImport } from './routes/avaliar.$token'
 import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
@@ -186,9 +187,14 @@ const AdminManagerRoute = AdminManagerRouteImport.update({
   path: '/admin/manager',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminProgramasRoute = AdminProgramasRouteImport.update({
-  id: '/admin/programas',
-  path: '/admin/programas',
+const AdminProgramasIndexRoute = AdminProgramasIndexRouteImport.update({
+  id: '/admin/programas/',
+  path: '/admin/programas/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProgramasIdRoute = AdminProgramasIdRouteImport.update({
+  id: '/admin/programas/$id',
+  path: '/admin/programas/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminProjetosRoute = AdminProjetosRouteImport.update({
@@ -447,7 +453,8 @@ export interface FileRoutesByFullPath {
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
-  '/admin/programas': typeof AdminProgramasRoute
+  '/admin/programas/': typeof AdminProgramasIndexRoute
+  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -512,7 +519,8 @@ export interface FileRoutesByTo {
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
-  '/admin/programas': typeof AdminProgramasRoute
+  '/admin/programas': typeof AdminProgramasIndexRoute
+  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -576,7 +584,8 @@ export interface FileRoutesById {
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
-  '/admin/programas': typeof AdminProgramasRoute
+  '/admin/programas/': typeof AdminProgramasIndexRoute
+  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -644,7 +653,8 @@ export interface FileRouteTypes {
     | '/admin/entidades'
     | '/admin/governacao'
     | '/admin/manager'
-    | '/admin/programas'
+    | '/admin/programas/'
+    | '/admin/programas/$id'
     | '/admin/projetos'
     | '/avaliar/$token'
     | '/comunicacao/press-media-kit'
@@ -710,6 +720,7 @@ export interface FileRouteTypes {
     | '/admin/governacao'
     | '/admin/manager'
     | '/admin/programas'
+    | '/admin/programas/$id'
     | '/admin/projetos'
     | '/avaliar/$token'
     | '/comunicacao/press-media-kit'
@@ -772,7 +783,8 @@ export interface FileRouteTypes {
     | '/admin/entidades'
     | '/admin/governacao'
     | '/admin/manager'
-    | '/admin/programas'
+    | '/admin/programas/'
+    | '/admin/programas/$id'
     | '/admin/projetos'
     | '/avaliar/$token'
     | '/comunicacao/press-media-kit'
@@ -836,7 +848,8 @@ export interface RootRouteChildren {
   AdminEntidadesRoute: typeof AdminEntidadesRoute
   AdminGovernacaoRoute: typeof AdminGovernacaoRoute
   AdminManagerRoute: typeof AdminManagerRoute
-  AdminProgramasRoute: typeof AdminProgramasRoute
+  AdminProgramasIndexRoute: typeof AdminProgramasIndexRoute
+  AdminProgramasIdRoute: typeof AdminProgramasIdRoute
   AdminProjetosRoute: typeof AdminProjetosRoute
   AvaliarTokenRoute: typeof AvaliarTokenRoute
   ComunicacaoPressMediaKitRoute: typeof ComunicacaoPressMediaKitRoute
@@ -1019,11 +1032,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminManagerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/programas': {
-      id: '/admin/programas'
+    '/admin/programas/': {
+      id: '/admin/programas/'
       path: '/admin/programas'
-      fullPath: '/admin/programas'
-      preLoaderRoute: typeof AdminProgramasRouteImport
+      fullPath: '/admin/programas/'
+      preLoaderRoute: typeof AdminProgramasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/programas/$id': {
+      id: '/admin/programas/$id'
+      path: '/admin/programas/$id'
+      fullPath: '/admin/programas/$id'
+      preLoaderRoute: typeof AdminProgramasIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/projetos': {
@@ -1489,7 +1509,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminEntidadesRoute: AdminEntidadesRoute,
   AdminGovernacaoRoute: AdminGovernacaoRoute,
   AdminManagerRoute: AdminManagerRoute,
-  AdminProgramasRoute: AdminProgramasRoute,
+  AdminProgramasIndexRoute: AdminProgramasIndexRoute,
+  AdminProgramasIdRoute: AdminProgramasIdRoute,
   AdminProjetosRoute: AdminProjetosRoute,
   AvaliarTokenRoute: AvaliarTokenRoute,
   ComunicacaoPressMediaKitRoute: ComunicacaoPressMediaKitRoute,
