@@ -1,3 +1,4 @@
+import { PageHeader, PageShell } from "@/components/shell/PageHeader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -78,7 +79,7 @@ import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { RouteGate } from "@/components/RouteGate";
 
 export const Route = createFileRoute("/admin/badges")({
-  head: () => ({ meta: [{ title: "Gestão de Badges — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Badges | Gestão" }] }),
   component: () => (
     <RouteGate path="/admin/badges">
       <AdminBadgesPage />
@@ -110,36 +111,69 @@ function AdminBadgesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <PageShell>
+      <PageHeader
+        eyebrow="Pessoas e organizações"
+        title="Badges"
+        description="Reconhecem formação feita e desbloqueiam tipos de ação. Atribui a pessoas escolhidas, em massa, ou automaticamente a um perfil."
+      />
 
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Gestão de Badges</h1>
-        <p className="text-sm text-muted-foreground">
-          Catálogo de credenciais e atribuição manual a utilizadores.
-        </p>
-      </div>
+      <Tabs defaultValue="catalogo" className="space-y-5">
+        <div className="overflow-x-auto">
+          <TabsList>
+            <TabsTrigger value="catalogo">Badges</TabsTrigger>
+            <TabsTrigger value="utilizadores">Quem tem badges</TabsTrigger>
+            <TabsTrigger value="atribuir">Atribuir</TabsTrigger>
+          </TabsList>
+        </div>
 
-      <Tabs defaultValue="catalogo">
-        <TabsList>
-          <TabsTrigger value="catalogo">Catálogo de Badges</TabsTrigger>
-          <TabsTrigger value="utilizadores">Utilizadores Credenciados</TabsTrigger>
-          <TabsTrigger value="massa">Atribuição em Massa</TabsTrigger>
-          <TabsTrigger value="auto">Auto por Perfil</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="catalogo" className="mt-4">
+        <TabsContent value="catalogo">
           <CatalogoTab />
         </TabsContent>
-        <TabsContent value="utilizadores" className="mt-4">
+        <TabsContent value="utilizadores">
           <UtilizadoresTab />
         </TabsContent>
-        <TabsContent value="massa" className="mt-4">
-          <AtribuicaoMassaTab />
-        </TabsContent>
-        <TabsContent value="auto" className="mt-4">
-          <AutoPorPerfilTab />
+        <TabsContent value="atribuir">
+          <AtribuirTab />
         </TabsContent>
       </Tabs>
+    </PageShell>
+  );
+}
+
+/** Um só sítio para atribuir: em massa ou automaticamente por perfil. */
+function AtribuirTab() {
+  const [modo, setModo] = useState<"massa" | "auto">("massa");
+  const opcoes = [
+    { id: "massa" as const, titulo: "A pessoas escolhidas", texto: "Uma ou várias pessoas, por nome ou email." },
+    { id: "auto" as const, titulo: "A todas as pessoas de um perfil", texto: "Também a quem receber o perfil no futuro." },
+  ];
+  return (
+    <div className="space-y-5">
+      <fieldset className="grid gap-3 sm:grid-cols-2">
+        <legend className="sr-only">A quem atribuir</legend>
+        {opcoes.map((o) => (
+          <label
+            key={o.id}
+            className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 ${
+              modo === o.id ? "border-primary bg-primary/5" : "bg-card hover:border-secondary/40"
+            }`}
+          >
+            <input
+              type="radio"
+              name="modo-atribuir"
+              className="mt-1 accent-[var(--primary)]"
+              checked={modo === o.id}
+              onChange={() => setModo(o.id)}
+            />
+            <span>
+              <span className="block text-sm font-medium text-secondary">{o.titulo}</span>
+              <span className="block text-xs text-muted-foreground">{o.texto}</span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
+      {modo === "massa" ? <AtribuicaoMassaTab /> : <AutoPorPerfilTab />}
     </div>
   );
 }
@@ -157,8 +191,8 @@ function CatalogoTab() {
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-2">
         <div>
-          <CardTitle>Catálogo</CardTitle>
-          <CardDescription>Crie e edite os badges disponíveis.</CardDescription>
+          <CardTitle className="text-secondary">Badges disponíveis</CardTitle>
+          <CardDescription>Cria e edita os badges. Cada um pode desbloquear tipos de ação.</CardDescription>
         </div>
         <Button
           onClick={() => {
@@ -525,8 +559,8 @@ function UtilizadoresTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Utilizadores credenciados</CardTitle>
-        <CardDescription>Selecione um badge para ver quem o possui.</CardDescription>
+        <CardTitle className="text-secondary">Quem tem badges</CardTitle>
+        <CardDescription>Escolhe um badge para ver quem o tem.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -754,7 +788,7 @@ function AtribuicaoMassaTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Atribuição em massa</CardTitle>
+        <CardTitle className="text-secondary">Atribuir a pessoas escolhidas</CardTitle>
         <CardDescription>
           Atribua um badge a todos os utilizadores que pertencem a determinados perfis.
         </CardDescription>
@@ -905,7 +939,7 @@ function AutoPorPerfilTab() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Auto-atribuição por perfil</CardTitle>
+        <CardTitle className="text-secondary">Atribuir automaticamente a um perfil</CardTitle>
         <CardDescription>
           Quando um utilizador receber um perfil aqui listado, recebe automaticamente o badge associado. Aplica-se a novos registos e a futuras atribuições de perfil.
         </CardDescription>

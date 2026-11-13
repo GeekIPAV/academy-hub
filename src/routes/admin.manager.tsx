@@ -51,9 +51,11 @@ import { createInvite, deleteInvite, listInvites, revokeInvite, updateInvite } f
 import { useQuery } from "@tanstack/react-query";
 
 import { RouteGate } from "@/components/RouteGate";
+import { PageHeader, PageShell } from "@/components/shell/PageHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/admin/manager")({
-  head: () => ({ meta: [{ title: "Central de Comando — Admin" }] }),
+  head: () => ({ meta: [{ title: "Utilizadores e acessos | Gestão" }] }),
   component: () => (
     <RouteGate path="/admin/manager">
       <AdminManagerPage />
@@ -94,23 +96,35 @@ function AdminManagerPage() {
   const visible = (id: string) => isComponentVisible("/admin/manager", id);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-
+    <PageShell>
       <ComponentAccessMatrix pagePath="/admin/manager" />
       {visible("header") && (
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Central de Comando</h1>
-          <p className="text-sm text-muted-foreground">
-            Gere os perfis de utilizador e configure os respetivos acessos.
-          </p>
-        </div>
+        <PageHeader
+          eyebrow="Pessoas e organizações"
+          title="Utilizadores e acessos"
+          description="Quem tem conta na plataforma, com que perfil, e o que cada perfil pode ver."
+        />
       )}
-      <RolesManager />
-      {visible("route-matrix") && <AccessTab />}
-      <InviteLinksManager />
-      <UsersManager />
-
-    </div>
+      <Tabs defaultValue="utilizadores" className="space-y-5">
+        <div className="overflow-x-auto">
+          <TabsList>
+            <TabsTrigger value="utilizadores">Utilizadores</TabsTrigger>
+            <TabsTrigger value="perfis">Perfis e acessos</TabsTrigger>
+            <TabsTrigger value="convites">Links de convite</TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="utilizadores">
+          <UsersManager />
+        </TabsContent>
+        <TabsContent value="perfis" className="space-y-6">
+          <RolesManager />
+          {visible("route-matrix") && <AccessTab />}
+        </TabsContent>
+        <TabsContent value="convites">
+          <InviteLinksManager />
+        </TabsContent>
+      </Tabs>
+    </PageShell>
   );
 }
 
@@ -207,7 +221,7 @@ function UsersManager() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Utilizadores</CardTitle>
+        <CardTitle className="text-secondary">Utilizadores</CardTitle>
         <CardDescription>
           Atribui perfis, inativa ou apaga utilizadores. Inativos não conseguem fazer login.
         </CardDescription>
@@ -398,7 +412,7 @@ function RolesManager() {
             label="Perfis de Utilizador"
           />
           <div>
-            <CardTitle>Perfis de Utilizador</CardTitle>
+            <CardTitle className="text-secondary">Perfis</CardTitle>
             <CardDescription>
               Cria novos perfis para depois definir, na matriz abaixo, o que cada um pode ver.
             </CardDescription>
@@ -539,7 +553,7 @@ function AccessTab() {
           label="Matriz de Acessos"
         />
         <div>
-          <CardTitle>Matriz de Acessos</CardTitle>
+          <CardTitle className="text-secondary">O que cada perfil vê</CardTitle>
           <CardDescription>
             Controle que rotas cada perfil pode aceder. Linhas: rotas. Colunas: perfis.
           </CardDescription>
@@ -736,7 +750,7 @@ function InviteLinksManager() {
             label="Links de Convite"
           />
           <div>
-            <CardTitle>Links de Convite</CardTitle>
+            <CardTitle className="text-secondary">Links de convite</CardTitle>
             <CardDescription>
               Gera um link partilhável com os perfis que escolheres. Quem aceder cria a própria conta.
             </CardDescription>
