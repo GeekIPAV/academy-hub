@@ -293,7 +293,7 @@ export function ResultadosTab({ actionId }: { actionId: string }) {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Painel titulo="Organizações" descricao="Pessoas inscritas por organização">
+        <Painel titulo="Organizações" descricao="Pessoas inscritas por entidade">
           <BarList items={r.organizacoes} total={r.total} />
         </Painel>
         <Painel titulo="Cidades" descricao="Pessoas inscritas por localidade">
