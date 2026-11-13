@@ -22,7 +22,7 @@ import {
 } from "@/lib/invites.functions";
 
 export const Route = createFileRoute("/convite/$token")({
-  head: () => ({ meta: [{ title: "Convite — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Convite | Academia de Líderes Ubuntu" }] }),
   component: ConvitePage,
 });
 

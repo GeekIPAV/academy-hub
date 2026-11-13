@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -148,19 +149,18 @@ export const Route = createFileRoute("/_authenticated/admin/recursos")({
     if (!perms || perms.length === 0) throw redirect({ to: "/dashboard" });
   },
 
-  head: () => ({ meta: [{ title: "Gestor de Recursos — Admin" }] }),
+  head: () => ({ meta: [{ title: "Centro de recursos | Gestão" }] }),
   component: AdminResourcesPage,
 });
 
 function AdminResourcesPage() {
   return (
-    <div className="container mx-auto max-w-6xl space-y-6 p-6">
-      <header>
-        <h1 className="text-2xl font-semibold">Centro de Recursos</h1>
-        <p className="text-sm text-muted-foreground">
-          Gere a Biblioteca, os Temas dos clusters e as suas associações.
-        </p>
-      </header>
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-6">
+      <PageHeader
+        eyebrow="Conteúdos"
+        title="Centro de recursos"
+        description="Gere a biblioteca de recursos, os temas de cada cluster e as ligações entre eles."
+      />
 
       <Tabs defaultValue="biblioteca" className="w-full">
         <TabsList>

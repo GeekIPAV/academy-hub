@@ -9,7 +9,7 @@ import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { RouteGate } from "@/components/RouteGate";
 
 export const Route = createFileRoute("/actions")({
-  head: () => ({ meta: [{ title: "Ações — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Eventos e formações | Academia de Líderes Ubuntu" }] }),
   component: () => (
     <RouteGate path="/actions">
       <ActionsPage />

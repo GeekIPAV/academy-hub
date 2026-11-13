@@ -14,9 +14,9 @@ import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId/")({
   head: () => ({ meta: [
-    { title: "Curso — Escola Ubuntu Online" },
+    { title: "Curso | Escola Ubuntu Online" },
     { name: "description", content: "Percurso, módulos e inscrição no curso da Escola Ubuntu Online." },
-    { property: "og:title", content: "Curso — Escola Ubuntu Online" },
+    { property: "og:title", content: "Curso | Escola Ubuntu Online" },
     { property: "og:description", content: "Percurso, módulos e inscrição no curso." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },

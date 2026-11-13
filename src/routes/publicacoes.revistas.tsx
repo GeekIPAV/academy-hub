@@ -15,8 +15,8 @@ import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 export const Route = createFileRoute("/publicacoes/revistas")({
   head: () => ({
     meta: [
-      { title: "Revistas Científicas — Ubuntu" },
-      { name: "description", content: "Revista Ubuntu — artigos de ciências sociais e humanas." },
+      { title: "Revista científica | Academia de Líderes Ubuntu" },
+      { name: "description", content: "Revista Ubuntu: artigos de ciências sociais e humanas." },
     ],
   }),
   component: () => (

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { RefreshCw, Lock } from "lucide-react";
@@ -39,7 +40,7 @@ import {
 } from "@/lib/governance.functions";
 
 export const Route = createFileRoute("/admin/governacao")({
-  head: () => ({ meta: [{ title: "Governação de Dados — Admin" }] }),
+  head: () => ({ meta: [{ title: "Governação de dados | Gestão" }] }),
   component: () => (
     <RouteGate path="/admin/governacao">
       <GovernancaPage />
@@ -51,14 +52,12 @@ function GovernancaPage() {
 
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Governação de Dados</h1>
-        <p className="text-sm text-muted-foreground">
-          Define que colunas da tabela de utilizadores são consideradas sensíveis para
-          efeitos de anonimização RGPD. A lista é sincronizada automaticamente com o schema.
-        </p>
-      </div>
+    <div className="mx-auto w-full min-w-0 max-w-4xl space-y-6">
+      <PageHeader
+        eyebrow="Sistema"
+        title="Governação de dados"
+        description="Define que colunas da tabela de utilizadores são sensíveis para efeitos de anonimização (RGPD). A lista acompanha automaticamente a estrutura da base de dados."
+      />
       <FieldsTable />
     </div>
   );

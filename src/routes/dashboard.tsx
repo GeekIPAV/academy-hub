@@ -12,13 +12,13 @@ import { RouteGate } from "@/components/RouteGate";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Página Inicial — Academia de Líderes Ubuntu" },
+      { title: "Página inicial | Academia de Líderes Ubuntu" },
       {
         name: "description",
         content:
           "Acompanha o teu percurso na Academia de Líderes Ubuntu: programas, formações e centro de recursos num só lugar.",
       },
-      { property: "og:title", content: "Página Inicial — Academia de Líderes Ubuntu" },
+      { property: "og:title", content: "Página inicial | Academia de Líderes Ubuntu" },
       {
         property: "og:description",
         content: "Acompanha o teu percurso, programas e recursos da Academia de Líderes Ubuntu.",

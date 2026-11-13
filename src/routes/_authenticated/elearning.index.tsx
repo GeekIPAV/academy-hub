@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -20,9 +21,9 @@ import { listCatalogo, type CursoCardDTO } from "@/lib/elearning.functions";
 
 export const Route = createFileRoute("/_authenticated/elearning/")({
   head: () => ({ meta: [
-    { title: "E-learning — Escola Ubuntu Online" },
+    { title: "E-learning | Escola Ubuntu Online" },
     { name: "description", content: "Cursos online e em turma para professores e educadores da Academia de Líderes Ubuntu." },
-    { property: "og:title", content: "E-learning — Escola Ubuntu Online" },
+    { property: "og:title", content: "E-learning | Escola Ubuntu Online" },
     { property: "og:description", content: "Cursos online e em turma para professores e educadores." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },
@@ -59,10 +60,7 @@ function CatalogoPage() {
   return (
     <div className="course-catalog mx-auto max-w-7xl space-y-8">
       <ComponentAccessMatrix pagePath="/elearning" />
-      <header className="min-w-0 space-y-2">
-        <p className="text-xs font-semibold uppercase text-muted-foreground">E-learning</p>
-        <h1 className="text-3xl font-bold">Programas de Formação Ubuntu</h1>
-      </header>
+      <PageHeader eyebrow="E-learning" title="Programas de formação Ubuntu" />
 
       {isLoading && <CatalogSkeleton />}
 

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -47,7 +48,7 @@ import {
 export const Route = createFileRoute("/publicacoes/biblioteca")({
   head: () => ({
     meta: [
-      { title: "Biblioteca | IPAV" },
+      { title: "Biblioteca | Academia de Líderes Ubuntu" },
       {
         name: "description",
         content: "Biblioteca de publicações IPAV e outras obras de referência.",
@@ -117,20 +118,14 @@ function BibliotecaPage() {
   }, [publicacoes]);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-6">
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-6">
       <ComponentAccessMatrix pagePath="/publicacoes/biblioteca" />
 
-      <header className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <BookOpen className="h-5 w-5" />
-          <span className="text-xs uppercase tracking-wider">Publicações</span>
-        </div>
-        <h1 className="text-3xl font-semibold tracking-tight">Biblioteca</h1>
-        <p className="text-sm text-muted-foreground max-w-2xl">
-          Publicações do IPAV e referências externas. Pesquisa, filtra e
-          sugere novas adições.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Publicações"
+        title="Biblioteca"
+        description="Publicações do IPAV e referências externas. Pesquisa, filtra e sugere novas adições."
+      />
 
       <Tabs value={tab} onValueChange={(v) => { const t = v as "ipav" | "outras"; setTab(t); setCategoriaId("all"); setView(t === "outras" ? "list" : "gallery"); }}>
         <div className="flex flex-wrap items-center justify-between gap-3">

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
@@ -18,7 +19,7 @@ import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 export const Route = createFileRoute("/comunicacao/press-media-kit")({
   head: () => ({
     meta: [
-      { title: "Press Kit — Academia de Líderes Ubuntu" },
+      { title: "Press media kit | Academia de Líderes Ubuntu" },
       {
         name: "description",
         content:
@@ -44,7 +45,7 @@ type PageContent = {
 const SLUG = "press-media-kit";
 
 const DEFAULT_CONTENT: PageContent = {
-  title: "ACADEMIA DE LÍDERES UBUNTU — Press Kit",
+  title: "Press kit da Academia de Líderes Ubuntu",
   body: `<p>A Academia de Líderes Ubuntu é um projeto de educação não-formal, desenvolvido pelo Instituto Padre António Vieira (IPAV) a partir da filosofia <em>"Ubuntu - Eu sou porque tu és"</em> que visa o desenvolvimento de competências socioemocionais, com uma forte base experiencial e relacional.</p><p>Tem como espaço privilegiado de atuação a escola e o seu universo educativo, envolvendo crianças, jovens, educadores e a comunidade educativa.</p><p>Contribui para a descoberta do sentido e propósito das crianças, jovens e dos seus educadores e, por meio disso, para a capacitação de novas lideranças ao serviço da comunidade.</p>`,
   links: [
     { label: "Identidade visual ALU: Manual de Normas ALU.pdf", url: "#" },
@@ -119,19 +120,20 @@ function PressKitPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl py-4 space-y-8">
+    <div className="mx-auto w-full min-w-0 max-w-4xl space-y-6">
       <ComponentAccessMatrix pagePath="/comunicacao/press-media-kit" />
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {content.title}
-        </h1>
-        {isAdmin && (
-          <Button variant="outline" size="sm" onClick={openEditor} className="shrink-0">
-            <Pencil className="h-4 w-4 mr-2" />
-            Editar
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        eyebrow="Comunicação"
+        title={content.title}
+        actions={
+          isAdmin ? (
+            <Button variant="outline" size="sm" onClick={openEditor} className="shrink-0">
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar
+            </Button>
+          ) : undefined
+        }
+      />
 
       {content.body && (
         /<[a-z][\s\S]*>/i.test(content.body) ? (

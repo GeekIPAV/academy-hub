@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,7 +24,7 @@ interface ClusterCoverRow {
 }
 
 export const Route = createFileRoute("/_authenticated/recursos/")({
-  head: () => ({ meta: [{ title: "Centro de Recursos — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Centro de recursos | Academia de Líderes Ubuntu" }] }),
   component: ResourcesIndex,
 });
 
@@ -86,15 +87,11 @@ function ResourcesIndex() {
     <div className="mx-auto max-w-6xl space-y-6">
       <ComponentAccessMatrix pagePath="/recursos" />
 
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight text-secondary">
-          Centro de Recursos
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Materiais pedagógicos organizados por cluster. Seleciona um cluster
-          para explorares os temas e respetivos recursos.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Aprender"
+        title="Centro de recursos"
+        description="Materiais pedagógicos organizados por cluster. Escolhe um cluster para explorares os temas e os recursos."
+      />
 
       {clustersQuery.isLoading ? (
         <div className="flex justify-center py-12">

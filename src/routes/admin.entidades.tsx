@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -46,7 +47,7 @@ import {
 import { AdminTransferRequestsTable } from "@/components/admin/AdminTransferRequestsTable";
 
 export const Route = createFileRoute("/admin/entidades")({
-  head: () => ({ meta: [{ title: "Gestão de Entidades — Admin" }] }),
+  head: () => ({ meta: [{ title: "Organizações | Gestão" }] }),
   component: () => (
     <RouteGate path="/admin/entidades">
       <AdminEntidadesPage />
@@ -151,24 +152,18 @@ function AdminEntidadesPage() {
 
 
   return (
-    <div className="container mx-auto max-w-6xl space-y-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <Building2 className="h-6 w-6" /> Gestão de Entidades
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Todas as entidades registadas na plataforma.
-          </p>
-        </div>
-        <Button
-          onClick={() => copyInvite.mutate()}
-          disabled={copyInvite.isPending}
-        >
-          <Copy className="mr-2 h-4 w-4" />
-          {copyInvite.isPending ? "A gerar…" : "Copiar link de convite (Entidade)"}
-        </Button>
-      </div>
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-6">
+      <PageHeader
+        eyebrow="Pessoas e organizações"
+        title="Organizações"
+        description="Todas as organizações registadas na plataforma."
+        actions={
+          <Button onClick={() => copyInvite.mutate()} disabled={copyInvite.isPending}>
+            <Copy className="mr-2 h-4 w-4" />
+            {copyInvite.isPending ? "A gerar…" : "Copiar link de convite para organizações"}
+          </Button>
+        }
+      />
 
       <Collapsible open={addOpen} onOpenChange={setAddOpen}>
         <Card>

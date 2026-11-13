@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -40,9 +41,9 @@ import {
 export const Route = createFileRoute("/admin/projetos")({
   head: () => ({
     meta: [
-      { title: "Gestão de Projetos — Admin" },
+      { title: "Projetos | Gestão" },
       { name: "description", content: "Projetos, entidades e participantes com acesso a ações reservadas." },
-      { property: "og:title", content: "Gestão de Projetos — Admin" },
+      { property: "og:title", content: "Projetos | Gestão" },
       { property: "og:description", content: "Projetos, entidades e participantes com acesso a ações reservadas." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -88,14 +89,12 @@ function ProjetosPage() {
   const sel = projetos.find((p) => p.id === selId) ?? null;
 
   return (
-    <div className="min-w-0 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-secondary">Gestão de Projetos</h1>
-        <p className="text-sm text-muted-foreground">
-          Associa entidades e pessoas a projetos. Quem pertence a uma entidade do projeto tem acesso
-          enquanto a entidade lá estiver.
-        </p>
-      </div>
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-6">
+      <PageHeader
+        eyebrow="Programas e ações"
+        title="Projetos"
+        description="Liga organizações e pessoas a projetos. Quem pertence a uma organização do projeto tem acesso enquanto a organização lá estiver."
+      />
       <div className="grid min-w-0 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         <section className="min-w-0 space-y-3 rounded-xl border bg-card p-5 shadow-sm">
           <form

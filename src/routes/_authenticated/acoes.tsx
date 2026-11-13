@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -21,13 +22,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/acoes")({
   head: () => ({
     meta: [
-      { title: "Ações — Academia de Líderes Ubuntu" },
+      { title: "Ações | Academia de Líderes Ubuntu" },
       {
         name: "description",
         content:
           "Galeria de ações e eventos da Academia de Líderes Ubuntu com inscrições abertas, em vista de cartões ou calendário.",
       },
-      { property: "og:title", content: "Ações — Academia de Líderes Ubuntu" },
+      { property: "og:title", content: "Ações | Academia de Líderes Ubuntu" },
       {
         property: "og:description",
         content: "Consulta e inscreve-te nas ações com inscrições abertas.",
@@ -95,15 +96,11 @@ function AcoesPublicPage() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-secondary">Ações</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Eventos e formações da comunidade Ubuntu. Escolhe uma ação para saberes mais e
-            inscreveres-te.
-          </p>
-        </div>
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-6">
+      <PageHeader
+        title="Ações"
+        description="Eventos e formações da comunidade Ubuntu. Escolhe uma ação para saberes mais e te inscreveres."
+        actions={
         <div className="flex rounded-md border p-0.5">
           <Button
             type="button"
@@ -122,7 +119,8 @@ function AcoesPublicPage() {
             <CalendarDays className="mr-1.5 h-4 w-4" /> Calendário
           </Button>
         </div>
-      </header>
+        }
+      />
 
       <div className="flex flex-wrap gap-2">
         <FilterSelect

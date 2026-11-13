@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -32,7 +33,7 @@ import { anonimizarUtilizador } from "@/lib/governance.functions";
 import { CertificacaoForm } from "@/components/CertificacaoForm";
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({ meta: [{ title: "O meu Perfil — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "O meu perfil | Academia de Líderes Ubuntu" }] }),
   component: ProfilePage,
 });
 
@@ -42,13 +43,10 @@ function ProfilePage() {
   const { user } = useAuth();
   const visible = (id: string) => isComponentVisible("/profile", id);
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto w-full min-w-0 max-w-4xl space-y-6">
       <ComponentAccessMatrix pagePath="/profile" />
       {visible("header") && (
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">O meu Perfil</h1>
-          <p className="text-sm text-muted-foreground">Gere os seus dados pessoais e de certificação.</p>
-        </div>
+        <PageHeader title="O meu perfil" description="Os teus dados pessoais e de certificação." />
       )}
 
       <Tabs defaultValue="dados">

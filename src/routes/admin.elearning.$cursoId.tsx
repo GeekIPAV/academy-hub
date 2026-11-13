@@ -37,9 +37,9 @@ import {
 export const Route = createFileRoute("/admin/elearning/$cursoId")({
   head: () => ({
     meta: [
-      { title: "Editar curso — Gestão de E-learning" },
+      { title: "Curso | Gestão" },
       { name: "description", content: "Dados, conteúdos, turmas e inscritos de um curso da Escola Ubuntu Online." },
-      { property: "og:title", content: "Editar curso — Gestão de E-learning" },
+      { property: "og:title", content: "Curso | Gestão" },
       { property: "og:description", content: "Dados, conteúdos, turmas e inscritos do curso." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -66,7 +66,7 @@ function CursoAdminPage() {
       </Link>
       <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <div className="min-w-0">
-          <h1 className="truncate text-2xl font-semibold">{data.curso.title}</h1>
+          <h1 className="truncate text-2xl font-semibold tracking-tight text-secondary sm:text-[28px]">{data.curso.title}</h1>
           <Badge variant={data.curso.estado === "publicado" ? "default" : "secondary"} className="mt-2">{data.curso.estado === "publicado" ? "Publicado" : data.curso.estado === "arquivado" ? "Arquivado" : "Rascunho"}</Badge>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">

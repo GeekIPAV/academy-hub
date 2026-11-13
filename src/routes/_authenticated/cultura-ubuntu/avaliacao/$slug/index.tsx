@@ -13,9 +13,9 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/cultura-ubuntu/avaliacao/$slug/")({
   head: () => ({
     meta: [
-      { title: "Recurso de avaliação de impacto — Cultura Ubuntu" },
+      { title: "Avaliação de impacto | Academia de Líderes Ubuntu" },
       { name: "description", content: "Metodologias, referenciais e indicadores de um recurso de avaliação de impacto da Cultura Ubuntu." },
-      { property: "og:title", content: "Recurso de avaliação de impacto — Cultura Ubuntu" },
+      { property: "og:title", content: "Avaliação de impacto | Academia de Líderes Ubuntu" },
       { property: "og:description", content: "Consulta metodologias, referenciais e indicadores deste recurso de avaliação." },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary" },

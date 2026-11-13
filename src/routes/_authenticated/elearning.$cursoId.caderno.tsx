@@ -11,9 +11,9 @@ import { sanitizeRichHtml } from "@/lib/sanitize-html";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId/caderno")({
   head: () => ({ meta: [
-    { title: "O meu Caderno de Percurso — Escola Ubuntu Online" },
+    { title: "O meu caderno de percurso | Escola Ubuntu Online" },
     { name: "description", content: "Reflexões pessoais e privadas ao longo da formação Ubuntu." },
-    { property: "og:title", content: "Caderno de Percurso — Escola Ubuntu Online" },
+    { property: "og:title", content: "Caderno de percurso | Escola Ubuntu Online" },
     { property: "og:description", content: "Reflexões pessoais ao longo da formação Ubuntu." },
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
     { name: "robots", content: "noindex" },
