@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { getCallerRoleScope } from "@/lib/admin-access.server";
 
 async function assertAdmin(userId: string) {
   const { data, error } = await supabaseAdmin
@@ -17,10 +18,14 @@ async function assertAdmin(userId: string) {
 
 export const listPermissions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => {
-    const { data, error } = await supabaseAdmin
-      .from("permissoes_roles")
-      .select("id, role_name, resource_id, tipo");
+  .handler(async ({ context }) => {
+    const scope = await getCallerRoleScope(context.userId);
+    let q = supabaseAdmin.from("permissoes_roles").select("id, role_name, resource_id, tipo");
+    if (!scope.isEquipa) {
+      if (scope.roles.length === 0) return [];
+      q = q.in("role_name", scope.roles);
+    }
+    const { data, error } = await q;
     if (error) throw new Error(error.message);
     return data ?? [];
   });
