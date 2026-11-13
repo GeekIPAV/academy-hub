@@ -165,9 +165,9 @@ function AdminResourcesPage() {
       <Tabs defaultValue="biblioteca" className="w-full">
         <TabsList>
           <TabsTrigger value="biblioteca">Biblioteca</TabsTrigger>
-          <TabsTrigger value="temas">Gestão de Temas</TabsTrigger>
+          <TabsTrigger value="temas">Temas</TabsTrigger>
           <TabsTrigger value="assoc">Associações</TabsTrigger>
-          <TabsTrigger value="tipos">Tipos e Categorias</TabsTrigger>
+          <TabsTrigger value="tipos">Tipos e categorias</TabsTrigger>
         </TabsList>
 
         <TabsContent value="biblioteca" className="mt-4">

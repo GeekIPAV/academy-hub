@@ -709,7 +709,7 @@ function ClusterProgramsPanel({
             <TableHeader>
               <TableRow>
                 <TableHead>Título</TableHead>
-                <TableHead className="w-32">Status</TableHead>
+                <TableHead className="w-32">Estado</TableHead>
                 <TableHead className="w-40">Inscrições</TableHead>
               </TableRow>
             </TableHeader>

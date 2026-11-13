@@ -179,7 +179,7 @@ function PressKitPage() {
       <Dialog open={editing} onOpenChange={setEditing}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Press Kit</DialogTitle>
+            <DialogTitle>Editar press kit</DialogTitle>
           </DialogHeader>
           <div className="space-y-6">
             <div className="space-y-2">

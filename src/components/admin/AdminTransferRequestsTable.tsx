@@ -102,7 +102,7 @@ export function AdminTransferRequestsTable() {
                         <Button
                           size="sm"
                           variant="default"
-                          className="bg-emerald-600 hover:bg-emerald-700"
+                          
                           disabled={pending}
                           onClick={() =>
                             decide.mutate({ requestId: r.id, decision: "aprovado" })

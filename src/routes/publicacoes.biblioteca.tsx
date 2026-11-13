@@ -131,7 +131,7 @@ function BibliotecaPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <TabsList>
             <TabsTrigger value="ipav">Publicações IPAV</TabsTrigger>
-            <TabsTrigger value="outras">Outras Publicações</TabsTrigger>
+            <TabsTrigger value="outras">Outras publicações</TabsTrigger>
           </TabsList>
 
           <div className="flex min-w-0 flex-wrap items-center gap-2">

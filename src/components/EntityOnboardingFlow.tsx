@@ -498,7 +498,7 @@ export function EntityOnboardingFlow() {
                       )}
                     </div>
                     {e.status && e.status.toLowerCase() === "pendente" && (
-                      <Badge variant="outline" className="border-amber-500 text-amber-700">
+                      <Badge variant="outline" className="border-[#FFB90B] bg-[#FFF1CC] text-[#6B4200]">
                         Pendente
                       </Badge>
                     )}

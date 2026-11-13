@@ -199,7 +199,7 @@ export function WidgetRoadmap({
                 >
                   {item.action ? (
                     <Link
-                      to="/actions/$id"
+                      to="/evento/$id"
                       params={{ id: item.action.id }}
                       className="block rounded-2xl p-1 transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >

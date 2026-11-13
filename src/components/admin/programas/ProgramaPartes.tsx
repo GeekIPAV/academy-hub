@@ -318,7 +318,7 @@ export function InstituicoesTab({ programId }: { programId: string }) {
               <TableRow>
                 <TableHead>Instituição</TableHead>
                 <TableHead>Localidade</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -392,7 +392,7 @@ export function ParticipantesTab({ programId }: { programId: string }) {
                 <TableHead>Nome Completo</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Instituição</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

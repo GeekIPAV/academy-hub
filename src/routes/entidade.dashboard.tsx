@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
 import { PageHeader, PageShell, Section, SummaryStrip } from "@/components/shell/PageHeader";
-import { StatusChip } from "@/components/shell/StatusChip";
+import { StatusChip, acaoStatusTone } from "@/components/shell/StatusChip";
 import { FormField } from "@/components/shell/FormField";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -890,15 +890,10 @@ function daysUntil(dateISO: string | null): number | null {
 }
 
 function statusBadge(status: string | null) {
-  const s = (status ?? "Pendente").toLowerCase();
-  if (s === "confirmada" || s === "confirmado")
-    return <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">Confirmada</Badge>;
-  if (s === "cancelada" || s === "cancelado")
-    return <Badge variant="destructive">Cancelada</Badge>;
   return (
-    <Badge className="bg-amber-500 text-white hover:bg-amber-500">
+    <StatusChip tone={acaoStatusTone(status ?? "Pendente")} dot>
       {status ?? "Pendente"}
-    </Badge>
+    </StatusChip>
   );
 }
 

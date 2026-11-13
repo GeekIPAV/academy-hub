@@ -990,7 +990,7 @@ function PendentesTab() {
                   <div className="flex justify-end gap-2">
                     <Button
                       size="sm"
-                      className="bg-green-600 text-white hover:bg-green-700"
+                      
                       onClick={() => decide.mutate({ id: p.id, action: "approve" })}
                     >
                       <Check className="h-4 w-4" />
