@@ -567,13 +567,13 @@ function BibliotecaTab() {
               <Select value={filterTema} onValueChange={setFilterTema} disabled={!filterCluster}>
                 <SelectTrigger>
                   <SelectValue
-                    placeholder={filterCluster ? "Todos do cluster" : "Selecione um cluster"}
+                    placeholder={filterCluster ? "Todos do cluster" : "Escolhe um cluster"}
                   />
                 </SelectTrigger>
                 <SelectContent>
                   {temasOfCluster.map((t) => (
                     <SelectItem key={t.id} value={t.id}>
-                      {t.bloco ? `${t.bloco} — ${t.title}` : t.title}
+                      {t.bloco ? `${t.bloco}: ${t.title}` : t.title}
                     </SelectItem>
                   ))}
                 </SelectContent>

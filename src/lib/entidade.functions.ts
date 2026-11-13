@@ -660,7 +660,7 @@ export const getOrCreateEntidadeInvite = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     await assertAdminUser(context.userId);
 
-    const LABEL = "Convite genérico — Entidade";
+    const LABEL = "Convite genérico: Entidade";
 
     const { data: existing, error: fErr } = await supabaseAdmin
       .from("convites")
@@ -966,7 +966,7 @@ export const requestEntityTransfer = createServerFn({ method: "POST" })
 
     const owner = await getEntityOwnerInternal(data.entityId);
     if (!owner)
-      throw new Error("Esta organização não tem responsável — pode vincular-se diretamente.");
+      throw new Error("Esta organização ainda não tem responsável. Podes ligar-te diretamente.");
 
     const { data: existing } = await supabaseAdmin
       .from("entity_transfer_requests")

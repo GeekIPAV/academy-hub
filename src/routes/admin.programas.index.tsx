@@ -966,7 +966,7 @@ function BulkProgramasDialog({
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={8}
-          placeholder={`${clusterName} ${ay}\n${clusterName} ${ay} — turma B`}
+          placeholder={`${clusterName} ${ay}\n${clusterName} ${ay}, turma B`}
         />
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>

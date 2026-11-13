@@ -11,7 +11,7 @@ export const listRespostasQuiz = createServerFn({ method: "POST" })
     if (!r?.length) throw new Error("Apenas a Equipa IPAV pode consultar as respostas.");
     const { supabaseAdmin: sb } = await import("@/integrations/supabase/client.server");
     const { data: mods } = await sb.from("cursos_modulos").select("title,sort_order,cursos_passos(id,title,tipo)").eq("curso_id", data.cursoId).order("sort_order");
-    const quizzes = (mods ?? []).flatMap((m, mi) => (m.cursos_passos ?? []).filter((p) => p.tipo === "quiz").map((p) => ({ id: p.id, title: p.title, modulo: `Módulo ${mi + 1} — ${m.title}` })));
+    const quizzes = (mods ?? []).flatMap((m, mi) => (m.cursos_passos ?? []).filter((p) => p.tipo === "quiz").map((p) => ({ id: p.id, title: p.title, modulo: `Módulo ${mi + 1}: ${m.title}` })));
     if (!quizzes.length) return [];
     const ids = quizzes.map((q) => q.id);
     const [{ data: perguntas }, { data: atividade }] = await Promise.all([

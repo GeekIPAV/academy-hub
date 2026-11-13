@@ -265,7 +265,7 @@ function OrganizacoesTab({
     onSuccess: (_r, vars) => {
       toast.success(
         vars.decision === "aprovada"
-          ? "Organização aprovada — convite enviado por email."
+          ? "Organização aprovada. O convite foi enviado por email."
           : vars.decision === "pendente"
             ? "Inscrição reposta como pendente."
             : "Inscrição rejeitada.",

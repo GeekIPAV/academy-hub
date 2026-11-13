@@ -51,33 +51,27 @@ export const PAGE_COMPONENTS: Record<string, PageComponent[]> = {
     { id: "profile-button", label: "Botão Perfil" },
     { id: "recursos-button", label: "Botão Centro de Recursos" },
     { id: "roadmap", label: "Widget Meu Percurso" },
-    { id: "improving-banner", label: "Banner a melhorar" },
   ],
   "/actions": [
     { id: "header", label: "Cabeçalho" },
     { id: "table", label: "Tabela de ações" },
-    { id: "improving-banner", label: "Banner a melhorar" },
   ],
   "/dados-certificacao": [
     { id: "header", label: "Cabeçalho" },
     { id: "step1", label: "Passo 1 — Enquadramento" },
     { id: "step2", label: "Passo 2 — Dados oficiais" },
-    { id: "improving-banner", label: "Banner a melhorar" },
   ],
   "/profile": [
     { id: "header", label: "Cabeçalho" },
     { id: "form", label: "Formulário de dados" },
-    { id: "improving-banner", label: "Banner a melhorar" },
   ],
   "/recursos": [
     { id: "header", label: "Cabeçalho" },
     { id: "tabs", label: "Tabs de fases" },
-    { id: "improving-banner", label: "Banner a melhorar" },
   ],
   "/admin/manager": [
     { id: "header", label: "Cabeçalho" },
     { id: "route-matrix", label: "Matriz de Rotas" },
-    { id: "improving-banner", label: "Banner a melhorar" },
   ],
   "/entidade/dashboard": [
     { id: "header", label: "Cabeçalho" },
@@ -86,7 +80,6 @@ export const PAGE_COMPONENTS: Record<string, PageComponent[]> = {
     { id: "tab-data", label: "Botão Editar Dados da Organização" },
     { id: "invite-card", label: "Card Link de Convite" },
     { id: "trainees-table", label: "Tabela de Formandos" },
-    { id: "improving-banner", label: "Banner a melhorar" },
   ],
 };
 

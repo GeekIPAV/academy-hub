@@ -442,7 +442,7 @@ export const decidirOrganizacaoInscricao = createServerFn({ method: "POST" })
         .from("convites")
         .insert({
           roles: ["Entidade"],
-          label: `Acesso — ${cohort.entidades?.name ?? "Organização"}`,
+          label: `Acesso: ${cohort.entidades?.name ?? "Organização"}`,
           created_by: context.userId,
           entity_id: entityId,
           expires_at: null,
