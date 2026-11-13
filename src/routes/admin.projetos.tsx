@@ -42,9 +42,9 @@ export const Route = createFileRoute("/admin/projetos")({
   head: () => ({
     meta: [
       { title: "Projetos | Gestão" },
-      { name: "description", content: "Projetos, organizações e participantes com acesso a ações reservadas." },
+      { name: "description", content: "Projetos, entidades e participantes com acesso a ações reservadas." },
       { property: "og:title", content: "Projetos | Gestão" },
-      { property: "og:description", content: "Projetos, organizações e participantes com acesso a ações reservadas." },
+      { property: "og:description", content: "Projetos, entidades e participantes com acesso a ações reservadas." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -204,7 +204,7 @@ function ProjetoDetalhe({ projeto }: { projeto: { id: string; title: string; sta
           </Select>
           <Button
             disabled={!entSel}
-            onClick={() => run(addEnt({ data: { projectId: projeto.id, entityId: entSel } }), "Organização adicionada.")}
+            onClick={() => run(addEnt({ data: { projectId: projeto.id, entityId: entSel } }), "Entidade adicionada.")}
           >
             Adicionar
           </Button>
@@ -218,7 +218,7 @@ function ProjetoDetalhe({ projeto }: { projeto: { id: string; title: string; sta
                 size="icon"
                 variant="ghost"
                 aria-label={`Remover ${e.name}`}
-                onClick={() => run(rmEnt({ data: { id: e.id } }), "Organização removida. As pessoas dessa organização perderam o acesso.")}
+                onClick={() => run(rmEnt({ data: { id: e.id } }), "Entidade removida; os seus utilizadores perderam o acesso.")}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>

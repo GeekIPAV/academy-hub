@@ -118,12 +118,12 @@ function AdminEntidadesPage() {
     mutationFn: (items: NewItem[]) => createFn({ data: { items } }),
     onSuccess: (res) => {
       toast.success(
-        `${res.created} ${res.created === 1 ? "organização criada" : "organizações criadas"}.`,
+        `${res.created} ${res.created === 1 ? "entidade criada" : "entidades criadas"}.`,
       );
       qc.invalidateQueries({ queryKey: ["admin", "entidades"] });
     },
     onError: (e) =>
-      toast.error(e instanceof Error ? e.message : "Não foi possível criar as organizações."),
+      toast.error(e instanceof Error ? e.message : "Erro a criar entidades."),
   });
 
   const [addOpen, setAddOpen] = useState(false);
@@ -248,7 +248,7 @@ function AdminEntidadesPage() {
                     </div>
                   </div>
                   <Button onClick={submitSingle} disabled={create.isPending}>
-                    {create.isPending ? "A guardar…" : "Adicionar organização"}
+                    {create.isPending ? "A guardar…" : "Adicionar entidade"}
                   </Button>
                 </TabsContent>
                 <TabsContent value="bulk" className="space-y-3 pt-4">
@@ -277,9 +277,9 @@ function AdminEntidadesPage() {
       <Card>
 
         <CardHeader>
-          <CardTitle className="text-secondary">Organizações</CardTitle>
+          <CardTitle>Entidades</CardTitle>
           <CardDescription>
-            {entidades.length} {entidades.length === 1 ? "organização" : "organizações"}
+            {entidades.length} {entidades.length === 1 ? "entidade" : "entidades"}
           </CardDescription>
         </CardHeader>
         <CardContent>
