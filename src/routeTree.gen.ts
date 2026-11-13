@@ -22,8 +22,6 @@ import { Route as AuthenticatedAcoesRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedCulturaUbuntuRouteImport } from './routes/_authenticated/cultura-ubuntu'
 import { Route as AuthenticatedInscricaoProgramasRouteImport } from './routes/_authenticated/inscricao-programas'
 import { Route as AuthenticatedRecursosRouteImport } from './routes/_authenticated/recursos'
-import { Route as AdminAcoesIndexRouteImport } from './routes/admin.acoes.index'
-import { Route as AdminAcoesIdRouteImport } from './routes/admin.acoes.$id'
 import { Route as AdminAvaliacoesRouteImport } from './routes/admin.avaliacoes'
 import { Route as AdminBadgesRouteImport } from './routes/admin.badges'
 import { Route as AdminBibliotecaRouteImport } from './routes/admin.biblioteca'
@@ -31,8 +29,6 @@ import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as AdminEntidadesRouteImport } from './routes/admin.entidades'
 import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
-import { Route as AdminProgramasIndexRouteImport } from './routes/admin.programas.index'
-import { Route as AdminProgramasIdRouteImport } from './routes/admin.programas.$id'
 import { Route as AdminProjetosRouteImport } from './routes/admin.projetos'
 import { Route as AvaliarTokenRouteImport } from './routes/avaliar.$token'
 import { Route as ComunicacaoPressMediaKitRouteImport } from './routes/comunicacao.press-media-kit'
@@ -53,8 +49,12 @@ import { Route as AuthenticatedElearningIndexRouteImport } from './routes/_authe
 import { Route as AuthenticatedElearningCursoIdRouteImport } from './routes/_authenticated/elearning.$cursoId'
 import { Route as AuthenticatedRecursosIndexRouteImport } from './routes/_authenticated/recursos.index'
 import { Route as AuthenticatedRecursosClusterRouteImport } from './routes/_authenticated/recursos.$cluster'
+import { Route as AdminAcoesIndexRouteImport } from './routes/admin.acoes.index'
+import { Route as AdminAcoesIdRouteImport } from './routes/admin.acoes.$id'
 import { Route as AdminElearningIndexRouteImport } from './routes/admin.elearning.index'
 import { Route as AdminElearningCursoIdRouteImport } from './routes/admin.elearning.$cursoId'
+import { Route as AdminProgramasIndexRouteImport } from './routes/admin.programas.index'
+import { Route as AdminProgramasIdRouteImport } from './routes/admin.programas.$id'
 import { Route as CertificadosVerificarCodigoRouteImport } from './routes/certificados.verificar.$codigo'
 import { Route as EntidadeAcoesIdRouteImport } from './routes/entidade.acoes.$id'
 import { Route as LovableEmailSuppressionRouteImport } from './routes/lovable/email/suppression'
@@ -142,16 +142,6 @@ const AuthenticatedRecursosRoute = AuthenticatedRecursosRouteImport.update({
   path: '/recursos',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AdminAcoesIndexRoute = AdminAcoesIndexRouteImport.update({
-  id: '/admin/acoes/',
-  path: '/admin/acoes/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminAcoesIdRoute = AdminAcoesIdRouteImport.update({
-  id: '/admin/acoes/$id',
-  path: '/admin/acoes/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AdminAvaliacoesRoute = AdminAvaliacoesRouteImport.update({
   id: '/admin/avaliacoes',
   path: '/admin/avaliacoes',
@@ -185,16 +175,6 @@ const AdminGovernacaoRoute = AdminGovernacaoRouteImport.update({
 const AdminManagerRoute = AdminManagerRouteImport.update({
   id: '/admin/manager',
   path: '/admin/manager',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminProgramasIndexRoute = AdminProgramasIndexRouteImport.update({
-  id: '/admin/programas/',
-  path: '/admin/programas/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminProgramasIdRoute = AdminProgramasIdRouteImport.update({
-  id: '/admin/programas/$id',
-  path: '/admin/programas/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminProjetosRoute = AdminProjetosRouteImport.update({
@@ -305,6 +285,16 @@ const AuthenticatedRecursosClusterRoute =
     path: '/$cluster',
     getParentRoute: () => AuthenticatedRecursosRoute,
   } as any)
+const AdminAcoesIndexRoute = AdminAcoesIndexRouteImport.update({
+  id: '/admin/acoes/',
+  path: '/admin/acoes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAcoesIdRoute = AdminAcoesIdRouteImport.update({
+  id: '/admin/acoes/$id',
+  path: '/admin/acoes/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminElearningIndexRoute = AdminElearningIndexRouteImport.update({
   id: '/admin/elearning/',
   path: '/admin/elearning/',
@@ -313,6 +303,16 @@ const AdminElearningIndexRoute = AdminElearningIndexRouteImport.update({
 const AdminElearningCursoIdRoute = AdminElearningCursoIdRouteImport.update({
   id: '/admin/elearning/$cursoId',
   path: '/admin/elearning/$cursoId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProgramasIndexRoute = AdminProgramasIndexRouteImport.update({
+  id: '/admin/programas/',
+  path: '/admin/programas/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProgramasIdRoute = AdminProgramasIdRouteImport.update({
+  id: '/admin/programas/$id',
+  path: '/admin/programas/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CertificadosVerificarCodigoRoute =
@@ -444,8 +444,6 @@ export interface FileRoutesByFullPath {
   '/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/recursos': typeof AuthenticatedRecursosRouteWithChildren
-  '/admin/acoes/': typeof AdminAcoesIndexRoute
-  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
@@ -453,8 +451,6 @@ export interface FileRoutesByFullPath {
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
-  '/admin/programas/': typeof AdminProgramasIndexRoute
-  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -473,14 +469,18 @@ export interface FileRoutesByFullPath {
   '/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
   '/elearning/$cursoId': typeof AuthenticatedElearningCursoIdRouteWithChildren
   '/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
+  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/elearning/$cursoId': typeof AdminElearningCursoIdRoute
+  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/elearning/': typeof AuthenticatedElearningIndexRoute
   '/recursos/': typeof AuthenticatedRecursosIndexRoute
+  '/admin/acoes/': typeof AdminAcoesIndexRoute
   '/admin/elearning/': typeof AdminElearningIndexRoute
+  '/admin/programas/': typeof AdminProgramasIndexRoute
   '/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/elearning/$cursoId/caderno': typeof AuthenticatedElearningCursoIdCadernoRoute
@@ -510,8 +510,6 @@ export interface FileRoutesByTo {
   '/acoes': typeof AuthenticatedAcoesRoute
   '/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
-  '/admin/acoes': typeof AdminAcoesIndexRoute
-  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
@@ -519,8 +517,6 @@ export interface FileRoutesByTo {
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
-  '/admin/programas': typeof AdminProgramasIndexRoute
-  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -536,14 +532,18 @@ export interface FileRoutesByTo {
   '/publicacoes/revistas': typeof PublicacoesRevistasRouteWithChildren
   '/actions/$id': typeof AuthenticatedActionsIdRoute
   '/admin/recursos': typeof AuthenticatedAdminRecursosRoute
+  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/elearning/$cursoId': typeof AdminElearningCursoIdRoute
+  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/elearning': typeof AuthenticatedElearningIndexRoute
   '/recursos': typeof AuthenticatedRecursosIndexRoute
+  '/admin/acoes': typeof AdminAcoesIndexRoute
   '/admin/elearning': typeof AdminElearningIndexRoute
+  '/admin/programas': typeof AdminProgramasIndexRoute
   '/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/elearning/$cursoId/caderno': typeof AuthenticatedElearningCursoIdCadernoRoute
   '/recursos/$cluster/$temaId': typeof AuthenticatedRecursosClusterTemaIdRoute
@@ -575,8 +575,6 @@ export interface FileRoutesById {
   '/_authenticated/cultura-ubuntu': typeof AuthenticatedCulturaUbuntuRouteWithChildren
   '/_authenticated/inscricao-programas': typeof AuthenticatedInscricaoProgramasRoute
   '/_authenticated/recursos': typeof AuthenticatedRecursosRouteWithChildren
-  '/admin/acoes/': typeof AdminAcoesIndexRoute
-  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/avaliacoes': typeof AdminAvaliacoesRoute
   '/admin/badges': typeof AdminBadgesRoute
   '/admin/biblioteca': typeof AdminBibliotecaRoute
@@ -584,8 +582,6 @@ export interface FileRoutesById {
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
   '/admin/manager': typeof AdminManagerRoute
-  '/admin/programas/': typeof AdminProgramasIndexRoute
-  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
   '/comunicacao/press-media-kit': typeof ComunicacaoPressMediaKitRoute
@@ -604,14 +600,18 @@ export interface FileRoutesById {
   '/_authenticated/cultura-ubuntu/avaliacao': typeof AuthenticatedCulturaUbuntuAvaliacaoRouteWithChildren
   '/_authenticated/elearning/$cursoId': typeof AuthenticatedElearningCursoIdRouteWithChildren
   '/_authenticated/recursos/$cluster': typeof AuthenticatedRecursosClusterRouteWithChildren
+  '/admin/acoes/$id': typeof AdminAcoesIdRoute
   '/admin/elearning/$cursoId': typeof AdminElearningCursoIdRoute
+  '/admin/programas/$id': typeof AdminProgramasIdRoute
   '/certificados/verificar/$codigo': typeof CertificadosVerificarCodigoRoute
   '/entidade/acoes/$id': typeof EntidadeAcoesIdRoute
   '/lovable/email/suppression': typeof LovableEmailSuppressionRoute
   '/publicacoes/revistas/$id': typeof PublicacoesRevistasIdRoute
   '/_authenticated/elearning/': typeof AuthenticatedElearningIndexRoute
   '/_authenticated/recursos/': typeof AuthenticatedRecursosIndexRoute
+  '/admin/acoes/': typeof AdminAcoesIndexRoute
   '/admin/elearning/': typeof AdminElearningIndexRoute
+  '/admin/programas/': typeof AdminProgramasIndexRoute
   '/_authenticated/cultura-ubuntu/avaliacao/$slug': typeof AuthenticatedCulturaUbuntuAvaliacaoSlugRouteWithChildren
   '/_authenticated/cultura-ubuntu/avaliacao/gestao': typeof AuthenticatedCulturaUbuntuAvaliacaoGestaoRoute
   '/_authenticated/elearning/$cursoId/caderno': typeof AuthenticatedElearningCursoIdCadernoRoute
@@ -644,8 +644,6 @@ export interface FileRouteTypes {
     | '/cultura-ubuntu'
     | '/inscricao-programas'
     | '/recursos'
-    | '/admin/acoes/'
-    | '/admin/acoes/$id'
     | '/admin/avaliacoes'
     | '/admin/badges'
     | '/admin/biblioteca'
@@ -653,8 +651,6 @@ export interface FileRouteTypes {
     | '/admin/entidades'
     | '/admin/governacao'
     | '/admin/manager'
-    | '/admin/programas/'
-    | '/admin/programas/$id'
     | '/admin/projetos'
     | '/avaliar/$token'
     | '/comunicacao/press-media-kit'
@@ -673,14 +669,18 @@ export interface FileRouteTypes {
     | '/cultura-ubuntu/avaliacao'
     | '/elearning/$cursoId'
     | '/recursos/$cluster'
+    | '/admin/acoes/$id'
     | '/admin/elearning/$cursoId'
+    | '/admin/programas/$id'
     | '/certificados/verificar/$codigo'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
     | '/elearning/'
     | '/recursos/'
+    | '/admin/acoes/'
     | '/admin/elearning/'
+    | '/admin/programas/'
     | '/cultura-ubuntu/avaliacao/$slug'
     | '/cultura-ubuntu/avaliacao/gestao'
     | '/elearning/$cursoId/caderno'
@@ -710,8 +710,6 @@ export interface FileRouteTypes {
     | '/acoes'
     | '/cultura-ubuntu'
     | '/inscricao-programas'
-    | '/admin/acoes'
-    | '/admin/acoes/$id'
     | '/admin/avaliacoes'
     | '/admin/badges'
     | '/admin/biblioteca'
@@ -719,8 +717,6 @@ export interface FileRouteTypes {
     | '/admin/entidades'
     | '/admin/governacao'
     | '/admin/manager'
-    | '/admin/programas'
-    | '/admin/programas/$id'
     | '/admin/projetos'
     | '/avaliar/$token'
     | '/comunicacao/press-media-kit'
@@ -736,14 +732,18 @@ export interface FileRouteTypes {
     | '/publicacoes/revistas'
     | '/actions/$id'
     | '/admin/recursos'
+    | '/admin/acoes/$id'
     | '/admin/elearning/$cursoId'
+    | '/admin/programas/$id'
     | '/certificados/verificar/$codigo'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
     | '/elearning'
     | '/recursos'
+    | '/admin/acoes'
     | '/admin/elearning'
+    | '/admin/programas'
     | '/cultura-ubuntu/avaliacao/gestao'
     | '/elearning/$cursoId/caderno'
     | '/recursos/$cluster/$temaId'
@@ -774,8 +774,6 @@ export interface FileRouteTypes {
     | '/_authenticated/cultura-ubuntu'
     | '/_authenticated/inscricao-programas'
     | '/_authenticated/recursos'
-    | '/admin/acoes/'
-    | '/admin/acoes/$id'
     | '/admin/avaliacoes'
     | '/admin/badges'
     | '/admin/biblioteca'
@@ -783,8 +781,6 @@ export interface FileRouteTypes {
     | '/admin/entidades'
     | '/admin/governacao'
     | '/admin/manager'
-    | '/admin/programas/'
-    | '/admin/programas/$id'
     | '/admin/projetos'
     | '/avaliar/$token'
     | '/comunicacao/press-media-kit'
@@ -803,14 +799,18 @@ export interface FileRouteTypes {
     | '/_authenticated/cultura-ubuntu/avaliacao'
     | '/_authenticated/elearning/$cursoId'
     | '/_authenticated/recursos/$cluster'
+    | '/admin/acoes/$id'
     | '/admin/elearning/$cursoId'
+    | '/admin/programas/$id'
     | '/certificados/verificar/$codigo'
     | '/entidade/acoes/$id'
     | '/lovable/email/suppression'
     | '/publicacoes/revistas/$id'
     | '/_authenticated/elearning/'
     | '/_authenticated/recursos/'
+    | '/admin/acoes/'
     | '/admin/elearning/'
+    | '/admin/programas/'
     | '/_authenticated/cultura-ubuntu/avaliacao/$slug'
     | '/_authenticated/cultura-ubuntu/avaliacao/gestao'
     | '/_authenticated/elearning/$cursoId/caderno'
@@ -839,8 +839,6 @@ export interface RootRouteChildren {
   FaqsRoute: typeof FaqsRoute
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  AdminAcoesIndexRoute: typeof AdminAcoesIndexRoute
-  AdminAcoesIdRoute: typeof AdminAcoesIdRoute
   AdminAvaliacoesRoute: typeof AdminAvaliacoesRoute
   AdminBadgesRoute: typeof AdminBadgesRoute
   AdminBibliotecaRoute: typeof AdminBibliotecaRoute
@@ -848,8 +846,6 @@ export interface RootRouteChildren {
   AdminEntidadesRoute: typeof AdminEntidadesRoute
   AdminGovernacaoRoute: typeof AdminGovernacaoRoute
   AdminManagerRoute: typeof AdminManagerRoute
-  AdminProgramasIndexRoute: typeof AdminProgramasIndexRoute
-  AdminProgramasIdRoute: typeof AdminProgramasIdRoute
   AdminProjetosRoute: typeof AdminProjetosRoute
   AvaliarTokenRoute: typeof AvaliarTokenRoute
   ComunicacaoPressMediaKitRoute: typeof ComunicacaoPressMediaKitRoute
@@ -863,11 +859,15 @@ export interface RootRouteChildren {
   InscricaoTokenRoute: typeof InscricaoTokenRoute
   PublicacoesBibliotecaRoute: typeof PublicacoesBibliotecaRoute
   PublicacoesRevistasRoute: typeof PublicacoesRevistasRouteWithChildren
+  AdminAcoesIdRoute: typeof AdminAcoesIdRoute
   AdminElearningCursoIdRoute: typeof AdminElearningCursoIdRoute
+  AdminProgramasIdRoute: typeof AdminProgramasIdRoute
   CertificadosVerificarCodigoRoute: typeof CertificadosVerificarCodigoRoute
   EntidadeAcoesIdRoute: typeof EntidadeAcoesIdRoute
   LovableEmailSuppressionRoute: typeof LovableEmailSuppressionRoute
+  AdminAcoesIndexRoute: typeof AdminAcoesIndexRoute
   AdminElearningIndexRoute: typeof AdminElearningIndexRoute
+  AdminProgramasIndexRoute: typeof AdminProgramasIndexRoute
   ApiCertificatesActionIdParticipanteIdRoute: typeof ApiCertificatesActionIdParticipanteIdRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -969,20 +969,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/admin/acoes/': {
-      id: '/admin/acoes/'
-      path: '/admin/acoes'
-      fullPath: '/admin/acoes/'
-      preLoaderRoute: typeof AdminAcoesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/acoes/$id': {
-      id: '/admin/acoes/$id'
-      path: '/admin/acoes/$id'
-      fullPath: '/admin/acoes/$id'
-      preLoaderRoute: typeof AdminAcoesIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/avaliacoes': {
       id: '/admin/avaliacoes'
       path: '/admin/avaliacoes'
@@ -1030,20 +1016,6 @@ declare module '@tanstack/react-router' {
       path: '/admin/manager'
       fullPath: '/admin/manager'
       preLoaderRoute: typeof AdminManagerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/programas/': {
-      id: '/admin/programas/'
-      path: '/admin/programas'
-      fullPath: '/admin/programas/'
-      preLoaderRoute: typeof AdminProgramasIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/programas/$id': {
-      id: '/admin/programas/$id'
-      path: '/admin/programas/$id'
-      fullPath: '/admin/programas/$id'
-      preLoaderRoute: typeof AdminProgramasIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/projetos': {
@@ -1186,6 +1158,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecursosClusterRouteImport
       parentRoute: typeof AuthenticatedRecursosRoute
     }
+    '/admin/acoes/': {
+      id: '/admin/acoes/'
+      path: '/admin/acoes'
+      fullPath: '/admin/acoes/'
+      preLoaderRoute: typeof AdminAcoesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/acoes/$id': {
+      id: '/admin/acoes/$id'
+      path: '/admin/acoes/$id'
+      fullPath: '/admin/acoes/$id'
+      preLoaderRoute: typeof AdminAcoesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/elearning/': {
       id: '/admin/elearning/'
       path: '/admin/elearning'
@@ -1198,6 +1184,20 @@ declare module '@tanstack/react-router' {
       path: '/admin/elearning/$cursoId'
       fullPath: '/admin/elearning/$cursoId'
       preLoaderRoute: typeof AdminElearningCursoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/programas/': {
+      id: '/admin/programas/'
+      path: '/admin/programas'
+      fullPath: '/admin/programas/'
+      preLoaderRoute: typeof AdminProgramasIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/programas/$id': {
+      id: '/admin/programas/$id'
+      path: '/admin/programas/$id'
+      fullPath: '/admin/programas/$id'
+      preLoaderRoute: typeof AdminProgramasIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/certificados/verificar/$codigo': {
@@ -1500,8 +1500,6 @@ const rootRouteChildren: RootRouteChildren = {
   FaqsRoute: FaqsRoute,
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  AdminAcoesIndexRoute: AdminAcoesIndexRoute,
-  AdminAcoesIdRoute: AdminAcoesIdRoute,
   AdminAvaliacoesRoute: AdminAvaliacoesRoute,
   AdminBadgesRoute: AdminBadgesRoute,
   AdminBibliotecaRoute: AdminBibliotecaRoute,
@@ -1509,8 +1507,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminEntidadesRoute: AdminEntidadesRoute,
   AdminGovernacaoRoute: AdminGovernacaoRoute,
   AdminManagerRoute: AdminManagerRoute,
-  AdminProgramasIndexRoute: AdminProgramasIndexRoute,
-  AdminProgramasIdRoute: AdminProgramasIdRoute,
   AdminProjetosRoute: AdminProjetosRoute,
   AvaliarTokenRoute: AvaliarTokenRoute,
   ComunicacaoPressMediaKitRoute: ComunicacaoPressMediaKitRoute,
@@ -1525,11 +1521,15 @@ const rootRouteChildren: RootRouteChildren = {
   InscricaoTokenRoute: InscricaoTokenRoute,
   PublicacoesBibliotecaRoute: PublicacoesBibliotecaRoute,
   PublicacoesRevistasRoute: PublicacoesRevistasRouteWithChildren,
+  AdminAcoesIdRoute: AdminAcoesIdRoute,
   AdminElearningCursoIdRoute: AdminElearningCursoIdRoute,
+  AdminProgramasIdRoute: AdminProgramasIdRoute,
   CertificadosVerificarCodigoRoute: CertificadosVerificarCodigoRoute,
   EntidadeAcoesIdRoute: EntidadeAcoesIdRoute,
   LovableEmailSuppressionRoute: LovableEmailSuppressionRoute,
+  AdminAcoesIndexRoute: AdminAcoesIndexRoute,
   AdminElearningIndexRoute: AdminElearningIndexRoute,
+  AdminProgramasIndexRoute: AdminProgramasIndexRoute,
   ApiCertificatesActionIdParticipanteIdRoute:
     ApiCertificatesActionIdParticipanteIdRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
