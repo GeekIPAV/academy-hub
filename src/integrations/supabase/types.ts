@@ -319,6 +319,162 @@ export type Database = {
         }
         Relationships: []
       }
+      avaliacao_modelos: {
+        Row: {
+          created_at: string
+          descricao: string | null
+          id: string
+          nome: string
+          perguntas: Json
+          sort_order: number
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome: string
+          perguntas?: Json
+          sort_order?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          nome?: string
+          perguntas?: Json
+          sort_order?: number
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      avaliacao_modelos_produtos: {
+        Row: {
+          created_at: string
+          modelo_id: string
+          produto_id: string
+        }
+        Insert: {
+          created_at?: string
+          modelo_id: string
+          produto_id: string
+        }
+        Update: {
+          created_at?: string
+          modelo_id?: string
+          produto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacao_modelos_produtos_modelo_id_fkey"
+            columns: ["modelo_id"]
+            isOneToOne: false
+            referencedRelation: "avaliacao_modelos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacao_modelos_produtos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avaliacao_respostas: {
+        Row: {
+          avaliacao_id: string
+          created_at: string
+          id: string
+          respostas: Json
+        }
+        Insert: {
+          avaliacao_id: string
+          created_at?: string
+          id?: string
+          respostas?: Json
+        }
+        Update: {
+          avaliacao_id?: string
+          created_at?: string
+          id?: string
+          respostas?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacao_respostas_avaliacao_id_fkey"
+            columns: ["avaliacao_id"]
+            isOneToOne: false
+            referencedRelation: "avaliacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avaliacoes: {
+        Row: {
+          aberta: boolean
+          acao_id: string
+          created_at: string
+          id: string
+          modelo_id: string | null
+          perguntas: Json
+          tipo: string
+          titulo: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          aberta?: boolean
+          acao_id: string
+          created_at?: string
+          id?: string
+          modelo_id?: string | null
+          perguntas?: Json
+          tipo?: string
+          titulo: string
+          token?: string
+          updated_at?: string
+        }
+        Update: {
+          aberta?: boolean
+          acao_id?: string
+          created_at?: string
+          id?: string
+          modelo_id?: string | null
+          perguntas?: Json
+          tipo?: string
+          titulo?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_acao_id_fkey"
+            columns: ["acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_acao_id_fkey"
+            columns: ["acao_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_publica"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_modelo_id_fkey"
+            columns: ["modelo_id"]
+            isOneToOne: false
+            referencedRelation: "avaliacao_modelos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       badge_role_auto_grant: {
         Row: {
           badge_id: string
@@ -2909,6 +3065,14 @@ export type Database = {
       }
       user_can_access_recurso: {
         Args: { _recurso_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_can_access_tema: {
+        Args: { _tema_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_can_read_acao: {
+        Args: { _action_id: string; _user_id: string }
         Returns: boolean
       }
       user_can_see_acao: {

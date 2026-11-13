@@ -66,3 +66,25 @@ export async function assertIsAdmin(userId: string) {
     if (legacy?.role !== "Admin") throw new Error("Acesso restrito.");
   }
 }
+
+/**
+ * Roles do utilizador (user_roles + papel legado em utilizadores.role) e se
+ * pertence à equipa (Admin ou Equipa IPAV). Usado para limitar listas de
+ * perfis/permissões aos perfis do próprio quando não é equipa.
+ */
+export async function getCallerRoleScope(userId: string) {
+  const { data: roleRows, error } = await supabaseAdmin
+    .from("user_roles")
+    .select("role_name")
+    .eq("user_id", userId);
+  if (error) throw new Error(error.message);
+  const roles = new Set((roleRows ?? []).map((r) => r.role_name as string));
+  const { data: legacy } = await supabaseAdmin
+    .from("utilizadores")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle();
+  if (legacy?.role) roles.add(legacy.role);
+  const list = Array.from(roles);
+  return { roles: list, isEquipa: list.includes("Admin") || list.includes("Equipa IPAV") };
+}
