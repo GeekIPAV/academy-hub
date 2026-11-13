@@ -2,9 +2,18 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Copy, Pencil, Plus, Save, Trash2 } from "lucide-react";
+import { Copy, Eye, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { RouteGate } from "@/components/RouteGate";
+import { PerguntaCampo } from "@/components/avaliacao/PerguntaCampo";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { PageHeader, PageShell } from "@/components/shell/PageHeader";
 import { FormField } from "@/components/shell/FormField";
 import { StatusChip } from "@/components/shell/StatusChip";
@@ -53,6 +62,7 @@ import {
   TIPO_AVALIACAO_LABEL,
   type Pergunta,
   type TipoAvaliacao,
+  type ValorResposta,
 } from "@/lib/avaliacao-acoes-types";
 
 export const Route = createFileRoute("/admin/avaliacoes")({
@@ -433,7 +443,10 @@ function ModeloEditor({
         </div>
 
         <div className="space-y-2">
-          <span className="text-[13px] font-medium text-secondary">Perguntas ({perguntas.length})</span>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[13px] font-medium text-secondary">Perguntas ({perguntas.length})</span>
+            <PreVisualizar titulo={nome || "Avaliação"} perguntas={perguntas} />
+          </div>
           {perguntas.length === 0 && (
             <p className="text-xs text-muted-foreground">
               Ainda sem perguntas. Podes ter perguntas de escala, antes e depois, texto ou escolha.
@@ -450,5 +463,49 @@ function ModeloEditor({
         </Button>
       </div>
     </>
+  );
+}
+
+/** Mostra o formulário como os participantes o vão ver, sem guardar respostas. */
+function PreVisualizar({ titulo, perguntas }: { titulo: string; perguntas: Pergunta[] }) {
+  const [respostas, setRespostas] = useState<Record<string, ValorResposta | undefined>>({});
+  let grupoAnterior: string | undefined;
+  return (
+    <Dialog onOpenChange={(v) => !v && setRespostas({})}>
+      <DialogTrigger asChild>
+        <Button type="button" size="sm" variant="ghost" disabled={perguntas.length === 0}>
+          <Eye className="mr-1.5 h-4 w-4" />
+          Pré-visualizar
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[90dvh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{titulo}</DialogTitle>
+          <DialogDescription>Assim vê quem responde. Nada do que escreveres aqui fica guardado.</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-3">
+          {perguntas.map((p) => {
+            const novoGrupo = p.grupo && p.grupo !== grupoAnterior;
+            grupoAnterior = p.grupo;
+            return (
+              <div key={p.id} className="space-y-2">
+                {novoGrupo && <p className="pt-2 text-xs font-semibold text-[#A1420A]">{p.grupo}</p>}
+                <div className="space-y-3 rounded-2xl border p-4">
+                  <p className="text-[15px] font-medium text-secondary">
+                    {p.texto || "(pergunta sem texto)"}
+                    {p.obrigatoria && <span className="text-[#B42318]"> *</span>}
+                  </p>
+                  <PerguntaCampo
+                    pergunta={p}
+                    valor={respostas[p.id]}
+                    onChange={(v) => setRespostas((r) => ({ ...r, [p.id]: v }))}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
-import { PageHeader, PageShell, Section } from "@/components/shell/PageHeader";
+import { PageHeader, PageShell, Section, SummaryStrip } from "@/components/shell/PageHeader";
 import { StatusChip } from "@/components/shell/StatusChip";
 import { FormField } from "@/components/shell/FormField";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -241,41 +241,51 @@ function EntidadeDashboardPage() {
           </div>
         )}
 
-        <ProgramsMasterTable
-          cohorts={cohorts}
-          isLoading={cohortsLoading}
-          selectedProgramId={selectedProgramId}
-          onSelect={setSelectedProgramId}
-        />
+        <ResumoOrganizacao entityId={selectedEntityId} programas={cohorts.filter((c) => c.is_active).length} />
 
-        {cohorts.length > 1 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <Label htmlFor="filtro-programa" className="text-[13px] font-medium text-secondary">
-              Mostrar
-            </Label>
-            <Select
-              value={selectedProgramId ?? "__todos"}
-              onValueChange={(v) => setSelectedProgramId(v === "__todos" ? undefined : v)}
-            >
-              <SelectTrigger id="filtro-programa" className="w-64">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__todos">Todos os programas</SelectItem>
-                {cohorts.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.programas?.title ?? "Programa"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="flex flex-wrap items-start gap-6">
+          <div className="min-w-0 flex-[999_1_560px] space-y-6">
+          <ProgramsMasterTable
+            cohorts={cohorts}
+            isLoading={cohortsLoading}
+            selectedProgramId={selectedProgramId}
+            onSelect={setSelectedProgramId}
+          />
+
+          {cohorts.length > 1 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <Label htmlFor="filtro-programa" className="text-[13px] font-medium text-secondary">
+                Mostrar
+              </Label>
+              <Select
+                value={selectedProgramId ?? "__todos"}
+                onValueChange={(v) => setSelectedProgramId(v === "__todos" ? undefined : v)}
+              >
+                <SelectTrigger id="filtro-programa" className="w-64">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__todos">Todos os programas</SelectItem>
+                  {cohorts.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.programas?.title ?? "Programa"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {visible("tab-overview") && visible("trainees-table") && (
+            <TraineesTable entityId={selectedEntityId} programTitle={selectedProgramTitle} />
+          )}
+          {visible("tab-acoes") && <AcoesTab entityId={selectedEntityId} programTitle={selectedProgramTitle} />}
           </div>
-        )}
-
-        {visible("tab-overview") && visible("trainees-table") && (
-          <TraineesTable entityId={selectedEntityId} programTitle={selectedProgramTitle} />
-        )}
-        {visible("tab-acoes") && <AcoesTab entityId={selectedEntityId} programTitle={selectedProgramTitle} />}
+          <aside className="min-w-0 flex-[1_1_280px] space-y-5">
+            <ProximasAcoes entityId={selectedEntityId} />
+            <PrecisaDeTi entityId={selectedEntityId} />
+          </aside>
+        </div>
 
         <DialogContent className="max-h-[85dvh] max-w-2xl overflow-y-auto">
           <DialogHeader>
@@ -288,6 +298,132 @@ function EntidadeDashboardPage() {
         </DialogContent>
       </Dialog>
     </PageShell>
+  );
+}
+
+function hojeISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function useTraineesEntidade(entityId?: string) {
+  const fetchFn = useServerFn(listMyTrainees);
+  return useQuery({
+    queryKey: ["my-trainees", entityId ?? "self"],
+    queryFn: () => fetchFn(entityId ? { data: { entityId } } : (undefined as never)),
+    retry: false,
+  });
+}
+
+function useAcoesEntidade(entityId?: string) {
+  const listFn = useServerFn(listMyAcoes);
+  return useQuery({
+    queryKey: ["my-acoes", entityId ?? "self"],
+    queryFn: () => listFn(entityId ? { data: { entityId } } : (undefined as never)),
+    retry: false,
+  });
+}
+
+/** Faixa de resumo: programas, participantes, próxima ação e propostas por confirmar. */
+function ResumoOrganizacao({ entityId, programas }: { entityId?: string; programas: number }) {
+  const { data: trainees } = useTraineesEntidade(entityId);
+  const { data: acoes } = useAcoesEntidade(entityId);
+  const lista = Array.isArray(acoes) ? acoes : [];
+  const proxima = lista
+    .filter((a) => (a.start_date ?? "") >= hojeISO() && !(a.status ?? "").toLowerCase().startsWith("cancel"))
+    .sort((a, b) => (a.start_date ?? "").localeCompare(b.start_date ?? ""))[0];
+  const nPart = Array.isArray(trainees) ? trainees.length : null;
+  return (
+    <SummaryStrip
+      items={[
+        { label: "Programas", value: `${programas} ${programas === 1 ? "ativo" : "ativos"}` },
+        { label: "Participantes", value: nPart == null ? "…" : `${nPart} ${nPart === 1 ? "inscrito" : "inscritos"}` },
+        { label: "Próxima ação", value: proxima ? formatDate(proxima.start_date) : "Sem ações marcadas" },
+        { label: "Ações", value: `${lista.length} no total` },
+      ]}
+    />
+  );
+}
+
+function ProximasAcoes({ entityId }: { entityId?: string }) {
+  const { data, isLoading } = useAcoesEntidade(entityId);
+  const proximas = (Array.isArray(data) ? data : [])
+    .filter((a) => (a.start_date ?? "") >= hojeISO() && !(a.status ?? "").toLowerCase().startsWith("cancel"))
+    .sort((a, b) => (a.start_date ?? "").localeCompare(b.start_date ?? ""))
+    .slice(0, 4);
+  return (
+    <Section title="Próximas ações">
+      {isLoading ? (
+        <Skeleton className="h-24 w-full" />
+      ) : proximas.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Sem ações marcadas para os próximos tempos.</p>
+      ) : (
+        <ul className="-my-2 divide-y">
+          {proximas.map((a) => {
+            const d = a.start_date ? new Date(`${a.start_date.slice(0, 10)}T00:00:00`) : null;
+            return (
+              <li key={a.id}>
+                <Link
+                  to="/entidade/acoes/$id"
+                  params={{ id: a.id }}
+                  className="flex items-center gap-3 py-3 hover:text-primary"
+                >
+                  <span className="w-12 shrink-0 rounded-lg bg-muted py-1 text-center">
+                    <span className="block text-base font-semibold leading-tight text-secondary">
+                      {d ? d.getDate() : "?"}
+                    </span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      {d ? d.toLocaleDateString("pt-PT", { month: "short" }).replace(".", "") : ""}
+                    </span>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium text-secondary">
+                      {a.title ?? a.action_type ?? "Ação"}
+                    </span>
+                    <span className="mt-1 block">{statusBadge(a.status)}</span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Section>
+  );
+}
+
+/** Coisas que a organização tem de tratar, com base nos dados que já existem. */
+function PrecisaDeTi({ entityId }: { entityId?: string }) {
+  const { data: trainees } = useTraineesEntidade(entityId);
+  const { data: acoes } = useAcoesEntidade(entityId);
+  const emEspera = (Array.isArray(trainees) ? trainees : []).filter((t) =>
+    (t.status ?? "").toLowerCase().includes("espera"),
+  ).length;
+  const porConfirmar = (Array.isArray(acoes) ? acoes : []).filter((a) => {
+    const st = (a.status ?? "").toLowerCase();
+    return !st.startsWith("confirm") && !st.startsWith("cancel") && !st.startsWith("realiz") && !st.startsWith("conclu");
+  }).length;
+  const itens: string[] = [];
+  if (porConfirmar > 0)
+    itens.push(
+      porConfirmar === 1
+        ? "1 proposta de ação à espera de confirmação da equipa."
+        : `${porConfirmar} propostas de ação à espera de confirmação da equipa.`,
+    );
+  if (emEspera > 0)
+    itens.push(
+      emEspera === 1 ? "1 participante em lista de espera." : `${emEspera} participantes em lista de espera.`,
+    );
+  if (itens.length === 0) return null;
+  return (
+    <Section title="Para acompanhar">
+      <ul className="space-y-2">
+        {itens.map((t) => (
+          <li key={t} className="rounded-lg bg-[#E6EDF6] px-3 py-2.5 text-sm text-secondary">
+            {t}
+          </li>
+        ))}
+      </ul>
+    </Section>
   );
 }
 

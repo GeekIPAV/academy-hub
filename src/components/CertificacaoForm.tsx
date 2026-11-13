@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField, fieldA11y, fieldErrorClass } from "@/components/shell/FormField";
@@ -47,9 +48,13 @@ type Profile = Awaited<ReturnType<typeof getMeuPerfilCertificacao>>;
 interface Props {
   onSaved: () => void;
   onCancel?: () => void;
+  /** Mostra um índice lateral com o estado de cada bloco (para a página própria). */
+  comIndice?: boolean;
 }
 
-export function CertificacaoForm({ onSaved, onCancel }: Props) {
+const NOMES_BLOCOS = ["Dados pessoais", "Morada", "Contactos", "Formação e profissão"];
+
+export function CertificacaoForm({ onSaved, onCancel, comIndice }: Props) {
   const fetchFn = useServerFn(getMeuPerfilCertificacao);
   const saveFn = useServerFn(saveMeuPerfilCertificacao);
   const qc = useQueryClient();
@@ -151,7 +156,7 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
 
   const cp = form.address_cp4 + (form.address_cp3 ? `-${form.address_cp3}` : "");
 
-  return (
+  const formulario = (
     <form
       noValidate
       onSubmit={(e) => {
@@ -270,7 +275,7 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
         )}
       </Bloco>
 
-      <section className={`rounded-xl border bg-card p-5 ${mostrar("data_consent") ? "border-[#B42318]" : ""}`}>
+      <section id="bloco-5" className={`scroll-mt-6 rounded-xl border bg-card p-5 ${mostrar("data_consent") ? "border-[#B42318]" : ""}`}>
         <h3 className="mb-3 text-sm font-semibold text-secondary">Autorização</h3>
         <label className="flex items-start gap-3 text-sm leading-relaxed">
           <Checkbox
@@ -314,6 +319,52 @@ export function CertificacaoForm({ onSaved, onCancel }: Props) {
         </Button>
       </div>
     </form>
+  );
+
+  if (!comIndice) return formulario;
+
+  const nCompletos = blocos.filter((b) => b.comErro === 0 && b.emFalta === 0).length + (form.data_consent ? 1 : 0);
+  return (
+    <div className="flex flex-wrap items-start gap-6">
+      <nav
+        aria-label="Blocos do formulário"
+        className="w-full space-y-1 lg:sticky lg:top-6 lg:w-60 lg:shrink-0"
+      >
+        <div className="px-3 pb-2">
+          <p className="text-xs text-muted-foreground">
+            {nCompletos} de {blocos.length + 1} blocos completos
+          </p>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-primary"
+              style={{ width: `${Math.round((nCompletos / (blocos.length + 1)) * 100)}%` }}
+            />
+          </div>
+        </div>
+        {[...NOMES_BLOCOS, "Autorização"].map((nome, i) => {
+          const b = blocos[i];
+          const ok = b ? b.comErro === 0 && b.emFalta === 0 : form.data_consent;
+          const erro = b ? tentou && b.comErro > 0 : tentou && !form.data_consent;
+          return (
+            <a
+              key={nome}
+              href={`#bloco-${i + 1}`}
+              className="flex items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-secondary hover:bg-card"
+            >
+              <span>{nome}</span>
+              {ok ? (
+                <CheckCircle2 className="h-4 w-4 text-[#11643F]" aria-label="completo" />
+              ) : erro ? (
+                <AlertCircle className="h-4 w-4 text-[#B42318]" aria-label="por corrigir" />
+              ) : (
+                <span className="text-xs text-muted-foreground">em falta</span>
+              )}
+            </a>
+          );
+        })}
+      </nav>
+      <div className="min-w-0 flex-[999_1_560px]">{formulario}</div>
+    </div>
   );
 }
 
@@ -374,7 +425,7 @@ function Bloco({
 }) {
   const completo = estado.comErro === 0 && estado.emFalta === 0;
   return (
-    <section className="space-y-4 rounded-xl border bg-card p-5">
+    <section id={`bloco-${n}`} className="scroll-mt-6 space-y-4 rounded-xl border bg-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="flex items-start gap-3">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-secondary">

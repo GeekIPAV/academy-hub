@@ -16,13 +16,14 @@ function CertificationPage() {
   const qc = useQueryClient();
 
   return (
-    <PageShell narrow>
+    <PageShell>
       <PageHeader
         eyebrow="O meu perfil"
         title="Dados de certificação"
         description="Usados para emitir os teus certificados de formação. Preenches uma vez e servem para todas as inscrições. Tens de os completar para continuar a usar a plataforma."
       />
       <CertificacaoForm
+        comIndice
         onSaved={async () => {
           await qc.invalidateQueries({ queryKey: ["cert-gate-status"] });
           navigate({ to: "/dashboard" });

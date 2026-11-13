@@ -1,4 +1,5 @@
 import { PageHeader, PageShell } from "@/components/shell/PageHeader";
+import { StatusChip } from "@/components/shell/StatusChip";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -209,69 +210,50 @@ function CatalogoTab() {
         ) : !badges || badges.length === 0 ? (
           <p className="text-sm text-muted-foreground">Ainda não existem badges.</p>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16"></TableHead>
-                <TableHead>Título</TableHead>
-                <TableHead>Cluster</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Validade</TableHead>
-                <TableHead className="w-32 text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {badges.map((b) => (
-                <TableRow key={b.id}>
-                  <TableCell>
-                    {b.cover_url ? (
-                      <div className="h-10 w-10 overflow-hidden rounded-full">
-                        <CoverImage
-                          src={b.cover_url}
-                          position={b.cover_position}
-                          scale={b.cover_scale}
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                        <Award className="h-5 w-5 text-primary" />
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="font-medium">{b.title}</div>
-                    {b.description && (
-                      <div className="line-clamp-1 text-xs text-muted-foreground">
-                        {b.description}
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{b.cluster_name}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {b.kind === "em_formacao" ? "Em formação" : "Formado"}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+          <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
+            {badges.map((b) => (
+              <article key={b.id} className="flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-4">
+                <div className="flex items-start gap-3">
+                  {b.cover_url ? (
+                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl">
+                      <CoverImage src={b.cover_url} position={b.cover_position} scale={b.cover_scale} />
+                    </div>
+                  ) : (
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#FFEBDC] text-[#A1420A]">
+                      <Award className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <h3 className="break-words text-[15px] font-semibold text-secondary">{b.title}</h3>
+                    <p className="text-xs text-muted-foreground">{b.cluster_name}</p>
+                  </div>
+                </div>
+                {b.description && <p className="line-clamp-3 text-sm text-muted-foreground">{b.description}</p>}
+                <div className="flex flex-wrap gap-1.5">
+                  <StatusChip tone="tag">{b.kind === "em_formacao" ? "Em formação" : "Formado"}</StatusChip>
+                  <StatusChip tone="grey">
                     {formatValidity(b.validity_type, b.validity_years, b.validity_fixed_date)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => {
-                        setEditing(b);
-                        setOpen(true);
-                      }}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => setToDelete(b)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </StatusChip>
+                </div>
+                <div className="mt-auto flex gap-1 pt-1">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditing(b);
+                      setOpen(true);
+                    }}
+                  >
+                    <Pencil className="mr-1.5 h-4 w-4" />
+                    Editar
+                  </Button>
+                  <Button size="icon" variant="ghost" aria-label={`Apagar ${b.title}`} onClick={() => setToDelete(b)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              </article>
+            ))}
+          </div>
         )}
       </CardContent>
 
@@ -280,9 +262,9 @@ function CatalogoTab() {
       <AlertDialog open={!!toDelete} onOpenChange={(v) => !v && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar badge?</AlertDialogTitle>
+            <AlertDialogTitle>Apagar este badge?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação é irreversível e removerá também todas as atribuições deste badge.
+              Também apaga todas as atribuições deste badge. Não dá para desfazer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

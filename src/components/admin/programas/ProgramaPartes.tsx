@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { listProgramaOrganizacoes, decidirOrganizacaoInscricao } from "@/lib/equipa-programas.functions";
 import { PageHeader, PageShell, SummaryStrip } from "@/components/shell/PageHeader";
 import { StatusChip } from "@/components/shell/StatusChip";
 import {
@@ -591,7 +592,7 @@ export function ProgramaDetalhePage({ programId }: { programId: string }) {
             </div>
           </div>
         )}
-        {sep === "organizacoes" && <InstituicoesTab programId={programId} />}
+        {sep === "organizacoes" && <OrganizacoesPrograma programId={programId} />}
         {sep === "participantes" && <ParticipantesTab programId={programId} />}
       </div>
 
@@ -610,5 +611,181 @@ export function ProgramaDetalhePage({ programId }: { programId: string }) {
         </AlertDialogContent>
       </AlertDialog>
     </PageShell>
+  );
+}
+
+// ================== Organizações do programa (com aprovação) ==================
+
+const ESTADO_ORG: Record<string, { label: string; tone: "yellow" | "green" | "red" | "grey" }> = {
+  pendente: { label: "Pendente", tone: "yellow" },
+  aprovada: { label: "Aprovada", tone: "green" },
+  rejeitada: { label: "Rejeitada", tone: "red" },
+};
+
+/** Organizações do programa, com aprovar e rejeitar os pedidos pendentes. */
+export function OrganizacoesPrograma({ programId }: { programId: string }) {
+  const qc = useQueryClient();
+  const fn = useServerFn(listProgramaOrganizacoes);
+  const decide = useServerFn(decidirOrganizacaoInscricao);
+  const [filtro, setFiltro] = useState<"todas" | "pendente" | "aprovada" | "rejeitada">("todas");
+  const [q, setQ] = useState("");
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["equipa-organizacoes", programId],
+    queryFn: () => fn({ data: { programId } }),
+    retry: false,
+  });
+  const rows = Array.isArray(data) ? data : [];
+  const pendentes = rows.filter((r) => r.status === "pendente").length;
+  const visiveis = rows.filter(
+    (r) =>
+      (filtro === "todas" || r.status === filtro) &&
+      (!q.trim() || r.entity_name.toLowerCase().includes(q.trim().toLowerCase())),
+  );
+
+  const mutation = useMutation({
+    mutationFn: (vars: { cohortId: string; decision: "aprovada" | "rejeitada" | "pendente" }) =>
+      decide({ data: vars }),
+    onSuccess: (_r, vars) => {
+      toast.success(
+        vars.decision === "aprovada"
+          ? "Organização aprovada. O convite foi enviado por email."
+          : vars.decision === "pendente"
+            ? "Pedido reposto como pendente."
+            : "Pedido rejeitado.",
+      );
+      qc.invalidateQueries({ queryKey: ["equipa-organizacoes", programId] });
+      qc.invalidateQueries({ queryKey: ["admin-programa-entidades", programId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div className="space-y-4">
+      {pendentes > 0 && (
+        <div className="rounded-xl bg-[#FFF1CC] p-4 text-sm text-[#6B4200]">
+          <strong className="font-semibold">
+            {pendentes === 1 ? "1 organização à espera de aprovação." : `${pendentes} organizações à espera de aprovação.`}
+          </strong>{" "}
+          Ao aprovar, a pessoa de contacto recebe o convite por email.
+        </div>
+      )}
+      <div className="min-w-0 overflow-hidden rounded-xl border bg-card">
+        <div className="flex flex-wrap items-center gap-3 border-b p-4">
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Pesquisar organização"
+            aria-label="Pesquisar organização"
+            className="min-w-[200px] flex-1 sm:max-w-sm"
+          />
+          <div className="inline-flex rounded-lg bg-muted p-1" role="group" aria-label="Estado">
+            {(
+              [
+                ["todas", "Todas"],
+                ["pendente", "Pendentes"],
+                ["aprovada", "Aprovadas"],
+                ["rejeitada", "Rejeitadas"],
+              ] as const
+            ).map(([id, l]) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={filtro === id}
+                onClick={() => setFiltro(id)}
+                className={`h-8 rounded-md px-3 text-xs font-medium ${
+                  filtro === id ? "bg-card text-secondary shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+        {error && <p className="p-4 text-sm text-destructive">Erro: {(error as Error).message}</p>}
+        <div className="overflow-x-auto">
+          <Table className="min-w-[640px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Organização</TableHead>
+                <TableHead>Contacto</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead className="text-right">Participantes</TableHead>
+                <TableHead className="w-52 text-right">
+                  <span className="sr-only">Ações</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading && (
+                <TableRow>
+                  <TableCell colSpan={5}>
+                    <Skeleton className="h-5 w-full" />
+                  </TableCell>
+                </TableRow>
+              )}
+              {!isLoading && visiveis.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                    {rows.length === 0 ? "Nenhuma organização inscrita neste programa." : "Nenhuma organização com estes filtros."}
+                  </TableCell>
+                </TableRow>
+              )}
+              {visiveis.map((r) => {
+                const e = ESTADO_ORG[r.status] ?? { label: r.status, tone: "grey" as const };
+                return (
+                  <TableRow key={r.cohort_id}>
+                    <TableCell>
+                      <span className="block font-medium text-secondary">{r.entity_name}</span>
+                      {r.entity_locality && <span className="text-xs text-muted-foreground">{r.entity_locality}</span>}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {r.contact_name && <span className="block text-foreground">{r.contact_name}</span>}
+                      {r.contact_email}
+                    </TableCell>
+                    <TableCell>
+                      <StatusChip tone={e.tone} dot>
+                        {e.label}
+                      </StatusChip>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{r.participantes || "—"}</TableCell>
+                    <TableCell className="text-right">
+                      {r.status === "pendente" ? (
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            disabled={mutation.isPending}
+                            onClick={() => mutation.mutate({ cohortId: r.cohort_id, decision: "rejeitada" })}
+                          >
+                            Rejeitar
+                          </Button>
+                          <Button
+                            size="sm"
+                            disabled={mutation.isPending}
+                            onClick={() => mutation.mutate({ cohortId: r.cohort_id, decision: "aprovada" })}
+                          >
+                            Aprovar
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={mutation.isPending}
+                          onClick={() => mutation.mutate({ cohortId: r.cohort_id, decision: "pendente" })}
+                        >
+                          Repor como pendente
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </div>
   );
 }
