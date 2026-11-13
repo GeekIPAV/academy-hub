@@ -50,6 +50,13 @@
       "when": 1791553273244,
       "tag": "0006_projeto_status_novos_valores",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794591061117,
+      "tag": "0007_restringir_leitura_badge_auto_grant_paginas_avaliacao",
+      "breakpoints": true
     }
   ]
 }
