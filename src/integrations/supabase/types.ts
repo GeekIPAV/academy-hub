@@ -3067,6 +3067,14 @@ export type Database = {
         Args: { _recurso_id: string; _user_id: string }
         Returns: boolean
       }
+      user_can_access_tema: {
+        Args: { _tema_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_can_read_acao: {
+        Args: { _action_id: string; _user_id: string }
+        Returns: boolean
+      }
       user_can_see_acao: {
         Args: { _action_id: string; _user_id: string }
         Returns: boolean

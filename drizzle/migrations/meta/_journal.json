@@ -50,6 +50,13 @@
       "when": 1791553273244,
       "tag": "0006_projeto_status_novos_valores",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794569850888,
+      "tag": "0007_restringir_leitura_acoes_temas_roles",
+      "breakpoints": true
     }
   ]
 }
