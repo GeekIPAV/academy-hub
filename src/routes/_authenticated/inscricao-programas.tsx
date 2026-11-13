@@ -177,7 +177,7 @@ function ClusterCard({ cluster }: { cluster: ClusterRow }) {
 
   return (
     <Card className="overflow-hidden">
-      <div className="relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800">
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-muted">
         {cluster.cover_url ? (
           <CoverImage
             src={cluster.cover_url}
@@ -201,7 +201,7 @@ function ClusterCard({ cluster }: { cluster: ClusterRow }) {
 
         {open ? (
           <div className="space-y-2">
-            <Badge className="border-transparent bg-slate-500/15 text-slate-700 hover:bg-slate-500/20 dark:text-slate-300">
+            <Badge variant="secondary">
               Inscrições abertas
             </Badge>
             <Button size="sm" className="w-full" onClick={() => setEnrollOpen(true)}>

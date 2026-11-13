@@ -14,7 +14,7 @@ import { avaliacoesQueryKey } from "@/lib/avaliacao-acoes-link";
 import { INSCRICOES_ABERTAS } from "@/lib/acoes-opcoes";
 import { AcaoDadosForm } from "./AcaoDadosForm";
 import { AcaoAvaliacoesTab } from "./AcaoAvaliacoesTab";
-import { InscritosTab, PaginaTab, ResultadosTab, CopiarLinkAvaliacaoButton } from "./AcaoDetailDrawer";
+import { InscritosTab, PaginaTab, ResultadosTab, CopiarLinkAvaliacaoButton } from "./AcaoSeparadores";
 
 export type SeparadorAcao = "dados" | "inscritos" | "avaliacoes" | "pagina";
 

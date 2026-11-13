@@ -41,13 +41,13 @@ function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) return toast.error("Password mínima de 6 caracteres.");
-    if (password !== confirm) return toast.error("As passwords não coincidem.");
+    if (password.length < 6) return toast.error("A palavra-passe tem de ter pelo menos 6 caracteres.");
+    if (password !== confirm) return toast.error("As palavras-passe não coincidem.");
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Password atualizada. Já podes entrar.");
+    toast.success("Palavra-passe atualizada. Já podes entrar.");
     await supabase.auth.signOut();
     navigate({
       to: "/auth",
@@ -67,7 +67,7 @@ function ResetPasswordPage() {
           <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-32 w-auto" />
         </CardHeader>
         <CardContent className="pt-6">
-          <CardTitle className="mb-4 text-center">Redefinir password</CardTitle>
+          <CardTitle className="mb-4 text-center">Nova palavra-passe</CardTitle>
           {!ready ? (
             <p className="text-sm text-muted-foreground text-center">
               A validar o link de recuperação…
@@ -75,7 +75,7 @@ function ResetPasswordPage() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="new-password">Nova password</Label>
+                <Label htmlFor="new-password">Nova palavra-passe</Label>
                 <Input
                   className="bg-white"
                   id="new-password"
@@ -87,7 +87,7 @@ function ResetPasswordPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="confirm-password">Confirmar password</Label>
+                <Label htmlFor="confirm-password">Confirmar palavra-passe</Label>
                 <Input
                   className="bg-white"
                   id="confirm-password"
@@ -99,7 +99,7 @@ function ResetPasswordPage() {
                 />
               </div>
               <Button type="submit" disabled={loading} className="w-full">
-                {loading ? "A atualizar…" : "Atualizar password"}
+                {loading ? "A atualizar…" : "Atualizar palavra-passe"}
               </Button>
             </form>
           )}

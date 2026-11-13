@@ -133,7 +133,7 @@ function AuthPage() {
       return;
     }
     if (password.length < 6) {
-      toast.error("A password tem de ter pelo menos 6 caracteres.");
+      toast.error("A palavra-passe tem de ter pelo menos 6 caracteres.");
       return;
     }
     setLoading(true);
@@ -225,8 +225,8 @@ function AuthPage() {
               </h2>
               <p className="text-sm text-muted-foreground">
                 {mode === "login"
-                  ? "Introduz a tua password para entrar."
-                  : "Indica o teu nome e cria uma password."}
+                  ? "Escreve a tua palavra-passe para entrar."
+                  : "Indica o teu nome e cria uma palavra-passe."}
               </p>
             </div>
           )}
@@ -268,7 +268,7 @@ function AuthPage() {
             {(mode === "login" || mode === "signup") && (
               <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-300">
                 <Label htmlFor="auth-password">
-                  {mode === "signup" ? "Cria uma password" : "Password"}
+                  {mode === "signup" ? "Cria uma palavra-passe" : "Palavra-passe"}
                 </Label>
                 <Input
                   ref={passwordRef}

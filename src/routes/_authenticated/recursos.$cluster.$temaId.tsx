@@ -213,7 +213,7 @@ function TemaDetail() {
       <Tabs defaultValue="sobre" className="space-y-6">
         <TabsList>
           <TabsTrigger value="sobre">Sobre</TabsTrigger>
-          <TabsTrigger value="plano">Plano de Sessão</TabsTrigger>
+          <TabsTrigger value="plano">Plano de sessão</TabsTrigger>
           <TabsTrigger value="recursos">Recursos</TabsTrigger>
         </TabsList>
 

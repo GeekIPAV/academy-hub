@@ -290,7 +290,7 @@ function OrganizacoesTab({
               <TableRow>
                 <TableHead>Organização</TableHead>
                 <TableHead>Contacto</TableHead>
-                <TableHead className="w-24">Formandos</TableHead>
+                <TableHead className="w-24">Participantes</TableHead>
                 <TableHead className="w-28">Estado</TableHead>
                 <TableHead className="w-44 text-right">Ações</TableHead>
               </TableRow>
