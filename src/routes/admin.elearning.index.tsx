@@ -148,7 +148,7 @@ function AdminElearningPage() {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label>Cluster (opcional — herda os badges)</Label>
+              <Label>Cluster (opcional, herda os badges)</Label>
               <Select value={cluster} onValueChange={setCluster}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>

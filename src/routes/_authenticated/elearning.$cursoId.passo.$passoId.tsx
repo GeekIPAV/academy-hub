@@ -110,7 +110,7 @@ function CourseIndex({ curso, cursoId, atual, onSelect }: { curso: CursoDetalhe;
                 const inner = <div className="grid min-h-14 grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-2 px-4 py-2.5">
                   <StatusCircle estado={passo.estado} />
                   <PassoTipoIcon tipo={passo.tipo} className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                  <span className="min-w-0"><span className="line-clamp-2 text-sm leading-5">Momento {modulo.passos.findIndex((p) => p.id === passo.id) + 1} — {passo.title}</span>{passo.duracao_min ? <span className="mt-0.5 block text-xs text-muted-foreground">{passo.duracao_min} min</span> : null}</span>
+                  <span className="min-w-0"><span className="line-clamp-2 text-sm leading-5">Momento {modulo.passos.findIndex((p) => p.id === passo.id) + 1}: {passo.title}</span>{passo.duracao_min ? <span className="mt-0.5 block text-xs text-muted-foreground">{passo.duracao_min} min</span> : null}</span>
                 </div>;
                 return <li key={passo.id} className="relative">
                   {reason ? <Tooltip><TooltipTrigger asChild><div className="cursor-not-allowed text-muted-foreground" aria-disabled="true">{inner}</div></TooltipTrigger><TooltipContent side="right">{reason}</TooltipContent></Tooltip> :
@@ -248,7 +248,7 @@ function ReaderContent({ data, inscrito, titleRef, onDone, refetch, onContinue, 
       <p className="mt-3 flex items-center gap-2 text-xs font-semibold uppercase text-primary"><PassoTipoIcon tipo={data.passo.tipo} />{TIPO_PASSO[data.passo.tipo]}{data.passo.duracao_min ? ` · ${data.passo.duracao_min} min` : ""}</p>
       {!data.anterior && data.curso.modulos.flatMap((m) => m.passos)[0]?.id === data.passo.id && <p className="mt-4 rounded-md bg-learning-reflection p-3 text-sm">Antes de começar, conhece as atividades e o teu Caderno. <Link to="/elearning/$cursoId" params={{ cursoId: data.curso.curso.id }} hash="como-funciona" className="text-primary underline">Como funciona esta formação</Link></p>}
       <h1 ref={titleRef} tabIndex={-1} className="mt-2 text-2xl font-semibold outline-none sm:text-3xl">{data.passo.title}</h1>
-      {!inscrito && <p className="mt-4 border border-dashed p-3 text-xs text-muted-foreground">Pré-visualização da equipa — o progresso não é registado.</p>}
+      {!inscrito && <p className="mt-4 border border-dashed p-3 text-xs text-muted-foreground">Pré-visualização da equipa. O progresso não fica registado.</p>}
     </div>
     <PassoConteudo data={data} inscrito={inscrito} onDone={onDone} refetch={refetch} onContinue={onContinue} onPrevious={onPrevious} />
     <PassoTabs data={data} inscrito={inscrito} />

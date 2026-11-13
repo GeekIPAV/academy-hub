@@ -19,7 +19,6 @@ import { AppHeader } from "@/components/AppHeader";
 import { Toaster } from "@/components/ui/sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { LoadingU, LoadingUInline } from "@/components/LoadingU";
-import { ImprovingBanner } from "@/components/ImprovingBanner";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getMyEntidade } from "@/lib/entidade.functions";
@@ -205,8 +204,6 @@ function ShellWithSidebar({
 }) {
   const { isAdmin, activeRoles } = useApp();
   const isElearningCourse = /^\/elearning\/[^/]+(?:\/passo\/[^/]+)?\/?$/.test(pathname);
-  const hideImprovingBanner =
-    pathname.startsWith("/recursos") || pathname.startsWith("/cultura-ubuntu/avaliacao") || pathname.startsWith("/elearning") || pathname.startsWith("/admin/elearning") || pathname.startsWith("/certificados");
   const { isLoading: profileLoading } = useCurrentProfile();
   const isEntidadeRep = activeRoles.includes("Entidade");
   const fetchEntidade = useServerFn(getMyEntidade);
@@ -294,7 +291,6 @@ function ShellWithSidebar({
           <AppSidebar />
           <main className="app-main flex min-w-0 flex-1 flex-col p-4 sm:p-6 lg:p-8">
             {isRouterLoading && !isElearningCourse ? <InlineLoader /> : <Outlet />}
-            {!hideImprovingBanner && <ImprovingBanner />}
           </main>
         </div>
       </div>

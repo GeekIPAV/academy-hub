@@ -47,10 +47,10 @@ const DEFAULT_CONTENT: PageContent = {
   title: "ACADEMIA DE LÍDERES UBUNTU — Press Kit",
   body: `<p>A Academia de Líderes Ubuntu é um projeto de educação não-formal, desenvolvido pelo Instituto Padre António Vieira (IPAV) a partir da filosofia <em>"Ubuntu - Eu sou porque tu és"</em> que visa o desenvolvimento de competências socioemocionais, com uma forte base experiencial e relacional.</p><p>Tem como espaço privilegiado de atuação a escola e o seu universo educativo, envolvendo crianças, jovens, educadores e a comunidade educativa.</p><p>Contribui para a descoberta do sentido e propósito das crianças, jovens e dos seus educadores e, por meio disso, para a capacitação de novas lideranças ao serviço da comunidade.</p>`,
   links: [
-    { label: "Identidade Visual ALU — Manual de Normas ALU.pdf", url: "#" },
+    { label: "Identidade visual ALU: Manual de Normas ALU.pdf", url: "#" },
     { label: "Logos ALU", url: "#" },
     {
-      label: "Fotografias da Academia — Flickr IPAV",
+      label: "Fotografias da Academia: Flickr IPAV",
       url: "https://www.flickr.com/photos/ipav/albums",
     },
   ],

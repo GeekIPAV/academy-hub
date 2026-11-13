@@ -819,7 +819,7 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
                       </p>
                       <p>
                         Esta ação <strong>não requer aprovação</strong> e é imediata.
-                        Indique o email do novo responsável (tem de já ter conta na
+                        Indica o email do novo responsável (tem de já ter conta na
                         plataforma).
                       </p>
                     </div>
@@ -844,7 +844,7 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
                     onClick={(e) => {
                       e.preventDefault();
                       if (!newOwnerEmail.trim()) {
-                        toast.error("Indique o email do novo responsável.");
+                        toast.error("Indica o email do novo responsável.");
                         return;
                       }
                       transferMutation.mutate();

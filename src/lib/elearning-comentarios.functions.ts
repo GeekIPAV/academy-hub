@@ -15,7 +15,7 @@ export const listReflexoesCurso = createServerFn({ method: "POST" })
     await assertEquipa(context.supabase, context.userId);
     const { supabaseAdmin: sb } = await import("@/integrations/supabase/client.server");
     const { data: mods } = await sb.from("cursos_modulos").select("title,sort_order,cursos_passos(id,title,tipo,sort_order)").eq("curso_id", data.cursoId).order("sort_order");
-    const passos = (mods ?? []).flatMap((m, mi) => (m.cursos_passos ?? []).filter((p) => p.tipo === "reflexao").sort((a, b) => a.sort_order - b.sort_order).map((p) => ({ id: p.id, title: p.title, modulo: `Módulo ${mi + 1} — ${m.title}` })));
+    const passos = (mods ?? []).flatMap((m, mi) => (m.cursos_passos ?? []).filter((p) => p.tipo === "reflexao").sort((a, b) => a.sort_order - b.sort_order).map((p) => ({ id: p.id, title: p.title, modulo: `Módulo ${mi + 1}: ${m.title}` })));
     if (!passos.length) return [];
     const { data: prog } = await sb.from("cursos_progresso").select("id,passo_id,user_id,estado,resposta,concluido_em,comentario,comentario_autor_nome,comentario_em").in("passo_id", passos.map((p) => p.id)).eq("estado", "concluido").order("concluido_em", { ascending: false });
     const userIds = [...new Set((prog ?? []).map((p) => p.user_id))];

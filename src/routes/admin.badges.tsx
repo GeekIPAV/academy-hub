@@ -346,11 +346,11 @@ function BadgeFormDialog({
       return;
     }
     if (form.validity_type === "relative_years" && !form.validity_years) {
-      toast.error("Indique o número de anos de validade.");
+      toast.error("Indica o número de anos de validade.");
       return;
     }
     if (form.validity_type === "fixed_date" && !form.validity_fixed_date) {
-      toast.error("Indique a data de expiração.");
+      toast.error("Indica a data de expiração.");
       return;
     }
     upsert.mutate(
@@ -370,7 +370,7 @@ function BadgeFormDialog({
         <DialogHeader>
           <DialogTitle>{editing ? "Editar badge" : "Novo badge"}</DialogTitle>
           <DialogDescription>
-            Defina o título, cluster, validade e (opcionalmente) o programa que o desbloqueia.
+            Define o título, o cluster, a validade e, se quiseres, o programa que o desbloqueia.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
@@ -655,7 +655,7 @@ function AssignBadgeDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Atribuir badge</DialogTitle>
-          <DialogDescription>Escolha o utilizador a credenciar.</DialogDescription>
+          <DialogDescription>Escolhe a pessoa a quem dar o badge.</DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
           <Label>Utilizador</Label>
