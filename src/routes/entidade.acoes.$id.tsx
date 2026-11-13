@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PageHeader, PageShell, Section, SummaryStrip } from "@/components/shell/PageHeader";
+import { StatusChip, acaoStatusTone } from "@/components/shell/StatusChip";
+import { QrCodeButton } from "@/components/shell/QrCodeButton";
+import { avaliacaoUrl, copiarLinkAvaliacao } from "@/lib/avaliacao-acoes-link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -85,6 +89,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   getEntidadeActionDetails,
+  listAvaliacoesEntidadeAcao,
   addParticipante,
   bulkAddParticipantes,
   updateParticipante,
@@ -167,166 +172,164 @@ function EntidadeAcaoDetailPage() {
   const days = daysUntil(a.start_date);
   const canCancel = a.status !== "Cancelada" && (days === null || days >= 14);
 
+  const fmt = (d: string | null) =>
+    d ? new Date(`${d.slice(0, 10)}T00:00:00`).toLocaleDateString("pt-PT", { day: "numeric", month: "short", year: "numeric" }) : "Sem data";
+
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <Button asChild variant="ghost" size="sm" className="-ml-2">
-        <Link to="/entidade/dashboard">
-          <ArrowLeft className="mr-1 h-4 w-4" /> Dashboard
-        </Link>
-      </Button>
-
-      {/* Cabeçalho */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Sparkles className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              {a.action_type ?? "Ação"}
-            </p>
-            <h1 className="text-2xl font-semibold leading-tight">
-              {a.title ?? "Ação"}
-            </h1>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge
-            variant={
-              a.status === "Confirmada"
-                ? "default"
-                : a.status === "Cancelada"
-                  ? "destructive"
-                  : "secondary"
-            }
-            className="text-xs"
-          >
-            {a.status}
-          </Badge>
-          <TooltipProvider>
-            {canCancel ? (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <XCircle className="mr-1 h-4 w-4" /> Cancelar ação
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Cancelar esta ação?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Esta operação altera o estado para Cancelada e não pode
-                      ser revertida pela entidade.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Voltar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => cancelMut.mutate()}
-                      disabled={cancelMut.isPending}
-                    >
-                      Confirmar
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            ) : (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span tabIndex={0}>
-                    <Button variant="outline" size="sm" disabled>
-                      <XCircle className="mr-1 h-4 w-4" /> Cancelar ação
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs text-center">
-                  Cancelamento não permitido com menos de 14 dias de
-                  antecedência. Por favor, contacte-nos diretamente.
-                </TooltipContent>
-              </Tooltip>
+    <PageShell>
+      <PageHeader
+        crumbs={[{ label: "A minha organização", to: "/entidade/dashboard" }, { label: a.title ?? "Ação" }]}
+        chips={
+          <>
+            {a.status && (
+              <StatusChip tone={acaoStatusTone(a.status)} dot>
+                {a.status}
+              </StatusChip>
             )}
-          </TooltipProvider>
+            {a.action_type && <StatusChip tone="tag">{a.action_type}</StatusChip>}
+          </>
+        }
+        title={a.title ?? "Ação"}
+        description={[fmt(a.start_date), data.entityName].filter(Boolean).join(" · ")}
+        actions={
+          canCancel ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline">
+                  <XCircle className="mr-1.5 h-4 w-4" /> Cancelar ação
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Cancelar esta ação?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    O estado passa a Cancelada. Depois disso, só a equipa central pode voltar atrás.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Voltar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => cancelMut.mutate()} disabled={cancelMut.isPending}>
+                    Cancelar ação
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : a.status !== "Cancelada" ? (
+            <div className="flex flex-col items-end gap-1">
+              <Button variant="outline" disabled>
+                <XCircle className="mr-1.5 h-4 w-4" /> Cancelar ação
+              </Button>
+              <span className="max-w-[16rem] text-right text-xs text-muted-foreground">
+                Faltam menos de 14 dias. Para cancelar, contacta a equipa central.
+              </span>
+            </div>
+          ) : null
+        }
+      />
+
+      <SummaryStrip
+        items={[
+          { label: "Início", value: fmt(a.start_date) },
+          { label: "Fim", value: fmt(a.end_date) },
+          { label: "Participantes", value: String(data.participantes.length) },
+          { label: "Criada por", value: data.createdByName ?? "Equipa central" },
+        ]}
+      />
+
+      <div className="flex flex-wrap items-start gap-6">
+        <div className="min-w-0 flex-[999_1_560px] space-y-5">
+          <AvaliacoesEntidade actionId={id} total={data.participantes.length} legado={a} />
+          <ParticipantesSection actionId={id} rows={data.participantes} onChanged={invalidate} />
         </div>
+        <aside className="min-w-0 flex-[1_1_300px] space-y-5">
+          <TrainersSection actionId={id} trainers={data.trainers} />
+          <Section title="Materiais" description="Os links são adicionados pela equipa central.">
+            {a.fotos_link ? (
+              <LogisticaLink href={a.fotos_link} icon={<Camera className="h-4 w-4" />} label="Fotografias" />
+            ) : (
+              <p className="text-sm text-muted-foreground">Ainda sem materiais.</p>
+            )}
+          </Section>
+        </aside>
       </div>
+    </PageShell>
+  );
+}
 
-      {/* Bloco Superior: Informações + Logística */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Info className="h-5 w-5 text-primary" /> Informações
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <InfoRow
-              icon={<CalendarDays className="h-4 w-4" />}
-              label="Data de Início"
-              value={formatDate(a.start_date)}
-            />
-            <InfoRow
-              icon={<CalendarCheck2 className="h-4 w-4" />}
-              label="Data de Fim"
-              value={formatDate(a.end_date)}
-            />
-            <InfoRow
-              icon={<User className="h-4 w-4" />}
-              label="Criado por"
-              value={data.createdByName ?? "—"}
-            />
-            <InfoRow
-              icon={<ShieldCheck className="h-4 w-4" />}
-              label="Entidade"
-              value={data.entityName ?? "—"}
-            />
-          </CardContent>
-        </Card>
+function AvaliacoesEntidade({
+  actionId,
+  total,
+  legado,
+}: {
+  actionId: string;
+  total: number;
+  legado: { avaliacao_satisfacao_link?: string | null; avaliacao_impacto_link?: string | null };
+}) {
+  const fn = useServerFn(listAvaliacoesEntidadeAcao);
+  const { data, isLoading } = useQuery({
+    queryKey: ["entidade-avaliacoes", actionId],
+    queryFn: () => fn({ data: { actionId } }),
+    retry: false,
+  });
+  const lista = data ?? [];
+  const temLegado = !!(legado.avaliacao_satisfacao_link || legado.avaliacao_impacto_link);
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <LinkIcon className="h-5 w-5 text-primary" /> Logística
-            </CardTitle>
-            <CardDescription>
-              Links partilhados pela equipa central.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <LogisticaLink
-              href={a.fotos_link}
-              icon={<Camera className="h-4 w-4" />}
-              label="Fotografias"
-            />
-            <LogisticaLink
-              href={a.avaliacao_satisfacao_link}
-              icon={<FileText className="h-4 w-4" />}
-              label="Avaliação de Satisfação"
-            />
-            <LogisticaLink
-              href={a.avaliacao_impacto_link}
-              icon={<FileText className="h-4 w-4" />}
-              label="Avaliação de Impacto"
-            />
-            {!a.fotos_link &&
-              !a.avaliacao_satisfacao_link &&
-              !a.avaliacao_impacto_link && (
-                <p className="py-4 text-center text-sm text-muted-foreground">
-                  Sem links disponíveis. Serão adicionados pela equipa central.
-                </p>
-              )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Formadores + Participantes lado a lado */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <TrainersSection actionId={id} trainers={data.trainers} />
-        <ParticipantesSection
-          actionId={id}
-          rows={data.participantes}
-          onChanged={invalidate}
-        />
-      </div>
-    </div>
+  return (
+    <Section
+      title="Avaliações"
+      description="Partilha estes links com os participantes no fim da ação. As respostas são anónimas."
+    >
+      {isLoading ? (
+        <Skeleton className="h-20 w-full" />
+      ) : lista.length === 0 && !temLegado ? (
+        <p className="rounded-lg border border-dashed p-5 text-center text-sm text-muted-foreground">
+          A equipa central ainda não criou avaliações para esta ação.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {lista.map((av) => {
+            const url = avaliacaoUrl(av.token);
+            const pct = total > 0 ? Math.min(100, Math.round((av.total_respostas / total) * 100)) : 0;
+            return (
+              <div key={av.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-medium text-secondary">{av.titulo}</span>
+                    {!av.aberta && <StatusChip tone="grey">Fechada</StatusChip>}
+                  </div>
+                  <div className="mt-2 flex items-center gap-2.5">
+                    {total > 0 && (
+                      <div className="h-1.5 w-36 overflow-hidden rounded-full bg-muted">
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                      </div>
+                    )}
+                    <span className="text-xs text-muted-foreground">
+                      {total > 0
+                        ? `${av.total_respostas} de ${total} responderam`
+                        : `${av.total_respostas} ${av.total_respostas === 1 ? "resposta" : "respostas"}`}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button size="sm" variant="outline" onClick={() => copiarLinkAvaliacao(av.token)}>
+                    <Copy className="mr-1.5 h-4 w-4" />
+                    Copiar link
+                  </Button>
+                  <QrCodeButton url={url} titulo={av.titulo} ficheiro={`qr-${av.token.slice(0, 8)}`} comTexto />
+                </div>
+              </div>
+            );
+          })}
+          {temLegado && (
+            <div className="space-y-2">
+              {lista.length > 0 && <p className="pt-1 text-xs text-muted-foreground">Links externos antigos</p>}
+              <LogisticaLink href={legado.avaliacao_satisfacao_link} icon={<FileText className="h-4 w-4" />} label="Avaliação de satisfação" />
+              <LogisticaLink href={legado.avaliacao_impacto_link} icon={<FileText className="h-4 w-4" />} label="Avaliação de impacto" />
+            </div>
+          )}
+        </div>
+      )}
+    </Section>
   );
 }
 
