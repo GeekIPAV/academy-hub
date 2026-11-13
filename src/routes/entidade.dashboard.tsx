@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
+import { PageHeader, PageShell, Section } from "@/components/shell/PageHeader";
+import { StatusChip } from "@/components/shell/StatusChip";
+import { FormField } from "@/components/shell/FormField";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, Building2, CalendarPlus, Copy, Pencil, ShieldAlert, Users } from "lucide-react";
+import { AlertTriangle, Building2, CalendarPlus, Copy, Lock, Pencil, ShieldAlert, Users } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EntityOnboardingFlow } from "@/components/EntityOnboardingFlow";
 
@@ -144,7 +147,7 @@ function EntidadeDashboardPage() {
         <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
         <p className="font-medium">Acesso restrito</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Esta área é exclusiva para Representantes de Entidades parceiras.
+          Esta área é só para quem representa uma organização parceira.
         </p>
       </Card>
     );
@@ -166,80 +169,77 @@ function EntidadeDashboardPage() {
     !!entidade?.status && entidade.status.toLowerCase() === "pendente";
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <PageShell>
       <ComponentAccessMatrix pagePath="/entidade/dashboard" />
 
-      {isPending && (
-        <Alert className="border-amber-500/50 bg-amber-50 text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertTitle>Registo pendente de aprovação</AlertTitle>
-          <AlertDescription>
-            O registo da sua organização está a aguardar aprovação pela equipa da
-            Academia Ubuntu. Algumas funcionalidades podem estar limitadas.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {visible("header") && (
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Building2 className="h-6 w-6" />
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Bem-vindo{entidade?.name ? `, ${entidade.name}` : ""}
-          </h1>
-        </div>
-      )}
-
-
-      {isAdmin && (
-        <Card className="p-4">
-          <Label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Entidade (modo admin)
-          </Label>
-          <Select
-            value={selectedEntityId ?? ""}
-            onValueChange={(v) => setSelectedEntityId(v)}
-          >
-            <SelectTrigger className="max-w-md">
-              <SelectValue placeholder="Selecionar entidade…" />
-            </SelectTrigger>
-            <SelectContent>
-              {(entidades ?? []).map((e) => (
-                <SelectItem key={e.id} value={e.id}>
-                  {e.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {entidadesError && (
-            <p className="mt-2 text-xs text-destructive">
-              Não foi possível carregar entidades. Verifica que tens sessão iniciada
-              ({(entidadesError as Error).message}).
-            </p>
-          )}
-        </Card>
-      )}
-
       <Dialog open={dataDialogOpen} onOpenChange={setDataDialogOpen}>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button asChild>
-            <Link to="/inscricao-programas">
-              <CalendarPlus className="mr-2 h-4 w-4" />
-              Inscrever em Programas
-            </Link>
-          </Button>
-          {visible("tab-data") && (
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                <Pencil className="mr-2 h-4 w-4" />
-                Editar Dados da Organização
-              </Button>
-            </DialogTrigger>
-          )}
-        </div>
+        {visible("header") && (
+          <PageHeader
+            eyebrow="A minha organização"
+            title={entidade?.name ?? "A minha organização"}
+            chips={
+              entidade?.status ? (
+                <StatusChip tone={isPending ? "yellow" : "green"}>
+                  {isPending ? "À espera de aprovação" : "Aprovada"}
+                </StatusChip>
+              ) : undefined
+            }
+            description="Os programas em que a organização participa, quem está inscrito e as ações marcadas."
+            actions={
+              <>
+                {visible("tab-data") && (
+                  <DialogTrigger asChild>
+                    <Button variant="outline">
+                      <Pencil className="mr-1.5 h-4 w-4" />
+                      Dados da organização
+                    </Button>
+                  </DialogTrigger>
+                )}
+                <Button asChild>
+                  <Link to="/inscricao-programas">
+                    <CalendarPlus className="mr-1.5 h-4 w-4" />
+                    Inscrever em programas
+                  </Link>
+                </Button>
+              </>
+            }
+          />
+        )}
 
-        
+        {isPending && (
+          <div className="flex gap-3 rounded-xl bg-[#FFF1CC] p-4 text-sm text-[#6B4200]">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <p>
+              <strong className="font-semibold">O registo está à espera de aprovação.</strong> A equipa
+              da Academia vai rever o pedido. Até lá, algumas funcionalidades podem estar limitadas.
+            </p>
+          </div>
+        )}
+
+        {isAdmin && (
+          <div className="rounded-xl border bg-card p-4">
+            <Label htmlFor="admin-entidade" className="mb-1.5 block text-[13px] font-medium text-secondary">
+              Ver a página de outra organização
+            </Label>
+            <Select value={selectedEntityId ?? ""} onValueChange={(v) => setSelectedEntityId(v)}>
+              <SelectTrigger id="admin-entidade" className="max-w-md">
+                <SelectValue placeholder="Escolher organização" />
+              </SelectTrigger>
+              <SelectContent>
+                {(entidades ?? []).map((e) => (
+                  <SelectItem key={e.id} value={e.id}>
+                    {e.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {entidadesError && (
+              <p className="mt-2 text-xs text-destructive">
+                Não foi possível carregar as organizações ({(entidadesError as Error).message}).
+              </p>
+            )}
+          </div>
+        )}
 
         <ProgramsMasterTable
           cohorts={cohorts}
@@ -248,52 +248,46 @@ function EntidadeDashboardPage() {
           onSelect={setSelectedProgramId}
         />
 
-        {selectedProgramId ? (
-          <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList>
-              {visible("tab-overview") && <TabsTrigger value="overview">Visão Geral</TabsTrigger>}
-              {visible("tab-acoes") && <TabsTrigger value="acoes">Marcações</TabsTrigger>}
-            </TabsList>
-
-            {visible("tab-overview") && (
-              <TabsContent value="overview" className="space-y-6">
-                {visible("trainees-table") && (
-                  <TraineesTable
-                    entityId={selectedEntityId}
-                    programTitle={selectedProgramTitle}
-                  />
-                )}
-              </TabsContent>
-            )}
-
-            {visible("tab-acoes") && (
-              <TabsContent value="acoes">
-                <AcoesTab
-                  entityId={selectedEntityId}
-                  programTitle={selectedProgramTitle}
-                />
-              </TabsContent>
-            )}
-          </Tabs>
-        ) : (
-          !cohortsLoading && cohorts.length > 1 && (
-            <Card className="p-6 text-center text-sm text-muted-foreground">
-              Selecione um programa na tabela acima para gerir os formandos e marcações correspondentes.
-            </Card>
-          )
+        {cohorts.length > 1 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Label htmlFor="filtro-programa" className="text-[13px] font-medium text-secondary">
+              Mostrar
+            </Label>
+            <Select
+              value={selectedProgramId ?? "__todos"}
+              onValueChange={(v) => setSelectedProgramId(v === "__todos" ? undefined : v)}
+            >
+              <SelectTrigger id="filtro-programa" className="w-64">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__todos">Todos os programas</SelectItem>
+                {cohorts.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.programas?.title ?? "Programa"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
 
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        {visible("tab-overview") && visible("trainees-table") && (
+          <TraineesTable entityId={selectedEntityId} programTitle={selectedProgramTitle} />
+        )}
+        {visible("tab-acoes") && <AcoesTab entityId={selectedEntityId} programTitle={selectedProgramTitle} />}
+
+        <DialogContent className="max-h-[85dvh] max-w-2xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Dados da Organização</DialogTitle>
+            <DialogTitle>Dados da organização</DialogTitle>
             <DialogDescription>
-              Mantenha o nome da entidade, morada e ponto de contacto atualizados.
+              Mantém o nome, a morada e a pessoa de contacto atualizados.
             </DialogDescription>
           </DialogHeader>
           <EntityDataForm entityId={selectedEntityId} />
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   );
 }
 
@@ -329,75 +323,67 @@ function ProgramsMasterTable({
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base">Os Meus Programas</CardTitle>
-        <CardDescription>
-          Selecione um programa para gerir os respetivos formandos e marcações.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="rounded-md border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Programa</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Link de Inscrição Formandos</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading && (
-                <TableRow>
-                  <TableCell colSpan={3}>
-                    <Skeleton className="h-5 w-full" />
-                  </TableCell>
-                </TableRow>
-              )}
-              {!isLoading && cohorts.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    Ainda não há programas associados a esta entidade.
-                  </TableCell>
-                </TableRow>
-              )}
-              {cohorts.map((c) => {
-                const isSelected = c.id === selectedProgramId;
-                const url = `${origin}/inscricao/${c.invite_token ?? ""}`;
-                return (
-                  <TableRow
-                    key={c.id}
-                    onClick={() => onSelect(c.id)}
-                    className={`cursor-pointer ${isSelected ? "bg-primary/[0.06] border-l-4 border-primary" : ""}`}
-                  >
-                    <TableCell className="font-medium">
-                      {c.programas?.title ?? "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={c.is_active ? "default" : "outline"}>
-                        {c.is_active ? "Ativo" : "Inativo"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        aria-label="Copiar link de inscrição"
-                        disabled={!c.invite_token}
-                        onClick={(e) => copy(e, url)}
-                      >
-                        <Copy className="mr-1.5 h-3 w-3" />
-                        <span className="hidden sm:inline">Copiar link</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+    <section className="space-y-3" aria-labelledby="programas-t">
+      <h2 id="programas-t" className="text-base font-semibold text-secondary">
+        Programas
+      </h2>
+      {isLoading ? (
+        <Skeleton className="h-32 w-full" />
+      ) : cohorts.length === 0 ? (
+        <p className="rounded-xl border border-dashed bg-card p-6 text-center text-sm text-muted-foreground">
+          Ainda não há programas associados a esta organização.
+        </p>
+      ) : (
+        <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(280px,1fr))]">
+          {cohorts.map((c) => {
+            const isSelected = c.id === selectedProgramId;
+            const url = `${origin}/inscricao/${c.invite_token ?? ""}`;
+            return (
+              <article
+                key={c.id}
+                className={`flex min-w-0 flex-col gap-3 rounded-xl border bg-card p-5 ${isSelected ? "border-primary" : ""}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="min-w-0 break-words text-[15px] font-semibold text-secondary">
+                    {c.programas?.title ?? "Programa"}
+                  </h3>
+                  <StatusChip tone={c.is_active ? "green" : "grey"}>{c.is_active ? "Ativo" : "Inativo"}</StatusChip>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-xs font-medium text-secondary">Link de inscrição para participantes</p>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={c.invite_token ? url : "Sem link"}
+                      aria-label={`Link de inscrição de ${c.programas?.title ?? "programa"}`}
+                      className="h-9 bg-muted/40 font-mono text-xs text-muted-foreground"
+                      onFocus={(e) => e.currentTarget.select()}
+                    />
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-9 w-9 shrink-0"
+                      aria-label="Copiar link de inscrição"
+                      disabled={!c.invite_token}
+                      onClick={(e) => copy(e, url)}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onSelect(c.id)}
+                  className="mt-auto self-start text-sm font-medium text-secondary underline-offset-4 hover:text-primary hover:underline"
+                >
+                  {isSelected ? "A mostrar este programa" : "Mostrar só este programa"}
+                </button>
+              </article>
+            );
+          })}
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </section>
   );
 }
 
@@ -427,12 +413,12 @@ function TraineesTable({ entityId, programTitle }: { entityId?: string; programT
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-base">Ponto de Situação</CardTitle>
-            <CardDescription>Formandos inscritos através dos seus links.</CardDescription>
+            <CardTitle className="text-base text-secondary">Participantes</CardTitle>
+            <CardDescription>Quem se inscreveu através dos links da organização.</CardDescription>
           </div>
           <Badge variant="secondary" className="gap-1">
             <Users className="h-3 w-3" />
-            {trainees.length} Formandos Inscritos
+            {trainees.length} {trainees.length === 1 ? "inscrito" : "inscritos"}
           </Badge>
         </div>
       </CardHeader>
@@ -448,7 +434,7 @@ function TraineesTable({ entityId, programTitle }: { entityId?: string; programT
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>Programa</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -462,7 +448,7 @@ function TraineesTable({ entityId, programTitle }: { entityId?: string; programT
               {!isLoading && trainees.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    Ainda não há formandos inscritos.
+                    Ainda não há participantes inscritos.
                   </TableCell>
                 </TableRow>
               )}
@@ -577,7 +563,7 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
   if (!data) {
     return (
       <Card className="p-6 text-sm text-muted-foreground">
-        A sua conta ainda não está associada a nenhuma entidade. Contacte o administrador.
+        A tua conta ainda não está ligada a nenhuma organização. Fala com a equipa da Academia.
       </Card>
     );
   }
@@ -585,9 +571,9 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Dados Institucionais</CardTitle>
+        <CardTitle className="text-base text-secondary">Dados da organização</CardTitle>
         <CardDescription>
-          Mantenha o nome da entidade e a morada atualizados.
+          Mantém o nome e a morada da organização atualizados.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -599,7 +585,7 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
           className="grid gap-4 sm:grid-cols-2"
         >
           <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="entity-name">Nome da Entidade</Label>
+            <Label htmlFor="entity-name">Nome da organização</Label>
             <Input
               id="entity-name"
               value={name}
@@ -627,7 +613,7 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="postal-code">Código Postal</Label>
+            <Label htmlFor="postal-code">Código postal</Label>
             <Input
               id="postal-code"
               value={postalCode}
@@ -658,21 +644,21 @@ function EntityDataForm({ entityId }: { entityId?: string }) {
           </div>
 
           <div className="space-y-2">
-            <Label>Nome do Responsável</Label>
+            <Label>Pessoa de contacto</Label>
             <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
               {data.contact_name || "—"}
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label>Email de Contacto</Label>
+            <Label>Email</Label>
             <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
               {data.contact_email || "—"}
             </div>
           </div>
 
           <div className="space-y-2 sm:col-span-2">
-            <Label>Telefone da Entidade</Label>
+            <Label>Telemóvel</Label>
             <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
               {data.contact_phone || "—"}
             </div>
@@ -816,6 +802,7 @@ function AcoesTab({ entityId, programTitle }: { entityId?: string; programTitle?
   const [actionType, setActionType] = useState<string>(programActionType ?? "");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [tentou, setTentou] = useState(false);
 
   useEffect(() => {
     if (programActionType) setActionType(programActionType);
@@ -851,8 +838,9 @@ function AcoesTab({ entityId, programTitle }: { entityId?: string; programTitle?
         },
       }),
     onSuccess: () => {
-      toast.success("Marcação criada (aguarda confirmação).");
+      toast.success("Proposta enviada. A equipa da Academia vai confirmar.");
       setOpen(false);
+      setTentou(false);
       setActionType("");
       setStartDate("");
       setEndDate("");
@@ -875,85 +863,115 @@ function AcoesTab({ entityId, programTitle }: { entityId?: string; programTitle?
       <CardHeader>
         <div className="flex items-center justify-between gap-3">
           <div>
-            <CardTitle className="text-base">Marcações</CardTitle>
+            <CardTitle className="text-base text-secondary">Ações</CardTitle>
             <CardDescription>
-              Proponha novas ações para a sua entidade. Aguardam confirmação da Academia.
+              As ações marcadas para a organização. Propõe uma nova e a equipa da Academia confirma.
             </CardDescription>
           </div>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
-                <CalendarPlus className="mr-2 h-4 w-4" />
-                Nova marcação
+                <CalendarPlus className="mr-1.5 h-4 w-4" />
+                Propor nova ação
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90dvh] max-w-xl overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Nova marcação</DialogTitle>
+                <DialogTitle>Propor nova ação</DialogTitle>
                 <DialogDescription>
-                  Indique o tipo de ação e o período pretendido.
+                  Escolhe o tipo de ação e as datas. A equipa da Academia confirma a marcação.
                 </DialogDescription>
               </DialogHeader>
               <form
                 id="new-acao-form"
+                noValidate
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (!actionType) return toast.error("Escolha o tipo de ação.");
-                  if (!startDate || !endDate) return toast.error("Defina as datas.");
-                  if (endDate < startDate)
-                    return toast.error("Data fim deve ser posterior à data início.");
+                  setTentou(true);
+                  if (!actionType || !startDate || !endDate || endDate < startDate) return;
                   createMut.mutate();
                 }}
-                className="grid gap-4"
+                className="grid gap-5"
               >
-                <div className="space-y-2">
-                  <Label>Tipo de ação</Label>
-                  <Select value={actionType} onValueChange={setActionType} disabled={!!programActionType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecionar…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ACTION_TYPES.map((t) => {
-                        const locked = !allowedActionTypes.has(t);
-                        return (
-                          <SelectItem key={t} value={t} disabled={locked}>
-                            {t}{locked ? " — 🔒 requer badge" : ""}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <fieldset className="space-y-2">
+                  <legend className="mb-2 text-[13px] font-medium text-secondary">
+                    Tipo de ação <span className="text-[#B42318]" aria-hidden="true">*</span>
+                  </legend>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {ACTION_TYPES.map((t) => {
+                      const locked = !allowedActionTypes.has(t);
+                      const fixo = !!programActionType && programActionType !== t;
+                      const desativado = locked || fixo;
+                      const escolhido = actionType === t;
+                      return (
+                        <label
+                          key={t}
+                          className={`flex items-start gap-2.5 rounded-xl border p-3 text-sm ${
+                            desativado
+                              ? "cursor-not-allowed bg-muted/40 text-muted-foreground"
+                              : escolhido
+                                ? "cursor-pointer border-primary bg-primary/5"
+                                : "cursor-pointer bg-card hover:border-secondary/40"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="tipo-acao"
+                            className="mt-0.5 accent-[var(--primary)]"
+                            checked={escolhido}
+                            disabled={desativado}
+                            onChange={() => setActionType(t)}
+                          />
+                          <span className="min-w-0">
+                            <span className="block font-medium">{t}</span>
+                            {locked && (
+                              <span className="mt-0.5 flex items-start gap-1 text-xs">
+                                <Lock className="mt-0.5 h-3 w-3 shrink-0" aria-hidden="true" />
+                                Precisa de um badge que ainda não tens
+                              </span>
+                            )}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {tentou && !actionType && (
+                    <p role="alert" className="text-xs font-medium text-[#B42318]">
+                      Escolhe o tipo de ação.
+                    </p>
+                  )}
+                </fieldset>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="start-date">Data início</Label>
-                    <Input
-                      id="start-date"
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="end-date">Data fim</Label>
-                    <Input
-                      id="end-date"
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      required
-                    />
-                  </div>
+                  <FormField
+                    id="start-date"
+                    label="Início"
+                    required
+                    error={tentou && !startDate ? "Escolhe a data de início." : null}
+                  >
+                    <Input id="start-date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                  </FormField>
+                  <FormField
+                    id="end-date"
+                    label="Fim"
+                    required
+                    error={
+                      tentou && !endDate
+                        ? "Escolhe a data de fim."
+                        : startDate && endDate && endDate < startDate
+                          ? "O fim tem de ser no mesmo dia ou depois do início."
+                          : null
+                    }
+                  >
+                    <Input id="end-date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                  </FormField>
                 </div>
               </form>
-              <DialogFooter>
-                <Button
-                  type="submit"
-                  form="new-acao-form"
-                  disabled={createMut.isPending}
-                >
-                  {createMut.isPending ? "A criar…" : "Criar marcação"}
+              <DialogFooter className="gap-2">
+                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" form="new-acao-form" disabled={createMut.isPending}>
+                  {createMut.isPending ? "A enviar…" : "Enviar proposta"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -988,7 +1006,7 @@ function AcoesTab({ entityId, programTitle }: { entityId?: string; programTitle?
               {!isLoading && acoes.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground">
-                    Ainda não há marcações.
+                    Ainda não há ações marcadas.
                   </TableCell>
                 </TableRow>
               )}
@@ -998,7 +1016,7 @@ function AcoesTab({ entityId, programTitle }: { entityId?: string; programTitle?
                 const canCancel = !isCancelled && days !== null && days >= 14;
                 const reason = isCancelled
                   ? "Esta marcação já foi cancelada."
-                  : "Cancelamento não permitido com menos de 14 dias de antecedência. Por favor, contacte-nos diretamente.";
+                  : "Faltam menos de 14 dias. Para cancelar, contacta a equipa central.";
                 return (
                   <TableRow key={a.id}>
                     <TableCell className="font-medium">
@@ -1023,10 +1041,9 @@ function AcoesTab({ entityId, programTitle }: { entityId?: string; programTitle?
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Cancelar marcação?</AlertDialogTitle>
+                                <AlertDialogTitle>Cancelar esta ação?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Esta ação não pode ser revertida. A marcação ficará
-                                  marcada como cancelada.
+                                  O estado passa a Cancelada. Depois disso, só a equipa central pode voltar atrás.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
@@ -1034,7 +1051,7 @@ function AcoesTab({ entityId, programTitle }: { entityId?: string; programTitle?
                                 <AlertDialogAction
                                   onClick={() => cancelMut.mutate(a.id)}
                                 >
-                                  Confirmar cancelamento
+                                  Cancelar ação
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
