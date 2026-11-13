@@ -14,19 +14,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import aluLogo from "@/assets/alu-logo.svg";
+import { FormField, fieldErrorClass } from "@/components/shell/FormField";
 
 export const Route = createFileRoute("/inscricao-entidade/$token")({
   validateSearch: (s: Record<string, unknown>): { p?: string } =>
     typeof s.p === "string" ? { p: s.p } : {},
   head: () => ({
     meta: [
-      { title: "Inscrição de organização — Academia Ubuntu" },
+      { title: "Inscrição de organização | Academia de Líderes Ubuntu" },
       {
         name: "description",
         content:
           "Inscreve a tua organização num programa da Academia de Líderes Ubuntu.",
       },
-      { property: "og:title", content: "Inscrição de organização — Academia Ubuntu" },
+      { property: "og:title", content: "Inscrição de organização | Academia de Líderes Ubuntu" },
       {
         property: "og:description",
         content: "Inscreve a tua organização num programa da Academia de Líderes Ubuntu.",
@@ -53,6 +55,7 @@ function InscricaoEntidadePage() {
   const [debounced, setDebounced] = useState("");
   const [selected, setSelected] = useState<{ id: string; name: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [tentou, setTentou] = useState(false);
   const [form, setForm] = useState({
     name: "",
     address: "",
@@ -98,8 +101,13 @@ function InscricaoEntidadePage() {
   };
 
   const submit = async () => {
-    if (!form.name.trim() || !form.contact_name.trim() || !form.contact_email.trim()) {
-      toast.error("Preenche o nome da organização e os dados da pessoa de contacto.");
+    setTentou(true);
+    if (
+      !form.name.trim() ||
+      !form.contact_name.trim() ||
+      !/^\S+@\S+\.\S+$/.test(form.contact_email.trim()) ||
+      (form.postal_code.trim() !== "" && !/^\d{4}-\d{3}$/.test(form.postal_code.trim()))
+    ) {
       return;
     }
     setSubmitting(true);
@@ -146,23 +154,53 @@ function InscricaoEntidadePage() {
     );
   }
 
+  const passoAtual = step === "search" || step === "blocked" ? 0 : step === "form" ? 1 : 2;
+  const erroEmail =
+    tentou && !/^\S+@\S+\.\S+$/.test(form.contact_email.trim())
+      ? form.contact_email.trim()
+        ? "Confirma o email, falta algum carácter."
+        : "Preenche o email."
+      : null;
+  const erroCp =
+    tentou && form.postal_code.trim() !== "" && !/^\d{4}-\d{3}$/.test(form.postal_code.trim())
+      ? "Escreve o código postal completo, por exemplo 1000-001."
+      : null;
+
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8">
-      <div className="mx-auto max-w-2xl space-y-4">
-        <div className="flex items-start gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Building2 className="h-6 w-6" />
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Inscrição de organização
-            </p>
-            <h1 className="text-2xl font-semibold tracking-tight">{programa.title}</h1>
-            {programa.cluster_name && (
-              <p className="text-sm text-muted-foreground">{programa.cluster_name}</p>
-            )}
-          </div>
+    <div className="min-h-[100dvh] bg-background">
+      <header className="flex items-center justify-between gap-4 bg-secondary px-[5%] py-3">
+        <img src={aluLogo} alt="Academia de Líderes Ubuntu" className="h-10 w-auto" />
+        <a href="/auth" className="text-sm font-medium text-white hover:text-white/80">
+          Já tenho conta
+        </a>
+      </header>
+      <div className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:py-10">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">Inscrição de organização</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-secondary sm:text-[28px]">{programa.title}</h1>
+          {programa.cluster_name && <p className="mt-1 text-sm text-muted-foreground">{programa.cluster_name}</p>}
         </div>
+        {programa.enrollment_open && (
+          <ol className="flex flex-wrap gap-x-2 gap-y-3" aria-label="Passos do registo">
+            {["Procurar", "Dados", "Pedido enviado"].map((l, i) => (
+              <li
+                key={l}
+                aria-current={i === passoAtual ? "step" : undefined}
+                className={`flex flex-1 basis-32 items-center gap-2.5 text-sm font-medium ${i === passoAtual ? "text-secondary" : "text-muted-foreground"}`}
+              >
+                <span
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${
+                    i === passoAtual ? "bg-primary text-white" : i < passoAtual ? "bg-secondary text-white" : "bg-muted"
+                  }`}
+                >
+                  {i + 1}
+                </span>
+                {l}
+                {i < 2 && <span className="hidden h-0.5 min-w-4 flex-1 bg-border sm:block" />}
+              </li>
+            ))}
+          </ol>
+        )}
 
         {!programa.enrollment_open && (
           <Card>
@@ -177,14 +215,15 @@ function InscricaoEntidadePage() {
         {programa.enrollment_open && step === "search" && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Qual é a vossa organização?</CardTitle>
+              <CardTitle className="text-base text-secondary">A tua organização já está na plataforma?</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   className="pl-9"
-                  placeholder="Escreve o nome da organização…"
+                  placeholder="Escreve o nome da organização"
+                  aria-label="Nome da organização"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                 />
@@ -199,7 +238,7 @@ function InscricaoEntidadePage() {
                     <button
                       key={e.id}
                       onClick={() => pick(e)}
-                      className="w-full rounded-md border p-3 text-left text-sm hover:bg-accent"
+                      className="w-full rounded-xl border p-3 text-left text-sm hover:border-secondary/40"
                     >
                       <span className="font-medium">{e.name}</span>
                       {e.locality && (
@@ -210,7 +249,7 @@ function InscricaoEntidadePage() {
                     </button>
                   ))}
                   <Button variant="outline" className="w-full" onClick={startNew}>
-                    Não encontro a minha organização — registar nova
+                    Não encontro a minha organização: registar nova
                   </Button>
                 </div>
               )}
@@ -228,7 +267,7 @@ function InscricaoEntidadePage() {
             <CardContent className="space-y-4 pt-6">
               <p className="text-sm">
                 A organização <strong>{selected?.name}</strong> já está registada na
-                plataforma. Façam a inscrição a partir da página da organização.
+                plataforma. A inscrição faz-se a partir da página da organização, por quem já tem conta.
               </p>
               <div className="flex gap-2">
                 <Button asChild>
@@ -245,53 +284,69 @@ function InscricaoEntidadePage() {
         {step === "form" && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">
-                {selected ? "Confirmar dados da organização" : "Registar organização"}
+              <CardTitle className="text-base text-secondary">
+                {selected ? "Confirma os dados da organização" : "Dados da organização"}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Field
+                id="org-nome"
                 label="Nome da organização"
+                required
+                error={tentou && !form.name.trim() ? "Preenche o nome da organização." : null}
                 value={form.name}
                 onChange={(v) => setForm({ ...form, name: v })}
                 disabled={!!selected}
               />
               <Field
+                id="org-morada"
                 label="Morada"
                 value={form.address}
                 onChange={(v) => setForm({ ...form, address: v })}
               />
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
+                  id="org-cp"
                   label="Código postal"
+                  error={erroCp}
                   placeholder="1234-567"
                   value={form.postal_code}
                   onChange={(v) => setForm({ ...form, postal_code: v })}
                 />
                 <Field
+                  id="org-localidade"
                   label="Localidade"
                   value={form.locality}
                   onChange={(v) => setForm({ ...form, locality: v })}
                 />
               </div>
 
-              <div className="pt-2">
-                <p className="text-sm font-medium">Pessoa de contacto</p>
+              <div className="border-t pt-4">
+                <p className="text-[15px] font-semibold text-secondary">Pessoa de contacto</p>
+                <p className="text-xs text-muted-foreground">Recebe a resposta ao pedido e fica responsável pela organização na plataforma.</p>
               </div>
               <Field
+                id="org-contacto"
                 label="Nome"
+                required
+                error={tentou && !form.contact_name.trim() ? "Preenche o nome da pessoa de contacto." : null}
                 value={form.contact_name}
                 onChange={(v) => setForm({ ...form, contact_name: v })}
               />
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
+                  id="org-email"
                   label="Email"
+                  required
+                  error={erroEmail}
                   type="email"
                   value={form.contact_email}
                   onChange={(v) => setForm({ ...form, contact_email: v })}
                 />
                 <Field
+                  id="org-telemovel"
                   label="Telemóvel"
+                  type="tel"
                   value={form.contact_phone}
                   onChange={(v) => setForm({ ...form, contact_phone: v })}
                 />
@@ -303,7 +358,7 @@ function InscricaoEntidadePage() {
                 </Button>
                 <Button onClick={submit} disabled={submitting}>
                   {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Submeter pedido
+                  Enviar pedido
                 </Button>
               </div>
             </CardContent>
@@ -316,8 +371,7 @@ function InscricaoEntidadePage() {
               <CheckCircle2 className="mx-auto h-10 w-10 text-primary" />
               <p className="font-medium">Pedido enviado</p>
               <p className="text-sm text-muted-foreground">
-                A equipa da Academia Ubuntu vai rever a inscrição e entrar em contacto
-                por email com os próximos passos.
+                A equipa da Academia vai rever o pedido e responder por email com os próximos passos.
               </p>
             </CardContent>
           </Card>
@@ -328,32 +382,39 @@ function InscricaoEntidadePage() {
 }
 
 function Field({
+  id,
   label,
   value,
   onChange,
   type = "text",
   placeholder,
   disabled,
+  required,
+  error,
 }: {
+  id: string;
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
   placeholder?: string;
   disabled?: boolean;
+  required?: boolean;
+  error?: string | null;
 }) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </Label>
+    <FormField id={id} label={label} required={required} error={error}>
       <Input
+        id={id}
         type={type}
         value={value}
         placeholder={placeholder}
         disabled={disabled}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-erro` : undefined}
+        className={error ? fieldErrorClass : ""}
         onChange={(e) => onChange(e.target.value)}
       />
-    </div>
+    </FormField>
   );
 }
