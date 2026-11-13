@@ -30,7 +30,7 @@ interface RequiredField {
 }
 
 export const Route = createFileRoute("/_authenticated/actions/$id")({
-  head: () => ({ meta: [{ title: "Inscrição — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Inscrição | Academia de Líderes Ubuntu" }] }),
   component: ActionDetailPage,
 });
 

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -39,13 +40,13 @@ import {
 export const Route = createFileRoute("/equipa/programas")({
   head: () => ({
     meta: [
-      { title: "Programas — Equipa | Academia Ubuntu" },
+      { title: "Programas da equipa | Academia de Líderes Ubuntu" },
       {
         name: "description",
         content:
           "Gestão de inscrições de organizações e participantes nos programas da Academia Ubuntu.",
       },
-      { property: "og:title", content: "Programas — Equipa | Academia Ubuntu" },
+      { property: "og:title", content: "Programas da equipa | Academia de Líderes Ubuntu" },
       {
         property: "og:description",
         content: "Gestão de inscrições de organizações e participantes.",
@@ -135,19 +136,12 @@ function EquipaProgramasPage() {
     : null;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Users className="h-6 w-6" />
-        </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Equipa</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Programas</h1>
-          <p className="text-sm text-muted-foreground">
-            Inscrições de organizações e participantes por programa.
-          </p>
-        </div>
-      </div>
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-6">
+      <PageHeader
+        eyebrow="Equipa"
+        title="Programas"
+        description="Pedidos das organizações e participantes de cada programa."
+      />
 
       <Card className="p-4">
         <Label className="mb-2 block text-xs font-medium uppercase tracking-wide text-muted-foreground">

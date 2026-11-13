@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -19,9 +20,9 @@ import { MODALIDADE_LABEL } from "@/components/elearning/shared";
 export const Route = createFileRoute("/admin/elearning/")({
   head: () => ({
     meta: [
-      { title: "Gestão de E-learning — Academia Ubuntu" },
+      { title: "E-learning | Gestão" },
       { name: "description", content: "Criar e gerir cursos, módulos, turmas e inscritos da Escola Ubuntu Online." },
-      { property: "og:title", content: "Gestão de E-learning — Academia Ubuntu" },
+      { property: "og:title", content: "E-learning | Gestão" },
       { property: "og:description", content: "Criar e gerir cursos da Escola Ubuntu Online." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -89,13 +90,12 @@ function AdminElearningPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-semibold"><GraduationCap className="h-6 w-6 text-primary" /> Gestão de E-learning</h1>
-          <p className="text-sm text-muted-foreground">Cursos da Escola Ubuntu Online.</p>
-        </div>
-        <Button onClick={() => setOpen(true)}><Plus className="mr-1 h-4 w-4" /> Criar curso</Button>
-      </div>
+      <PageHeader
+        eyebrow="Conteúdos"
+        title="E-learning"
+        description="Os cursos da Escola Ubuntu Online."
+        actions={<Button onClick={() => setOpen(true)}><Plus className="mr-1 h-4 w-4" /> Criar curso</Button>}
+      />
 
       <Card>
         <Table>

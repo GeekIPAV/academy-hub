@@ -12,9 +12,9 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/cultura-ubuntu/avaliacao/$slug/$section")({
   head: () => ({
     meta: [
-      { title: "Secção de avaliação de impacto — Cultura Ubuntu" },
+      { title: "Avaliação de impacto | Academia de Líderes Ubuntu" },
       { name: "description", content: "Metodologia, indicadores ou perguntas de um recurso de avaliação de impacto da Cultura Ubuntu." },
-      { property: "og:title", content: "Secção de avaliação de impacto — Cultura Ubuntu" },
+      { property: "og:title", content: "Avaliação de impacto | Academia de Líderes Ubuntu" },
       { property: "og:description", content: "Consulta em detalhe esta secção do recurso de avaliação." },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary" },

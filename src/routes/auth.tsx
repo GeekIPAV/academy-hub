@@ -18,7 +18,7 @@ const searchSchema = z.object({ redirect: z.string().optional() });
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s) => searchSchema.parse(s),
-  head: () => ({ meta: [{ title: "Entrar — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Entrar | Academia de Líderes Ubuntu" }] }),
   component: AuthPage,
 });
 

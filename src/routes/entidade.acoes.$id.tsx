@@ -104,7 +104,7 @@ const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 type TShirtSize = (typeof TSHIRT_SIZES)[number];
 
 export const Route = createFileRoute("/entidade/acoes/$id")({
-  head: () => ({ meta: [{ title: "Detalhe da Ação — Entidade" }] }),
+  head: () => ({ meta: [{ title: "Ação | Academia de Líderes Ubuntu" }] }),
   component: EntidadeAcaoDetailPage,
 });
 

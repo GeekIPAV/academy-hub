@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -58,7 +59,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/admin/biblioteca")({
-  head: () => ({ meta: [{ title: "Gestão da Biblioteca" }] }),
+  head: () => ({ meta: [{ title: "Biblioteca de publicações | Gestão" }] }),
   component: () => (
     <RouteGate path="/admin/biblioteca">
       <AdminBibliotecaPage />
@@ -68,19 +69,18 @@ export const Route = createFileRoute("/admin/biblioteca")({
 
 function AdminBibliotecaPage() {
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 md:p-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Gestão da Biblioteca</h1>
-        <p className="text-sm text-muted-foreground">
-          Administra o catálogo, categorias e propostas pendentes.
-        </p>
-      </header>
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-6">
+      <PageHeader
+        eyebrow="Conteúdos"
+        title="Biblioteca de publicações"
+        description="Gere o catálogo, as categorias e as propostas por aprovar."
+      />
 
       <Tabs defaultValue="catalogo">
         <TabsList>
-          <TabsTrigger value="catalogo">Catálogo Geral</TabsTrigger>
+          <TabsTrigger value="catalogo">Catálogo</TabsTrigger>
           <TabsTrigger value="categorias">Categorias</TabsTrigger>
-          <TabsTrigger value="pendentes">Propostas Pendentes</TabsTrigger>
+          <TabsTrigger value="pendentes">Propostas por aprovar</TabsTrigger>
         </TabsList>
         <TabsContent value="catalogo" className="mt-4">
           <CatalogoTab />

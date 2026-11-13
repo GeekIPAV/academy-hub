@@ -19,9 +19,9 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId")({
   head: () => ({ meta: [
-    { title: "Espaço de formação — Escola Ubuntu Online" },
+    { title: "Espaço de formação | Escola Ubuntu Online" },
     { name: "description", content: "Visão geral, momentos de formação e Caderno de Percurso da Escola Ubuntu Online." },
-    { property: "og:title", content: "Espaço de formação — Escola Ubuntu Online" },
+    { property: "og:title", content: "Espaço de formação | Escola Ubuntu Online" },
     { property: "og:description", content: "O teu curso, percurso de aprendizagem e reflexões pessoais." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary" },

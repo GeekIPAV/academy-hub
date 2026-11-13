@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -30,7 +31,7 @@ import { RichTextEditor } from "@/components/rich-text-editor";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/emails")({
-  head: () => ({ meta: [{ title: "Gestão de Emails — Admin" }] }),
+  head: () => ({ meta: [{ title: "Emails | Gestão" }] }),
   component: AdminEmailsPage,
 });
 
@@ -117,18 +118,12 @@ function AdminEmailsPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="rounded-md bg-primary/10 p-2 text-primary">
-          <Mail className="h-5 w-5" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-semibold">Gestão de Emails</h1>
-          <p className="text-sm text-muted-foreground">
-            Edita o assunto e o corpo dos emails enviados pela plataforma.
-          </p>
-        </div>
-      </div>
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-6">
+      <PageHeader
+        eyebrow="Conteúdos"
+        title="Emails"
+        description="Edita o assunto e o texto dos emails que a plataforma envia."
+      />
 
       <Card>
         <CardHeader>

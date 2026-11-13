@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,9 +14,9 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/cultura-ubuntu/avaliacao/")({
   head: () => ({
     meta: [
-      { title: "Avaliação de Impacto — Cultura Ubuntu" },
+      { title: "Avaliação de impacto | Academia de Líderes Ubuntu" },
       { name: "description", content: "Cinco avaliações de impacto da Cultura Ubuntu: metodologias, referenciais, indicadores e perguntas." },
-      { property: "og:title", content: "Avaliação de Impacto — Cultura Ubuntu" },
+      { property: "og:title", content: "Avaliação de impacto | Academia de Líderes Ubuntu" },
       { property: "og:description", content: "Explora as cinco avaliações de impacto da Cultura Ubuntu." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -36,19 +37,13 @@ function AvaliacaoGallery() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Cultura Ubuntu</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-secondary">Avaliação de Impacto</h1>
-          <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Aqui encontras cinco avaliações complementares que ajudam a compreender o impacto da metodologia Ubuntu — nas pessoas, nas relações e na comunidade.
-            Cada avaliação indica os referenciais em que se apoia e organiza-se em três partes: as metodologias de recolha, os indicadores a observar e as perguntas
-            que podes usar em questionários, entrevistas ou momentos de reflexão. Escolhe a avaliação que se aproxima do que queres compreender e abre-a para ver o detalhe.
-          </p>
-        </div>
-        <Button asChild variant="outline"><Link to="/cultura-ubuntu/avaliacao/gestao"><ClipboardCheck className="mr-2 h-4 w-4" /> Gerir recursos</Link></Button>
-      </header>
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-6">
+      <PageHeader
+        eyebrow="Cultura Ubuntu"
+        title="Avaliação de impacto"
+        description="Cinco avaliações complementares que ajudam a compreender o impacto da metodologia Ubuntu nas pessoas, nas relações e na comunidade. Cada uma indica os referenciais em que se apoia e organiza-se em três partes: metodologias de recolha, indicadores a observar e perguntas para questionários, entrevistas ou momentos de reflexão."
+        actions={<Button asChild variant="outline"><Link to="/cultura-ubuntu/avaliacao/gestao"><ClipboardCheck className="mr-2 h-4 w-4" /> Gerir recursos</Link></Button>}
+      />
 
       <section aria-labelledby="overview-title" className="space-y-3">
         <div>

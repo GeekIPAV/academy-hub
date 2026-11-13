@@ -77,7 +77,7 @@ import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 
 
 export const Route = createFileRoute("/entidade/dashboard")({
-  head: () => ({ meta: [{ title: "Página da Organização — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "A minha organização | Academia de Líderes Ubuntu" }] }),
   component: EntidadeDashboardPage,
 });
 

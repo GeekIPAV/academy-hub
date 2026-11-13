@@ -57,7 +57,7 @@ import { parseCluster, slugifyCluster } from "@/lib/cluster-utils";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/$temaId")({
-  head: () => ({ meta: [{ title: "Tema — Centro de Recursos" }] }),
+  head: () => ({ meta: [{ title: "Tema | Centro de recursos" }] }),
   component: TemaDetail,
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl py-16 text-center text-destructive">
@@ -198,7 +198,7 @@ function TemaDetail() {
       </nav>
 
       <header className="space-y-3 border-b pb-6">
-        <h1 className="text-3xl font-semibold text-secondary">{tema.title}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-secondary sm:text-[28px]">{tema.title}</h1>
         <EditableField
           temaId={tema.id}
           field="intro"

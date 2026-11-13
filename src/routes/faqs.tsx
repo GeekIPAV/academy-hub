@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
@@ -56,7 +57,7 @@ import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
 
 export const Route = createFileRoute("/faqs")({
-  head: () => ({ meta: [{ title: "FAQs — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "FAQs | Academia de Líderes Ubuntu" }] }),
   component: () => (
     <RouteGate path="/faqs">
       <FaqsPage />
@@ -226,20 +227,21 @@ function FaqsPage() {
   }, [items]);
 
   return (
-    <div className="container mx-auto max-w-3xl p-6 space-y-6">
+    <div className="mx-auto w-full min-w-0 max-w-4xl space-y-6">
       <ComponentAccessMatrix pagePath="/faqs" />
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">FAQs</h1>
-          <p className="text-muted-foreground text-sm">Perguntas frequentes.</p>
-        </div>
-        {isAdmin && (
-          <Button onClick={openCreate} size="sm">
-            <Plus className="h-4 w-4" />
-            Nova FAQ
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        eyebrow="Comunicação"
+        title="FAQs"
+        description="Perguntas frequentes."
+        actions={
+          isAdmin ? (
+            <Button onClick={openCreate} size="sm">
+              <Plus className="h-4 w-4" />
+              Nova FAQ
+            </Button>
+          ) : undefined
+        }
+      />
 
       {dirty && (
         <div className="flex items-center justify-end gap-2">

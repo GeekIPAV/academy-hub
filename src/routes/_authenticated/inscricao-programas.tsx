@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -27,7 +28,7 @@ import { parseCluster } from "@/lib/cluster-utils";
 export const Route = createFileRoute("/_authenticated/inscricao-programas")({
   head: () => ({
     meta: [
-      { title: "Inscrição em Programas — IPAV" },
+      { title: "Inscrição em programas | Academia de Líderes Ubuntu" },
       {
         name: "description",
         content: "Inscreve-te nos programas de formação ativos do IPAV.",
@@ -91,23 +92,19 @@ function InscricaoProgramasPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 py-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Inscrição em Programas
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Clusters de programas atualmente ativos no IPAV.
-          </p>
-        </div>
-        {isAdmin && (
-          <Button variant="outline" size="sm" onClick={openEditor} className="shrink-0">
-            <Pencil className="mr-2 h-4 w-4" />
-            Editar descrição
-          </Button>
-        )}
-      </div>
+    <div className="mx-auto w-full min-w-0 max-w-4xl space-y-6">
+      <PageHeader
+        title="Inscrição em programas"
+        description="Os clusters de programas que estão ativos no IPAV."
+        actions={
+          isAdmin ? (
+            <Button variant="outline" size="sm" onClick={openEditor} className="shrink-0">
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar descrição
+            </Button>
+          ) : undefined
+        }
+      />
 
       {isAdmin && <ComponentAccessMatrix pagePath="/inscricao-programas" />}
 

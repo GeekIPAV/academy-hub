@@ -7,9 +7,9 @@ export const Route = createFileRoute("/certificados/verificar/$codigo")({
   loader: ({ params }) => verificarCertificado({ data: { codigo: params.codigo } }),
   head: ({ params }) => ({
     meta: [
-      { title: `Verificação de certificado ${params.codigo} — Academia Ubuntu` },
+      { title: `Verificação de certificado ${params.codigo} | Academia de Líderes Ubuntu` },
       { name: "description", content: "Confirme a autenticidade de um certificado da Escola Ubuntu Online." },
-      { property: "og:title", content: "Verificação de certificado — Academia Ubuntu" },
+      { property: "og:title", content: "Verificação de certificado | Academia de Líderes Ubuntu" },
       { property: "og:description", content: "Confirme a autenticidade de um certificado da Escola Ubuntu Online." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

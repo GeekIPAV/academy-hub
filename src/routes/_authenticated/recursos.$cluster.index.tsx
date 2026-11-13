@@ -12,7 +12,7 @@ import { useHasBadgeForCluster } from "@/hooks/use-badge-access";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
   head: ({ params }) => ({
-    meta: [{ title: `${params.cluster} — Centro de Recursos` }],
+    meta: [{ title: `${params.cluster} | Centro de recursos` }],
   }),
   component: ClusterTemas,
   notFoundComponent: () => (

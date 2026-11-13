@@ -85,7 +85,7 @@ import {
 } from "@/lib/public-event.functions";
 
 export const Route = createFileRoute("/evento/$id")({
-  head: () => ({ meta: [{ title: "Inscrição em evento — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Inscrição | Academia de Líderes Ubuntu" }] }),
   component: PublicEventPage,
 });
 

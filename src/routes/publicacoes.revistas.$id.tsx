@@ -6,7 +6,7 @@ import { useArticle } from "@/hooks/use-articles";
 import { usePublicationsI18n } from "@/hooks/use-publications-i18n";
 
 export const Route = createFileRoute("/publicacoes/revistas/$id")({
-  head: () => ({ meta: [{ title: "Artigo — Revista Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Artigo | Revista Ubuntu" }] }),
   component: ArticlePage,
 });
 

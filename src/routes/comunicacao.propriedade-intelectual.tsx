@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PageHeader } from "@/components/shell/PageHeader";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
@@ -16,7 +17,7 @@ import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 export const Route = createFileRoute("/comunicacao/propriedade-intelectual")({
   head: () => ({
     meta: [
-      { title: "Propriedade Intelectual — IPAV" },
+      { title: "Propriedade intelectual | Academia de Líderes Ubuntu" },
       { name: "description", content: "Metodologia Ubuntu, regulamentos e condições de uso dos recursos pedagógicos do IPAV." },
     ],
   }),
@@ -100,19 +101,20 @@ function PropriedadeIntelectualPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl py-4 space-y-12">
+    <div className="mx-auto w-full min-w-0 max-w-4xl space-y-6">
       <ComponentAccessMatrix pagePath="/comunicacao/propriedade-intelectual" />
-      <div className="flex items-start justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {content.title}
-        </h1>
-        {isAdmin && (
-          <Button variant="outline" size="sm" onClick={openEditor} className="shrink-0">
-            <Pencil className="h-4 w-4 mr-2" />
-            Editar
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        eyebrow="Comunicação"
+        title={content.title}
+        actions={
+          isAdmin ? (
+            <Button variant="outline" size="sm" onClick={openEditor} className="shrink-0">
+              <Pencil className="mr-2 h-4 w-4" />
+              Editar
+            </Button>
+          ) : undefined
+        }
+      />
 
       {content.sections.map((section, i) => (
         <section key={i} className="space-y-4 leading-relaxed">

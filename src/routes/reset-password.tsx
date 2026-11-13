@@ -13,7 +13,7 @@ export const Route = createFileRoute("/reset-password")({
   validateSearch: (s: Record<string, unknown>) => ({
     redirect: typeof s.redirect === "string" ? s.redirect : undefined,
   }),
-  head: () => ({ meta: [{ title: "Redefinir password — Academia Ubuntu" }] }),
+  head: () => ({ meta: [{ title: "Nova palavra-passe | Academia de Líderes Ubuntu" }] }),
   component: ResetPasswordPage,
 });
 
