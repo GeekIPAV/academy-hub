@@ -21,14 +21,14 @@ interface Props {
 const Email = ({ recipientName, entityName, programTitle, inviteUrl }: Props) => (
   <Html lang="pt" dir="ltr">
     <Head />
-    <Preview>Inscrição aprovada — cria o acesso da tua organização</Preview>
+    <Preview>Inscrição aprovada: cria o acesso da tua organização</Preview>
     <Body style={main}>
       <Container style={container}>
         <Heading style={h1}>Inscrição aprovada</Heading>
         <Text style={p}>Olá{recipientName ? ` ${recipientName}` : ""},</Text>
         <Text style={p}>
-          A inscrição da organização <strong>{entityName || "—"}</strong> no programa{" "}
-          <strong>{programTitle || "—"}</strong> foi aprovada pela nossa equipa.
+          A inscrição da organização <strong>{entityName || "a tua organização"}</strong> no programa{" "}
+          <strong>{programTitle || "programa"}</strong> foi aprovada pela nossa equipa.
         </Text>
         <Text style={p}>
           Para acederes à plataforma e gerires a participação da tua organização, cria
@@ -39,7 +39,7 @@ const Email = ({ recipientName, entityName, programTitle, inviteUrl }: Props) =>
             {inviteUrl}
           </Link>
         </Text>
-        <Text style={pMuted}>Equipa IPAV · Academia Ubuntu</Text>
+        <Text style={pMuted}>Equipa IPAV · Academia de Líderes Ubuntu</Text>
       </Container>
     </Body>
   </Html>
@@ -47,7 +47,7 @@ const Email = ({ recipientName, entityName, programTitle, inviteUrl }: Props) =>
 
 export const template = {
   component: Email,
-  subject: "Inscrição aprovada — Academia Ubuntu",
+  subject: "Inscrição aprovada na Academia de Líderes Ubuntu",
   displayName: "Inscrição de organização (aprovada)",
   previewData: {
     recipientName: "Maria",

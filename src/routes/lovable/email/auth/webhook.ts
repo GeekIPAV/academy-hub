@@ -12,12 +12,12 @@ import { EmailChangeEmail } from '@/lib/email-templates/email-change'
 import { ReauthenticationEmail } from '@/lib/email-templates/reauthentication'
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Confirm your email',
-  invite: "You've been invited",
-  magiclink: 'Your login link',
-  recovery: 'Reset your password',
-  email_change: 'Confirm your new email',
-  reauthentication: 'Your verification code',
+  signup: 'Confirma o teu email',
+  invite: 'Convite para a plataforma da Academia de Líderes Ubuntu',
+  magiclink: 'O teu link para entrar',
+  recovery: 'Repor a palavra-passe',
+  email_change: 'Confirma o teu novo email',
+  reauthentication: 'O teu código de verificação',
 }
 
 // Template mapping
@@ -31,10 +31,55 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "appalu"
+const SITE_NAME = "Academia de Líderes Ubuntu"
 const SENDER_DOMAIN = "notify.app.ipav.pt"
 const ROOT_DOMAIN = "app.ipav.pt"
 const FROM_DOMAIN = "app.ipav.pt"
+
+/** Lê a versão do email editada em Gestão › Emails (tabela email_templates_custom). */
+async function lerModeloPersonalizado(
+  supabase: ReturnType<typeof createClient>,
+  emailType: string,
+): Promise<{ subject: string; body_html: string } | null> {
+  try {
+    const { data, error } = await (supabase as any)
+      .from('email_templates_custom')
+      .select('subject, body_html')
+      .eq('template_key', `auth.${emailType}`)
+      .maybeSingle()
+    if (error || !data?.body_html) return null
+    return data as { subject: string; body_html: string }
+  } catch {
+    return null
+  }
+}
+
+function escapar(v: string): string {
+  return v.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+/** Substitui {{variavel}} pelos valores; no HTML, os valores são escapados. */
+function preencher(modelo: string, vars: Record<string, unknown>, html: boolean): string {
+  return (modelo ?? '').replace(/{{\s*(\w+)\s*}}/g, (_, k: string) => {
+    const v = vars[k] == null ? '' : String(vars[k])
+    return html ? escapar(v) : v
+  })
+}
+
+function envolverHtml(corpo: string): string {
+  return `<!doctype html><html lang="pt"><head><meta charset="utf-8"></head><body style="margin:0;background:#f2f2f2;font-family:Arial,sans-serif;color:#333333"><div style="max-width:560px;margin:24px auto;background:#ffffff;border-radius:16px;padding:32px 28px;font-size:15px;line-height:1.6">${corpo}<p style="font-size:13px;color:#666666;margin-top:24px">Equipa IPAV · Academia de Líderes Ubuntu</p></div></body></html>`
+}
+
+function htmlParaTexto(html: string): string {
+  return html
+    .replace(/<a [^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/gi, '$2 ($1)')
+    .replace(/<\/(p|h[1-6]|div|li)>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
 
 function redactEmail(email: string | null | undefined): string {
   if (!email) return '***'
@@ -143,12 +188,6 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
           newEmail: payload.data.new_email,
         }
 
-        // Render React Email to HTML and plain text
-        const element = React.createElement(EmailTemplate, templateProps)
-        const html = await render(element)
-        const text = await render(element, { plainText: true })
-
-        // Enqueue email for async processing by the dispatcher (process-email-queue).
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
         const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
@@ -161,6 +200,22 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
         }
 
         const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+        // Versão editada em Gestão › Emails, se existir; senão, o modelo do código.
+        const personalizado = await lerModeloPersonalizado(supabase, emailType)
+        let subject = EMAIL_SUBJECTS[emailType] || 'Academia de Líderes Ubuntu'
+        let html: string
+        let text: string
+        if (personalizado) {
+          const vars = { ...templateProps, siteName: SITE_NAME } as Record<string, unknown>
+          subject = preencher(personalizado.subject, vars, false) || subject
+          html = envolverHtml(preencher(personalizado.body_html, vars, true))
+          text = htmlParaTexto(html)
+        } else {
+          const element = React.createElement(EmailTemplate, templateProps)
+          html = await render(element)
+          text = await render(element, { plainText: true })
+        }
         const messageId = crypto.randomUUID()
 
         // Log pending BEFORE enqueue so we have a record even if enqueue crashes
@@ -179,7 +234,7 @@ export const Route = createFileRoute("/lovable/email/auth/webhook")({
             to: payload.data.email,
             from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
             sender_domain: SENDER_DOMAIN,
-            subject: EMAIL_SUBJECTS[emailType] || 'Notification',
+            subject,
             html,
             text,
             purpose: 'transactional',
