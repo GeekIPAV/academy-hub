@@ -84,7 +84,7 @@ export function AppHeader({ pathname }: { pathname: string }) {
             <span className="hidden shrink-0 text-xs font-semibold lg:inline">Área reservada</span>
             <span className="hidden text-secondary-foreground/45 lg:inline">/</span>
             <span className="block truncate text-sm font-medium text-secondary-foreground/80">
-              {currentPage?.label ?? "Academia Ubuntu"}
+              {currentPage?.label ?? "Academia de Líderes Ubuntu"}
             </span>
           </div>
         </div>

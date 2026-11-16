@@ -20,7 +20,7 @@ interface Props {
 const Email = ({ recipientName, entityName, programTitles = [] }: Props) => (
   <Html lang="pt" dir="ltr">
     <Head />
-    <Preview>Inscrição em programa recebida — aguarda validação</Preview>
+    <Preview>Inscrição em programa recebida, a aguardar validação</Preview>
     <Body style={main}>
       <Container style={container}>
         <Heading style={h1}>Inscrição recebida</Heading>
@@ -29,7 +29,7 @@ const Email = ({ recipientName, entityName, programTitles = [] }: Props) => (
         </Text>
         <Text style={p}>
           Recebemos o pedido de inscrição da organização{" "}
-          <strong>{entityName || "—"}</strong> nos seguintes programas:
+          <strong>{entityName || "a tua organização"}</strong> nos seguintes programas:
         </Text>
         <Section style={box}>
           {programTitles.map((t, i) => (
@@ -40,7 +40,7 @@ const Email = ({ recipientName, entityName, programTitles = [] }: Props) => (
           A inscrição encontra-se <strong>pendente de validação</strong> pela
           nossa equipa. Receberás uma confirmação assim que for aprovada.
         </Text>
-        <Text style={pMuted}>Equipa IPAV · Academia Ubuntu</Text>
+        <Text style={pMuted}>Equipa IPAV · Academia de Líderes Ubuntu</Text>
       </Container>
     </Body>
   </Html>
@@ -48,7 +48,7 @@ const Email = ({ recipientName, entityName, programTitles = [] }: Props) => (
 
 export const template = {
   component: Email,
-  subject: "Inscrição em programa recebida — pendente de validação",
+  subject: "Inscrição em programa recebida, a aguardar validação",
   displayName: "Inscrição em programa (pendente)",
   previewData: {
     recipientName: "Maria",

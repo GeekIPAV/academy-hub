@@ -33,7 +33,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateCatalogEntry[] = [
     kind: "auth",
     displayName: "Confirmação de registo",
     description: "Enviado quando um utilizador se regista e precisa de confirmar o email.",
-    defaultSubject: "Confirma o teu email — {{siteName}}",
+    defaultSubject: "Confirma o teu email",
     defaultBodyHtml:
       "<h2>Confirma o teu email</h2><p>Obrigado por te registares em <strong>{{siteName}}</strong>!</p><p>Confirma o teu email ({{recipient}}) clicando no botão abaixo:</p><p><a href=\"{{confirmationUrl}}\">Confirmar email</a></p><p>Se não criaste a conta, podes ignorar este email.</p>",
     variables: baseAuthVars,
@@ -43,7 +43,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateCatalogEntry[] = [
     kind: "auth",
     displayName: "Magic link de entrada",
     description: "Link único para entrar na plataforma sem password.",
-    defaultSubject: "O teu link de entrada — {{siteName}}",
+    defaultSubject: "O teu link para entrar",
     defaultBodyHtml:
       "<h2>O teu link de entrada</h2><p>Clica no botão abaixo para entrar em {{siteName}}. Este link expira em breve.</p><p><a href=\"{{confirmationUrl}}\">Entrar</a></p>",
     variables: baseAuthVars,
@@ -53,7 +53,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateCatalogEntry[] = [
     kind: "auth",
     displayName: "Recuperação de password",
     description: "Email enviado quando o utilizador pede para repor a password.",
-    defaultSubject: "Repor a tua password — {{siteName}}",
+    defaultSubject: "Repor a palavra-passe",
     defaultBodyHtml:
       "<h2>Repor a tua password</h2><p>Recebemos um pedido para repor a tua password em {{siteName}}.</p><p><a href=\"{{confirmationUrl}}\">Definir nova password</a></p><p>Se não fizeste este pedido, podes ignorar este email.</p>",
     variables: baseAuthVars,
@@ -63,7 +63,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateCatalogEntry[] = [
     kind: "auth",
     displayName: "Convite para a plataforma",
     description: "Convite para um utilizador se juntar à plataforma.",
-    defaultSubject: "Foste convidado para {{siteName}}",
+    defaultSubject: "Convite para a plataforma da {{siteName}}",
     defaultBodyHtml:
       "<h2>Foste convidado</h2><p>Foste convidado para te juntares a <strong>{{siteName}}</strong>.</p><p><a href=\"{{confirmationUrl}}\">Aceitar convite</a></p>",
     variables: baseAuthVars,
@@ -73,7 +73,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateCatalogEntry[] = [
     kind: "auth",
     displayName: "Mudança de email",
     description: "Confirmação enviada quando o utilizador altera o endereço de email.",
-    defaultSubject: "Confirma o teu novo email — {{siteName}}",
+    defaultSubject: "Confirma o teu novo email",
     defaultBodyHtml:
       "<h2>Confirma a mudança de email</h2><p>Pediste para mudar o teu email em {{siteName}} de <strong>{{oldEmail}}</strong> para <strong>{{newEmail}}</strong>.</p><p><a href=\"{{confirmationUrl}}\">Confirmar mudança</a></p>",
     variables: [
@@ -101,7 +101,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateCatalogEntry[] = [
     kind: "app",
     displayName: "Inscrição confirmada",
     description: "Enviado quando um participante é confirmado numa ação.",
-    defaultSubject: "Inscrição confirmada — {{acaoTitulo}}",
+    defaultSubject: "Inscrição confirmada: {{acaoTitulo}}",
     defaultBodyHtml:
       "<h2>Olá {{nome}},</h2><p>A tua inscrição na ação <strong>{{acaoTitulo}}</strong> foi confirmada.</p><p><strong>Data:</strong> {{acaoData}}</p><p>Podes consultar os detalhes no teu dashboard.</p>",
     variables: [
@@ -115,7 +115,7 @@ export const EMAIL_TEMPLATE_CATALOG: EmailTemplateCatalogEntry[] = [
     kind: "app",
     displayName: "Inscrição como suplente",
     description: "Enviado quando a vaga principal está cheia e o participante fica em lista de espera.",
-    defaultSubject: "Estás em lista de espera — {{acaoTitulo}}",
+    defaultSubject: "Estás em lista de espera: {{acaoTitulo}}",
     defaultBodyHtml:
       "<h2>Olá {{nome}},</h2><p>A ação <strong>{{acaoTitulo}}</strong> já está com lotação cheia.</p><p>Ficaste em lista de espera (posição {{posicao}}). Iremos avisar-te se uma vaga ficar disponível.</p>",
     variables: [

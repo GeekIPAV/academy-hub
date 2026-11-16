@@ -15,10 +15,10 @@ const Email = ({ recipientName, cursoTitulo, certUrl, verifyUrl }: Props) => (
     <Preview>O teu certificado está disponível</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Parabéns — concluíste o curso!</Heading>
+        <Heading style={h1}>Parabéns, concluíste o curso!</Heading>
         <Text style={p}>Olá{recipientName ? ` ${recipientName}` : ""},</Text>
         <Text style={p}>
-          Concluíste com aproveitamento o curso <strong>{cursoTitulo || "—"}</strong> na Escola Ubuntu Online.
+          Concluíste com aproveitamento o curso <strong>{cursoTitulo || "Escola Ubuntu Online"}</strong> na Escola Ubuntu Online.
           O teu certificado já está disponível:
         </Text>
         <Text style={p}>
@@ -28,7 +28,7 @@ const Email = ({ recipientName, cursoTitulo, certUrl, verifyUrl }: Props) => (
           Qualquer pessoa pode confirmar a validade em{" "}
           <Link href={verifyUrl} style={link}>{verifyUrl}</Link>
         </Text>
-        <Text style={pMuted}>Equipa IPAV · Academia Ubuntu</Text>
+        <Text style={pMuted}>Equipa IPAV · Academia de Líderes Ubuntu</Text>
       </Container>
     </Body>
   </Html>
@@ -36,7 +36,7 @@ const Email = ({ recipientName, cursoTitulo, certUrl, verifyUrl }: Props) => (
 
 export const template = {
   component: Email,
-  subject: (d: Record<string, any>) => `Certificado — ${d.cursoTitulo ?? "Escola Ubuntu Online"}`,
+  subject: (d: Record<string, any>) => `Certificado: ${d.cursoTitulo ?? "Escola Ubuntu Online"}`,
   displayName: "E-learning: certificado emitido",
   previewData: {
     recipientName: "Maria",

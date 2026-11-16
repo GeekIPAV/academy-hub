@@ -18,7 +18,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "appalu"
+const SITE_NAME = "Academia de Líderes Ubuntu"
 const ROOT_DOMAIN = "app.ipav.pt"
 
 // Sample data for preview mode ONLY (not used in actual email sending).

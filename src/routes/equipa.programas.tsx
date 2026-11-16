@@ -44,7 +44,7 @@ export const Route = createFileRoute("/equipa/programas")({
       {
         name: "description",
         content:
-          "Gestão de inscrições de organizações e participantes nos programas da Academia Ubuntu.",
+          "Gestão de inscrições de organizações e participantes nos programas da Academia de Líderes Ubuntu.",
       },
       { property: "og:title", content: "Programas da equipa | Academia de Líderes Ubuntu" },
       {
