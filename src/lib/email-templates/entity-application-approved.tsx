@@ -52,7 +52,7 @@ export const template = {
   previewData: {
     recipientName: "Maria",
     entityName: "Escola Exemplo",
-    programTitle: "Formação de Formadores 25/26",
+    programTitle: "Formação de Educadores 25/26",
     inviteUrl: "https://app.ipav.pt/convite/abcd1234",
   },
 } satisfies TemplateEntry;

@@ -29,13 +29,13 @@ const FORMADOR_PHASE: { phase: RoadmapPhase; label: string } = {
   label: "Formador",
 };
 
-// O percurso só se aplica aos clusters de Formação de Formadores.
+// O percurso só se aplica aos clusters de Formação de Educadores.
 const ROADMAP_CLUSTERS = [
-  "Formação de Formadores - 3º Ciclo e Secundário",
-  "Formação de Formadores - Casas de Acolhimento",
-  "Formação de Formadores - IEFP",
-  "Formação de Formadores - Júnior",
-  "Formação de Formadores Educadores - Ensino Superior",
+  "Formação de Educadores - 3º Ciclo e Secundário",
+  "Formação de Educadores - Casas de Acolhimento",
+  "Formação de Educadores - IEFP",
+  "Formação de Educadores - Júnior",
+  "Formação de Educadores - Ensino Superior",
 ];
 
 export interface RoadmapResult {
@@ -75,7 +75,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
     let preview = false;
 
     // Admins veem sempre o widget: se não tiverem inscrição própria num cluster
-    // de Formação de Formadores, mostramos uma pré-visualização do primeiro
+    // de Formação de Educadores, mostramos uma pré-visualização do primeiro
     // programa ativo desses clusters.
     const { data: isAdmin } = await supabaseAdmin.rpc("is_admin", { _user_id: userId });
 

@@ -226,7 +226,7 @@ function DadosTab({ curso }: { curso: CursoRow }) {
           <Select value={f.tipo} onValueChange={(v) => set("tipo", v as CursoInput["tipo"])}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="formacao_formadores">Formação de Formadores</SelectItem>
+              <SelectItem value="formacao_formadores">Formação de Educadores</SelectItem>
               <SelectItem value="microcurso">Microcurso</SelectItem>
               <SelectItem value="semana_ubuntu">Preparação Semana Ubuntu</SelectItem>
               <SelectItem value="renovacao">Renovação de badge</SelectItem>

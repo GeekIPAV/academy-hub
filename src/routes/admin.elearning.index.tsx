@@ -37,7 +37,7 @@ export const Route = createFileRoute("/admin/elearning/")({
 
 const ESTADO_LABEL: Record<string, string> = { rascunho: "Rascunho", publicado: "Publicado", arquivado: "Arquivado" };
 const TIPO_LABEL: Record<string, string> = {
-  formacao_formadores: "Formação de Formadores",
+  formacao_formadores: "Formação de Educadores",
   microcurso: "Microcurso",
   semana_ubuntu: "Semana Ubuntu",
   renovacao: "Renovação de badge",

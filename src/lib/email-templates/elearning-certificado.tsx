@@ -40,7 +40,7 @@ export const template = {
   displayName: "E-learning: certificado emitido",
   previewData: {
     recipientName: "Maria",
-    cursoTitulo: "Formação de Formadores",
+    cursoTitulo: "Formação de Educadores",
     certUrl: "https://app.ipav.pt/cert.pdf",
     verifyUrl: "https://app.ipav.pt/certificados/verificar/ALU-ABCDE-FGHIJ",
   },
