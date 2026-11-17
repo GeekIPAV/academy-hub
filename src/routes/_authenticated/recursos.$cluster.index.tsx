@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-utils";
 import { hasCentroRecursosAccess } from "@/lib/centro-recursos-access";
+import { escondeTemasVazios, temaSemConteudo } from "@/lib/recursos-temas-visiveis";
 import { Loader2, ImageIcon, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
@@ -79,16 +80,32 @@ function ClusterTemas() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos")
-        .select("id, cluster, bloco, title, description, cover_url, cover_position, cover_scale, order_index, bloco_order")
+        .select("id, cluster, bloco, title, description, intro, context, objectives, processo_u, cover_url, cover_position, cover_scale, order_index, bloco_order, tema_recursos(count), plano_sessao_blocos(count)")
         .eq("cluster", cluster!.name)
         .order("bloco_order", { ascending: true })
         .order("order_index", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as TemaRow[];
+      type Row = TemaRow & {
+        intro: string | null;
+        context: string | null;
+        objectives: string | null;
+        processo_u: string | null;
+        tema_recursos: { count: number }[] | null;
+        plano_sessao_blocos: { count: number }[] | null;
+      };
+      return ((data ?? []) as unknown as Row[]).map((t) => ({
+        ...t,
+        vazio: temaSemConteudo({
+          ...t,
+          recursosCount: t.tema_recursos?.[0]?.count ?? 0,
+          blocosCount: t.plano_sessao_blocos?.[0]?.count ?? 0,
+        }),
+      }));
     },
   });
 
-  const temas = temasQuery.data ?? [];
+  const esconderVazios = !isAdmin && escondeTemasVazios(activeRoles);
+  const temas = (temasQuery.data ?? []).filter((t) => !(esconderVazios && t.vazio));
 
   const blocos = useMemo(() => {
     const seen = new Set<string>();
