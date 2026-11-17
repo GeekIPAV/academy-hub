@@ -2,6 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { rolesForInviteTipo } from "@/lib/invite-types";
+import { getOrCreateTypedInviteToken } from "@/lib/invites.server";
+
+const tipoSchema = z.enum(["utilizador", "entidade"]);
 
 async function assertAdmin(userId: string) {
   const { data, error } = await supabaseAdmin
@@ -15,12 +19,35 @@ async function assertAdmin(userId: string) {
 }
 
 const createSchema = z.object({
-  roles: z.array(z.string().min(1).max(40)).min(1).max(10),
+  // Com `tipo`, os perfis são definidos automaticamente pelo tipo de link.
+  tipo: tipoSchema.optional(),
+  roles: z.array(z.string().min(1).max(40)).min(1).max(10).optional(),
   label: z.string().trim().max(120).optional(),
   expires_in_days: z.number().int().min(1).max(365).optional(),
   max_uses: z.number().int().min(1).max(1000).optional(),
   entity_id: z.string().uuid().optional().nullable(),
 });
+
+async function assertRolesActive(roles: string[]) {
+  const { data: rs, error: rErr } = await supabaseAdmin
+    .from("roles")
+    .select("name, is_active")
+    .in("name", roles);
+  if (rErr) throw new Error(rErr.message);
+  const validNames = new Set((rs ?? []).filter((r) => r.is_active).map((r) => r.name));
+  for (const role of roles) {
+    if (!validNames.has(role)) throw new Error(`Perfil inválido ou inativo: ${role}`);
+  }
+}
+
+export const getOrCreateTypedInvite = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((i) => z.object({ tipo: tipoSchema }).parse(i))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const token = await getOrCreateTypedInviteToken(data.tipo, context.userId);
+    return { token };
+  });
 
 export const listInvites = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -40,16 +67,9 @@ export const createInvite = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
 
-    // Validate roles exist & active
-    const { data: rs, error: rErr } = await supabaseAdmin
-      .from("roles")
-      .select("name, is_active")
-      .in("name", data.roles);
-    if (rErr) throw new Error(rErr.message);
-    const validNames = new Set((rs ?? []).filter((r) => r.is_active).map((r) => r.name));
-    for (const role of data.roles) {
-      if (!validNames.has(role)) throw new Error(`Perfil inválido ou inativo: ${role}`);
-    }
+    const roles = data.tipo ? rolesForInviteTipo(data.tipo) : data.roles;
+    if (!roles || roles.length === 0) throw new Error("Escolhe o tipo de link ou os perfis.");
+    await assertRolesActive(roles);
 
     const expires_at = data.expires_in_days
       ? new Date(Date.now() + data.expires_in_days * 86400000).toISOString()
@@ -58,7 +78,7 @@ export const createInvite = createServerFn({ method: "POST" })
     const { data: inserted, error } = await supabaseAdmin
       .from("convites")
       .insert({
-        roles: data.roles,
+        roles,
         label: data.label ?? null,
         created_by: context.userId,
         expires_at,
@@ -73,6 +93,7 @@ export const createInvite = createServerFn({ method: "POST" })
 
 const updateSchema = z.object({
   id: z.string().uuid(),
+  tipo: tipoSchema.optional(),
   roles: z.array(z.string().min(1).max(40)).min(1).max(10).optional(),
   label: z.string().trim().max(120).nullable().optional(),
   expires_at: z.string().datetime().nullable().optional(),
@@ -86,17 +107,8 @@ export const updateInvite = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
 
-    if (data.roles) {
-      const { data: rs, error: rErr } = await supabaseAdmin
-        .from("roles")
-        .select("name, is_active")
-        .in("name", data.roles);
-      if (rErr) throw new Error(rErr.message);
-      const validNames = new Set((rs ?? []).filter((r) => r.is_active).map((r) => r.name));
-      for (const role of data.roles) {
-        if (!validNames.has(role)) throw new Error(`Perfil inválido ou inativo: ${role}`);
-      }
-    }
+    if (data.tipo) data.roles = rolesForInviteTipo(data.tipo);
+    if (data.roles) await assertRolesActive(data.roles);
 
     const patch: {
       roles?: string[];

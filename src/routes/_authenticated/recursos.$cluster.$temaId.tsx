@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { getRecursoSignedUrl } from "@/lib/recursos.functions";
@@ -27,6 +27,9 @@ import {
   Clock,
   Search,
   Package,
+  BookOpen,
+  CalendarDays,
+  FolderOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,6 +58,13 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { parseCluster, slugifyCluster } from "@/lib/cluster-utils";
 import { cn } from "@/lib/utils";
+import {
+  TEMA_FORMATOS,
+  TEMA_FORMATO_ORDEM,
+  comFormato,
+  temaFormato,
+  type TemaFormato,
+} from "@/lib/tema-formatos";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/$temaId")({
   head: () => ({ meta: [{ title: "Tema | Centro de recursos" }] }),
@@ -104,6 +114,7 @@ function TemaDetail() {
   const { map: typeMap } = useResourceTypeMap();
   const { map: categoryMap } = useResourceCategoryMap();
   const fetchSignedUrl = useServerFn(getRecursoSignedUrl);
+  const qc = useQueryClient();
 
   const temaQuery = useQuery({
     queryKey: ["tema-detail", temaId],
@@ -155,6 +166,8 @@ function TemaDetail() {
   const clusterTitle = parseCluster(tema.cluster).title;
   const effectiveClusterSlug = slugifyCluster(tema.cluster) || clusterSlug;
   const hiddenSet = new Set(tema.hidden_sections ?? []);
+  const formato = temaFormato(tema.hidden_sections);
+  const partes = TEMA_FORMATOS[formato].partes;
 
   const toggleHidden = async (field: EditableField, hide: boolean) => {
     const next = new Set(hiddenSet);
@@ -172,12 +185,43 @@ function TemaDetail() {
     temaQuery.refetch();
   };
 
-  const sections: { title: string; field: EditableField }[] = [
-    { title: "Enquadramento", field: "description" },
-    { title: "Processo U", field: "processo_u" },
-    { title: "Contexto", field: "context" },
-    { title: "Objetivos", field: "objectives" },
-  ];
+  const setFormato = async (next: TemaFormato) => {
+    if (next === formato) return;
+    const { error } = await supabase
+      .from("temas_momentos")
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .update({ hidden_sections: comFormato(tema.hidden_sections, next) } as any)
+      .eq("id", tema.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(`Formato: ${TEMA_FORMATOS[next].label}`);
+    qc.invalidateQueries({ queryKey: ["temas", tema.cluster] });
+    temaQuery.refetch();
+  };
+
+  const sobre = (
+    <SobreSections
+      tema={tema}
+      isAdmin={isAdmin}
+      hiddenSet={hiddenSet}
+      onToggleHidden={toggleHidden}
+      onSaved={() => temaQuery.refetch()}
+    />
+  );
+
+  const recursosList = (
+    <RecursosList
+      temaId={tema.id}
+      recursos={recursos}
+      isAdmin={isAdmin}
+      typeMap={typeMap}
+      categoryMap={categoryMap}
+      onOpen={openRecurso}
+      onSaved={() => temaQuery.refetch()}
+    />
+  );
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -198,7 +242,18 @@ function TemaDetail() {
       </nav>
 
       <header className="space-y-3 border-b pb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-secondary sm:text-[28px]">{tema.title}</h1>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 space-y-1">
+            {formato !== "sessao" && (
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {TEMA_FORMATOS[formato].label}
+                {recursos.length > 0 && ` · ${recursos.length} ${recursos.length === 1 ? "recurso" : "recursos"}`}
+              </p>
+            )}
+            <h1 className="text-2xl font-semibold tracking-tight text-secondary sm:text-[28px]">{tema.title}</h1>
+          </div>
+          {isAdmin && <FormatoPicker value={formato} onChange={setFormato} />}
+        </div>
         <EditableField
           temaId={tema.id}
           field="intro"
@@ -210,89 +265,226 @@ function TemaDetail() {
         />
       </header>
 
-      <Tabs defaultValue="sobre" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="sobre">Sobre</TabsTrigger>
-          <TabsTrigger value="plano">Plano de sessão</TabsTrigger>
-          <TabsTrigger value="recursos">Recursos</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="sobre" className="space-y-4">
-          {sections.map((s) => {
-            const value = tema[s.field];
-            const hidden = hiddenSet.has(s.field);
-            if (!isAdmin && (hidden || !value)) return null;
-            return (
-              <section
-                key={s.field}
-                className={cn(
-                  "rounded-xl border bg-card p-5 shadow-sm transition",
-                  hidden && "opacity-60",
+      {formato === "sessao" ? (
+        <Tabs defaultValue="sobre" className="space-y-6">
+          <div className="overflow-x-auto">
+            <TabsList>
+              <TabsTrigger value="sobre">Sobre</TabsTrigger>
+              <TabsTrigger value="plano">Plano de sessão</TabsTrigger>
+              <TabsTrigger value="recursos">
+                Recursos
+                {recursos.length > 0 && (
+                  <span className="ml-1.5 text-xs text-muted-foreground">{recursos.length}</span>
                 )}
-              >
-                <div className="mb-2 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-secondary">
-                    {s.title}
-                    {hidden && (
-                      <span className="ml-2 text-xs font-normal text-muted-foreground">
-                        (oculto)
-                      </span>
-                    )}
-                  </h2>
-                  {isAdmin && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => toggleHidden(s.field, !hidden)}
-                      title={hidden ? "Mostrar" : "Ocultar"}
-                    >
-                      {hidden ? (
-                        <EyeOff className="h-3.5 w-3.5" />
-                      ) : (
-                        <Eye className="h-3.5 w-3.5" />
-                      )}
-                    </Button>
-                  )}
-                </div>
-                <EditableField
-                  temaId={tema.id}
-                  field={s.field}
-                  value={value}
-                  isAdmin={isAdmin}
-                  placeholder={`Adicionar ${s.title.toLowerCase()}…`}
-                  readClassName="text-sm leading-relaxed text-foreground/90"
-                  onSaved={() => temaQuery.refetch()}
-                />
-              </section>
-            );
-          })}
-        </TabsContent>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-        <TabsContent value="plano">
-          <PlanoSessao
-            temaId={tema.id}
-            temaRecursos={recursos}
-            typeMap={typeMap}
-            categoryMap={categoryMap}
-            isAdmin={isAdmin}
-            onOpen={openRecurso}
-          />
-        </TabsContent>
+          <TabsContent value="sobre" className="space-y-4">
+            {sobre}
+          </TabsContent>
 
-        <TabsContent value="recursos" className="space-y-3">
-          <RecursosList
-            temaId={tema.id}
-            recursos={recursos}
-            isAdmin={isAdmin}
-            typeMap={typeMap}
-            categoryMap={categoryMap}
-            onOpen={openRecurso}
-            onSaved={() => temaQuery.refetch()}
-          />
-        </TabsContent>
-      </Tabs>
+          <TabsContent value="plano">
+            <PlanoSessao
+              temaId={tema.id}
+              temaRecursos={recursos}
+              typeMap={typeMap}
+              categoryMap={categoryMap}
+              isAdmin={isAdmin}
+              onOpen={openRecurso}
+            />
+          </TabsContent>
+
+          <TabsContent value="recursos" className="space-y-3">
+            {recursosList}
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="space-y-8">
+          {partes.includes("sobre") && <div className="space-y-4">{sobre}</div>}
+          <section className="space-y-3">
+            {partes.includes("sobre") && (
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Recursos
+              </h2>
+            )}
+            {recursosList}
+          </section>
+        </div>
+      )}
     </div>
+  );
+}
+
+// --- Formato do tema ---
+
+function FormatoPicker({
+  value,
+  onChange,
+}: {
+  value: TemaFormato;
+  onChange: (f: TemaFormato) => void;
+}) {
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <div
+        role="radiogroup"
+        aria-label="Formato do tema"
+        className="flex items-center gap-0.5 rounded-md border bg-card p-0.5"
+      >
+        {TEMA_FORMATO_ORDEM.map((f) => {
+          const Icon = FORMATO_ICON[f];
+          const active = value === f;
+          return (
+            <button
+              key={f}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              title={TEMA_FORMATOS[f].description}
+              onClick={() => onChange(f)}
+              className={cn(
+                "flex h-7 items-center gap-1 rounded px-2 text-xs transition",
+                active
+                  ? "bg-secondary text-secondary-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {TEMA_FORMATOS[f].label}
+            </button>
+          );
+        })}
+      </div>
+      <span className="text-[11px] text-muted-foreground">Formato (só visível para admin)</span>
+    </div>
+  );
+}
+
+const FORMATO_ICON: Record<TemaFormato, typeof CalendarDays> = {
+  sessao: CalendarDays,
+  conteudo: BookOpen,
+  documentos: FolderOpen,
+};
+
+// --- Secções "Sobre" ---
+
+const SOBRE_SECTIONS: { title: string; field: EditableField }[] = [
+  { title: "Enquadramento", field: "description" },
+  { title: "Processo U", field: "processo_u" },
+  { title: "Contexto", field: "context" },
+  { title: "Objetivos", field: "objectives" },
+];
+
+/**
+ * Mostra só as secções com conteúdo. As vazias não ocupam espaço: o admin
+ * acrescenta-as quando precisa, através de "Adicionar secção".
+ */
+function SobreSections({
+  tema,
+  isAdmin,
+  hiddenSet,
+  onToggleHidden,
+  onSaved,
+}: {
+  tema: TemaDetailRow;
+  isAdmin: boolean;
+  hiddenSet: Set<string>;
+  onToggleHidden: (field: EditableField, hide: boolean) => void;
+  onSaved: () => void;
+}) {
+  const [adding, setAdding] = useState<Set<EditableField>>(new Set());
+
+  const visible = SOBRE_SECTIONS.filter((s) => {
+    const value = tema[s.field];
+    const hidden = hiddenSet.has(s.field);
+    if (!isAdmin) return !hidden && !!value;
+    return !!value || adding.has(s.field);
+  });
+  const empty = isAdmin
+    ? SOBRE_SECTIONS.filter((s) => !tema[s.field] && !adding.has(s.field))
+    : [];
+
+  if (visible.length === 0 && empty.length === 0) return null;
+
+  return (
+    <>
+      {visible.map((s) => {
+        const value = tema[s.field];
+        const hidden = hiddenSet.has(s.field);
+        return (
+          <section
+            key={s.field}
+            className={cn(
+              "rounded-xl border bg-card p-5 shadow-sm transition",
+              hidden && "opacity-60",
+            )}
+          >
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-secondary">
+                {s.title}
+                {hidden && (
+                  <span className="ml-2 text-xs font-normal text-muted-foreground">(oculto)</span>
+                )}
+              </h2>
+              {isAdmin && value && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => onToggleHidden(s.field, !hidden)}
+                  title={hidden ? "Mostrar" : "Ocultar"}
+                >
+                  {hidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                </Button>
+              )}
+            </div>
+            <EditableField
+              temaId={tema.id}
+              field={s.field}
+              value={value}
+              isAdmin={isAdmin}
+              startEditing={!value}
+              placeholder={`Adicionar ${s.title.toLowerCase()}…`}
+              readClassName="text-sm leading-relaxed text-foreground/90"
+              onSaved={() => {
+                setAdding((prev) => {
+                  const next = new Set(prev);
+                  next.delete(s.field);
+                  return next;
+                });
+                onSaved();
+              }}
+              onCancel={() =>
+                setAdding((prev) => {
+                  const next = new Set(prev);
+                  next.delete(s.field);
+                  return next;
+                })
+              }
+            />
+          </section>
+        );
+      })}
+      {empty.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed p-3">
+          <span className="text-xs text-muted-foreground">Adicionar secção:</span>
+          {empty.map((s) => (
+            <Button
+              key={s.field}
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs"
+              onClick={() => setAdding((prev) => new Set(prev).add(s.field))}
+            >
+              <Plus className="mr-1 h-3 w-3" />
+              {s.title}
+            </Button>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -305,7 +497,9 @@ interface EditableFieldProps {
   isAdmin: boolean;
   placeholder: string;
   readClassName?: string;
+  startEditing?: boolean;
   onSaved: () => void;
+  onCancel?: () => void;
 }
 
 function isHtml(s: string) {
@@ -319,7 +513,9 @@ function EditableField({
   isAdmin,
   placeholder,
   readClassName,
+  startEditing = false,
   onSaved,
+  onCancel,
 }: EditableFieldProps) {
   const initial = value ?? "";
   const normalized = initial && !isHtml(initial)
@@ -328,7 +524,7 @@ function EditableField({
 
   const [draft, setDraft] = useState(normalized);
   const [saving, setSaving] = useState(false);
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(startEditing);
   const lastSavedRef = useRef(normalized);
 
   useEffect(() => {
@@ -409,6 +605,7 @@ function EditableField({
             onClick={() => {
               setDraft(lastSavedRef.current);
               setEditing(false);
+              onCancel?.();
             }}
             disabled={saving}
           >

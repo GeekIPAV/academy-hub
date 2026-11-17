@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { renameCluster } from "@/lib/clusters.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId } from "@/lib/cluster-utils";
@@ -17,6 +20,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface ClusterCoverRow {
@@ -34,6 +38,7 @@ function ResourcesIndex() {
   const roleAccess = hasCentroRecursosAccess(activeRoles);
   const badgeSlugs = useUserBadgeClusterSlugs();
   const qc = useQueryClient();
+  const renameFn = useServerFn(renameCluster);
 
   const clustersQuery = useQuery({
     queryKey: ["clusters-parsed"],
@@ -82,6 +87,32 @@ function ResourcesIndex() {
     qc.invalidateQueries({ queryKey: ["cluster-covers"] });
   };
 
+  const saveProperties = async (
+    clusterName: string,
+    next: { name: string; description: string | null },
+  ) => {
+    let finalName = clusterName;
+    try {
+      if (next.name !== clusterName) {
+        const res = await renameFn({ data: { from: clusterName, to: next.name } });
+        finalName = res.name;
+      }
+      await setDescription(finalName, next.description);
+      if (finalName !== clusterName) {
+        await Promise.all([
+          qc.invalidateQueries({ queryKey: ["clusters-parsed"] }),
+          qc.invalidateQueries({ queryKey: ["clusters", "v2"] }),
+          qc.invalidateQueries({ queryKey: ["cluster-by-slug"] }),
+          qc.invalidateQueries({ queryKey: ["temas"] }),
+        ]);
+      }
+      toast.success("Propriedades guardadas.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Não foi possível guardar.");
+      throw e;
+    }
+  };
+
   const clusters = clustersQuery.data ?? [];
   const covers = coversQuery.data ?? new Map<string, ClusterCoverRow>();
 
@@ -114,7 +145,7 @@ function ResourcesIndex() {
                 description={row?.description ?? null}
                 allowed={isAdmin || roleAccess || isComponentVisible("/recursos", clusterComponentId(c.slug)) || badgeSlugs.has(c.slug)}
                 isAdmin={isAdmin}
-                onSaveDescription={(d) => setDescription(c.name, d)}
+                onSaveProperties={(next) => saveProperties(c.name, next)}
               />
             );
           })}
@@ -129,29 +160,46 @@ function ClusterCard({
   description,
   allowed,
   isAdmin,
-  onSaveDescription,
+  onSaveProperties,
 }: {
   cluster: ReturnType<typeof parseCluster>;
   description: string | null;
   allowed: boolean;
   isAdmin: boolean;
-  onSaveDescription: (description: string | null) => Promise<void>;
+  onSaveProperties: (next: { name: string; description: string | null }) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(description ?? "");
+  const [titleDraft, setTitleDraft] = useState(cluster.title);
+  const [subtitleDraft, setSubtitleDraft] = useState(cluster.subtitle ?? "");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setDraft(description ?? "");
   }, [description]);
 
+  useEffect(() => {
+    setTitleDraft(cluster.title);
+    setSubtitleDraft(cluster.subtitle ?? "");
+  }, [cluster.title, cluster.subtitle]);
+
   const save = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    const title = titleDraft.trim();
+    if (!title) {
+      toast.error("O nome não pode ficar vazio.");
+      return;
+    }
+    const subtitle = subtitleDraft.trim();
+    // O nome guardado continua a ser "Título - Subtítulo".
+    const name = subtitle ? `${title} - ${subtitle}` : title;
     setSaving(true);
     try {
-      await onSaveDescription(draft.trim() ? draft.trim() : null);
+      await onSaveProperties({ name, description: draft.trim() ? draft.trim() : null });
       setEditing(false);
+    } catch {
+      // erro já mostrado
     } finally {
       setSaving(false);
     }
@@ -161,6 +209,8 @@ function ClusterCard({
     e.preventDefault();
     e.stopPropagation();
     setDraft(description ?? "");
+    setTitleDraft(cluster.title);
+    setSubtitleDraft(cluster.subtitle ?? "");
     setEditing(false);
   };
 
@@ -173,13 +223,14 @@ function ClusterCard({
   const card = (
     <div
       className={cn(
-        "group relative flex aspect-[3/4] flex-col rounded-xl border bg-card p-5 transition",
+        "group relative flex flex-col rounded-xl border bg-card p-5 transition",
+        editing ? "min-h-0" : "aspect-[3/4]",
         allowed
           ? "shadow-sm hover:-translate-y-0.5 hover:shadow-md"
           : "cursor-not-allowed border-dashed bg-muted/40",
       )}
     >
-      <div className="flex-1 space-y-1">
+      <div className={cn("flex-1 space-y-1", editing && "hidden")}>
         <h3
           className={cn(
             "break-words font-bold leading-tight text-xl sm:text-2xl",
@@ -203,6 +254,22 @@ function ClusterCard({
       <div className="mt-3 space-y-2">
         {editing ? (
           <div className="space-y-2">
+            <Input
+              value={titleDraft}
+              onChange={(e) => setTitleDraft(e.target.value)}
+              placeholder="Nome da formação"
+              aria-label="Nome da formação"
+              className="h-8 text-sm"
+              maxLength={160}
+            />
+            <Input
+              value={subtitleDraft}
+              onChange={(e) => setSubtitleDraft(e.target.value)}
+              placeholder="Subtítulo (opcional)"
+              aria-label="Subtítulo"
+              className="h-8 text-xs"
+              maxLength={90}
+            />
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -265,12 +332,13 @@ function ClusterCard({
         )}
       </div>
 
-      {isAdmin && !editing && description && (
+      {isAdmin && !editing && (
         <button
           type="button"
           onClick={startEdit}
           className="absolute right-2 top-2 rounded-md bg-background/80 p-1 text-muted-foreground opacity-0 shadow-sm transition hover:text-foreground group-hover:opacity-100"
-          aria-label="Editar descrição"
+          aria-label="Editar propriedades"
+          title="Editar nome e descrição"
         >
           <Pencil className="h-3.5 w-3.5" />
         </button>

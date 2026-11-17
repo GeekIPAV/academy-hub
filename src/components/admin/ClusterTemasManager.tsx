@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { syncTemaRecursos } from "@/lib/tema-recursos";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -459,24 +460,8 @@ function AssociacoesDialog({
     if (!tema) return;
     setSaving(true);
     try {
-      const current = new Set((tema.tema_recursos ?? []).map((r) => r.recurso_id));
-      const toAdd = [...selected].filter((id) => !current.has(id));
-      const toRemove = [...current].filter((id) => !selected.has(id));
-
-      if (toRemove.length > 0) {
-        const { error } = await supabase
-          .from("tema_recursos" as never)
-          .delete()
-          .eq("tema_id", tema.id)
-          .in("recurso_id", toRemove);
-        if (error) throw error;
-      }
-      if (toAdd.length > 0) {
-        const { error } = await supabase
-          .from("tema_recursos" as never)
-          .insert(toAdd.map((rid) => ({ tema_id: tema.id, recurso_id: rid })) as never);
-        if (error) throw error;
-      }
+      // Mantém a ordem existente; os novos recursos ficam no fim.
+      await syncTemaRecursos(tema.id, selected);
       toast.success("Associações atualizadas.");
       onSaved();
       onClose();
