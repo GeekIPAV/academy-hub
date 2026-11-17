@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-utils";
+import { hasCentroRecursosAccess } from "@/lib/centro-recursos-access";
 import { Loader2, ImageIcon, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
@@ -42,7 +43,7 @@ interface TemaRow {
 
 function ClusterTemas() {
   const { cluster: clusterSlug } = Route.useParams();
-  const { isComponentVisible, isAdmin } = useApp();
+  const { isComponentVisible, isAdmin, activeRoles } = useApp();
   const [filter, setFilter] = useState<string>("__all");
   const qc = useQueryClient();
 
@@ -70,7 +71,7 @@ function ClusterTemas() {
     ? isComponentVisible("/recursos", clusterComponentId(cluster.slug))
     : true;
   const hasBadge = useHasBadgeForCluster(cluster?.name ?? "");
-  const canAccess = isAdmin || allowedByRole || hasBadge;
+  const canAccess = isAdmin || hasCentroRecursosAccess(activeRoles) || allowedByRole || hasBadge;
 
   const temasQuery = useQuery({
     queryKey: ["temas", cluster?.name],

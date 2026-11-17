@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId } from "@/lib/cluster-utils";
+import { hasCentroRecursosAccess } from "@/lib/centro-recursos-access";
 import { useUserBadgeClusterSlugs } from "@/hooks/use-badge-access";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { Loader2, Lock, Pencil, Check, X } from "lucide-react";
@@ -29,7 +30,8 @@ export const Route = createFileRoute("/_authenticated/recursos/")({
 });
 
 function ResourcesIndex() {
-  const { isComponentVisible, isAdmin } = useApp();
+  const { isComponentVisible, isAdmin, activeRoles } = useApp();
+  const roleAccess = hasCentroRecursosAccess(activeRoles);
   const badgeSlugs = useUserBadgeClusterSlugs();
   const qc = useQueryClient();
 
@@ -110,7 +112,7 @@ function ResourcesIndex() {
                 key={c.slug}
                 cluster={c}
                 description={row?.description ?? null}
-                allowed={isAdmin || isComponentVisible("/recursos", clusterComponentId(c.slug)) || badgeSlugs.has(c.slug)}
+                allowed={isAdmin || roleAccess || isComponentVisible("/recursos", clusterComponentId(c.slug)) || badgeSlugs.has(c.slug)}
                 isAdmin={isAdmin}
                 onSaveDescription={(d) => setDescription(c.name, d)}
               />

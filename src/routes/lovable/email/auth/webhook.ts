@@ -38,7 +38,8 @@ const FROM_DOMAIN = "app.ipav.pt"
 
 /** Lê a versão do email editada em Gestão › Emails (tabela email_templates_custom). */
 async function lerModeloPersonalizado(
-  supabase: ReturnType<typeof createClient>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
   emailType: string,
 ): Promise<{ subject: string; body_html: string } | null> {
   try {

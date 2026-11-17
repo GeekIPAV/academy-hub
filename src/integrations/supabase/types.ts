@@ -3032,6 +3032,10 @@ export type Database = {
         Returns: number
       }
       get_next_in_line: { Args: { target_action_id: string }; Returns: string }
+      has_centro_recursos_access: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_equipa: { Args: { _user_id: string }; Returns: boolean }
