@@ -2070,10 +2070,12 @@ export type Database = {
           duration_minutes: number | null
           id: string
           materials: string | null
+          objetivos: string | null
           recurso_ids: string[]
           schedule: string | null
           sort_order: number
           tema_id: string
+          tipo: string | null
           title: string | null
           updated_at: string
         }
@@ -2083,10 +2085,12 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           materials?: string | null
+          objetivos?: string | null
           recurso_ids?: string[]
           schedule?: string | null
           sort_order?: number
           tema_id: string
+          tipo?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -2096,10 +2100,12 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           materials?: string | null
+          objetivos?: string | null
           recurso_ids?: string[]
           schedule?: string | null
           sort_order?: number
           tema_id?: string
+          tipo?: string | null
           title?: string | null
           updated_at?: string
         }
@@ -2639,9 +2645,13 @@ export type Database = {
           hidden_sections: string[]
           id: string
           intro: string | null
+          local: string | null
           objectives: string | null
           order_index: number
+          orientacoes: string | null
+          pilares: string | null
           processo_u: string | null
+          ter_em_atencao: string | null
           title: string
           updated_at: string
         }
@@ -2659,9 +2669,13 @@ export type Database = {
           hidden_sections?: string[]
           id?: string
           intro?: string | null
+          local?: string | null
           objectives?: string | null
           order_index?: number
+          orientacoes?: string | null
+          pilares?: string | null
           processo_u?: string | null
+          ter_em_atencao?: string | null
           title: string
           updated_at?: string
         }
@@ -2679,9 +2693,13 @@ export type Database = {
           hidden_sections?: string[]
           id?: string
           intro?: string | null
+          local?: string | null
           objectives?: string | null
           order_index?: number
+          orientacoes?: string | null
+          pilares?: string | null
           processo_u?: string | null
+          ter_em_atencao?: string | null
           title?: string
           updated_at?: string
         }

@@ -18,3 +18,5 @@
 - Store a resource-centre tema's format (Sessão / Conteúdo / Pasta de documentos) as a `formato:` marker in `temas_momentos.hidden_sections` via `tema-formatos.ts`; absence means Sessão, so existing temas are unchanged.
 - Link resources to a tema only through `syncTemaRecursos`, which keeps existing `sort_order` values and appends new resources at the end.
 - Rename a cluster only through `renameCluster`, which updates every text copy of the name and migrates `/recursos#cluster:<slug>` permissions.
+- Keep session-plan helpers (time parsing, room equipment, aggregated materials, pauses) in `src/lib/plano-sessao.ts` and reuse them for both the Plano de sessão tab and the A4 print (`PlanoSessaoImpressao`), which is printed through a scoped `@media print` stylesheet instead of a PDF service.
+- Render Centro de recursos resources only through `RecursosViews` (Lista / Tabela / Galeria + Agrupar por); resource reordering stays in the ungrouped, unfiltered Lista so the saved order is unambiguous.

@@ -64,6 +64,13 @@
       "when": 1794929973850,
       "tag": "0008_centro_recursos_acesso_por_papel",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795000000000,
+      "tag": "0009_plano_sessao_campos",
+      "breakpoints": true
     }
   ]
 }
