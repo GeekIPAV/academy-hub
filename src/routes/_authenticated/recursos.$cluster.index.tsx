@@ -6,7 +6,8 @@ import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-utils";
 import { hasCentroRecursosAccess } from "@/lib/centro-recursos-access";
 import { escondeTemasVazios, temaSemConteudo } from "@/lib/recursos-temas-visiveis";
-import { Loader2, ImageIcon, Lock } from "lucide-react";
+import { Loader2, ImageIcon, Lock, BookOpen, FolderOpen, ChevronRight } from "lucide-react";
+import { TEMA_FORMATOS, temaFormato } from "@/lib/tema-formatos";
 import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
 import { CoverImage } from "@/components/CoverImage";
@@ -40,6 +41,8 @@ interface TemaRow {
   cover_scale: number | null;
   order_index: number;
   bloco_order: number;
+  hidden_sections: string[] | null;
+  tema_recursos: { count: number }[] | null;
 }
 
 function ClusterTemas() {
@@ -80,7 +83,9 @@ function ClusterTemas() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("temas_momentos")
-        .select("id, cluster, bloco, title, description, intro, context, objectives, processo_u, cover_url, cover_position, cover_scale, order_index, bloco_order, tema_recursos(count), plano_sessao_blocos(count)")
+        .select(
+          "id, cluster, bloco, title, description, intro, context, objectives, processo_u, cover_url, cover_position, cover_scale, order_index, bloco_order, hidden_sections, tema_recursos(count), plano_sessao_blocos(count)",
+        )
         .eq("cluster", cluster!.name)
         .order("bloco_order", { ascending: true })
         .order("order_index", { ascending: true });
@@ -121,6 +126,10 @@ function ClusterTemas() {
   }, [temas]);
 
   const filtered = filter === "__all" ? temas : temas.filter((t) => (t.bloco ?? "") === filter);
+  // Sessões aparecem como cartões com fotografia; conteúdos e pastas de
+  // documentos aparecem à parte, como cartões compactos.
+  const sessoes = filtered.filter((t) => temaFormato(t.hidden_sections) === "sessao");
+  const materiais = filtered.filter((t) => temaFormato(t.hidden_sections) !== "sessao");
 
   if (clusterQuery.isLoading) {
     return (
@@ -190,23 +199,46 @@ function ClusterTemas() {
             Sem temas para mostrar.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {filtered.map((t) => (
-              <TemaCard
-                key={t.id}
-                tema={t}
-                clusterSlug={cluster.slug}
-                isAdmin={isAdmin}
-                onSetCover={async (patch) => {
-                  const { error } = await supabase
-                    .from("temas_momentos")
-                    .update(patch)
-                    .eq("id", t.id);
-                  if (error) throw error;
-                  qc.invalidateQueries({ queryKey: ["temas", cluster.name] });
-                }}
-              />
-            ))}
+          <div className="space-y-8">
+            {materiais.length > 0 && (
+              <div className="space-y-3">
+                {sessoes.length > 0 && (
+                  <h3 className="text-xs font-medium text-muted-foreground">
+                    Conteúdos e documentos
+                  </h3>
+                )}
+                <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {materiais.map((t) => (
+                    <MaterialCard key={t.id} tema={t} clusterSlug={cluster.slug} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {sessoes.length > 0 && (
+              <div className="space-y-3">
+                {materiais.length > 0 && (
+                  <h3 className="text-xs font-medium text-muted-foreground">Sessões</h3>
+                )}
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                  {sessoes.map((t) => (
+                    <TemaCard
+                      key={t.id}
+                      tema={t}
+                      clusterSlug={cluster.slug}
+                      isAdmin={isAdmin}
+                      onSetCover={async (patch) => {
+                        const { error } = await supabase
+                          .from("temas_momentos")
+                          .update(patch)
+                          .eq("id", t.id);
+                        if (error) throw error;
+                        qc.invalidateQueries({ queryKey: ["temas", cluster.name] });
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </section>
@@ -293,6 +325,42 @@ function TemaCard({
         )}
         <h3 className="text-sm font-semibold leading-tight text-secondary">{tema.title}</h3>
       </div>
+    </Link>
+  );
+}
+
+function recursoCount(tema: TemaRow) {
+  return tema.tema_recursos?.[0]?.count ?? 0;
+}
+
+/** Cartão compacto para temas do tipo "Conteúdo" e "Pasta de documentos". */
+function MaterialCard({ tema, clusterSlug }: { tema: TemaRow; clusterSlug: string }) {
+  const formato = temaFormato(tema.hidden_sections);
+  const Icon = formato === "documentos" ? FolderOpen : BookOpen;
+  const count = recursoCount(tema);
+  return (
+    <Link
+      to="/recursos/$cluster/$temaId"
+      params={{ cluster: clusterSlug, temaId: tema.id }}
+      className="group flex min-w-0 items-center gap-3 rounded-xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      {tema.cover_url ? (
+        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg">
+          <CoverImage src={tema.cover_url} position={tema.cover_position} scale={tema.cover_scale} />
+        </div>
+      ) : (
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+          <Icon className="h-5 w-5" />
+        </span>
+      )}
+      <div className="min-w-0 flex-1">
+        <h3 className="text-sm font-semibold leading-tight text-secondary">{tema.title}</h3>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {TEMA_FORMATOS[formato].label}
+          {count > 0 && ` · ${count} ${count === 1 ? "recurso" : "recursos"}`}
+        </p>
+      </div>
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5" />
     </Link>
   );
 }

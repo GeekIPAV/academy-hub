@@ -14,3 +14,7 @@
 - Store Equipa IPAV reflection comments on the reflection's progress row and authorise writes server-side for Admin/Equipa IPAV only, so the notebook and its PDF read them without a parallel store.
 - Grant full Centro de recursos access by user type through has_centro_recursos_access (DB) mirrored by src/lib/centro-recursos-access.ts (UI), so screens and RLS agree on who sees every cluster.
 - Hide content-less Centro de recursos temas only from users whose sole type is Utilizador, computed live in src/lib/recursos-temas-visiveis.ts, so temas reappear automatically once content is added.
+- Derive an invite link's type (Utilizadores / Entidades / Personalizado) from its roles via `invite-types.ts`; typed links set the role automatically and the permanent per-type link is reused through `getOrCreateTypedInviteToken`, so no separate type column is needed.
+- Store a resource-centre tema's format (Sessão / Conteúdo / Pasta de documentos) as a `formato:` marker in `temas_momentos.hidden_sections` via `tema-formatos.ts`; absence means Sessão, so existing temas are unchanged.
+- Link resources to a tema only through `syncTemaRecursos`, which keeps existing `sort_order` values and appends new resources at the end.
+- Rename a cluster only through `renameCluster`, which updates every text copy of the name and migrates `/recursos#cluster:<slug>` permissions.

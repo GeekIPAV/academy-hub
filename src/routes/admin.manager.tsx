@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, Ban, ChevronDown, Copy, ExternalLink, Pencil, Plus, Shield, Trash2, UserPlus } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Ban, Building2, ChevronDown, Copy, ExternalLink, Link2, Pencil, Plus, Shield, SlidersHorizontal, Trash2, User, UserPlus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -47,7 +48,14 @@ import { useRoles } from "@/hooks/use-roles";
 import { useUsers } from "@/hooks/use-users";
 import { usePermissions } from "@/hooks/use-permissions";
 import { createRole, deleteRole, updateRole } from "@/lib/roles.functions";
-import { createInvite, deleteInvite, listInvites, revokeInvite, updateInvite } from "@/lib/invites.functions";
+import { createInvite, deleteInvite, getOrCreateTypedInvite, listInvites, revokeInvite, updateInvite } from "@/lib/invites.functions";
+import {
+  INVITE_TIPOS,
+  INVITE_TYPES,
+  inviteTipoFromRoles,
+  type InviteTipo,
+  type InviteTipoOuPersonalizado,
+} from "@/lib/invite-types";
 import { useQuery } from "@tanstack/react-query";
 
 import { RouteGate } from "@/components/RouteGate";
@@ -651,52 +659,222 @@ interface InviteRow {
   created_at: string;
 }
 
+const TIPO_ICON: Record<InviteTipoOuPersonalizado, typeof User> = {
+  utilizador: User,
+  entidade: Building2,
+  personalizado: SlidersHorizontal,
+};
+
+function inviteStatus(inv: InviteRow) {
+  const expired = inv.expires_at && new Date(inv.expires_at).getTime() < Date.now();
+  const exhausted = inv.max_uses != null && inv.uses_count >= inv.max_uses;
+  return !inv.is_active ? "Revogado" : expired ? "Expirado" : exhausted ? "Esgotado" : "Ativo";
+}
+
+function TipoBadge({ roles }: { roles: string[] }) {
+  const tipo = inviteTipoFromRoles(roles);
+  if (tipo === "personalizado") {
+    return (
+      <div className="flex flex-wrap gap-1">
+        {roles.map((r) => (
+          <Badge key={r} variant="outline" className="text-xs">
+            {r}
+          </Badge>
+        ))}
+      </div>
+    );
+  }
+  const Icon = TIPO_ICON[tipo];
+  return (
+    <Badge variant="secondary" className="gap-1 text-xs">
+      <Icon className="h-3 w-3" />
+      {INVITE_TYPES[tipo].label}
+    </Badge>
+  );
+}
+
+/** Escolha do tipo de link: o tipo define o perfil de quem entra. */
+function InviteTipoPicker({
+  value,
+  onChange,
+  roles,
+  activeRoles,
+  onRolesChange,
+}: {
+  value: InviteTipoOuPersonalizado;
+  onChange: (v: InviteTipoOuPersonalizado) => void;
+  roles: Set<string>;
+  activeRoles: { id: string; name: string }[];
+  onRolesChange: (next: Set<string>) => void;
+}) {
+  const options: { value: InviteTipoOuPersonalizado; title: string; description: string }[] = [
+    ...INVITE_TIPOS.map((t) => ({
+      value: t as InviteTipoOuPersonalizado,
+      title: INVITE_TYPES[t].label,
+      description: INVITE_TYPES[t].description,
+    })),
+    {
+      value: "personalizado",
+      title: "Personalizado",
+      description: "Escolher os perfis à mão (ex.: Equipa IPAV, Formador).",
+    },
+  ];
+  return (
+    <div className="space-y-3">
+      <Label>Tipo de link</Label>
+      <div role="radiogroup" className="grid gap-2 sm:grid-cols-3">
+        {options.map((o) => {
+          const Icon = TIPO_ICON[o.value];
+          const active = value === o.value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onChange(o.value)}
+              className={cn(
+                "flex min-w-0 flex-col items-start gap-1 rounded-lg border p-3 text-left transition",
+                active
+                  ? "border-secondary bg-secondary/5 ring-1 ring-secondary"
+                  : "hover:bg-muted/50",
+              )}
+            >
+              <span className="flex items-center gap-1.5 text-sm font-medium text-secondary">
+                <Icon className="h-4 w-4" />
+                {o.title}
+              </span>
+              <span className="text-xs leading-snug text-muted-foreground">{o.description}</span>
+            </button>
+          );
+        })}
+      </div>
+      {value === "personalizado" ? (
+        <div className="space-y-2 rounded-lg border bg-muted/30 p-3">
+          <Label className="text-xs">Perfis</Label>
+          <div className="flex flex-wrap gap-3">
+            {activeRoles.map((r) => (
+              <label key={r.id} className="flex cursor-pointer items-center gap-1.5 text-sm">
+                <Checkbox
+                  checked={roles.has(r.name)}
+                  onCheckedChange={(v) => {
+                    const next = new Set(roles);
+                    if (v) next.add(r.name);
+                    else next.delete(r.name);
+                    onRolesChange(next);
+                  }}
+                />
+                <span>{r.name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          Quem entrar por este link fica automaticamente com o perfil{" "}
+          <strong>{INVITE_TYPES[value].singular}</strong>.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function InviteLinksManager() {
   const qc = useQueryClient();
   const { roles } = useRoles();
   const activeRoles = roles.filter((r) => r.is_active);
   const [collapsed, setCollapsed] = useState(false);
 
-
   const listFn = useServerFn(listInvites);
   const createFn = useServerFn(createInvite);
   const revokeFn = useServerFn(revokeInvite);
   const deleteFn = useServerFn(deleteInvite);
   const updateFn = useServerFn(updateInvite);
+  const typedFn = useServerFn(getOrCreateTypedInvite);
 
   const invitesQ = useQuery({
     queryKey: ["invites"],
     queryFn: () => listFn() as Promise<InviteRow[]>,
   });
 
+  const buildUrl = (token: string) =>
+    typeof window !== "undefined"
+      ? `${window.location.origin}/convite/${token}`
+      : `/convite/${token}`;
+
+  const copy = async (token: string) => {
+    try {
+      await navigator.clipboard.writeText(buildUrl(token));
+      toast.success("Link copiado.");
+    } catch {
+      toast.error("Não foi possível copiar.");
+    }
+  };
+
+  // ── Links permanentes por tipo ───────────────────────────────────────
+  const permanentLinks = useMemo(() => {
+    const out = {} as Record<InviteTipo, InviteRow | null>;
+    for (const t of INVITE_TIPOS) {
+      out[t] =
+        (invitesQ.data ?? []).find(
+          (inv) =>
+            inv.label === INVITE_TYPES[t].genericLabel &&
+            inviteTipoFromRoles(inv.roles) === t &&
+            inviteStatus(inv) === "Ativo",
+        ) ?? null;
+    }
+    return out;
+  }, [invitesQ.data]);
+
+  const typedMut = useMutation({
+    mutationFn: (tipo: InviteTipo) => typedFn({ data: { tipo } }),
+    onSuccess: async (res) => {
+      await qc.invalidateQueries({ queryKey: ["invites"] });
+      await copy(res.token);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // ── Criação ──────────────────────────────────────────────────────────
   const [open, setOpen] = useState(false);
+  const [tipo, setTipo] = useState<InviteTipoOuPersonalizado>("utilizador");
   const [selRoles, setSelRoles] = useState<Set<string>>(new Set());
   const [label, setLabel] = useState("");
   const [expiresDays, setExpiresDays] = useState<string>("");
   const [maxUses, setMaxUses] = useState<string>("");
 
   const reset = () => {
+    setTipo("utilizador");
     setSelRoles(new Set());
     setLabel("");
     setExpiresDays("");
     setMaxUses("");
   };
 
+  const openCreate = (t: InviteTipoOuPersonalizado) => {
+    reset();
+    setTipo(t);
+    setOpen(true);
+  };
+
   const createMut = useMutation({
     mutationFn: () =>
       createFn({
         data: {
-          roles: [...selRoles],
+          ...(tipo === "personalizado" ? { roles: [...selRoles] } : { tipo }),
           label: label.trim() || undefined,
           expires_in_days: expiresDays ? Number(expiresDays) : undefined,
           max_uses: maxUses ? Number(maxUses) : undefined,
         },
       }),
-    onSuccess: () => {
+    onSuccess: async (inv) => {
       toast.success("Link de convite criado.");
       reset();
       setOpen(false);
-      qc.invalidateQueries({ queryKey: ["invites"] });
+      await qc.invalidateQueries({ queryKey: ["invites"] });
+      if (inv && typeof (inv as { token?: string }).token === "string") {
+        await copy((inv as { token: string }).token);
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -721,6 +899,7 @@ function InviteLinksManager() {
 
   // ── Edição ───────────────────────────────────────────────────────────
   const [editId, setEditId] = useState<string | null>(null);
+  const [eTipo, setETipo] = useState<InviteTipoOuPersonalizado>("utilizador");
   const [eRoles, setERoles] = useState<Set<string>>(new Set());
   const [eLabel, setELabel] = useState("");
   const [eExpiresDate, setEExpiresDate] = useState("");
@@ -729,6 +908,7 @@ function InviteLinksManager() {
 
   const openEdit = (inv: InviteRow) => {
     setEditId(inv.id);
+    setETipo(inviteTipoFromRoles(inv.roles));
     setERoles(new Set(inv.roles));
     setELabel(inv.label ?? "");
     setEExpiresDate(inv.expires_at ? inv.expires_at.slice(0, 10) : "");
@@ -741,7 +921,7 @@ function InviteLinksManager() {
       updateFn({
         data: {
           id: editId!,
-          roles: [...eRoles],
+          ...(eTipo === "personalizado" ? { roles: [...eRoles] } : { tipo: eTipo }),
           label: eLabel.trim() ? eLabel.trim() : null,
           expires_at: eExpiresDate
             ? new Date(`${eExpiresDate}T23:59:59Z`).toISOString()
@@ -758,23 +938,9 @@ function InviteLinksManager() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const buildUrl = (token: string) =>
-    typeof window !== "undefined"
-      ? `${window.location.origin}/convite/${token}`
-      : `/convite/${token}`;
-
-  const copy = async (token: string) => {
-    try {
-      await navigator.clipboard.writeText(buildUrl(token));
-      toast.success("Link copiado.");
-    } catch {
-      toast.error("Não foi possível copiar.");
-    }
-  };
-
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selRoles.size === 0) {
+    if (tipo === "personalizado" && selRoles.size === 0) {
       toast.error("Seleciona pelo menos um perfil.");
       return;
     }
@@ -793,225 +959,253 @@ function InviteLinksManager() {
           <div>
             <CardTitle className="text-secondary">Links de convite</CardTitle>
             <CardDescription>
-              Gera um link partilhável com os perfis que escolheres. Quem aceder cria a própria conta.
+              O tipo de link define automaticamente o perfil de quem cria conta: Utilizador ou Entidade.
             </CardDescription>
           </div>
         </div>
 
-        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <UserPlus className="mr-1 h-4 w-4" />
-              Novo Link
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <form onSubmit={submit}>
-              <DialogHeader>
-                <DialogTitle>Criar link de convite</DialogTitle>
-                <DialogDescription>
-                  Escolhe os perfis e (opcionalmente) limites de validade e utilizações.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
+        <Button size="sm" onClick={() => openCreate("utilizador")}>
+          <UserPlus className="mr-1 h-4 w-4" />
+          Novo link
+        </Button>
+      </CardHeader>
+
+      <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
+        <DialogContent className="sm:max-w-xl">
+          <form onSubmit={submit}>
+            <DialogHeader>
+              <DialogTitle>Criar link de convite</DialogTitle>
+              <DialogDescription>
+                Escolhe para quem é o link. Opcionalmente, limita a validade e o número de utilizações.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <InviteTipoPicker
+                value={tipo}
+                onChange={setTipo}
+                roles={selRoles}
+                activeRoles={activeRoles}
+                onRolesChange={setSelRoles}
+              />
+              <div className="space-y-2">
+                <Label htmlFor="inv-label">Nota (opcional)</Label>
+                <Input
+                  id="inv-label"
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                  placeholder={tipo === "entidade" ? "Ex: Escolas Ubuntu 2026" : "Ex: Formandos cohort 2026"}
+                  maxLength={120}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <Label>Perfis</Label>
-                  <div className="flex flex-wrap gap-3">
-                    {activeRoles.map((r) => {
-                      const checked = selRoles.has(r.name);
-                      return (
-                        <label key={r.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                          <Checkbox
-                            checked={checked}
-                            onCheckedChange={(v) => {
-                              setSelRoles((prev) => {
-                                const next = new Set(prev);
-                                if (v) next.add(r.name);
-                                else next.delete(r.name);
-                                return next;
-                              });
-                            }}
-                          />
-                          <span>{r.name}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="inv-label">Nota (opcional)</Label>
+                  <Label htmlFor="inv-exp">Validade (dias)</Label>
                   <Input
-                    id="inv-label"
-                    value={label}
-                    onChange={(e) => setLabel(e.target.value)}
-                    placeholder="Ex: Mentores cohort 2026"
-                    maxLength={120}
+                    id="inv-exp"
+                    type="number"
+                    min={1}
+                    max={365}
+                    value={expiresDays}
+                    onChange={(e) => setExpiresDays(e.target.value)}
+                    placeholder="Sem limite"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="inv-exp">Validade (dias)</Label>
-                    <Input
-                      id="inv-exp"
-                      type="number"
-                      min={1}
-                      max={365}
-                      value={expiresDays}
-                      onChange={(e) => setExpiresDays(e.target.value)}
-                      placeholder="Sem limite"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="inv-max">Máx. utilizações</Label>
-                    <Input
-                      id="inv-max"
-                      type="number"
-                      min={1}
-                      max={1000}
-                      value={maxUses}
-                      onChange={(e) => setMaxUses(e.target.value)}
-                      placeholder="Ilimitado"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="inv-max">Máx. utilizações</Label>
+                  <Input
+                    id="inv-max"
+                    type="number"
+                    min={1}
+                    max={1000}
+                    value={maxUses}
+                    onChange={(e) => setMaxUses(e.target.value)}
+                    placeholder="Ilimitado"
+                  />
                 </div>
               </div>
-              <DialogFooter>
-                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={createMut.isPending}>
-                  {createMut.isPending ? "A criar..." : "Criar link"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
-      {!collapsed && (
-        <CardContent>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={createMut.isPending}>
+                {createMut.isPending ? "A criar..." : "Criar e copiar link"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-        {invitesQ.isLoading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : (invitesQ.data?.length ?? 0) === 0 ? (
-          <p className="text-sm text-muted-foreground">Ainda não criaste links.</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Perfis</TableHead>
-                <TableHead>Nota</TableHead>
-                <TableHead>Usos</TableHead>
-                <TableHead>Validade</TableHead>
-                <TableHead className="w-[180px] text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invitesQ.data?.map((inv) => {
-                const expired = inv.expires_at && new Date(inv.expires_at).getTime() < Date.now();
-                const exhausted = inv.max_uses != null && inv.uses_count >= inv.max_uses;
-                const status = !inv.is_active
-                  ? "Revogado"
-                  : expired
-                  ? "Expirado"
-                  : exhausted
-                  ? "Esgotado"
-                  : "Ativo";
-                return (
-                  <TableRow key={inv.id}>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {inv.roles.map((r) => (
-                          <Badge key={r} variant="secondary" className="text-xs">{r}</Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm">{inv.label || "—"}</TableCell>
-                    <TableCell className="text-sm">
-                      {inv.uses_count}
-                      {inv.max_uses != null ? ` / ${inv.max_uses}` : ""}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {inv.expires_at
-                        ? new Date(inv.expires_at).toLocaleDateString("pt-PT")
-                        : "Sem limite"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Badge variant={status === "Ativo" ? "default" : "outline"} className="text-xs">
-                          {status}
-                        </Badge>
+      {!collapsed && (
+        <CardContent className="space-y-6">
+          {/* Links permanentes: um por tipo */}
+          <div className="grid min-w-0 gap-3 md:grid-cols-2">
+            {INVITE_TIPOS.map((t) => {
+              const meta = INVITE_TYPES[t];
+              const Icon = TIPO_ICON[t];
+              const inv = permanentLinks[t];
+              return (
+                <div key={t} className="flex min-w-0 flex-col gap-3 rounded-lg border p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary/10 text-secondary">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-secondary">Link para {meta.label}</p>
+                      <p className="text-xs text-muted-foreground">{meta.description}</p>
+                    </div>
+                  </div>
+                  {inv ? (
+                    <>
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <Input
+                          readOnly
+                          value={buildUrl(inv.token)}
+                          className="h-8 min-w-0 flex-1 font-mono text-xs"
+                          onFocus={(e) => e.currentTarget.select()}
+                          aria-label={`Link para ${meta.label}`}
+                        />
+                        <Button size="sm" variant="outline" onClick={() => copy(inv.token)}>
+                          <Copy className="mr-1 h-3.5 w-3.5" />
+                          Copiar
+                        </Button>
                         <Button
                           size="icon"
                           variant="ghost"
+                          className="h-8 w-8 shrink-0"
                           title="Abrir página de adesão"
                           onClick={() => window.open(buildUrl(inv.token), "_blank", "noopener,noreferrer")}
                         >
                           <ExternalLink className="h-4 w-4" />
                         </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title="Copiar link"
-                          onClick={() => copy(inv.token)}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title="Editar"
-                          onClick={() => openEdit(inv)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        {inv.is_active && (
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            title="Revogar"
-                            onClick={() => {
-                              if (confirm("Revogar este link?")) revokeMut.mutate(inv.id);
-                            }}
-                          >
-                            <Ban className="h-4 w-4" />
-                          </Button>
-                        )}
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          title="Eliminar"
-                          onClick={() => {
-                            if (
-                              confirm(
-                                "Eliminar este link de convite definitivamente? Esta ação não pode ser desfeita.",
-                              )
-                            )
-                              deleteMut.mutate(inv.id);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
+                      <p className="text-xs text-muted-foreground">
+                        {inv.uses_count} {inv.uses_count === 1 ? "pessoa entrou" : "pessoas entraram"} por este link · sem validade
+                      </p>
+                    </>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="self-start"
+                      disabled={typedMut.isPending || invitesQ.isLoading}
+                      onClick={() => typedMut.mutate(t)}
+                    >
+                      <Link2 className="mr-1 h-3.5 w-3.5" />
+                      Gerar link para {meta.label.toLowerCase()}
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Todos os links
+            </h3>
+            {invitesQ.isLoading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ) : (invitesQ.data?.length ?? 0) === 0 ? (
+              <p className="text-sm text-muted-foreground">Ainda não criaste links.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table className="min-w-[640px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead>Nota</TableHead>
+                      <TableHead>Usos</TableHead>
+                      <TableHead>Validade</TableHead>
+                      <TableHead className="w-[180px] text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {invitesQ.data?.map((inv) => {
+                      const status = inviteStatus(inv);
+                      return (
+                        <TableRow key={inv.id}>
+                          <TableCell>
+                            <TipoBadge roles={inv.roles} />
+                          </TableCell>
+                          <TableCell className="text-sm">{inv.label || "—"}</TableCell>
+                          <TableCell className="text-sm">
+                            {inv.uses_count}
+                            {inv.max_uses != null ? ` / ${inv.max_uses}` : ""}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground">
+                            {inv.expires_at
+                              ? new Date(inv.expires_at).toLocaleDateString("pt-PT")
+                              : "Sem limite"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Badge variant={status === "Ativo" ? "default" : "outline"} className="text-xs">
+                                {status}
+                              </Badge>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                title="Abrir página de adesão"
+                                onClick={() => window.open(buildUrl(inv.token), "_blank", "noopener,noreferrer")}
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost" title="Copiar link" onClick={() => copy(inv.token)}>
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="ghost" title="Editar" onClick={() => openEdit(inv)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              {inv.is_active && (
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  title="Revogar"
+                                  onClick={() => {
+                                    if (confirm("Revogar este link?")) revokeMut.mutate(inv.id);
+                                  }}
+                                >
+                                  <Ban className="h-4 w-4" />
+                                </Button>
+                              )}
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                title="Eliminar"
+                                onClick={() => {
+                                  if (
+                                    confirm(
+                                      "Eliminar este link de convite definitivamente? Esta ação não pode ser desfeita.",
+                                    )
+                                  )
+                                    deleteMut.mutate(inv.id);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
         </CardContent>
       )}
 
-
       <Dialog open={editId !== null} onOpenChange={(o) => { if (!o) setEditId(null); }}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-xl">
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (eRoles.size === 0) {
+              if (eTipo === "personalizado" && eRoles.size === 0) {
                 toast.error("Seleciona pelo menos um perfil.");
                 return;
               }
@@ -1021,34 +1215,17 @@ function InviteLinksManager() {
             <DialogHeader>
               <DialogTitle>Editar link de convite</DialogTitle>
               <DialogDescription>
-                Atualiza os perfis, a nota ou os limites deste convite.
+                Atualiza o tipo, a nota ou os limites deste convite. Só afeta quem entrar a partir de agora.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Perfis</Label>
-                <div className="flex flex-wrap gap-3">
-                  {activeRoles.map((r) => {
-                    const checked = eRoles.has(r.name);
-                    return (
-                      <label key={r.id} className="flex items-center gap-1.5 text-sm cursor-pointer">
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={(v) => {
-                            setERoles((prev) => {
-                              const next = new Set(prev);
-                              if (v) next.add(r.name);
-                              else next.delete(r.name);
-                              return next;
-                            });
-                          }}
-                        />
-                        <span>{r.name}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
+              <InviteTipoPicker
+                value={eTipo}
+                onChange={setETipo}
+                roles={eRoles}
+                activeRoles={activeRoles}
+                onRolesChange={setERoles}
+              />
               <div className="space-y-2">
                 <Label htmlFor="edit-label">Nota</Label>
                 <Input

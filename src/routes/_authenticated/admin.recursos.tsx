@@ -3,6 +3,7 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { syncTemaRecursos } from "@/lib/tema-recursos";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -1664,19 +1665,13 @@ function AssociacoesTab() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!temaId) throw new Error("Seleciona um tema.");
-      const { error: delErr } = await supabase.from("tema_recursos").delete().eq("tema_id", temaId);
-      if (delErr) throw delErr;
-      const ids = [...selected];
-      if (ids.length > 0) {
-        const { error } = await supabase
-          .from("tema_recursos")
-          .insert(ids.map((rid) => ({ tema_id: temaId, recurso_id: rid })));
-        if (error) throw error;
-      }
+      // Mantém a ordem existente; os novos recursos ficam no fim.
+      await syncTemaRecursos(temaId, selected);
     },
     onSuccess: () => {
       toast.success("Associações guardadas.");
       qc.invalidateQueries({ queryKey: ["tema-recursos", temaId] });
+      qc.invalidateQueries({ queryKey: ["tema-detail", temaId] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
