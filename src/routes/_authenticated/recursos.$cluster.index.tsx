@@ -6,7 +6,8 @@ import { useApp } from "@/lib/app-context";
 import { parseCluster, clusterComponentId, slugifyCluster } from "@/lib/cluster-utils";
 import { hasCentroRecursosAccess } from "@/lib/centro-recursos-access";
 import { escondeTemasVazios, temaSemConteudo } from "@/lib/recursos-temas-visiveis";
-import { Loader2, ImageIcon, Lock, BookOpen, FolderOpen, ChevronRight } from "lucide-react";
+import { Loader2, Lock, BookOpen, FolderOpen, ChevronRight, CalendarDays } from "lucide-react";
+import { sigla, textoSimples } from "@/lib/recursos-ui";
 import { TEMA_FORMATOS, temaFormato } from "@/lib/tema-formatos";
 import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
@@ -42,7 +43,9 @@ interface TemaRow {
   order_index: number;
   bloco_order: number;
   hidden_sections: string[] | null;
+  intro?: string | null;
   tema_recursos: { count: number }[] | null;
+  plano_sessao_blocos?: { count: number }[] | null;
 }
 
 function ClusterTemas() {
@@ -126,10 +129,36 @@ function ClusterTemas() {
   }, [temas]);
 
   const filtered = filter === "__all" ? temas : temas.filter((t) => (t.bloco ?? "") === filter);
-  // Sessões aparecem como cartões com fotografia; conteúdos e pastas de
-  // documentos aparecem à parte, como cartões compactos.
-  const sessoes = filtered.filter((t) => temaFormato(t.hidden_sections) === "sessao");
-  const materiais = filtered.filter((t) => temaFormato(t.hidden_sections) !== "sessao");
+
+  // Agrupar por bloco, mantendo a ordem definida na gestão.
+  const grupos = useMemo(() => {
+    const out: { bloco: string; temas: typeof filtered }[] = [];
+    for (const t of filtered) {
+      const b = t.bloco?.trim() || "Outros temas";
+      const last = out[out.length - 1];
+      if (last && last.bloco === b) last.temas.push(t);
+      else out.push({ bloco: b, temas: [t] });
+    }
+    return out;
+  }, [filtered]);
+
+  const totalRecursos = temas.reduce((n, t) => n + recursoCount(t), 0);
+
+  const descricaoQuery = useQuery({
+    queryKey: ["cluster-covers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cluster_covers")
+        .select("cluster_name, description, cover_url, cover_position, cover_scale");
+      if (error) throw error;
+      const map = new Map<string, { description: string | null }>();
+      ((data ?? []) as { cluster_name: string; description: string | null }[]).forEach((r) =>
+        map.set(r.cluster_name, r),
+      );
+      return map;
+    },
+  });
+  const descricao = cluster ? descricaoQuery.data?.get(cluster.name)?.description ?? null : null;
 
   if (clusterQuery.isLoading) {
     return (
@@ -158,20 +187,40 @@ function ClusterTemas() {
 
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8">
-      <header className="border-b pb-6">
-        <h1 className="text-3xl font-semibold tracking-tight text-secondary">
-          {cluster.title}
-        </h1>
-        {cluster.subtitle && (
-          <p className="mt-1 text-base text-muted-foreground">{cluster.subtitle}</p>
+    <div className="mx-auto min-w-0 max-w-6xl space-y-8">
+      <nav className="flex min-w-0 flex-wrap items-center gap-1 text-sm text-muted-foreground">
+        <Link to="/recursos" className="hover:text-secondary">
+          Centro de recursos
+        </Link>
+        <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+        <span className="text-secondary">{cluster.title}</span>
+      </nav>
+
+      <header className="flex flex-wrap items-end justify-between gap-6 border-b pb-7">
+        <div className="min-w-0 max-w-3xl flex-1 space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-secondary sm:text-4xl">
+            {cluster.title}
+          </h1>
+          {cluster.subtitle && <p className="text-lg text-muted-foreground">{cluster.subtitle}</p>}
+          <p className="pt-1 text-sm leading-relaxed text-foreground/75">
+            {descricao || "Explora os temas e momentos deste percurso formativo."}
+          </p>
+        </div>
+        {!temasQuery.isLoading && temas.length > 0 && (
+          <dl className="grid shrink-0 grid-cols-2 gap-3">
+            <div className="min-w-[7rem] rounded-xl border bg-card px-4 py-3">
+              <dt className="text-xs text-muted-foreground">Temas</dt>
+              <dd className="text-2xl font-bold text-secondary">{temas.length}</dd>
+            </div>
+            <div className="min-w-[7rem] rounded-xl border bg-card px-4 py-3">
+              <dt className="text-xs text-muted-foreground">Recursos</dt>
+              <dd className="text-2xl font-bold text-secondary">{totalRecursos}</dd>
+            </div>
+          </dl>
         )}
-        <p className="mt-4 text-sm text-muted-foreground">
-          Explora os temas e momentos deste percurso formativo.
-        </p>
       </header>
 
-      <section className="space-y-4">
+      <section className="space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Temas e momentos
@@ -199,28 +248,20 @@ function ClusterTemas() {
             Sem temas para mostrar.
           </p>
         ) : (
-          <div className="space-y-8">
-            {materiais.length > 0 && (
-              <div className="space-y-3">
-                {sessoes.length > 0 && (
-                  <h3 className="text-xs font-medium text-muted-foreground">
-                    Conteúdos e documentos
-                  </h3>
+          <div className="space-y-10">
+            {grupos.map((g, gi) => (
+              <div key={`${g.bloco}-${gi}`} className="space-y-4">
+                {(grupos.length > 1 || blocos.length > 0) && (
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-lg font-semibold text-secondary">{g.bloco}</h3>
+                    <span className="text-xs text-muted-foreground">
+                      {g.temas.length} {g.temas.length === 1 ? "tema" : "temas"}
+                    </span>
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
                 )}
-                <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {materiais.map((t) => (
-                    <MaterialCard key={t.id} tema={t} clusterSlug={cluster.slug} />
-                  ))}
-                </div>
-              </div>
-            )}
-            {sessoes.length > 0 && (
-              <div className="space-y-3">
-                {materiais.length > 0 && (
-                  <h3 className="text-xs font-medium text-muted-foreground">Sessões</h3>
-                )}
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                  {sessoes.map((t) => (
+                <div className="grid min-w-0 grid-cols-1 gap-4 min-[480px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {g.temas.map((t) => (
                     <TemaCard
                       key={t.id}
                       tema={t}
@@ -238,7 +279,7 @@ function ClusterTemas() {
                   ))}
                 </div>
               </div>
-            )}
+            ))}
           </div>
         )}
       </section>
@@ -284,13 +325,23 @@ function TemaCard({
     patch: { cover_url?: string | null; cover_position?: string; cover_scale?: number },
   ) => Promise<void>;
 }) {
+  const formato = temaFormato(tema.hidden_sections);
+  const nRecursos = recursoCount(tema);
+  const nBlocos = tema.plano_sessao_blocos?.[0]?.count ?? 0;
+  const intro = textoSimples(tema.intro ?? tema.description);
+  const Icon = formato === "documentos" ? FolderOpen : formato === "conteudo" ? BookOpen : CalendarDays;
   return (
     <Link
       to="/recursos/$cluster/$temaId"
       params={{ cluster: clusterSlug, temaId: tema.id }}
-      className="group block overflow-hidden rounded-xl border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-primary/10 via-muted to-primary/5">
+      <div
+        className={cn(
+          "relative aspect-[4/3] w-full overflow-hidden",
+          formato === "documentos" ? "bg-primary/10" : "bg-secondary/[0.07]",
+        )}
+      >
         {tema.cover_url ? (
           <CoverImage
             src={tema.cover_url}
@@ -299,8 +350,14 @@ function TemaCard({
             className="transition group-hover:scale-[1.02]"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-muted-foreground/40">
-            <ImageIcon className="h-10 w-10" />
+          <div className="flex h-full w-full flex-col items-center justify-center gap-2.5">
+            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-background text-lg font-bold text-secondary shadow-sm">
+              {sigla(tema.title)}
+            </span>
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
+              <Icon className="h-3.5 w-3.5" />
+              {TEMA_FORMATOS[formato].label}
+            </span>
           </div>
         )}
         {isAdmin && (
@@ -317,13 +374,28 @@ function TemaCard({
           />
         )}
       </div>
-      <div className="space-y-1 p-3">
+      <div className="flex flex-1 flex-col gap-1.5 p-4">
         {tema.bloco && (
-          <p className="text-[10px] font-medium uppercase tracking-wide text-secondary/70">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
             {tema.bloco}
           </p>
         )}
-        <h3 className="text-sm font-semibold leading-tight text-secondary">{tema.title}</h3>
+        <h3 className="text-base font-semibold leading-snug text-secondary">{tema.title}</h3>
+        {intro && <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">{intro}</p>}
+        {(nBlocos > 0 || nRecursos > 0) && (
+          <div className="mt-auto flex flex-wrap gap-1.5 pt-2">
+            {nBlocos > 0 && (
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-foreground/70">
+                Plano de sessão
+              </span>
+            )}
+            {nRecursos > 0 && (
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-foreground/70">
+                {nRecursos} {nRecursos === 1 ? "recurso" : "recursos"}
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </Link>
   );
@@ -331,36 +403,4 @@ function TemaCard({
 
 function recursoCount(tema: TemaRow) {
   return tema.tema_recursos?.[0]?.count ?? 0;
-}
-
-/** Cartão compacto para temas do tipo "Conteúdo" e "Pasta de documentos". */
-function MaterialCard({ tema, clusterSlug }: { tema: TemaRow; clusterSlug: string }) {
-  const formato = temaFormato(tema.hidden_sections);
-  const Icon = formato === "documentos" ? FolderOpen : BookOpen;
-  const count = recursoCount(tema);
-  return (
-    <Link
-      to="/recursos/$cluster/$temaId"
-      params={{ cluster: clusterSlug, temaId: tema.id }}
-      className="group flex min-w-0 items-center gap-3 rounded-xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-    >
-      {tema.cover_url ? (
-        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg">
-          <CoverImage src={tema.cover_url} position={tema.cover_position} scale={tema.cover_scale} />
-        </div>
-      ) : (
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
-          <Icon className="h-5 w-5" />
-        </span>
-      )}
-      <div className="min-w-0 flex-1">
-        <h3 className="text-sm font-semibold leading-tight text-secondary">{tema.title}</h3>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {TEMA_FORMATOS[formato].label}
-          {count > 0 && ` · ${count} ${count === 1 ? "recurso" : "recursos"}`}
-        </p>
-      </div>
-      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:translate-x-0.5" />
-    </Link>
-  );
 }

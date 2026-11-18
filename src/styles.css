@@ -417,3 +417,81 @@
   .course-notebook .notebook-entry { break-inside: auto; margin-top: 6mm; }
   .course-notebook p { orphans: 3; widows: 3; }
 }
+
+/* ── Plano de sessão para imprimir (Centro de recursos) ───────────────── */
+.plano-print { display: none; }
+@media print {
+  @page plano { size: A4; margin: 12mm 13mm 14mm; }
+  body:has(.plano-print) * { visibility: hidden; }
+  body:has(.plano-print) *:has(.plano-print) {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+  }
+  body:has(.plano-print) *:has(.plano-print) > :not(:has(.plano-print)):not(.plano-print) { display: none !important; }
+  .plano-print, .plano-print * { visibility: visible !important; }
+  .plano-print {
+    display: block !important;
+    page: plano;
+    color: #193B69;
+    font-size: 9pt;
+    line-height: 1.4;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .plano-print strong { font-weight: 600; }
+  .plano-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4mm; }
+  .plano-h1 { font-size: 20pt; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+  .plano-acento { width: 12mm; height: 1mm; background: #FF8226; margin-top: 1.5mm; }
+  .plano-marca { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.05; }
+  .plano-marca span { font-size: 7.5pt; font-weight: 700; letter-spacing: 0.06em; }
+  .plano-marca strong { font-size: 15pt; font-weight: 800; letter-spacing: 0.02em; }
+  .plano-marca em { font-style: normal; font-size: 6pt; font-weight: 600; letter-spacing: 0.12em; color: #FF8226; }
+  .plano-info, .plano-local { border: 0.75pt solid #193B6933; border-radius: 2.5mm; overflow: hidden; margin-bottom: 3.5mm; }
+  .plano-info-row { display: grid; grid-template-columns: 38mm 1fr; border-bottom: 0.75pt solid #193B6926; break-inside: avoid; }
+  .plano-info-row:last-child { border-bottom: 0; }
+  .plano-info-label { background: #F4F5F7; padding: 2mm 3mm; font-weight: 600; }
+  .plano-info-valor { padding: 2mm 3mm; color: #241C1D; }
+  .plano-titulo-tema { font-size: 11pt; font-weight: 700; color: #193B69; }
+  .plano-linhas-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3mm; height: 4.5mm; }
+  .plano-linhas-4 span, .plano-pontilhado { display: block; border-bottom: 0.75pt dotted #193B6980; min-height: 4mm; flex: 1; }
+  .plano-local { display: grid; grid-template-columns: 28mm 24mm 16mm 1fr; break-inside: avoid; }
+  .plano-local > div { padding: 2mm 3mm; color: #241C1D; }
+  .plano-local .plano-local-head { background: #F4F5F7; font-weight: 600; color: #193B69; }
+  .plano-rico p { margin: 0 0 1mm; }
+  .plano-rico ul, .plano-rico ol, .plano-pontos { margin: 0; padding-left: 4mm; }
+  .plano-rico li, .plano-pontos li { margin: 0 0 0.5mm; }
+  .plano-pontos li::marker, .plano-rico li::marker { color: #FF8226; }
+  .plano-tabela { width: 100%; border-collapse: separate; border-spacing: 0; table-layout: fixed; border: 0.75pt solid #193B6933; border-radius: 2.5mm; overflow: hidden; }
+  .plano-tabela thead { display: table-header-group; }
+  .plano-tabela th { background: #193B69; color: #fff; text-align: left; font-weight: 600; padding: 2mm 2.5mm; }
+  .plano-tabela td { vertical-align: top; padding: 2.4mm 2.5mm; border-top: 0.75pt solid #193B6926; color: #241C1D; }
+  .plano-tabela td + td { border-left: 0.5pt solid #193B6914; }
+  .plano-tabela tr { break-inside: avoid; }
+  .plano-faixa td { background: #A3D9D766; text-align: center; font-weight: 600; color: #193B69; padding: 1.4mm; }
+  .plano-pausa td { background: #F4F5F7; font-weight: 600; color: #193B69; padding: 1.6mm 2.5mm; }
+  .plano-tipo { display: flex; align-items: center; gap: 1.5mm; font-size: 7.5pt; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #544E4F; }
+  .plano-tipo span { width: 1.6mm; height: 1.6mm; border-radius: 0.4mm; background: #FF8226; }
+  .plano-bloco-titulo { font-size: 9.5pt; font-weight: 600; color: #193B69; line-height: 1.3; margin: 0.4mm 0 0.6mm; }
+  .plano-rotulo { font-size: 7pt; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #544E4F; margin: 1.2mm 0 0.4mm; }
+  .plano-hora { font-size: 9.5pt; font-weight: 700; color: #193B69; }
+  .plano-muted { color: #544E4F; }
+  .plano-dur { display: inline-block; margin-top: 1mm; padding: 0 1.4mm; border: 1pt solid #FF8226; border-radius: 1mm; font-size: 7.5pt; font-weight: 600; color: #193B69; }
+  .plano-equip { display: flex; flex-wrap: wrap; gap: 1mm; margin-bottom: 1mm; }
+  .plano-equip span { font-size: 7pt; font-weight: 600; color: #193B69; background: #EEF2F8; padding: 0.2mm 1.4mm; border-radius: 1mm; }
+  .plano-recurso { color: #193B69; }
+  .plano-campo { display: flex; align-items: flex-end; gap: 1.5mm; margin-bottom: 1mm; }
+  .plano-campo strong { color: #193B69; font-weight: 600; }
+  .plano-notas { margin-top: 5mm; display: flex; flex-direction: column; gap: 3mm; break-inside: avoid; }
+  .plano-h2 { font-size: 10pt; font-weight: 700; }
+  .plano-rodape { margin-top: 5mm; padding-top: 2mm; border-top: 0.75pt solid #193B691A; display: flex; justify-content: space-between; color: #544E4F; font-size: 8pt; }
+  .plano-rodape strong { color: #193B69; font-weight: 700; }
+}
