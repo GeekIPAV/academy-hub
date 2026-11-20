@@ -127,3 +127,9 @@
 - [x] Presença na FTP atribui o badge «Apto para a Semana Ubuntu» e abre o bloco no Centro de recursos (UI e RLS)
 - [x] Regras configuráveis por programa: prazo falhado na FTC e antecedência para decidir FTP abaixo do mínimo
 - [ ] Aplicar a migração 0011 e confirmar que o pg_cron agendou `ftp-alertas-diarios`
+
+## Ano letivo, replicações e planos (Fase 3, nov 2026)
+- [x] Acesso à FTC e à Semana Ubuntu até ao fim do ano letivo da FTP (dia configurável por programa), com aviso para descarregar
+- [x] Excel dos alunos e modelos (autorização EE, Excel) na Semana Ubuntu da formação e nas replicações; equipa avisada
+- [x] Planos A, B e C por projeto, com limites a contar; bloquear ou só avisar por projeto
+- [ ] Aplicar a migração 0012 e carregar os modelos da Semana Ubuntu

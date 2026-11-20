@@ -156,6 +156,11 @@ export const addEntidadeProjeto = createServerFn({ method: "POST" })
       .eq("project_id", data.projectId)
       .eq("entity_id", data.entityId)
       .maybeSingle();
+    const ativa = ex ? (await db.from("entidades_projetos").select("is_active").eq("id", ex.id).maybeSingle()).data?.is_active : false;
+    if (!ativa) {
+      const { garantirLimitePlano } = await import("@/lib/planos.server");
+      await garantirLimitePlano([data.projectId], "escolas");
+    }
     const { error } = ex
       ? await db.from("entidades_projetos").update({ is_active: true, data_fim: null }).eq("id", ex.id)
       : await db.from("entidades_projetos").insert({ project_id: data.projectId, entity_id: data.entityId });

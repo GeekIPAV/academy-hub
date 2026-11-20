@@ -38,6 +38,7 @@ import {
   setUtilizadorProjeto,
 } from "@/lib/projetos.functions";
 import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
+import { PlanoProjeto } from "@/components/admin/PlanoProjeto";
 
 export const Route = createFileRoute("/admin/projetos")({
   head: () => ({
@@ -190,6 +191,8 @@ function ProjetoDetalhe({ projeto }: { projeto: { id: string; title: string; sta
       </div>
 
       <LinkInscricao token={projeto.inscricao_token} />
+
+      <PlanoProjeto projectId={projeto.id} />
 
       <div className="space-y-3">
         <h3 className="flex items-center gap-2 font-semibold"><Building2 className="h-4 w-4" /> Entidades</h3>

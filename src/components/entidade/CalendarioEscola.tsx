@@ -14,6 +14,7 @@ import {
   type OpcaoData,
 } from "@/lib/ftp-calendario.functions";
 import { FTC_DIAS_ANTES_FTP, formatarDataPt } from "@/lib/ftp-calendario";
+import { AlunosSemanaUbuntu } from "@/components/semana-ubuntu/AlunosSemanaUbuntu";
 
 function rotulo(o: Pick<OpcaoData, "start_date" | "end_date" | "localizacao" | "formato">) {
   const fim = o.end_date && o.end_date !== o.start_date ? ` a ${formatarDataPt(o.end_date)}` : "";
@@ -175,6 +176,7 @@ function CalendarioCard({ item, entityId }: { item: CalendarioEscolaItem; entity
             {!item.su.ativa && <p className="text-xs font-medium text-[#B42318]">Este slot foi cancelado. Escolham outro.</p>}
           </div>
         ) : null}
+        {item.su?.ativa && <AlunosSemanaUbuntu alvo={{ cohortId: item.cohort_id }} compacto />}
         {(!item.su || !item.su.ativa || suSel) &&
           (opcoesSu.length === 0 ? (
             <p className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">

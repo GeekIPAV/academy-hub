@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { formatarDataPt, janelaFtc } from "@/lib/ftp-calendario";
+import { FIM_ACESSO_PADRAO, fimAcessoAnoLetivo, formatarDataPt, janelaFtc } from "@/lib/ftp-calendario";
 
 /**
  * Lógica de servidor do calendário ancorado na FTP.
@@ -221,17 +221,28 @@ export async function sincronizarFtp(ftpId: string, opts: { notificar?: boolean 
   for (const c of data ?? []) await sincronizarFtcDaEscola(c.id, opts);
 }
 
-/** Data da FTP de cada turma ancorada (para calcular a abertura da FTC). */
-export async function datasFtpDasTurmas(turmaIds: string[]): Promise<Map<string, string>> {
-  const out = new Map<string, string>();
+/**
+ * Data da FTP e fim do acesso (fim do ano letivo) de cada turma ancorada,
+ * para calcular a abertura e o fecho da FTC.
+ */
+export async function datasFtpDasTurmas(turmaIds: string[]): Promise<Map<string, { ftp: string; fimAcesso: string }>> {
+  const out = new Map<string, { ftp: string; fimAcesso: string }>();
   if (turmaIds.length === 0) return out;
   const { data } = await supabaseAdmin
     .from("cursos_turmas")
-    .select("id, ftp_acao_id, acoes:acoes!cursos_turmas_ftp_acao_id_fkey(start_date)")
+    .select("id, ftp_acao_id, acoes:acoes!cursos_turmas_ftp_acao_id_fkey(start_date, programas(fim_acesso))")
     .in("id", turmaIds)
     .not("ftp_acao_id", "is", null);
-  for (const t of (data ?? []) as { id: string; acoes: { start_date: string | null } | null }[]) {
-    if (t.acoes?.start_date) out.set(t.id, t.acoes.start_date);
+  for (const t of (data ?? []) as unknown as {
+    id: string;
+    acoes: { start_date: string | null; programas: { fim_acesso: string | null } | null } | null;
+  }[]) {
+    if (t.acoes?.start_date) {
+      out.set(t.id, {
+        ftp: t.acoes.start_date,
+        fimAcesso: fimAcessoAnoLetivo(t.acoes.start_date, t.acoes.programas?.fim_acesso ?? FIM_ACESSO_PADRAO),
+      });
+    }
   }
   return out;
 }
@@ -341,4 +352,10 @@ export async function definirInscricaoFtp(ftpId: string, userId: string, status:
 
 export async function notificarUtilizadores(userIds: string[], title: string, message: string, link: string | null) {
   await notificar(userIds, title, message, link);
+}
+
+/** Alerta à Equipa IPAV (papel «Equipa IPAV») na plataforma. */
+export async function notificarEquipa(title: string, message: string, link: string | null) {
+  const { data } = await supabaseAdmin.from("user_roles").select("user_id").eq("role_name", "Equipa IPAV");
+  await notificar((data ?? []).map((r) => r.user_id), title, message, link);
 }

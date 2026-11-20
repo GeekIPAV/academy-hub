@@ -2226,6 +2226,7 @@ export type Database = {
       programas: {
         Row: {
           acreditacao: boolean
+          aviso_fim_acesso_dias: number
           certificacao: boolean
           cluster: string | null
           cluster_id: string | null
@@ -2234,6 +2235,7 @@ export type Database = {
           description: string | null
           email_contacto_ipav: string | null
           enrollment_open: boolean
+          fim_acesso: string
           ftc_atraso_permitido: boolean
           ftc_curso_id: string | null
           ftp_dias_decisao: number
@@ -2252,6 +2254,7 @@ export type Database = {
         }
         Insert: {
           acreditacao?: boolean
+          aviso_fim_acesso_dias?: number
           certificacao?: boolean
           cluster?: string | null
           cluster_id?: string | null
@@ -2260,6 +2263,7 @@ export type Database = {
           description?: string | null
           email_contacto_ipav?: string | null
           enrollment_open?: boolean
+          fim_acesso?: string
           ftc_atraso_permitido?: boolean
           ftc_curso_id?: string | null
           ftp_dias_decisao?: number
@@ -2278,6 +2282,7 @@ export type Database = {
         }
         Update: {
           acreditacao?: boolean
+          aviso_fim_acesso_dias?: number
           certificacao?: boolean
           cluster?: string | null
           cluster_id?: string | null
@@ -2286,6 +2291,7 @@ export type Database = {
           description?: string | null
           email_contacto_ipav?: string | null
           enrollment_open?: boolean
+          fim_acesso?: string
           ftc_atraso_permitido?: boolean
           ftc_curso_id?: string | null
           ftp_dias_decisao?: number
@@ -2367,6 +2373,8 @@ export type Database = {
           description: string | null
           id: string
           inscricao_token: string | null
+          plano: string | null
+          plano_bloqueia: boolean
           status: Database["public"]["Enums"]["projeto_status"]
           title: string
           updated_at: string
@@ -2378,6 +2386,8 @@ export type Database = {
           description?: string | null
           id?: string
           inscricao_token?: string | null
+          plano?: string | null
+          plano_bloqueia?: boolean
           status?: Database["public"]["Enums"]["projeto_status"]
           title: string
           updated_at?: string
@@ -2389,6 +2399,8 @@ export type Database = {
           description?: string | null
           id?: string
           inscricao_token?: string | null
+          plano?: string | null
+          plano_bloqueia?: boolean
           status?: Database["public"]["Enums"]["projeto_status"]
           title?: string
           updated_at?: string
@@ -2669,6 +2681,61 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      semana_ubuntu_alunos: {
+        Row: {
+          acao_id: string | null
+          cohort_id: string | null
+          entity_id: string
+          enviado_em: string
+          enviado_por: string | null
+          ficheiro_nome: string
+          ficheiro_path: string
+          id: string
+        }
+        Insert: {
+          acao_id?: string | null
+          cohort_id?: string | null
+          entity_id: string
+          enviado_em?: string
+          enviado_por?: string | null
+          ficheiro_nome: string
+          ficheiro_path: string
+          id?: string
+        }
+        Update: {
+          acao_id?: string | null
+          cohort_id?: string | null
+          entity_id?: string
+          enviado_em?: string
+          enviado_por?: string | null
+          ficheiro_nome?: string
+          ficheiro_path?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "semana_ubuntu_alunos_acao_id_fkey"
+            columns: ["acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semana_ubuntu_alunos_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "entidades_programas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semana_ubuntu_alunos_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entidades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppressed_emails: {
         Row: {

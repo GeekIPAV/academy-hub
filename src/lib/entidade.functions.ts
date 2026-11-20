@@ -210,6 +210,10 @@ export const createAcaoProposta = createServerFn({ method: "POST" })
     const entityId = await resolveEntityId(userId, data.entityId);
     if (!entityId) throw new Error("Utilizador sem entidade associada.");
 
+    const { TIPOS_REPLICACAO, garantirLimitePlanoEntidade } = await import("@/lib/planos.server");
+    const eReplicacao = TIPOS_REPLICACAO.includes(data.action_type);
+    if (eReplicacao) await garantirLimitePlanoEntidade(entityId, "replicacoes");
+
     const { data: row, error } = await supabaseAdmin
       .from("acoes")
       .insert({
@@ -224,6 +228,15 @@ export const createAcaoProposta = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
     if (error) throw new Error(error.message);
+    if (eReplicacao && row) {
+      const { notificarEquipa } = await import("@/lib/ftp-calendario.server");
+      const { data: ent } = await supabaseAdmin.from("entidades").select("name").eq("id", entityId).maybeSingle();
+      await notificarEquipa(
+        "Nova Semana Ubuntu marcada",
+        `${ent?.name ?? "Uma escola"} marcou uma Semana Ubuntu de ${data.start_date.split("-").reverse().join("/")} a ${data.end_date.split("-").reverse().join("/")}. Preparem o material.`,
+        `/admin/acoes/${row.id}`,
+      );
+    }
     return row;
   });
 

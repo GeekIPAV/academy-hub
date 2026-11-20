@@ -4,6 +4,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import {
   avaliarInscricaoFtp,
+  emAvisoFimAcesso,
+  fimAcessoAnoLetivo,
   formatarDataPt,
   ftcEmAtraso,
   ftpAtiva,
@@ -37,9 +39,12 @@ type ProgramaRegras = {
   ftc_atraso_permitido: boolean;
   ftp_dias_decisao: number;
   su_badge_id: string | null;
+  fim_acesso: string;
+  aviso_fim_acesso_dias: number;
 };
 
-const PROGRAMA_COLS = "id, title, ftc_curso_id, ftc_atraso_permitido, ftp_dias_decisao, su_badge_id";
+const PROGRAMA_COLS =
+  "id, title, ftc_curso_id, ftc_atraso_permitido, ftp_dias_decisao, su_badge_id, fim_acesso, aviso_fim_acesso_dias";
 
 // ============== Educador ==============
 
@@ -55,6 +60,9 @@ export interface MinhaFtp {
   inscricao_ftp: string | null;
   apto_semana_ubuntu: boolean;
   resultado: ResultadoInscricaoFtp;
+  /** Fim do ano letivo: último dia de acesso à FTC e à Semana Ubuntu. */
+  acesso_ate: string;
+  aviso_acesso: boolean;
 }
 
 async function carregarMinhasFtp(userId: string): Promise<MinhaFtp[]> {
@@ -111,6 +119,8 @@ async function carregarMinhasFtp(userId: string): Promise<MinhaFtp[]> {
       },
       inscricao_ftp: inscricao?.status ?? null,
       apto_semana_ubuntu: apto,
+      acesso_ate: fimAcessoAnoLetivo(ftp.start_date, prog.fim_acesso),
+      aviso_acesso: emAvisoFimAcesso(fimAcessoAnoLetivo(ftp.start_date, prog.fim_acesso), prog.aviso_fim_acesso_dias, hoje),
       resultado: avaliarInscricaoFtp({
         hoje,
         ftpData: ftp.start_date,
@@ -358,11 +368,19 @@ export const marcarPresencaFtp = createServerFn({ method: "POST" })
     const badgeId = turma.programa.su_badge_id;
     if (data.presenca === "presente") {
       if (badgeId) {
+        // Válido até ao fim do ano letivo da FTP (fecha a Semana Ubuntu em agosto).
+        const ate = turma.ftp.start_date ? fimAcessoAnoLetivo(turma.ftp.start_date, turma.programa.fim_acesso) : null;
         const { error } = await supabaseAdmin
           .from("user_badges")
           .upsert(
-            { user_id: data.userId, badge_id: badgeId, granted_by: context.userId, granted_at: new Date().toISOString() },
-            { onConflict: "user_id,badge_id", ignoreDuplicates: true },
+            {
+              user_id: data.userId,
+              badge_id: badgeId,
+              granted_by: context.userId,
+              granted_at: new Date().toISOString(),
+              expires_at: ate ? `${ate}T23:59:59Z` : null,
+            },
+            { onConflict: "user_id,badge_id" },
           );
         if (error) throw new Error(error.message);
         await notificarUtilizadores(
@@ -417,6 +435,8 @@ export const guardarRegrasPrograma = createServerFn({ method: "POST" })
         ftc_atraso_permitido: z.boolean(),
         ftp_dias_decisao: z.number().int().min(0).max(120),
         su_badge_id: z.string().uuid().nullable(),
+        fim_acesso: z.string().regex(/^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/, "Dia inválido (MM-DD)"),
+        aviso_fim_acesso_dias: z.number().int().min(0).max(120),
       })
       .parse(i),
   )
@@ -428,11 +448,38 @@ export const guardarRegrasPrograma = createServerFn({ method: "POST" })
         ftc_atraso_permitido: data.ftc_atraso_permitido,
         ftp_dias_decisao: data.ftp_dias_decisao,
         su_badge_id: data.su_badge_id,
+        fim_acesso: data.fim_acesso,
+        aviso_fim_acesso_dias: data.aviso_fim_acesso_dias,
       })
       .eq("id", data.programId);
     if (error) throw new Error(error.message);
+    // O badge da Semana Ubuntu acompanha o novo fim do ano letivo.
+    if (data.su_badge_id) await realinharValidadeSemanaUbuntu(data.programId, data.su_badge_id, data.fim_acesso);
     return { ok: true };
   });
+
+async function realinharValidadeSemanaUbuntu(programId: string, badgeId: string, fim: string) {
+  const { data: ftps } = await supabaseAdmin
+    .from("acoes")
+    .select("id, start_date")
+    .eq("program_id", programId)
+    .eq("action_type", "FTP")
+    .not("start_date", "is", null);
+  for (const f of ftps ?? []) {
+    const { data: presentes } = await supabaseAdmin
+      .from("inscritos_acoes")
+      .select("user_id")
+      .eq("action_id", f.id)
+      .eq("status", "presente");
+    const ids = (presentes ?? []).map((p) => p.user_id).filter((id): id is string => !!id);
+    if (!ids.length || !f.start_date) continue;
+    await supabaseAdmin
+      .from("user_badges")
+      .update({ expires_at: `${fimAcessoAnoLetivo(f.start_date, fim)}T23:59:59Z` })
+      .eq("badge_id", badgeId)
+      .in("user_id", ids);
+  }
+}
 
 // ============== Centro de recursos: bloco Semana Ubuntu ==============
 

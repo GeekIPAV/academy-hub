@@ -6,7 +6,7 @@ import { Check, ExternalLink, LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { PageHeader, PageShell, SummaryStrip } from "@/components/shell/PageHeader";
+import { PageHeader, PageShell, Section, SummaryStrip } from "@/components/shell/PageHeader";
 import { StatusChip, acaoStatusTone } from "@/components/shell/StatusChip";
 import { getAcaoResultados, listAcoesFull, type AcaoResultados, type AcaoRow } from "@/lib/admin-acoes-gestao.functions";
 import { listAvaliacoesAcao } from "@/lib/avaliacao-acoes.functions";
@@ -15,6 +15,7 @@ import { INSCRICOES_ABERTAS } from "@/lib/acoes-opcoes";
 import { AcaoDadosForm } from "./AcaoDadosForm";
 import { AcaoAvaliacoesTab } from "./AcaoAvaliacoesTab";
 import { InscritosTab, PaginaTab, ResultadosTab, CopiarLinkAvaliacaoButton } from "./AcaoSeparadores";
+import { AlunosSemanaUbuntu } from "@/components/semana-ubuntu/AlunosSemanaUbuntu";
 
 export type SeparadorAcao = "dados" | "inscritos" | "avaliacoes" | "pagina";
 
@@ -115,6 +116,12 @@ export function AcaoDetalhePage({ actionId }: { actionId: string }) {
           </>
         }
       />
+
+      {acao.action_type === "Semana Ubuntu" && acao.entity_id && (
+        <Section title="Semana Ubuntu da escola" description="Excel dos alunos enviado pela escola e modelos para descarregar.">
+          <AlunosSemanaUbuntu alvo={{ acaoId: acao.id }} compacto />
+        </Section>
+      )}
 
       <SummaryStrip
         items={[

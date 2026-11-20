@@ -29,6 +29,7 @@ import {
   isEquipaOuAdmin,
   notificarContactos,
   notificarEducadoresDaFtp,
+  notificarEquipa,
   sincronizarFtcDaEscola,
   sincronizarFtp,
 } from "@/lib/ftp-calendario.server";
@@ -310,6 +311,17 @@ export const escolherCalendarioEscola = createServerFn({ method: "POST" })
     const { error: uErr } = await supabaseAdmin.from("entidades_programas").update(update).eq("id", cohort.id);
     if (uErr) throw new Error(uErr.message);
     const sincronizacao = update.ftp_acao_id ? await sincronizarFtcDaEscola(cohort.id) : null;
+    if (update.su_acao_id) {
+      const [{ data: su }, { data: ent }] = await Promise.all([
+        supabaseAdmin.from("acoes").select("start_date, localizacao").eq("id", update.su_acao_id).maybeSingle(),
+        supabaseAdmin.from("entidades").select("name").eq("id", cohort.entity_id ?? "").maybeSingle(),
+      ]);
+      await notificarEquipa(
+        "Semana Ubuntu marcada",
+        `${ent?.name ?? "Uma escola"} escolheu a Semana Ubuntu de ${su ? descreverData(su) : "—"}. Preparem o material.`,
+        "/equipa/programas",
+      );
+    }
     return { ok: true, sincronizacao };
   });
 
@@ -380,6 +392,8 @@ export interface CalendarioPrograma {
     ftc_atraso_permitido: boolean;
     ftp_dias_decisao: number;
     su_badge_id: string | null;
+    fim_acesso: string;
+    aviso_fim_acesso_dias: number;
   };
   badges: { id: string; title: string }[];
   cursos: { id: string; title: string; estado: string; do_programa: boolean }[];
@@ -405,7 +419,7 @@ export const getCalendarioPrograma = createServerFn({ method: "POST" })
       await Promise.all([
         supabaseAdmin
           .from("programas")
-          .select("id, title, ftc_curso_id, ftc_atraso_permitido, ftp_dias_decisao, su_badge_id")
+          .select("id, title, ftc_curso_id, ftc_atraso_permitido, ftp_dias_decisao, su_badge_id, fim_acesso, aviso_fim_acesso_dias")
           .eq("id", data.programId)
           .maybeSingle(),
         supabaseAdmin.from("cursos").select("id, title, estado, program_id").neq("estado", "arquivado").order("title"),

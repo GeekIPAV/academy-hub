@@ -110,6 +110,14 @@ function CartaoFtp({ m }: { m: MinhaFtp }) {
         />
       </ol>
 
+      {m.aviso_acesso ? (
+        <p className="rounded-lg bg-[#FFF1CC] px-3 py-2 text-xs text-[#6B4200]">
+          O acesso à FTC e à Semana Ubuntu termina a {formatarDataPt(m.acesso_ate)}. Descarrega o teu caderno e os materiais de que precisas.
+        </p>
+      ) : (
+        <p className="text-xs text-muted-foreground">Acesso à FTC e à Semana Ubuntu até {formatarDataPt(m.acesso_ate)}.</p>
+      )}
+
       <div className="mt-auto flex flex-wrap items-center gap-2">
         {m.resultado.pode ? (
           <Button size="sm" disabled={insc.isPending} onClick={() => insc.mutate()}>

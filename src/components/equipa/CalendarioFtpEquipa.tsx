@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { TurmaFtpDialog } from "@/components/equipa/TurmaFtpDialog";
+import { EnvioAlunosResumo } from "@/components/semana-ubuntu/AlunosSemanaUbuntu";
+import { DocumentosSemanaUbuntuEquipa } from "@/components/semana-ubuntu/DocumentosSemanaUbuntuEquipa";
 import { guardarRegrasPrograma } from "@/lib/ftp-etapas.functions";
 import {
   Dialog,
@@ -37,8 +39,10 @@ import {
   FTC_DIAS_ANTES_FTP,
   FTP_MAX_EDUCADORES,
   FTP_MIN_EDUCADORES,
+  fimAcessoAnoLetivo,
   formatarDataPt,
   ftpAtiva,
+  mmddValido,
 } from "@/lib/ftp-calendario";
 import { FORMATOS_ACAO } from "@/lib/acoes-opcoes";
 
@@ -82,7 +86,7 @@ export function CalendarioFtpEquipa({ programId }: { programId: string }) {
   return (
     <div className="space-y-5">
       <FtcDoPrograma cal={data} />
-      <RegrasDoPrograma key={`${data.programa.id}-${data.programa.su_badge_id}-${data.programa.ftp_dias_decisao}-${data.programa.ftc_atraso_permitido}`} cal={data} />
+      <RegrasDoPrograma key={`${data.programa.id}-${data.programa.su_badge_id}-${data.programa.ftp_dias_decisao}-${data.programa.ftc_atraso_permitido}-${data.programa.fim_acesso}-${data.programa.aviso_fim_acesso_dias}`} cal={data} />
 
       <DatasTabela
         cal={data}
@@ -104,6 +108,8 @@ export function CalendarioFtpEquipa({ programId }: { programId: string }) {
         onEditar={(d) => setEditar({ tipo: "SU", data: d })}
         onCancelar={setCancelar}
       />
+
+      <DocumentosSemanaUbuntuEquipa />
 
       <EscolasSemData cal={data} />
 
@@ -181,11 +187,16 @@ function RegrasDoPrograma({ cal }: { cal: CalendarioPrograma }) {
     atraso: cal.programa.ftc_atraso_permitido,
     dias: String(cal.programa.ftp_dias_decisao),
     badge: cal.programa.su_badge_id ?? NENHUMA,
+    fim: cal.programa.fim_acesso,
+    aviso: String(cal.programa.aviso_fim_acesso_dias),
   });
+  const fimValido = mmddValido(f.fim);
   const alterado =
     f.atraso !== cal.programa.ftc_atraso_permitido ||
     Number(f.dias) !== cal.programa.ftp_dias_decisao ||
-    (f.badge === NENHUMA ? null : f.badge) !== cal.programa.su_badge_id;
+    (f.badge === NENHUMA ? null : f.badge) !== cal.programa.su_badge_id ||
+    f.fim !== cal.programa.fim_acesso ||
+    Number(f.aviso) !== cal.programa.aviso_fim_acesso_dias;
   const m = useMutation({
     mutationFn: () =>
       fn({
@@ -194,6 +205,8 @@ function RegrasDoPrograma({ cal }: { cal: CalendarioPrograma }) {
           ftc_atraso_permitido: f.atraso,
           ftp_dias_decisao: Math.max(0, Math.min(120, Number(f.dias) || 0)),
           su_badge_id: f.badge === NENHUMA ? null : f.badge,
+          fim_acesso: f.fim,
+          aviso_fim_acesso_dias: Math.max(0, Math.min(120, Number(f.aviso) || 0)),
         },
       }),
     onSuccess: () => {
@@ -208,12 +221,30 @@ function RegrasDoPrograma({ cal }: { cal: CalendarioPrograma }) {
       title="Regras das etapas"
       description="Condições entre a FTC, a FTP e a Semana Ubuntu deste programa."
       actions={
-        <Button size="sm" disabled={!alterado || m.isPending} onClick={() => m.mutate()}>
+        <Button size="sm" disabled={!alterado || !fimValido || m.isPending} onClick={() => m.mutate()}>
           {m.isPending ? "A guardar…" : "Guardar regras"}
         </Button>
       }
     >
       <div className="grid gap-5 md:grid-cols-3">
+        <FormField
+          id="regra-fim"
+          label="Fim do acesso (fim do ano letivo)"
+          error={fimValido ? null : "Usa o formato MM-DD, por exemplo 08-31."}
+          hint={`A FTC e a Semana Ubuntu fecham neste dia, para quem fez a FTP nesse ano letivo. Ex.: FTP a 15/02/2027 → acesso até ${formatarDataPt(
+            fimValido ? fimAcessoAnoLetivo("2027-02-15", f.fim) : "2027-08-31",
+          )}.`}
+        >
+          <Input id="regra-fim" value={f.fim} placeholder="08-31" maxLength={5} onChange={(e) => setF({ ...f, fim: e.target.value })} />
+        </FormField>
+        <FormField
+          id="regra-aviso"
+          label="Aviso para descarregar"
+          hint="Dias antes do fecho em que os Educadores recebem o aviso para descarregar o caderno e os materiais."
+        >
+          <Input id="regra-aviso" type="number" min={0} max={120} value={f.aviso} onChange={(e) => setF({ ...f, aviso: e.target.value })} />
+        </FormField>
+        <div className="hidden md:block" />
         <FormField
           id="regra-atraso"
           label="Prazo falhado na FTC"
@@ -484,6 +515,11 @@ function EscolasDaData({ cal, data }: { cal: CalendarioPrograma; data: DataProgr
           <span className="min-w-0 text-sm">
             <span className="font-medium">{e.entity_name}</span>
             {data.tipo === "FTP" && <span className="text-muted-foreground"> · {e.educadores} Educadores</span>}
+            {data.tipo === "SU" && (
+              <span className="ml-2">
+                <EnvioAlunosResumo cohortId={e.cohort_id} />
+              </span>
+            )}
           </span>
           <MoverSelect cal={cal} tipo={data.tipo} cohortId={e.cohort_id} atual={data.id} placeholder="Mudar para…" />
         </li>

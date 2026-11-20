@@ -61,6 +61,20 @@ export const enrollWithToken = createServerFn({ method: "POST" })
     const enrollmentOpen = cohort.programas?.enrollment_open ?? false;
     const status = enrollmentOpen ? "aprovada" : "lista_espera";
 
+    // Plano A, B ou C do projeto da escola: limite de Educadores.
+    if (status === "aprovada" && cohort.entity_id) {
+      const { data: jaInscrito } = await supabaseAdmin
+        .from("inscritos_programa")
+        .select("id")
+        .eq("cohort_id", cohort.id)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!jaInscrito) {
+        const { garantirLimitePlanoEntidade } = await import("./planos.server");
+        await garantirLimitePlanoEntidade(cohort.entity_id, "educadores");
+      }
+    }
+
     const { data: existing } = await supabaseAdmin
       .from("inscritos_programa")
       .select("id, status")

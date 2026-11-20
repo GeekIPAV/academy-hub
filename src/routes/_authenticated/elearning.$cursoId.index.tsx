@@ -12,6 +12,7 @@ import { formatarDuracao, PassoTipoIcon, TIPO_PASSO } from "@/components/elearni
 import { getCurso } from "@/lib/elearning.functions";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { MARCA_ELEARNING, seo, titulo } from "@/lib/seo";
+import { AVISO_FIM_ACESSO_DIAS_PADRAO, acessoTerminado, emAvisoFimAcesso, formatarDataPt } from "@/lib/ftp-calendario";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId/")({
   head: () => ({
@@ -42,6 +43,8 @@ function CursoPage() {
       <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <main className="min-w-0 space-y-6">
           {concluido ? <Celebracao data={data} /> : <ArranqueBloco />}
+
+          {data.acesso_ate && <AvisoAcesso ate={data.acesso_ate} cursoId={curso.id} />}
 
           {!curso.inscricao && curso.modalidade === "turma" && <section className="space-y-3"><div><h2 className={H2}>Escolhe a tua turma</h2><p className="text-sm text-muted-foreground">Seleciona uma turma com inscrições abertas e vagas disponíveis.</p></div>{curso.turmas_abertas.length ? <div className="grid gap-3 sm:grid-cols-2">{curso.turmas_abertas.map((t) => { const restantes = t.vagas == null ? null : Math.max(0, t.vagas - t.inscritos); const selected = turma === t.id; return <button key={t.id} type="button" onClick={() => setTurma(t.id)} className={`rounded-xl border p-4 text-left shadow-sm transition-colors ${selected ? "border-primary bg-primary/5 ring-1 ring-primary" : "bg-card hover:bg-muted/50"}`}><div className="flex items-start justify-between gap-2"><p className="font-semibold">{t.nome}</p>{selected && <CheckCircle2 className="h-5 w-5 text-primary" />}</div><div className="mt-3 space-y-1.5 text-xs text-muted-foreground"><p className="flex gap-2"><CalendarDays className="h-4 w-4" />{fmt(t.data_inicio)} a {fmt(t.data_fim)}</p><p className="flex gap-2"><Users className="h-4 w-4" />{restantes == null ? "Sem limite de vagas" : `${restantes} vaga${restantes === 1 ? "" : "s"} disponível${restantes === 1 ? "" : "is"}`}</p>{t.formador && <p className="flex gap-2"><UserRound className="h-4 w-4" />{t.formador}</p>}</div></button>; })}</div> : <div className={`${CARD} text-sm text-muted-foreground`}>De momento não há turmas com inscrições abertas.</div>}</section>}
 
@@ -111,4 +114,27 @@ const ESTADO_LABEL = { concluido: "Concluído", atual: "Está aqui", seguinte: "
 function PercursoSection({ a }: { a: Apresentacao }) {
   if (!a.percurso.length) return null;
   return <div className="space-y-3"><p className="text-sm font-semibold text-secondary">Esta formação é uma etapa do caminho</p><ol className="grid gap-2 sm:grid-cols-2">{a.percurso.map((e, i) => { const atual = e.estado === "atual"; const feito = e.estado === "concluido"; return <li key={i} className={`rounded-lg border p-3 ${atual ? "border-primary/60 bg-primary/5" : ""}`}><div className="flex items-center gap-2"><span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${feito || atual ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground"}`}>{feito ? <CheckCircle2 className="h-3.5 w-3.5" /> : i + 1}</span><span className="text-xs text-muted-foreground">{ESTADO_LABEL[e.estado]}</span></div><p className="mt-2 text-sm font-semibold">{e.titulo}</p>{e.descricao && <p className="mt-1 text-xs text-muted-foreground">{e.descricao}</p>}</li>; })}</ol></div>;
+}
+
+/** Fim do ano letivo: data do fecho e aviso para descarregar o caderno. */
+function AvisoAcesso({ ate, cursoId }: { ate: string; cursoId: string }) {
+  const fechou = acessoTerminado(ate);
+  const aviso = emAvisoFimAcesso(ate, AVISO_FIM_ACESSO_DIAS_PADRAO);
+  if (!fechou && !aviso) {
+    return <p className="text-xs text-muted-foreground">Tens acesso a esta formação até {formatarDataPt(ate)}.</p>;
+  }
+  return (
+    <div className={`flex flex-wrap items-center justify-between gap-3 rounded-xl p-4 text-sm ${fechou ? "bg-[#EFEFF1] text-[#544E4F]" : "bg-[#FFF1CC] text-[#6B4200]"}`}>
+      <p className="min-w-0">
+        {fechou
+          ? `O acesso a esta formação terminou a ${formatarDataPt(ate)}. O teu caderno de percurso continua disponível.`
+          : `O acesso a esta formação termina a ${formatarDataPt(ate)}. Descarrega o teu caderno de percurso e os materiais de que precisas.`}
+      </p>
+      <Button asChild size="sm" variant="outline">
+        <Link to="/elearning/$cursoId/caderno" params={{ cursoId }}>
+          Abrir o caderno
+        </Link>
+      </Button>
+    </div>
+  );
 }

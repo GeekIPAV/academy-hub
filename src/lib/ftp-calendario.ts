@@ -221,3 +221,38 @@ export function eBlocoSemanaUbuntu(bloco: string | null | undefined): boolean {
   const b = bloco.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
   return b === "su" || b.includes("semana ubuntu");
 }
+
+// ---------------------------------------------------------------------------
+// Fase 3 — fim do ano letivo
+// ---------------------------------------------------------------------------
+
+export const FIM_ACESSO_PADRAO = "08-31";
+export const AVISO_FIM_ACESSO_DIAS_PADRAO = 30;
+
+/**
+ * Último dia de acesso à FTC e à Semana Ubuntu: o primeiro dia MM-DD
+ * (fim do ano letivo) a partir da data da FTP. Espelho de
+ * public.fim_acesso_ftp (migração 0012).
+ */
+export function fimAcessoAnoLetivo(ftpData: string, mmdd: string = FIM_ACESSO_PADRAO): string {
+  const ftp = ftpData.slice(0, 10);
+  const [m, d] = mmdd.split("-").map(Number);
+  const candidato = (ano: number) => somarDias(`${ano}-${String(m).padStart(2, "0")}-01`, d - 1);
+  const ano = Number(ftp.slice(0, 4));
+  const este = candidato(ano);
+  return este >= ftp ? este : candidato(ano + 1);
+}
+
+export function acessoTerminado(fimAcesso: string | null, hoje: string = hojeISO()): boolean {
+  return !!fimAcesso && hoje > fimAcesso;
+}
+
+/** Dentro da janela de aviso para descarregar os materiais. */
+export function emAvisoFimAcesso(fimAcesso: string | null, diasAviso: number, hoje: string = hojeISO()): boolean {
+  return !!fimAcesso && hoje <= fimAcesso && hoje >= somarDias(fimAcesso, -diasAviso);
+}
+
+/** Valida 'MM-DD'. */
+export function mmddValido(v: string): boolean {
+  return /^(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/.test(v);
+}

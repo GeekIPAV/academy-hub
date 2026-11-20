@@ -70,6 +70,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { AlunosSemanaUbuntu } from "@/components/semana-ubuntu/AlunosSemanaUbuntu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -249,6 +250,11 @@ function EntidadeAcaoDetailPage() {
           <ParticipantesSection actionId={id} rows={data.participantes} onChanged={invalidate} />
         </div>
         <aside className="min-w-0 flex-[1_1_300px] space-y-5">
+          {a.action_type === "Semana Ubuntu" && (
+            <Section title="Semana Ubuntu" description="A equipa IPAV é avisada para preparar o material.">
+              <AlunosSemanaUbuntu alvo={{ acaoId: id }} compacto />
+            </Section>
+          )}
           <TrainersSection actionId={id} trainers={data.trainers} />
           <Section title="Materiais" description="Os links são adicionados pela equipa central.">
             {a.fotos_link ? (
