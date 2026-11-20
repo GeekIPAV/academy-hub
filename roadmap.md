@@ -113,3 +113,9 @@
 - [x] A FTC abre sozinha 14 dias antes da FTP (turma por FTP), com aviso ao Educador
 - [x] Equipa IPAV vê as FTP abaixo do mínimo e pode juntar, cancelar ou mudar escolas de FTP
 - [ ] Aplicar a migração 0010 e validar no preview com uma sessão autenticada
+
+## Partilha social e jornada do utilizador (nov 2026)
+- [x] Títulos e descrições de partilha revistos em todas as páginas (helper `seo()`)
+- [x] Links de evento, inscrição e certificado mostram o nome real na pré-visualização
+- [x] Página de gestão "Jornada do utilizador": ciclo, datas a partir da FTP, jornada por tipo e fluxo detalhado
+- [ ] Dar acesso à Equipa IPAV a /admin/jornada na Central de Comando, se for preciso

@@ -18,6 +18,7 @@ import {
   Megaphone,
   Shield,
   Users,
+  Workflow,
   type LucideIcon,
 } from "lucide-react";
 
@@ -56,6 +57,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { path: "/admin/acoes", label: "Ações", icon: CalendarCog },
     { path: "/admin/avaliacoes", label: "Modelos de avaliação", icon: ClipboardCheck },
     { path: "/admin/projetos", label: "Projetos", icon: FolderKanban },
+    { path: "/admin/jornada", label: "Jornada do utilizador", icon: Workflow },
   ] },
   { label: "Pessoas e organizações", adminOnly: true, mode: "gestao", items: [
     { path: "/admin/manager", label: "Utilizadores e acessos", icon: Users },

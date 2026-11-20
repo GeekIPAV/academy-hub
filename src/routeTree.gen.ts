@@ -28,6 +28,7 @@ import { Route as AdminBibliotecaRouteImport } from './routes/admin.biblioteca'
 import { Route as AdminEmailsRouteImport } from './routes/admin.emails'
 import { Route as AdminEntidadesRouteImport } from './routes/admin.entidades'
 import { Route as AdminGovernacaoRouteImport } from './routes/admin.governacao'
+import { Route as AdminJornadaRouteImport } from './routes/admin.jornada'
 import { Route as AdminManagerRouteImport } from './routes/admin.manager'
 import { Route as AdminProjetosRouteImport } from './routes/admin.projetos'
 import { Route as AvaliarTokenRouteImport } from './routes/avaliar.$token'
@@ -170,6 +171,11 @@ const AdminEntidadesRoute = AdminEntidadesRouteImport.update({
 const AdminGovernacaoRoute = AdminGovernacaoRouteImport.update({
   id: '/admin/governacao',
   path: '/admin/governacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminJornadaRoute = AdminJornadaRouteImport.update({
+  id: '/admin/jornada',
+  path: '/admin/jornada',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminManagerRoute = AdminManagerRouteImport.update({
@@ -450,6 +456,7 @@ export interface FileRoutesByFullPath {
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
+  '/admin/jornada': typeof AdminJornadaRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
@@ -516,6 +523,7 @@ export interface FileRoutesByTo {
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
+  '/admin/jornada': typeof AdminJornadaRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
@@ -581,6 +589,7 @@ export interface FileRoutesById {
   '/admin/emails': typeof AdminEmailsRoute
   '/admin/entidades': typeof AdminEntidadesRoute
   '/admin/governacao': typeof AdminGovernacaoRoute
+  '/admin/jornada': typeof AdminJornadaRoute
   '/admin/manager': typeof AdminManagerRoute
   '/admin/projetos': typeof AdminProjetosRoute
   '/avaliar/$token': typeof AvaliarTokenRoute
@@ -650,6 +659,7 @@ export interface FileRouteTypes {
     | '/admin/emails'
     | '/admin/entidades'
     | '/admin/governacao'
+    | '/admin/jornada'
     | '/admin/manager'
     | '/admin/projetos'
     | '/avaliar/$token'
@@ -716,6 +726,7 @@ export interface FileRouteTypes {
     | '/admin/emails'
     | '/admin/entidades'
     | '/admin/governacao'
+    | '/admin/jornada'
     | '/admin/manager'
     | '/admin/projetos'
     | '/avaliar/$token'
@@ -780,6 +791,7 @@ export interface FileRouteTypes {
     | '/admin/emails'
     | '/admin/entidades'
     | '/admin/governacao'
+    | '/admin/jornada'
     | '/admin/manager'
     | '/admin/projetos'
     | '/avaliar/$token'
@@ -845,6 +857,7 @@ export interface RootRouteChildren {
   AdminEmailsRoute: typeof AdminEmailsRoute
   AdminEntidadesRoute: typeof AdminEntidadesRoute
   AdminGovernacaoRoute: typeof AdminGovernacaoRoute
+  AdminJornadaRoute: typeof AdminJornadaRoute
   AdminManagerRoute: typeof AdminManagerRoute
   AdminProjetosRoute: typeof AdminProjetosRoute
   AvaliarTokenRoute: typeof AvaliarTokenRoute
@@ -1009,6 +1022,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/governacao'
       fullPath: '/admin/governacao'
       preLoaderRoute: typeof AdminGovernacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/jornada': {
+      id: '/admin/jornada'
+      path: '/admin/jornada'
+      fullPath: '/admin/jornada'
+      preLoaderRoute: typeof AdminJornadaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/manager': {
@@ -1506,6 +1526,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminEmailsRoute: AdminEmailsRoute,
   AdminEntidadesRoute: AdminEntidadesRoute,
   AdminGovernacaoRoute: AdminGovernacaoRoute,
+  AdminJornadaRoute: AdminJornadaRoute,
   AdminManagerRoute: AdminManagerRoute,
   AdminProjetosRoute: AdminProjetosRoute,
   AvaliarTokenRoute: AvaliarTokenRoute,
