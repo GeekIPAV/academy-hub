@@ -18,24 +18,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/acoes")({
   head: () => ({
-    meta: [
-      { title: "Ações | Academia de Líderes Ubuntu" },
-      {
-        name: "description",
-        content:
-          "Galeria de ações e eventos da Academia de Líderes Ubuntu com inscrições abertas, em vista de cartões ou calendário.",
-      },
-      { property: "og:title", content: "Ações | Academia de Líderes Ubuntu" },
-      {
-        property: "og:description",
-        content: "Consulta e inscreve-te nas ações com inscrições abertas.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
+    meta: seo({
+      title: titulo("Ações"),
+      description: "As ações em que participas e as que estão abertas a inscrição.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/acoes">

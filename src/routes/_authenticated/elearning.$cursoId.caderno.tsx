@@ -8,16 +8,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCourseLayout } from "@/components/elearning/CourseLayoutContext";
 import { getCaderno } from "@/lib/elearning-caderno.functions";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
+import { MARCA_ELEARNING, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId/caderno")({
-  head: () => ({ meta: [
-    { title: "O meu caderno de percurso | Escola Ubuntu Online" },
-    { name: "description", content: "Reflexões pessoais e privadas ao longo da formação Ubuntu." },
-    { property: "og:title", content: "Caderno de percurso | Escola Ubuntu Online" },
-    { property: "og:description", content: "Reflexões pessoais ao longo da formação Ubuntu." },
-    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
-    { name: "robots", content: "noindex" },
-  ] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("O meu caderno de percurso", MARCA_ELEARNING),
+      description: "As tuas reflexões pessoais e privadas ao longo da formação Ubuntu.",
+      privada: true,
+    }),
+  }),
   component: CadernoPage,
 });
 

@@ -11,13 +11,15 @@ import { tx } from "@/lib/articles-i18n";
 import { usePublicationsI18n } from "@/hooks/use-publications-i18n";
 import { RouteGate } from "@/components/RouteGate";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/publicacoes/revistas")({
   head: () => ({
-    meta: [
-      { title: "Revista científica | Academia de Líderes Ubuntu" },
-      { name: "description", content: "Revista Ubuntu: artigos de ciências sociais e humanas." },
-    ],
+    meta: seo({
+      title: titulo("Revista científica"),
+      description: "Revista Ubuntu: artigos de ciências sociais e humanas.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/publicacoes/revistas">

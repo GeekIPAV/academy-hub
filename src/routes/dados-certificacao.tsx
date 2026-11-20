@@ -5,9 +5,16 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
 import { CertificacaoForm } from "@/components/CertificacaoForm";
 import { PageHeader, PageShell } from "@/components/shell/PageHeader";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/dados-certificacao")({
-  head: () => ({ meta: [{ title: "Dados de certificação | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Dados de certificação"),
+      description: "Os dados pessoais necessários para emitir os teus certificados e a acreditação da formação.",
+      privada: true,
+    }),
+  }),
   component: CertificationPage,
 });
 

@@ -79,9 +79,16 @@ import {
   temaFormato,
   type TemaFormato,
 } from "@/lib/tema-formatos";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/$temaId")({
-  head: () => ({ meta: [{ title: "Tema | Centro de recursos" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Tema", "Centro de recursos"),
+      description: "Plano de sessão, momentos e materiais de um tema do Centro de recursos.",
+      privada: true,
+    }),
+  }),
   component: TemaDetail,
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl py-16 text-center text-destructive">

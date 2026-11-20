@@ -62,9 +62,16 @@ import { RouteGate } from "@/components/RouteGate";
 import { PageHeader, PageShell } from "@/components/shell/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/manager")({
-  head: () => ({ meta: [{ title: "Utilizadores e acessos | Gestão" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Utilizadores e acessos", MARCA_GESTAO),
+      description: "Utilizadores, tipos, convites e matriz de permissões.",
+      privada: true,
+    }),
+  }),
   component: () => (
     <RouteGate path="/admin/manager">
       <AdminManagerPage />

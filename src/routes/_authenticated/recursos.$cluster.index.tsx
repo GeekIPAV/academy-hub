@@ -13,10 +13,15 @@ import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
 import { CoverImage } from "@/components/CoverImage";
 import { useHasBadgeForCluster } from "@/hooks/use-badge-access";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
-  head: ({ params }) => ({
-    meta: [{ title: `${params.cluster} | Centro de recursos` }],
+  head: () => ({
+    meta: seo({
+      title: titulo("Temas", "Centro de recursos"),
+      description: "Temas, planos de sessão e materiais deste cluster do Centro de recursos.",
+      privada: true,
+    }),
   }),
   component: ClusterTemas,
   notFoundComponent: () => (

@@ -33,17 +33,15 @@ import {
   upsertCurso, setEstadoCurso,
   type CursoInput,
 } from "@/lib/admin-elearning.functions";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/elearning/$cursoId")({
   head: () => ({
-    meta: [
-      { title: "Curso | Gestão" },
-      { name: "description", content: "Dados, conteúdos, turmas e inscritos de um curso da Escola Ubuntu Online." },
-      { property: "og:title", content: "Curso | Gestão" },
-      { property: "og:description", content: "Dados, conteúdos, turmas e inscritos do curso." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: seo({
+      title: titulo("Curso", MARCA_GESTAO),
+      description: "Dados, conteúdos, turmas e inscritos de um curso da Escola Ubuntu Online.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/admin/elearning">

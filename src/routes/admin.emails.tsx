@@ -29,9 +29,16 @@ import {
 } from "@/components/ui/command";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { cn } from "@/lib/utils";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/emails")({
-  head: () => ({ meta: [{ title: "Emails | Gestão" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Emails", MARCA_GESTAO),
+      description: "Modelos e registo dos emails enviados pela plataforma.",
+      privada: true,
+    }),
+  }),
   component: AdminEmailsPage,
 });
 

@@ -78,9 +78,16 @@ import { useRoles } from "@/hooks/use-roles";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 import { RouteGate } from "@/components/RouteGate";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/badges")({
-  head: () => ({ meta: [{ title: "Badges | Gestão" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Badges", MARCA_GESTAO),
+      description: "Badges atribuídos na plataforma e regras de atribuição automática.",
+      privada: true,
+    }),
+  }),
   component: () => (
     <RouteGate path="/admin/badges">
       <AdminBadgesPage />

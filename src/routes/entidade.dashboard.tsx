@@ -75,10 +75,17 @@ import {
 } from "@/components/ui/tooltip";
 import { useApp } from "@/lib/app-context";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+import { seo, titulo } from "@/lib/seo";
 
 
 export const Route = createFileRoute("/entidade/dashboard")({
-  head: () => ({ meta: [{ title: "A minha organização | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("A minha organização"),
+      description: "Os programas em que a organização participa, o calendário da formação, os Educadores inscritos e as ações marcadas.",
+      privada: true,
+    }),
+  }),
   component: EntidadeDashboardPage,
 });
 

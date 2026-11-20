@@ -13,12 +13,18 @@ import { toast } from "sonner";
 import aluLogo from "@/assets/alu-logo.svg";
 import authBackground from "@/assets/auth-background.png";
 import { LoadingU } from "@/components/LoadingU";
+import { seo, titulo } from "@/lib/seo";
 
 const searchSchema = z.object({ redirect: z.string().optional() });
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s) => searchSchema.parse(s),
-  head: () => ({ meta: [{ title: "Entrar | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Entrar"),
+      description: "Entra na plataforma da Academia de Líderes Ubuntu para acompanhar a tua formação, as ações em que participas e os recursos Ubuntu.",
+    }),
+  }),
   component: AuthPage,
 });
 

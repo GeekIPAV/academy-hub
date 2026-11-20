@@ -9,17 +9,16 @@ import { parseAvaliacao } from "@/lib/avaliacao-sections";
 import { AvaliacaoBlocks } from "@/components/avaliacao/AvaliacaoBlocks";
 import { CoverImage } from "@/components/CoverImage";
 import { Button } from "@/components/ui/button";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/cultura-ubuntu/avaliacao/$slug/")({
   head: () => ({
-    meta: [
-      { title: "Avaliação de impacto | Academia de Líderes Ubuntu" },
-      { name: "description", content: "Metodologias, referenciais e indicadores de um recurso de avaliação de impacto da Cultura Ubuntu." },
-      { property: "og:title", content: "Avaliação de impacto | Academia de Líderes Ubuntu" },
-      { property: "og:description", content: "Consulta metodologias, referenciais e indicadores deste recurso de avaliação." },
-      { property: "og:type", content: "article" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: seo({
+      title: titulo("Recurso de avaliação de impacto"),
+      description: "Metodologias, referenciais e indicadores de um recurso de avaliação de impacto da Cultura Ubuntu.",
+      type: "article",
+      privada: true,
+    }),
   }),
   component: AvaliacaoDocument,
 });

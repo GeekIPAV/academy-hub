@@ -10,17 +10,15 @@ import { parseAvaliacao } from "@/lib/avaliacao-sections";
 import { loadAvaliacaoDoc } from "@/lib/avaliacao-types";
 import { CoverImage } from "@/components/CoverImage";
 import { Button } from "@/components/ui/button";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/cultura-ubuntu/avaliacao/")({
   head: () => ({
-    meta: [
-      { title: "Avaliação de impacto | Academia de Líderes Ubuntu" },
-      { name: "description", content: "Cinco avaliações de impacto da Cultura Ubuntu: metodologias, referenciais, indicadores e perguntas." },
-      { property: "og:title", content: "Avaliação de impacto | Academia de Líderes Ubuntu" },
-      { property: "og:description", content: "Explora as cinco avaliações de impacto da Cultura Ubuntu." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: seo({
+      title: titulo("Avaliação de impacto"),
+      description: "Cinco avaliações de impacto da Cultura Ubuntu: metodologias, referenciais, indicadores e perguntas.",
+      privada: true,
+    }),
   }),
   component: AvaliacaoGallery,
 });

@@ -37,24 +37,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/equipa/programas")({
   head: () => ({
-    meta: [
-      { title: "Programas da equipa | Academia de Líderes Ubuntu" },
-      {
-        name: "description",
-        content:
-          "Gestão de inscrições de organizações e participantes nos programas da Academia de Líderes Ubuntu.",
-      },
-      { property: "og:title", content: "Programas da equipa | Academia de Líderes Ubuntu" },
-      {
-        property: "og:description",
-        content: "Gestão de inscrições de organizações e participantes.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: seo({
+      title: titulo("Programas da equipa"),
+      description: "Inscrições de organizações e participantes e calendário das FTP de cada programa.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/equipa/programas">

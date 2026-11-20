@@ -16,17 +16,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { deleteCurso, listCursosAdmin, listOpcoesElearning, upsertCurso } from "@/lib/admin-elearning.functions";
 import { MODALIDADE_LABEL } from "@/components/elearning/shared";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/elearning/")({
   head: () => ({
-    meta: [
-      { title: "E-learning | Gestão" },
-      { name: "description", content: "Criar e gerir cursos, módulos, turmas e inscritos da Escola Ubuntu Online." },
-      { property: "og:title", content: "E-learning | Gestão" },
-      { property: "og:description", content: "Criar e gerir cursos da Escola Ubuntu Online." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: seo({
+      title: titulo("E-learning", MARCA_GESTAO),
+      description: "Criar e gerir cursos, módulos, turmas e inscritos da Escola Ubuntu Online.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/admin/elearning">

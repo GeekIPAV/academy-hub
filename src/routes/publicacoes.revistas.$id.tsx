@@ -4,9 +4,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ArticleDetail } from "@/components/publications/ArticleDetail";
 import { useArticle } from "@/hooks/use-articles";
 import { usePublicationsI18n } from "@/hooks/use-publications-i18n";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/publicacoes/revistas/$id")({
-  head: () => ({ meta: [{ title: "Artigo | Revista Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Artigo da Revista Ubuntu"),
+      description: "Artigo da Revista Ubuntu, a revista científica de ciências sociais e humanas do IPAV.",
+      type: "article",
+      privada: true,
+    }),
+  }),
   component: ArticlePage,
 });
 

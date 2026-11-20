@@ -99,12 +99,19 @@ import {
   generateAllCertificates,
   type UpdateParticipanteInput,
 } from "@/lib/entidade.functions";
+import { seo, titulo } from "@/lib/seo";
 
 const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 type TShirtSize = (typeof TSHIRT_SIZES)[number];
 
 export const Route = createFileRoute("/entidade/acoes/$id")({
-  head: () => ({ meta: [{ title: "Ação | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Ação da organização"),
+      description: "Participantes, presenças e certificados de uma ação da organização.",
+      privada: true,
+    }),
+  }),
   component: EntidadeAcaoDetailPage,
 });
 

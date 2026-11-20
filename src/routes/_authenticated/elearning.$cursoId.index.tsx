@@ -11,16 +11,16 @@ import { Progress } from "@/components/ui/progress";
 import { formatarDuracao, PassoTipoIcon, TIPO_PASSO } from "@/components/elearning/shared";
 import { getCurso } from "@/lib/elearning.functions";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
+import { MARCA_ELEARNING, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId/")({
-  head: () => ({ meta: [
-    { title: "Curso | Escola Ubuntu Online" },
-    { name: "description", content: "Percurso, módulos e inscrição no curso da Escola Ubuntu Online." },
-    { property: "og:title", content: "Curso | Escola Ubuntu Online" },
-    { property: "og:description", content: "Percurso, módulos e inscrição no curso." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary" },
-  ] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Curso", MARCA_ELEARNING),
+      description: "Percurso, módulos e inscrição no curso da Escola Ubuntu Online.",
+      privada: true,
+    }),
+  }),
   component: () => <RouteGate path="/elearning"><CursoPage /></RouteGate>,
 });
 

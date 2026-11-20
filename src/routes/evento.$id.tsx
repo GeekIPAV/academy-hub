@@ -76,6 +76,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import aluLogo from "@/assets/alu-logo.svg";
+import { resumo, seo, titulo } from "@/lib/seo";
+import { formatarDataPt } from "@/lib/ftp-calendario";
 import {
   getPublicEventDetails,
   verifyPublicUserIdentity,
@@ -85,7 +87,27 @@ import {
 } from "@/lib/public-event.functions";
 
 export const Route = createFileRoute("/evento/$id")({
-  head: () => ({ meta: [{ title: "Inscrição | Academia de Líderes Ubuntu" }] }),
+  loader: async ({ params }) => {
+    // Só para a pré-visualização de partilha; a página volta a ler o evento.
+    try {
+      const e = await getPublicEventDetails({ data: { identifier: params.id } });
+      return { partilha: { title: e.title, description: e.description, start_date: e.start_date } };
+    } catch {
+      return { partilha: null };
+    }
+  },
+  head: ({ loaderData }) => {
+    const e = loaderData?.partilha;
+    const quando = e?.start_date ? formatarDataPt(e.start_date, { day: "numeric", month: "long", year: "numeric" }) : null;
+    return {
+      meta: seo({
+        title: titulo(e?.title ? e.title : "Inscrição em evento"),
+        description: e
+          ? [quando, resumo(e.description, 130) || "Inscreve-te neste evento da Academia de Líderes Ubuntu."].filter(Boolean).join(" · ")
+          : "Inscreve-te neste evento da Academia de Líderes Ubuntu.",
+      }),
+    };
+  },
   component: PublicEventPage,
 });
 

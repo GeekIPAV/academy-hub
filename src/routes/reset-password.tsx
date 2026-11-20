@@ -8,12 +8,19 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import aluLogo from "@/assets/alu-logo.svg";
 import authBackground from "@/assets/auth-background.png";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/reset-password")({
   validateSearch: (s: Record<string, unknown>) => ({
     redirect: typeof s.redirect === "string" ? s.redirect : undefined,
   }),
-  head: () => ({ meta: [{ title: "Nova palavra-passe | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Nova palavra-passe"),
+      description: "Define uma nova palavra-passe para entrares na plataforma da Academia de Líderes Ubuntu.",
+      privada: true,
+    }),
+  }),
   component: ResetPasswordPage,
 });
 

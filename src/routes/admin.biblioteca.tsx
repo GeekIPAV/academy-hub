@@ -57,9 +57,16 @@ import {
   type Publicacao,
 } from "@/lib/biblioteca.functions";
 import { Checkbox } from "@/components/ui/checkbox";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/biblioteca")({
-  head: () => ({ meta: [{ title: "Biblioteca de publicações | Gestão" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Biblioteca de publicações", MARCA_GESTAO),
+      description: "Publicações e categorias da biblioteca.",
+      privada: true,
+    }),
+  }),
   component: () => (
     <RouteGate path="/admin/biblioteca">
       <AdminBibliotecaPage />

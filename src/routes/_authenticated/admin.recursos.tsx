@@ -69,6 +69,7 @@ import { ResourceTypesManager } from "@/components/admin/ResourceTypesManager";
 import { ResourceCategoriesManager } from "@/components/admin/ResourceCategoriesManager";
 import { CoverUploader } from "@/components/CoverUploader";
 import { CoverImage } from "@/components/CoverImage";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 type ResourceType = string;
 
@@ -150,7 +151,13 @@ export const Route = createFileRoute("/_authenticated/admin/recursos")({
     if (!perms || perms.length === 0) throw redirect({ to: "/dashboard" });
   },
 
-  head: () => ({ meta: [{ title: "Centro de recursos | Gestão" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Centro de recursos", MARCA_GESTAO),
+      description: "Clusters, temas, planos de sessão e recursos do Centro de recursos.",
+      privada: true,
+    }),
+  }),
   component: AdminResourcesPage,
 });
 

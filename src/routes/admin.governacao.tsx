@@ -38,9 +38,16 @@ import {
   syncGovernanceSchema,
   type GovernanceField,
 } from "@/lib/governance.functions";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/governacao")({
-  head: () => ({ meta: [{ title: "Governação de dados | Gestão" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Governação de dados", MARCA_GESTAO),
+      description: "Privacidade, campos sensíveis e registos de sincronização.",
+      privada: true,
+    }),
+  }),
   component: () => (
     <RouteGate path="/admin/governacao">
       <GovernancaPage />

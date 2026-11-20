@@ -37,17 +37,15 @@ import {
   saveProjeto,
   setUtilizadorProjeto,
 } from "@/lib/projetos.functions";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/projetos")({
   head: () => ({
-    meta: [
-      { title: "Projetos | Gestão" },
-      { name: "description", content: "Projetos, entidades e participantes com acesso a ações reservadas." },
-      { property: "og:title", content: "Projetos | Gestão" },
-      { property: "og:description", content: "Projetos, entidades e participantes com acesso a ações reservadas." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: seo({
+      title: titulo("Projetos", MARCA_GESTAO),
+      description: "Projetos, entidades e participantes com acesso a ações reservadas.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/admin/projetos">

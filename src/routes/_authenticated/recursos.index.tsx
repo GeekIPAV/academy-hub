@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { seo, titulo } from "@/lib/seo";
 
 interface ClusterCoverRow {
   cluster_name: string;
@@ -37,7 +38,13 @@ interface ClusterCoverRow {
 type CoverPatch = { cover_url?: string | null; cover_position?: string; cover_scale?: number };
 
 export const Route = createFileRoute("/_authenticated/recursos/")({
-  head: () => ({ meta: [{ title: "Centro de recursos | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Centro de recursos"),
+      description: "Planos de sessão, materiais e recursos pedagógicos Ubuntu organizados por cluster e tema.",
+      privada: true,
+    }),
+  }),
   component: ResourcesIndex,
 });
 

@@ -18,16 +18,16 @@ import { CatalogModuleList } from "@/components/elearning/CatalogModuleList";
 import { Input } from "@/components/ui/input";
 import courseImage from "@/assets/elearning-course.jpg";
 import { listCatalogo, type CursoCardDTO } from "@/lib/elearning.functions";
+import { MARCA_ELEARNING, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/elearning/")({
-  head: () => ({ meta: [
-    { title: "E-learning | Escola Ubuntu Online" },
-    { name: "description", content: "Cursos online e em turma para professores e educadores da Academia de Líderes Ubuntu." },
-    { property: "og:title", content: "E-learning | Escola Ubuntu Online" },
-    { property: "og:description", content: "Cursos online e em turma para professores e educadores." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary" },
-  ] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Cursos", MARCA_ELEARNING),
+      description: "Cursos online e em turma para professores e educadores da Academia de Líderes Ubuntu.",
+      privada: true,
+    }),
+  }),
   component: () => <RouteGate path="/elearning"><CatalogoPage /></RouteGate>,
 });
 

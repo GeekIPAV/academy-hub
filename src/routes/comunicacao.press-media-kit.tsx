@@ -14,18 +14,16 @@ import { RichTextEditor } from "@/components/rich-text-editor";
 import { sanitizeRichHtml } from "@/lib/sanitize-html";
 import { RouteGate } from "@/components/RouteGate";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+import { seo, titulo } from "@/lib/seo";
 
 
 export const Route = createFileRoute("/comunicacao/press-media-kit")({
   head: () => ({
-    meta: [
-      { title: "Press media kit | Academia de Líderes Ubuntu" },
-      {
-        name: "description",
-        content:
-          "Press Kit da Academia de Líderes Ubuntu: apresentação do projeto, identidade visual, logos e fotografias.",
-      },
-    ],
+    meta: seo({
+      title: titulo("Press media kit"),
+      description: "Logótipos, fotografias e textos de apresentação da Academia de Líderes Ubuntu para comunicação e imprensa.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/comunicacao/press-media-kit">
