@@ -36,6 +36,7 @@ export type Database = {
           id: string
           localizacao: string | null
           max_capacity: number | null
+          min_capacity: number | null
           notion_id: string | null
           pais: string | null
           produto: string | null
@@ -70,6 +71,7 @@ export type Database = {
           id?: string
           localizacao?: string | null
           max_capacity?: number | null
+          min_capacity?: number | null
           notion_id?: string | null
           pais?: string | null
           produto?: string | null
@@ -104,6 +106,7 @@ export type Database = {
           id?: string
           localizacao?: string | null
           max_capacity?: number | null
+          min_capacity?: number | null
           notion_id?: string | null
           pais?: string | null
           produto?: string | null
@@ -1326,6 +1329,7 @@ export type Database = {
           data_fim: string | null
           data_inicio: string | null
           formador_id: string | null
+          ftp_acao_id: string | null
           id: string
           inscricoes_abertas: boolean
           nome: string
@@ -1338,6 +1342,7 @@ export type Database = {
           data_fim?: string | null
           data_inicio?: string | null
           formador_id?: string | null
+          ftp_acao_id?: string | null
           id?: string
           inscricoes_abertas?: boolean
           nome: string
@@ -1350,6 +1355,7 @@ export type Database = {
           data_fim?: string | null
           data_inicio?: string | null
           formador_id?: string | null
+          ftp_acao_id?: string | null
           id?: string
           inscricoes_abertas?: boolean
           nome?: string
@@ -1357,6 +1363,13 @@ export type Database = {
           vagas?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cursos_turmas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cursos_turmas_curso_id_fkey"
             columns: ["curso_id"]
@@ -1531,39 +1544,65 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           entity_id: string | null
+          ftp_acao_id: string | null
+          ftp_escolhida_em: string | null
+          ftp_escolhida_por: string | null
           id: string
           invite_token: string | null
           is_active: boolean | null
           program_id: string | null
           project_notion_id: string | null
           status: string
+          su_acao_id: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
           entity_id?: string | null
+          ftp_acao_id?: string | null
+          ftp_escolhida_em?: string | null
+          ftp_escolhida_por?: string | null
           id?: string
           invite_token?: string | null
           is_active?: boolean | null
           program_id?: string | null
           project_notion_id?: string | null
           status?: string
+          su_acao_id?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
           entity_id?: string | null
+          ftp_acao_id?: string | null
+          ftp_escolhida_em?: string | null
+          ftp_escolhida_por?: string | null
           id?: string
           invite_token?: string | null
           is_active?: boolean | null
           program_id?: string | null
           project_notion_id?: string | null
           status?: string
+          su_acao_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "entidades_programas_su_acao_id_fkey"
+            columns: ["su_acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entidades_programas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "program_cohorts_entity_id_fkey"
             columns: ["entity_id"]
@@ -2160,6 +2199,7 @@ export type Database = {
           description: string | null
           email_contacto_ipav: string | null
           enrollment_open: boolean
+          ftc_curso_id: string | null
           id: string
           is_active: boolean | null
           last_synced_at: string | null
@@ -2182,6 +2222,7 @@ export type Database = {
           description?: string | null
           email_contacto_ipav?: string | null
           enrollment_open?: boolean
+          ftc_curso_id?: string | null
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
@@ -2204,6 +2245,7 @@ export type Database = {
           description?: string | null
           email_contacto_ipav?: string | null
           enrollment_open?: boolean
+          ftc_curso_id?: string | null
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
@@ -2217,6 +2259,13 @@ export type Database = {
           title?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "programas_ftc_curso_id_fkey"
+            columns: ["ftc_curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "programas_cluster_id_fkey"
             columns: ["cluster_id"]

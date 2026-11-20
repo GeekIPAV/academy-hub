@@ -106,3 +106,10 @@
 - [x] Ligações sem relação com vídeo passam a botões destacados: chip azul-escuro com ícone do mundo, etiqueta a azul, seta laranja e elevação ao passar o rato
 - [x] Documentos sugeridos com o mesmo formato mas chip laranja e ícone de documento; os vídeos mantêm o link discreto por baixo do player
 - [x] Validado a 375px e 1280px: sem sublinhado, sem corte de texto e sem scroll horizontal
+
+## Calendário ancorado na FTP (Fase 1, nov 2026)
+- [x] Datas de FTP por programa e projeto, com vagas mínimas e máximas (5 a 20), e slots da Semana Ubuntu
+- [x] A pessoa de contacto escolhe a FTP e o slot da Semana Ubuntu; vale para todos os Educadores da escola
+- [x] A FTC abre sozinha 14 dias antes da FTP (turma por FTP), com aviso ao Educador
+- [x] Equipa IPAV vê as FTP abaixo do mínimo e pode juntar, cancelar ou mudar escolas de FTP
+- [ ] Aplicar a migração 0010 e validar no preview com uma sessão autenticada

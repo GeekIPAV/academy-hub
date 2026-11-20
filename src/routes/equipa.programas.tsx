@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/shell/PageHeader";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Building2, Check, Copy, Users, X } from "lucide-react";
+import { ArrowLeft, Building2, CalendarDays, Check, Copy, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   listEquipaProgramas,
@@ -14,6 +14,7 @@ import {
   setProgramaEnrollmentOpenEquipa,
 } from "@/lib/equipa-programas.functions";
 import { RouteGate } from "@/components/RouteGate";
+import { CalendarioFtpEquipa } from "@/components/equipa/CalendarioFtpEquipa";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -217,6 +218,10 @@ function EquipaProgramasPage() {
               <Users className="mr-2 h-4 w-4" />
               Participantes
             </TabsTrigger>
+            <TabsTrigger value="calendario">
+              <CalendarDays className="mr-2 h-4 w-4" />
+              Calendário FTP
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="organizacoes">
             <OrganizacoesTab
@@ -229,6 +234,9 @@ function EquipaProgramasPage() {
               programId={programId}
               onOpenEntity={(cohortId, name) => setOpenEntity({ cohortId, name })}
             />
+          </TabsContent>
+          <TabsContent value="calendario">
+            <CalendarioFtpEquipa programId={programId} />
           </TabsContent>
         </Tabs>
       )}

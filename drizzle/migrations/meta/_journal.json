@@ -71,6 +71,13 @@
       "when": 1795000000000,
       "tag": "0009_plano_sessao_campos",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795100000000,
+      "tag": "0010_calendario_ftp",
+      "breakpoints": true
     }
   ]
 }

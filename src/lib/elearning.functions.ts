@@ -205,11 +205,13 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
   const turmas = (c.cursos_turmas ?? []) as { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscricoes_abertas: boolean; formador_id: string | null; utilizadores: { full_name: string | null } | null }[];
   const turma = insc?.turma_id ? turmas.find((t) => t.id === insc.turma_id) ?? null : null;
   const { aberturaModulo } = await import("@/lib/elearning.server");
+  const { datasFtpDasTurmas } = await import("@/lib/ftp-calendario.server");
+  const ftpData = turma ? (await datasFtpDasTurmas([turma.id])).get(turma.id) ?? null : null;
   const orderedModules = (mods ?? []).map((m) => ({ passos: [...(m.cursos_passos ?? [])].sort((a, b) => a.sort_order - b.sort_order) }));
   const bloqueios = bloqueiosSequenciais(orderedModules, new Set(prog.filter((p) => p.estado === "concluido").map((p) => p.passo_id)), c.progressao_sequencial);
 
   const modulos: ModuloResumo[] = (mods ?? []).map((m) => {
-    const abre = aberturaModulo(c.modalidade, m.abertura_dias, turma?.data_inicio ?? null);
+    const abre = aberturaModulo(c.modalidade, m.abertura_dias, turma?.data_inicio ?? null, ftpData);
     return {
       id: m.id,
       title: m.title,
@@ -482,7 +484,9 @@ async function getInscricaoPasso(userId: string, passoId: string) {
   if (!curso) throw new Error("Curso não encontrado.");
   const turma = insc.turma_id ? (await sb.from("cursos_turmas").select("data_inicio").eq("id", insc.turma_id).maybeSingle()).data : null;
   const { aberturaModulo } = await import("@/lib/elearning.server");
-  if (aberturaModulo(curso.modalidade, mod.abertura_dias, turma?.data_inicio ?? null)) throw new Error("Módulo ainda fechado.");
+  const { datasFtpDasTurmas } = await import("@/lib/ftp-calendario.server");
+  const ftpData = insc.turma_id ? (await datasFtpDasTurmas([insc.turma_id])).get(insc.turma_id) ?? null : null;
+  if (aberturaModulo(curso.modalidade, mod.abertura_dias, turma?.data_inicio ?? null, ftpData)) throw new Error("Módulo ainda fechado.");
   return { sb, passo: p, insc, curso };
 }
 

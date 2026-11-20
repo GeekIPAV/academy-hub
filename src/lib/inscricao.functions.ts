@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { isCertCompleto } from "./certificacao-perfil.functions";
+import { sincronizarFtcDaEscola } from "./ftp-calendario.server";
 
 const tokenSchema = z.object({ token: z.string().trim().min(4).max(128) });
 
@@ -108,6 +109,15 @@ export const enrollWithToken = createServerFn({ method: "POST" })
             { user_id: userId, badge_id: formandoBadgeId },
             { onConflict: "user_id,badge_id", ignoreDuplicates: true },
           );
+      }
+    }
+
+    // Se a escola já escolheu a FTP, o novo Educador entra na turma da FTC.
+    if (finalStatus === "aprovada") {
+      try {
+        await sincronizarFtcDaEscola(cohort.id, { userIds: [userId] });
+      } catch (e) {
+        console.error("[inscricao] sincronização da FTC falhou", e);
       }
     }
 

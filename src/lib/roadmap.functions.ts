@@ -55,7 +55,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
 
     let query = supabase
       .from("inscritos_programa")
-      .select("cohort_id, is_formador, entidades_programas(program_id, entity_id)")
+      .select("cohort_id, is_formador, entidades_programas(program_id, entity_id, ftp_acao_id, su_acao_id)")
       .eq("user_id", userId);
     if (data?.cohortId) query = query.eq("cohort_id", data.cohortId);
     const { data: enrollments, error: eErr } = await query.limit(1);
@@ -65,7 +65,12 @@ export const getRoadmap = createServerFn({ method: "GET" })
     const enrollment = enrollments?.[0] as
       | {
           is_formador?: boolean | null;
-          entidades_programas?: { program_id: string | null; entity_id: string | null } | null;
+          entidades_programas?: {
+            program_id: string | null;
+            entity_id: string | null;
+            ftp_acao_id: string | null;
+            su_acao_id: string | null;
+          } | null;
         }
       | undefined;
     const cohort = enrollment?.entidades_programas;
@@ -142,7 +147,21 @@ export const getRoadmap = createServerFn({ method: "GET" })
       entityActions = data ?? [];
     }
 
-    const all = [...(ftcActions ?? []), ...entityActions];
+    // A FTP e a Semana Ubuntu escolhidas pela escola (calendário ancorado
+    // na FTP) têm prioridade sobre ações antigas criadas por entidade.
+    const escolhidas = preview
+      ? []
+      : [cohort?.ftp_acao_id, cohort?.su_acao_id].filter((id): id is string => !!id);
+    let chosenActions: typeof entityActions = [];
+    if (escolhidas.length) {
+      const { data } = await supabaseAdmin
+        .from("acoes")
+        .select("id, title, action_type, registration_status, start_date, program_id, entity_id")
+        .in("id", escolhidas);
+      chosenActions = data ?? [];
+    }
+
+    const all = [...chosenActions, ...(ftcActions ?? []), ...entityActions];
 
     const items: RoadmapItem[] = PHASES.map(({ phase, label }) => {
       const action = all.find((a) => a.action_type === phase) ?? null;

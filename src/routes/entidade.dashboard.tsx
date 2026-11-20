@@ -9,6 +9,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Building2, CalendarPlus, Copy, Lock, Pencil, ShieldAlert, Users } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EntityOnboardingFlow } from "@/components/EntityOnboardingFlow";
+import { CalendarioEscola } from "@/components/entidade/CalendarioEscola";
 
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -251,6 +252,8 @@ function EntidadeDashboardPage() {
             selectedProgramId={selectedProgramId}
             onSelect={setSelectedProgramId}
           />
+
+          <CalendarioEscola entityId={selectedEntityId} cohortId={selectedProgramId} />
 
           {cohorts.length > 1 && (
             <div className="flex flex-wrap items-center gap-2">
