@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, GitBranch } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
+import { AcompanhamentoJornada } from "@/components/jornada/AcompanhamentoJornada";
 import { PageHeader, PageShell, Section } from "@/components/shell/PageHeader";
 import { StatusChip, type ChipTone } from "@/components/shell/StatusChip";
 import { FormField } from "@/components/shell/FormField";
@@ -36,7 +37,7 @@ export const Route = createFileRoute("/admin/jornada")({
   head: () => ({
     meta: seo({
       title: titulo("Jornada do utilizador", MARCA_GESTAO),
-      description: "Como funciona a Formação de Educadores Ubuntu na plataforma: o ciclo do programa e a jornada de cada tipo de utilizador.",
+      description: "Acompanhamento de cada Educador na Formação de Educadores Ubuntu: fase atual, próximo passo e ações da equipa.",
       privada: true,
     }),
   }),
@@ -94,21 +95,31 @@ function JornadaPage() {
       <PageHeader
         eyebrow="Programas e ações"
         title="Jornada do utilizador"
-        description="Como funciona a Formação de Educadores Ubuntu na plataforma: a data da FTP, escolhida pela escola, marca o ritmo de todas as etapas."
-        chips={
-          <>
+        description="Onde está cada Educador na Formação de Educadores Ubuntu, o que tem de acontecer a seguir e quem tem de agir."
+      />
+      <Tabs defaultValue="acompanhamento" className="space-y-5">
+        <div className="min-w-0 overflow-x-auto">
+          <TabsList className="w-max">
+            <TabsTrigger value="acompanhamento">Acompanhamento</TabsTrigger>
+            <TabsTrigger value="como-funciona">Como funciona</TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="acompanhamento" className="space-y-5">
+          <AcompanhamentoJornada />
+        </TabsContent>
+        <TabsContent value="como-funciona" className="space-y-6">
+          <div className="flex flex-wrap items-center gap-2">
             <StatusChip tone="green">{total.funciona} a funcionar</StatusChip>
             <StatusChip tone="yellow">{total.parcial} em parte</StatusChip>
             <StatusChip tone="red">{total.falta} por fazer</StatusChip>
-          </>
-        }
-      />
-      <Legenda />
-
-      <Ciclo />
-      <CalculadoraDatas />
-      <JornadasPorTipo />
-      <FluxoDetalhado />
+          </div>
+          <Legenda />
+          <Ciclo />
+          <CalculadoraDatas />
+          <JornadasPorTipo />
+          <FluxoDetalhado />
+        </TabsContent>
+      </Tabs>
     </PageShell>
   );
 }

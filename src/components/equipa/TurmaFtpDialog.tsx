@@ -224,7 +224,7 @@ export function TurmaFtpDialog({ ftpId, onClose }: { ftpId: string; onClose: () 
   );
 }
 
-function MaisTempo({
+export function MaisTempo({
   atual,
   max,
   pending,
