@@ -20,3 +20,4 @@
 - Rename a cluster only through `renameCluster`, which updates every text copy of the name and migrates `/recursos#cluster:<slug>` permissions.
 - Keep session-plan helpers (time parsing, room equipment, aggregated materials, pauses) in `src/lib/plano-sessao.ts` and reuse them for both the Plano de sessão tab and the A4 print (`PlanoSessaoImpressao`), which is printed through a scoped `@media print` stylesheet instead of a PDF service.
 - Render Centro de recursos resources only through `RecursosViews` (Lista / Tabela / Galeria + Agrupar por); resource reordering stays in the ungrouped, unfiltered Lista so the saved order is unambiguous.
+- Show any participant's journey only through `getRoadmap` with a `userId`, guarded by route access to `/admin/jornada`, so the Gestão page and the personal widget share one calculation.

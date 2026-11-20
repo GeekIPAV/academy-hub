@@ -1,4 +1,4 @@
-import { FolderKanban } from "lucide-react";
+import { FolderKanban, Milestone } from "lucide-react";
 import {
   BookMarked,
   BookOpen,
@@ -61,6 +61,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { path: "/admin/manager", label: "Utilizadores e acessos", icon: Users },
     { path: "/admin/entidades", label: "Organizações", icon: Building2 },
     { path: "/admin/badges", label: "Badges", icon: Medal },
+    { path: "/admin/jornada", label: "Jornada do utilizador", icon: Milestone },
   ] },
   { label: "Conteúdos", adminOnly: true, mode: "gestao", items: [
     { path: "/admin/elearning", label: "E-learning", icon: GraduationCap },
