@@ -180,6 +180,35 @@ export const getRoadmap = createServerFn({ method: "GET" })
       };
     });
 
+    // Etapas concluídas: FTC concluída e presença na FTP da escola.
+    if (!preview && programId) {
+      const { data: prog } = await supabaseAdmin.from("programas").select("ftc_curso_id").eq("id", programId).maybeSingle();
+      const [ftc, ftp] = await Promise.all([
+        prog?.ftc_curso_id
+          ? supabaseAdmin
+              .from("cursos_inscricoes")
+              .select("id")
+              .eq("user_id", userId)
+              .eq("curso_id", prog.ftc_curso_id)
+              .eq("estado", "concluido")
+              .limit(1)
+          : Promise.resolve({ data: [] as { id: string }[] }),
+        cohort?.ftp_acao_id
+          ? supabaseAdmin
+              .from("inscritos_acoes")
+              .select("id")
+              .eq("user_id", userId)
+              .eq("action_id", cohort.ftp_acao_id)
+              .eq("status", "presente")
+              .limit(1)
+          : Promise.resolve({ data: [] as { id: string }[] }),
+      ]);
+      for (const item of items) {
+        if (item.phase === "FTC" && (ftc.data ?? []).length) item.achieved = true;
+        if (item.phase === "FTP" && (ftp.data ?? []).length) item.achieved = true;
+      }
+    }
+
     items.push({ ...FORMADOR_PHASE, achieved: preview ? false : isFormador, action: null });
 
     return { items, preview };

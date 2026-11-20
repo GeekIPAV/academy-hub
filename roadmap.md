@@ -119,3 +119,11 @@
 - [x] Links de evento, inscrição e certificado mostram o nome real na pré-visualização
 - [x] Página de gestão "Jornada do utilizador": ciclo, datas a partir da FTP, jornada por tipo e fluxo detalhado
 - [ ] Dar acesso à Equipa IPAV a /admin/jornada na Central de Comando, se for preciso
+
+## Etapas com condição (Fase 2, nov 2026)
+- [x] Inscrição na FTP só na 2.ª semana e só com o badge da FTC (cartão «A tua formação» na página inicial)
+- [x] Alertas diários (FTC aberta, prazo da FTC, inscrição na FTP) e lembrete manual
+- [x] Turma de cada FTP: estado da FTC, mais tempo, desistências e presenças
+- [x] Presença na FTP atribui o badge «Apto para a Semana Ubuntu» e abre o bloco no Centro de recursos (UI e RLS)
+- [x] Regras configuráveis por programa: prazo falhado na FTC e antecedência para decidir FTP abaixo do mínimo
+- [ ] Aplicar a migração 0011 e confirmar que o pg_cron agendou `ftp-alertas-diarios`

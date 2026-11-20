@@ -136,3 +136,88 @@ export function formatarDataPt(dataISO: string | null | undefined, opts?: Intl.D
     new Date(`${dataISO.slice(0, 10)}T12:00:00Z`),
   );
 }
+
+// ---------------------------------------------------------------------------
+// Fase 2 — etapas com condição
+// ---------------------------------------------------------------------------
+
+export const FTP_DIAS_DECISAO_PADRAO = 21;
+
+export interface CondicoesInscricaoFtp {
+  hoje: string;
+  ftpData: string;
+  ftpAtiva: boolean;
+  /** Estado do Educador no programa (inscritos_programa.status). */
+  estadoPrograma: string | null;
+  /** Data (YYYY-MM-DD) em que concluiu a FTC, ou null. */
+  ftcConcluidaEm: string | null;
+  /** Tem o badge da FTC válido (ou o curso não tem badge e concluiu). */
+  temBadgeFtc: boolean;
+  /** Regra do programa: quem falha a 1.ª semana ainda vai a esta FTP. */
+  atrasoPermitido: boolean;
+  /** Prazo extra dado pela equipa IPAV para concluir a FTC. */
+  prazoExtraAte: string | null;
+  jaInscrito: boolean;
+}
+
+export type ResultadoInscricaoFtp =
+  | { pode: true }
+  | { pode: false; motivo: string; abreEm?: string };
+
+/** Prazo para concluir a FTC e continuar nesta FTP. */
+export function prazoFtc(ftpData: string, atrasoPermitido: boolean, prazoExtraAte: string | null): string {
+  const j = janelaFtc(ftpData);
+  const base = atrasoPermitido ? j.inscricaoFim : j.fimConclusao;
+  return prazoExtraAte && prazoExtraAte > base ? (prazoExtraAte > j.inscricaoFim ? j.inscricaoFim : prazoExtraAte) : base;
+}
+
+/**
+ * Inscrição na FTP: só na 2.ª semana (FTP − 7 a FTP − 1), só com o badge da
+ * FTC e só para quem não desistiu. Se o programa não permite atraso, a FTC
+ * tem de estar concluída até ao fim da 1.ª semana (ou do prazo extra).
+ */
+export function avaliarInscricaoFtp(c: CondicoesInscricaoFtp): ResultadoInscricaoFtp {
+  const j = janelaFtc(c.ftpData);
+  if (c.jaInscrito) return { pode: false, motivo: "Já estás inscrito nesta FTP." };
+  if (!c.ftpAtiva) return { pode: false, motivo: "Esta FTP foi cancelada." };
+  if (c.estadoPrograma === "desistiu") return { pode: false, motivo: "A tua participação no programa foi dada como desistência." };
+  if (c.estadoPrograma && c.estadoPrograma !== "aprovada") return { pode: false, motivo: "A tua inscrição no programa ainda não está aprovada." };
+  if (c.hoje > j.inscricaoFim) return { pode: false, motivo: "A inscrição nesta FTP já fechou." };
+  if (!c.temBadgeFtc || !c.ftcConcluidaEm) {
+    return c.hoje < j.inscricaoInicio
+      ? { pode: false, motivo: "Conclui a FTC para te poderes inscrever.", abreEm: j.inscricaoInicio }
+      : { pode: false, motivo: "Conclui a FTC para te poderes inscrever." };
+  }
+  const prazo = prazoFtc(c.ftpData, c.atrasoPermitido, c.prazoExtraAte);
+  if (c.ftcConcluidaEm.slice(0, 10) > prazo) {
+    return { pode: false, motivo: "Concluíste a FTC depois do prazo desta FTP. Fala com a equipa IPAV." };
+  }
+  if (c.hoje < j.inscricaoInicio) {
+    return { pode: false, motivo: "A inscrição na FTP abre na 2.ª semana.", abreEm: j.inscricaoInicio };
+  }
+  return { pode: true };
+}
+
+/** FTC por concluir depois do prazo (para alertas e para a lista da equipa). */
+export function ftcEmAtraso(ftpData: string, ftcConcluidaEm: string | null, prazoExtraAte: string | null, hoje: string = hojeISO()): boolean {
+  if (ftcConcluidaEm) return false;
+  const limite = prazoExtraAte && prazoExtraAte > janelaFtc(ftpData).fimConclusao ? prazoExtraAte : janelaFtc(ftpData).fimConclusao;
+  return hoje > limite;
+}
+
+/** Uma FTP abaixo do mínimo entra na janela de decisão N dias antes. */
+export function decisaoPendente(
+  educadores: number,
+  min: number | null,
+  diasParaFtp: number | null,
+  diasDecisao: number,
+): boolean {
+  return min != null && educadores < min && diasParaFtp != null && diasParaFtp >= 0 && diasParaFtp <= diasDecisao;
+}
+
+/** Espelho de public.e_bloco_semana_ubuntu (migração 0011). */
+export function eBlocoSemanaUbuntu(bloco: string | null | undefined): boolean {
+  if (!bloco) return false;
+  const b = bloco.normalize("NFD").replace(/[̀-ͯ]/g, "").trim().toLowerCase();
+  return b === "su" || b.includes("semana ubuntu");
+}

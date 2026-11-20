@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { CoverUploader } from "@/components/CoverUploader";
 import { CoverImage } from "@/components/CoverImage";
 import { useHasBadgeForCluster } from "@/hooks/use-badge-access";
+import { BlocoSemanaUbuntuFechado, useBloqueioSemanaUbuntu } from "@/components/recursos/BlocoSemanaUbuntu";
+import { eBlocoSemanaUbuntu } from "@/lib/ftp-calendario";
 import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/")({
@@ -40,6 +42,7 @@ interface TemaRow {
   id: string;
   cluster: string;
   bloco: string | null;
+  cluster_id?: string | null;
   title: string;
   description: string | null;
   cover_url: string | null;
@@ -92,7 +95,7 @@ function ClusterTemas() {
       const { data, error } = await supabase
         .from("temas_momentos")
         .select(
-          "id, cluster, bloco, title, description, intro, context, objectives, processo_u, cover_url, cover_position, cover_scale, order_index, bloco_order, hidden_sections, tema_recursos(count), plano_sessao_blocos(count)",
+          "id, cluster, cluster_id, bloco, title, description, intro, context, objectives, processo_u, cover_url, cover_position, cover_scale, order_index, bloco_order, hidden_sections, tema_recursos(count), plano_sessao_blocos(count)",
         )
         .eq("cluster", cluster!.name)
         .order("bloco_order", { ascending: true })
@@ -119,6 +122,9 @@ function ClusterTemas() {
 
   const esconderVazios = !isAdmin && escondeTemasVazios(activeRoles);
   const temas = (temasQuery.data ?? []).filter((t) => !(esconderVazios && t.vazio));
+
+  const clusterIdDosTemas = (temasQuery.data ?? []).find((t) => t.cluster_id)?.cluster_id ?? null;
+  const bloqueioSu = useBloqueioSemanaUbuntu(clusterIdDosTemas);
 
   const blocos = useMemo(() => {
     const seen = new Set<string>();
@@ -265,6 +271,9 @@ function ClusterTemas() {
                     <span className="h-px flex-1 bg-border" />
                   </div>
                 )}
+                {bloqueioSu.bloqueado && eBlocoSemanaUbuntu(g.bloco) ? (
+                  <BlocoSemanaUbuntuFechado badge={bloqueioSu.badge} compacto />
+                ) : (
                 <div className="grid min-w-0 grid-cols-1 gap-4 min-[480px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {g.temas.map((t) => (
                     <TemaCard
@@ -283,6 +292,7 @@ function ClusterTemas() {
                     />
                   ))}
                 </div>
+                )}
               </div>
             ))}
           </div>

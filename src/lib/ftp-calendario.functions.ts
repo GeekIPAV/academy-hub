@@ -7,7 +7,10 @@ import {
   FTP_MAX_EDUCADORES,
   FTP_MIN_EDUCADORES,
   cabeNaFtp,
+  decisaoPendente,
+  diasEntre,
   disponivelParaEscola,
+  ftcEmAtraso,
   escolhaAbertaParaEscola,
   estadoVagas,
   formatarDataPt,
@@ -22,6 +25,7 @@ import {
   assertEquipaOuAdmin,
   contarEducadoresPorCohort,
   contarEducadoresPorFtp,
+  estadoFtcDosEducadores,
   isEquipaOuAdmin,
   notificarContactos,
   notificarEducadoresDaFtp,
@@ -311,6 +315,41 @@ export const escolherCalendarioEscola = createServerFn({ method: "POST" })
 
 // ============== Equipa IPAV ==============
 
+function diasPara(data: string | null, hoje: string): number | null {
+  return data ? diasEntre(hoje, data) : null;
+}
+
+/** Quantos Educadores de cada FTP têm a FTC por concluir depois do prazo. */
+async function atrasosPorFtp(
+  cursoId: string | null,
+  ftps: DataRow[],
+  escolas: { cohort_id: string; ftp_acao_id: string | null }[],
+  hoje: string,
+): Promise<Map<string, number>> {
+  const out = new Map<string, number>();
+  const relevantes = ftps.filter((f) => f.start_date && hoje > janelaFtc(f.start_date).fimConclusao && hoje < f.start_date);
+  if (!cursoId || relevantes.length === 0) return out;
+  const ftpDe = new Map(escolas.filter((e) => e.ftp_acao_id).map((e) => [e.cohort_id, e.ftp_acao_id!]));
+  const cohortIds = escolas.filter((e) => relevantes.some((f) => f.id === e.ftp_acao_id)).map((e) => e.cohort_id);
+  if (cohortIds.length === 0) return out;
+  const { data: inscritos } = await supabaseAdmin
+    .from("inscritos_programa")
+    .select("user_id, cohort_id, ftc_prazo_extra_ate")
+    .in("cohort_id", cohortIds)
+    .eq("status", "aprovada");
+  const userIds = (inscritos ?? []).map((i) => i.user_id).filter((id): id is string => !!id);
+  const ftc = await estadoFtcDosEducadores(cursoId, userIds);
+  for (const i of inscritos ?? []) {
+    const ftpId = ftpDe.get(i.cohort_id ?? "");
+    const ftp = relevantes.find((f) => f.id === ftpId);
+    if (!ftp?.start_date || !i.user_id) continue;
+    if (ftcEmAtraso(ftp.start_date, ftc.get(i.user_id)?.concluidaEm ?? null, i.ftc_prazo_extra_ate, hoje)) {
+      out.set(ftp.id, (out.get(ftp.id) ?? 0) + 1);
+    }
+  }
+  return out;
+}
+
 export interface DataPrograma {
   id: string;
   tipo: TipoData;
@@ -326,11 +365,23 @@ export interface DataPrograma {
   estado_vagas: EstadoVagasFtp;
   ftc_abre: string | null;
   dias_para: number | null;
+  /** FTP abaixo do mínimo dentro da janela de decisão do programa. */
+  decisao_pendente: boolean;
+  /** Educadores com a FTC por concluir depois do prazo da 1.ª semana. */
+  ftc_em_atraso: number;
   escolas: { cohort_id: string; entity_name: string; educadores: number }[];
 }
 
 export interface CalendarioPrograma {
-  programa: { id: string; title: string | null; ftc_curso_id: string | null };
+  programa: {
+    id: string;
+    title: string | null;
+    ftc_curso_id: string | null;
+    ftc_atraso_permitido: boolean;
+    ftp_dias_decisao: number;
+    su_badge_id: string | null;
+  };
+  badges: { id: string; title: string }[];
   cursos: { id: string; title: string; estado: string; do_programa: boolean }[];
   projetos: { id: string; title: string }[];
   ftps: DataPrograma[];
@@ -350,9 +401,13 @@ export const getCalendarioPrograma = createServerFn({ method: "POST" })
   .inputValidator((i) => z.object({ programId: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }): Promise<CalendarioPrograma> => {
     await assertEquipaOuAdmin(context.userId);
-    const [{ data: programa, error: pErr }, { data: cursos }, { data: projetos }, datas, { data: cohorts, error: cErr }] =
+    const [{ data: programa, error: pErr }, { data: cursos }, { data: projetos }, datas, { data: cohorts, error: cErr }, { data: badges }] =
       await Promise.all([
-        supabaseAdmin.from("programas").select("id, title, ftc_curso_id").eq("id", data.programId).maybeSingle(),
+        supabaseAdmin
+          .from("programas")
+          .select("id, title, ftc_curso_id, ftc_atraso_permitido, ftp_dias_decisao, su_badge_id")
+          .eq("id", data.programId)
+          .maybeSingle(),
         supabaseAdmin.from("cursos").select("id, title, estado, program_id").neq("estado", "arquivado").order("title"),
         supabaseAdmin.from("projetos").select("id, title").order("title"),
         carregarDatasDoPrograma([data.programId]),
@@ -361,6 +416,7 @@ export const getCalendarioPrograma = createServerFn({ method: "POST" })
           .select("id, entity_id, is_active, ftp_acao_id, su_acao_id, entidades(name)")
           .eq("program_id", data.programId)
           .eq("status", "aprovada"),
+        supabaseAdmin.from("badges").select("id, title").order("title"),
       ]);
     if (pErr) throw new Error(pErr.message);
     if (cErr) throw new Error(cErr.message);
@@ -381,6 +437,12 @@ export const getCalendarioPrograma = createServerFn({ method: "POST" })
     }));
     escolas.sort((a, b) => a.entity_name.localeCompare(b.entity_name, "pt-PT"));
     const hoje = hojeISO();
+    const atrasos = await atrasosPorFtp(
+      programa.ftc_curso_id,
+      datas.filter((d) => d.action_type === "FTP" && ftpAtiva(d.status) && d.start_date),
+      escolas,
+      hoje,
+    );
 
     const toData = (d: DataRow): DataPrograma => {
       const tipo = d.action_type === "SU" ? "SU" : "FTP";
@@ -400,15 +462,19 @@ export const getCalendarioPrograma = createServerFn({ method: "POST" })
         ocupacao,
         estado_vagas: estadoVagas(ocupacao, tipo === "FTP" ? d.min_capacity : null, d.max_capacity),
         ftc_abre: tipo === "FTP" && d.start_date ? janelaFtc(d.start_date).abertura : null,
-        dias_para: d.start_date
-          ? Math.round((Date.parse(`${d.start_date}T00:00:00Z`) - Date.parse(`${hoje}T00:00:00Z`)) / 86_400_000)
-          : null,
+        dias_para: diasPara(d.start_date, hoje),
+        decisao_pendente:
+          tipo === "FTP" &&
+          ftpAtiva(d.status) &&
+          decisaoPendente(ocupacao, d.min_capacity, diasPara(d.start_date, hoje), programa.ftp_dias_decisao),
+        ftc_em_atraso: atrasos.get(d.id) ?? 0,
         escolas: lig.map((e) => ({ cohort_id: e.cohort_id, entity_name: e.entity_name, educadores: e.educadores })),
       };
     };
 
     return {
       programa,
+      badges: badges ?? [],
       cursos: (cursos ?? [])
         .map((c) => ({ id: c.id, title: c.title, estado: c.estado, do_programa: c.program_id === data.programId }))
         .sort((a, b) => Number(b.do_programa) - Number(a.do_programa)),

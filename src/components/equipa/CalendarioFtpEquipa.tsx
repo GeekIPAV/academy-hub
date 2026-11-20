@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, CalendarPlus, ChevronDown, ChevronRight, Pencil, XCircle } from "lucide-react";
+import { AlertTriangle, CalendarPlus, ChevronDown, ChevronRight, Pencil, Users, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Section } from "@/components/shell/PageHeader";
 import { StatusChip, type ChipTone } from "@/components/shell/StatusChip";
@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { TurmaFtpDialog } from "@/components/equipa/TurmaFtpDialog";
+import { guardarRegrasPrograma } from "@/lib/ftp-etapas.functions";
 import {
   Dialog,
   DialogContent,
@@ -65,6 +68,7 @@ export function CalendarioFtpEquipa({ programId }: { programId: string }) {
   });
   const [editar, setEditar] = useState<{ tipo: TipoData; data: DataPrograma | null } | null>(null);
   const [cancelar, setCancelar] = useState<DataPrograma | null>(null);
+  const [turma, setTurma] = useState<string | null>(null);
 
   if (isLoading) return <Skeleton className="h-64 w-full" />;
   if (error || !data) {
@@ -78,6 +82,7 @@ export function CalendarioFtpEquipa({ programId }: { programId: string }) {
   return (
     <div className="space-y-5">
       <FtcDoPrograma cal={data} />
+      <RegrasDoPrograma key={`${data.programa.id}-${data.programa.su_badge_id}-${data.programa.ftp_dias_decisao}-${data.programa.ftc_atraso_permitido}`} cal={data} />
 
       <DatasTabela
         cal={data}
@@ -87,6 +92,7 @@ export function CalendarioFtpEquipa({ programId }: { programId: string }) {
         onNova={() => setEditar({ tipo: "FTP", data: null })}
         onEditar={(d) => setEditar({ tipo: "FTP", data: d })}
         onCancelar={setCancelar}
+        onTurma={setTurma}
       />
 
       <DatasTabela
@@ -110,6 +116,7 @@ export function CalendarioFtpEquipa({ programId }: { programId: string }) {
           onClose={() => setEditar(null)}
         />
       )}
+      {turma && <TurmaFtpDialog ftpId={turma} onClose={() => setTurma(null)} />}
       {cancelar && <CancelarDialog programId={programId} cal={data} alvo={cancelar} onClose={() => setCancelar(null)} />}
     </div>
   );
@@ -167,6 +174,91 @@ function FtcDoPrograma({ cal }: { cal: CalendarioPrograma }) {
   );
 }
 
+function RegrasDoPrograma({ cal }: { cal: CalendarioPrograma }) {
+  const invalidar = useInvalidar(cal.programa.id);
+  const fn = useServerFn(guardarRegrasPrograma);
+  const [f, setF] = useState({
+    atraso: cal.programa.ftc_atraso_permitido,
+    dias: String(cal.programa.ftp_dias_decisao),
+    badge: cal.programa.su_badge_id ?? NENHUMA,
+  });
+  const alterado =
+    f.atraso !== cal.programa.ftc_atraso_permitido ||
+    Number(f.dias) !== cal.programa.ftp_dias_decisao ||
+    (f.badge === NENHUMA ? null : f.badge) !== cal.programa.su_badge_id;
+  const m = useMutation({
+    mutationFn: () =>
+      fn({
+        data: {
+          programId: cal.programa.id,
+          ftc_atraso_permitido: f.atraso,
+          ftp_dias_decisao: Math.max(0, Math.min(120, Number(f.dias) || 0)),
+          su_badge_id: f.badge === NENHUMA ? null : f.badge,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Regras do programa guardadas.");
+      invalidar();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Section
+      title="Regras das etapas"
+      description="Condições entre a FTC, a FTP e a Semana Ubuntu deste programa."
+      actions={
+        <Button size="sm" disabled={!alterado || m.isPending} onClick={() => m.mutate()}>
+          {m.isPending ? "A guardar…" : "Guardar regras"}
+        </Button>
+      }
+    >
+      <div className="grid gap-5 md:grid-cols-3">
+        <FormField
+          id="regra-atraso"
+          label="Prazo falhado na FTC"
+          hint={
+            f.atraso
+              ? "Quem não concluir na 1.ª semana ainda pode concluir e inscrever-se na FTP durante a 2.ª."
+              : "Quem não concluir na 1.ª semana não entra nesta FTP, a não ser com prazo extra dado pela equipa."
+          }
+        >
+          <div className="flex items-center gap-2 pt-1">
+            <Switch id="regra-atraso" checked={f.atraso} onCheckedChange={(v) => setF({ ...f, atraso: v })} />
+            <span className="text-sm">{f.atraso ? "Ainda vai a esta FTP" : "Passa para outra FTP"}</span>
+          </div>
+        </FormField>
+        <FormField
+          id="regra-dias"
+          label="Decidir FTP abaixo do mínimo"
+          hint="Dias antes da FTP em que a data passa a «Decidir já» se não tiver o mínimo de Educadores."
+        >
+          <Input id="regra-dias" type="number" min={0} max={120} value={f.dias} onChange={(e) => setF({ ...f, dias: e.target.value })} />
+        </FormField>
+        <FormField
+          id="regra-badge"
+          label="Badge «Apto para a Semana Ubuntu»"
+          hint="Atribuído ao marcar a presença na FTP. Abre os temas do bloco Semana Ubuntu (bloco «SU») do cluster do programa no Centro de recursos."
+        >
+          <Select value={f.badge} onValueChange={(v) => setF({ ...f, badge: v })}>
+            <SelectTrigger id="regra-badge">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NENHUMA}>Sem badge (Semana Ubuntu sempre aberta)</SelectItem>
+              {cal.badges.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+      </div>
+    </Section>
+  );
+}
+
 function DatasTabela({
   cal,
   tipo,
@@ -175,6 +267,7 @@ function DatasTabela({
   onNova,
   onEditar,
   onCancelar,
+  onTurma,
 }: {
   cal: CalendarioPrograma;
   tipo: TipoData;
@@ -183,13 +276,15 @@ function DatasTabela({
   onNova: () => void;
   onEditar: (d: DataPrograma) => void;
   onCancelar: (d: DataPrograma) => void;
+  onTurma?: (ftpId: string) => void;
 }) {
   const [aberta, setAberta] = useState<string | null>(null);
   const [verCanceladas, setVerCanceladas] = useState(false);
   const todas = tipo === "FTP" ? cal.ftps : cal.slots_su;
   const linhas = verCanceladas ? todas : todas.filter((d) => ftpAtiva(d.status));
   const projetoNome = useMemo(() => new Map(cal.projetos.map((p) => [p.id, p.title])), [cal.projetos]);
-  const alertas = tipo === "FTP" ? linhas.filter((d) => ftpAtiva(d.status) && d.estado_vagas === "abaixo_minimo") : [];
+  const alertas = tipo === "FTP" ? linhas.filter((d) => d.decisao_pendente) : [];
+  const atrasos = tipo === "FTP" ? linhas.reduce((n, d) => n + d.ftc_em_atraso, 0) : 0;
 
   return (
     <Section
@@ -214,10 +309,19 @@ function DatasTabela({
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <p>
             <strong className="font-semibold">
-              {alertas.length} FTP {alertas.length === 1 ? "está" : "estão"} abaixo do mínimo.
+              {alertas.length} FTP abaixo do mínimo a menos de {cal.programa.ftp_dias_decisao} dias.
             </strong>{" "}
-            {alertas.map((a) => `${formatarDataPt(a.start_date)} (${a.ocupacao}/${a.min ?? "—"})`).join(", ")}. Podes juntar
-            com outra data ou cancelar.
+            {alertas.map((a) => `${formatarDataPt(a.start_date)} (${a.ocupacao}/${a.min ?? "—"})`).join(", ")}. Decide se juntas
+            com outra data ou cancelas.
+          </p>
+        </div>
+      )}
+      {atrasos > 0 && (
+        <div className="flex gap-3 rounded-xl bg-[#FDEDEC] p-4 text-sm text-[#B42318]">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          <p>
+            <strong className="font-semibold">{atrasos} Educador(es) com a FTC em atraso.</strong> Abre a turma da FTP para dar
+            mais tempo ou registar a desistência.
           </p>
         </div>
       )}
@@ -229,7 +333,7 @@ function DatasTabela({
               <TableHead>Data</TableHead>
               <TableHead>Projetos</TableHead>
               <TableHead className="w-44">{tipo === "FTP" ? "Educadores" : "Escolas"}</TableHead>
-              <TableHead className="w-40 text-right">Ações</TableHead>
+              <TableHead className="w-56 text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -281,13 +385,22 @@ function DatasTabela({
                           {tipo === "FTP" && d.min != null ? <span className="font-normal text-muted-foreground"> (mín. {d.min})</span> : null}
                         </span>
                         {ativa && (tipo === "FTP" || d.estado_vagas === "cheia" || d.estado_vagas === "acima_maximo") && (
-                          <StatusChip tone={chip.tone}>{chip.label}</StatusChip>
+                          <StatusChip tone={d.decisao_pendente ? "red" : chip.tone}>
+                            {d.decisao_pendente ? "Decidir já" : chip.label}
+                          </StatusChip>
                         )}
+                        {d.ftc_em_atraso > 0 && <StatusChip tone="red">{d.ftc_em_atraso} FTC em atraso</StatusChip>}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
                       {ativa && (
                         <div className="flex justify-end gap-1">
+                          {onTurma && (
+                            <Button variant="ghost" size="sm" onClick={() => onTurma(d.id)}>
+                              <Users className="mr-1 h-4 w-4" />
+                              Turma
+                            </Button>
+                          )}
                           <Button variant="ghost" size="sm" onClick={() => onEditar(d)} aria-label="Editar data">
                             <Pencil className="h-4 w-4" />
                           </Button>

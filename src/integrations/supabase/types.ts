@@ -1738,6 +1738,38 @@ export type Database = {
         }
         Relationships: []
       }
+      ftp_alertas: {
+        Row: {
+          enviado_em: string
+          ftp_acao_id: string
+          id: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          enviado_em?: string
+          ftp_acao_id: string
+          id?: string
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          enviado_em?: string
+          ftp_acao_id?: string
+          id?: string
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ftp_alertas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       formadores_acoes: {
         Row: {
           action_id: string
@@ -1856,6 +1888,7 @@ export type Database = {
         Row: {
           cohort_id: string | null
           created_at: string | null
+          ftc_prazo_extra_ate: string | null
           id: string
           is_formador: boolean
           status: string | null
@@ -1864,6 +1897,7 @@ export type Database = {
         Insert: {
           cohort_id?: string | null
           created_at?: string | null
+          ftc_prazo_extra_ate?: string | null
           id?: string
           is_formador?: boolean
           status?: string | null
@@ -1872,6 +1906,7 @@ export type Database = {
         Update: {
           cohort_id?: string | null
           created_at?: string | null
+          ftc_prazo_extra_ate?: string | null
           id?: string
           is_formador?: boolean
           status?: string | null
@@ -2199,7 +2234,9 @@ export type Database = {
           description: string | null
           email_contacto_ipav: string | null
           enrollment_open: boolean
+          ftc_atraso_permitido: boolean
           ftc_curso_id: string | null
+          ftp_dias_decisao: number
           id: string
           is_active: boolean | null
           last_synced_at: string | null
@@ -2209,6 +2246,7 @@ export type Database = {
           public_enroll_token: string | null
           required_fields: Json | null
           status: string
+          su_badge_id: string | null
           sync_status: string | null
           title: string | null
         }
@@ -2222,7 +2260,9 @@ export type Database = {
           description?: string | null
           email_contacto_ipav?: string | null
           enrollment_open?: boolean
+          ftc_atraso_permitido?: boolean
           ftc_curso_id?: string | null
+          ftp_dias_decisao?: number
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
@@ -2232,6 +2272,7 @@ export type Database = {
           public_enroll_token?: string | null
           required_fields?: Json | null
           status?: string
+          su_badge_id?: string | null
           sync_status?: string | null
           title?: string | null
         }
@@ -2245,7 +2286,9 @@ export type Database = {
           description?: string | null
           email_contacto_ipav?: string | null
           enrollment_open?: boolean
+          ftc_atraso_permitido?: boolean
           ftc_curso_id?: string | null
+          ftp_dias_decisao?: number
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
@@ -2255,10 +2298,18 @@ export type Database = {
           public_enroll_token?: string | null
           required_fields?: Json | null
           status?: string
+          su_badge_id?: string | null
           sync_status?: string | null
           title?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "programas_su_badge_id_fkey"
+            columns: ["su_badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "programas_ftc_curso_id_fkey"
             columns: ["ftc_curso_id"]
@@ -3121,6 +3172,10 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      recurso_bloqueado_semana_ubuntu: {
+        Args: { _recurso_id: string; _user_id: string }
+        Returns: boolean
       }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }

@@ -247,3 +247,98 @@ export async function notificarEducadoresDaFtp(ftpId: string, title: string, mes
     .eq("status", "aprovada");
   await notificar((data ?? []).map((r) => r.user_id).filter((id): id is string => !!id), title, message, null);
 }
+
+// ---------------------------------------------------------------------------
+// Fase 2 — etapas com condição
+// ---------------------------------------------------------------------------
+
+export interface EstadoFtcEducador {
+  estado: string | null;
+  concluidaEm: string | null;
+  temBadge: boolean;
+}
+
+/**
+ * Estado da FTC de cada Educador: inscrição no curso e badge final válido.
+ * Se o curso não tiver badge final, concluir conta como ter o badge.
+ */
+export async function estadoFtcDosEducadores(cursoId: string, userIds: string[]): Promise<Map<string, EstadoFtcEducador>> {
+  const out = new Map<string, EstadoFtcEducador>();
+  if (userIds.length === 0) return out;
+  const [{ data: curso }, { data: inscricoes }] = await Promise.all([
+    supabaseAdmin.from("cursos").select("badge_final_id").eq("id", cursoId).maybeSingle(),
+    supabaseAdmin
+      .from("cursos_inscricoes")
+      .select("user_id, estado, concluido_em")
+      .eq("curso_id", cursoId)
+      .in("user_id", userIds)
+      .neq("estado", "cancelado"),
+  ]);
+  const badgeId = curso?.badge_final_id ?? null;
+  const comBadge = badgeId ? await utilizadoresComBadge(badgeId, userIds) : null;
+  for (const id of userIds) out.set(id, { estado: null, concluidaEm: null, temBadge: false });
+  for (const i of inscricoes ?? []) {
+    const concluida = i.estado === "concluido";
+    out.set(i.user_id, {
+      estado: i.estado,
+      concluidaEm: concluida ? (i.concluido_em ?? new Date().toISOString()).slice(0, 10) : null,
+      temBadge: comBadge ? comBadge.has(i.user_id) : concluida,
+    });
+  }
+  if (comBadge) for (const id of comBadge) {
+    const e = out.get(id);
+    if (e) e.temBadge = true;
+  }
+  return out;
+}
+
+export async function utilizadoresComBadge(badgeId: string, userIds: string[]): Promise<Set<string>> {
+  if (userIds.length === 0) return new Set();
+  const { data } = await supabaseAdmin
+    .from("user_badges")
+    .select("user_id, expires_at")
+    .eq("badge_id", badgeId)
+    .in("user_id", userIds);
+  const agora = Date.now();
+  return new Set(
+    (data ?? []).filter((b) => !b.expires_at || Date.parse(b.expires_at) > agora).map((b) => b.user_id),
+  );
+}
+
+/** Inscrição de cada Educador numa FTP (inscritos_acoes.status). */
+export async function inscricoesNaFtp(ftpId: string, userIds: string[]): Promise<Map<string, { id: string; status: string | null }>> {
+  const out = new Map<string, { id: string; status: string | null }>();
+  if (userIds.length === 0) return out;
+  const { data } = await supabaseAdmin
+    .from("inscritos_acoes")
+    .select("id, user_id, status")
+    .eq("action_id", ftpId)
+    .in("user_id", userIds);
+  for (const r of data ?? []) if (r.user_id) out.set(r.user_id, { id: r.id, status: r.status });
+  return out;
+}
+
+export async function definirInscricaoFtp(ftpId: string, userId: string, status: "aceite" | "presente" | "faltou" | "cancelado") {
+  const { data: existente } = await supabaseAdmin
+    .from("inscritos_acoes")
+    .select("id")
+    .eq("action_id", ftpId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (existente) {
+    const { error } = await supabaseAdmin.from("inscritos_acoes").update({ status }).eq("id", existente.id);
+    if (error) throw new Error(error.message);
+    return existente.id;
+  }
+  const { data, error } = await supabaseAdmin
+    .from("inscritos_acoes")
+    .insert({ action_id: ftpId, user_id: userId, status, submitted_at: new Date().toISOString() })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return data.id;
+}
+
+export async function notificarUtilizadores(userIds: string[], title: string, message: string, link: string | null) {
+  await notificar(userIds, title, message, link);
+}

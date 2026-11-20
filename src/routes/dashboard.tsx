@@ -3,6 +3,7 @@ import { useApp } from "@/lib/app-context";
 import { WidgetMeusProgramas } from "@/components/WidgetMeusProgramas";
 import { WidgetContinuarAprender } from "@/components/WidgetContinuarAprender";
 import { WidgetProximosEventos } from "@/components/WidgetProximosEventos";
+import { WidgetMinhaFtp } from "@/components/WidgetMinhaFtp";
 import { BookMarked, User, ArrowRight } from "lucide-react";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import mandela from "@/assets/mandela-traced.svg";
@@ -130,6 +131,8 @@ function DashboardPage() {
           )}
         </section>
       )}
+
+      {visible("roadmap") && <WidgetMinhaFtp />}
 
       {visible("proximos-eventos") && <WidgetProximosEventos />}
 
