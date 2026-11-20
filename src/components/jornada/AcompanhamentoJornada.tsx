@@ -5,8 +5,6 @@ import {
   AlertTriangle,
   BellRing,
   Check,
-  CheckCircle2,
-  Circle,
   Loader2,
   MoreHorizontal,
   RefreshCw,
@@ -319,15 +317,15 @@ export function AcompanhamentoJornada() {
             {selecionadas.length > 0 && (
               <div className="flex flex-wrap items-center gap-2 rounded-lg bg-secondary px-3 py-1.5 text-secondary-foreground">
                 <span className="text-sm">{selecionadas.length} selecionado(s)</span>
-                <Button size="sm" variant="secondary" disabled={lembrar.isPending} onClick={() => lembrar.mutate(selecionadas.map((l) => l.inscricao_programa_id))}>
+                <Button size="sm" variant="outline" className="border-0 bg-white text-secondary hover:bg-white/90" disabled={lembrar.isPending} onClick={() => lembrar.mutate(selecionadas.map((l) => l.inscricao_programa_id))}>
                   <BellRing className="mr-1.5 h-4 w-4" />
                   Lembrar próximo passo
                 </Button>
-                <Button size="sm" variant="secondary" disabled={emLote} onClick={() => presencaEmLote("presente")}>
+                <Button size="sm" variant="outline" className="border-0 bg-white text-secondary hover:bg-white/90" disabled={emLote} onClick={() => presencaEmLote("presente")}>
                   {emLote ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <UserCheck className="mr-1.5 h-4 w-4" />}
                   Marcar presentes
                 </Button>
-                <Button size="sm" variant="secondary" disabled={emLote} onClick={() => presencaEmLote("faltou")}>
+                <Button size="sm" variant="outline" className="border-0 bg-white text-secondary hover:bg-white/90" disabled={emLote} onClick={() => presencaEmLote("faltou")}>
                   Marcar falta
                 </Button>
                 <Button size="icon" variant="ghost" className="h-8 w-8 text-secondary-foreground" aria-label="Limpar seleção" onClick={() => setSel(new Set())}>
@@ -474,17 +472,36 @@ function MenuAcoes({
   );
 }
 
-function Marco({ feito, atual, titulo, detalhe }: { feito: boolean; atual?: boolean; titulo: string; detalhe?: string | null }) {
+function Marco({
+  feito,
+  atual,
+  titulo,
+  detalhe,
+}: {
+  feito: boolean;
+  atual?: boolean;
+  titulo: string;
+  detalhe?: string | null;
+}) {
   return (
-    <li className="group relative flex gap-3 pb-5 last:pb-0">
-      <span className="absolute left-[9px] top-6 bottom-0 w-px bg-border group-last:hidden" aria-hidden="true" />
-      {feito ? (
-        <CheckCircle2 className="relative z-[1] h-5 w-5 shrink-0 bg-card text-[#11643F]" aria-hidden="true" />
-      ) : (
-        <Circle className={`relative z-[1] h-5 w-5 shrink-0 bg-card ${atual ? "text-primary" : "text-border"}`} aria-hidden="true" />
-      )}
-      <div className="min-w-0">
-        <p className={`text-sm ${atual ? "font-semibold text-secondary" : feito ? "text-secondary" : "text-muted-foreground"}`}>{titulo}</p>
+    <li className="group flex gap-3">
+      <div className="flex w-5 shrink-0 flex-col items-center">
+        <span
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+            feito ? "bg-[#11643F] text-white" : atual ? "border-2 border-primary bg-card" : "border-2 border-border bg-card"
+          }`}
+          aria-hidden="true"
+        >
+          {feito && <Check className="h-3 w-3" strokeWidth={3} />}
+        </span>
+        <span className={`w-0.5 flex-1 group-last:hidden ${feito ? "bg-[#11643F]" : "bg-border"}`} aria-hidden="true" />
+      </div>
+      <div className="min-w-0 pb-5 group-last:pb-0">
+        <p className={`text-sm ${atual ? "font-semibold text-secondary" : feito ? "text-secondary" : "text-muted-foreground"}`}>
+          {titulo}
+          {feito && <span className="sr-only"> (concluído)</span>}
+          {atual && <span className="sr-only"> (etapa atual)</span>}
+        </p>
         {detalhe && <p className="text-xs text-muted-foreground">{detalhe}</p>}
       </div>
     </li>
@@ -513,7 +530,7 @@ function FichaEducador({
       <SheetContent className="w-full max-w-md overflow-y-auto sm:max-w-md">
         {l && (
           <div className="space-y-6">
-            <SheetHeader>
+            <SheetHeader className="text-left">
               <SheetTitle>{l.nome}</SheetTitle>
               <SheetDescription>
                 {l.escola} · {l.program_title}

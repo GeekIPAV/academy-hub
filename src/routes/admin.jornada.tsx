@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, GitBranch } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
 import { AcompanhamentoJornada } from "@/components/jornada/AcompanhamentoJornada";
 import { PageHeader, PageShell, Section } from "@/components/shell/PageHeader";
@@ -49,11 +49,6 @@ export const Route = createFileRoute("/admin/jornada")({
 });
 
 const TOM: Record<EstadoPasso, ChipTone> = { funciona: "green", parcial: "yellow", falta: "red" };
-const BORDA: Record<EstadoPasso, string> = {
-  funciona: "border-l-[#11643F]",
-  parcial: "border-l-[#B7791F]",
-  falta: "border-l-[#B42318]",
-};
 
 function EstadoChip({ estado }: { estado: EstadoPasso }) {
   return (
@@ -130,16 +125,16 @@ function Ciclo() {
       title="Ciclo do programa"
       description="Seis passos, com a FTP como âncora. O badge da FTC dá acesso à inscrição na FTP; a presença na FTP dá acesso à Semana Ubuntu."
     >
-      <ol className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
+      <ol className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
         {CICLO.map((p, i) => (
-          <li key={p.titulo} className={`flex min-w-0 flex-col gap-2 rounded-lg border border-l-4 bg-card p-4 ${BORDA[p.estado]}`}>
-            <div className="flex items-start justify-between gap-2">
-              <p className="min-w-0 text-sm font-semibold text-secondary">
-                <span className="mr-1.5 tabular-nums text-muted-foreground">{i + 1}</span>
-                {p.titulo}
-              </p>
+          <li key={p.titulo} className="flex min-w-0 flex-col gap-2 rounded-lg border bg-card p-4">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold tabular-nums text-secondary-foreground">
+                {i + 1}
+              </span>
+              <p className="min-w-0 text-sm font-semibold text-secondary">{p.titulo}</p>
             </div>
-            <p className="text-xs leading-relaxed text-muted-foreground">{p.detalhe}</p>
+            <p className="text-[13px] leading-relaxed text-muted-foreground">{p.detalhe}</p>
             <div className="mt-auto flex flex-wrap gap-1.5 pt-1">
               <EstadoChip estado={p.estado} />
               <FaseTag fase={p.fase} />
@@ -178,7 +173,7 @@ function CalculadoraDatas() {
         <ol className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(200px,1fr))]">
           {marcos.map((m, i) => (
             <li key={m.titulo} className="flex min-w-0 gap-3 rounded-lg border bg-card p-4">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFEBDC] text-xs font-semibold text-[#A1420A]">
                 {i + 1}
               </span>
               <div className="min-w-0">
@@ -338,7 +333,7 @@ function FluxoSimples() {
             </div>
             {f.decisao && (
               <p className="flex items-start gap-2 rounded-md border border-dashed px-3 py-2 text-xs text-secondary">
-                <GitBranch className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span aria-hidden="true">◇</span>
                 <span>
                   <strong className="font-semibold">Decisão:</strong> {f.decisao}
                 </span>
@@ -353,7 +348,7 @@ function FluxoSimples() {
 
 function CartaoPasso({ p, numero, ligacoes }: { p: PassoJornada; numero?: number; ligacoes?: string[] }) {
   return (
-    <div className={`space-y-1.5 rounded-md border border-l-4 bg-card p-3 ${BORDA[p.estado]}`}>
+    <div className="space-y-1.5 rounded-md border bg-card p-3">
       {ligacoes && ligacoes.length > 0 && (
         <p className="text-[11px] leading-snug text-muted-foreground">
           {ligacoes.map((l, i) => (
@@ -396,7 +391,7 @@ function FluxoCompleto() {
                 return (
                   <div key={item.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-dashed px-3 py-2 text-xs text-secondary">
                     <span className="inline-flex items-center gap-2 font-semibold">
-                      <GitBranch className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      <span aria-hidden="true">◇</span>
                       {item.pergunta}
                     </span>
                     <span>
