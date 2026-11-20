@@ -45,23 +45,32 @@ function JornadaPage() {
   });
   const [pesquisa, setPesquisa] = useState("");
   const [selecionado, setSelecionado] = useState<ParticipanteJornada | null>(null);
+  const [cohortId, setCohortId] = useState<string | null>(null);
+  const escolher = (p: ParticipanteJornada | null) => {
+    setSelecionado(p);
+    setCohortId(p?.inscricoes[0]?.cohortId ?? null);
+  };
+  const inscricao = selecionado?.inscricoes.find((i) => i.cohortId === cohortId) ?? null;
 
   const filtrados = useMemo(() => {
     const q = normalizar(pesquisa.trim());
     if (!q) return participantes;
     return participantes.filter((p) =>
-      normalizar([p.nome, p.email, p.programa, p.entidade].filter(Boolean).join(" ")).includes(q),
+      normalizar(
+        [p.nome, p.email, p.tipo, ...p.inscricoes.flatMap((i) => [i.programa, i.entidade])]
+          .filter(Boolean)
+          .join(" "),
+      ).includes(q),
     );
   }, [participantes, pesquisa]);
 
-  const chave = (p: ParticipanteJornada) => `${p.userId}:${p.cohortId}`;
 
   return (
     <div className="min-w-0 space-y-6">
       <PageHeader
         eyebrow="Gestão"
         title="Jornada do utilizador"
-        description="Vê em que etapa está cada participante: FTC, FTP, Semana Ubuntu, Sessão Final e Formador. Escolhe uma pessoa na lista para ver a sua jornada."
+        description="Simula em que fase está cada utilizador da plataforma: FTC, FTP, Semana Ubuntu, Sessão Final e Formador. Escolhe uma pessoa na lista para ver a jornada tal como ela a vê."
       />
 
       <div className="grid min-w-0 gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
@@ -71,7 +80,7 @@ function JornadaPage() {
             <Input
               value={pesquisa}
               onChange={(e) => setPesquisa(e.target.value)}
-              placeholder="Procurar pessoa ou programa"
+              placeholder="Procurar nome, email ou programa"
               aria-label="Procurar participante"
               className="pl-9"
             />
@@ -79,7 +88,7 @@ function JornadaPage() {
 
           <button
             type="button"
-            onClick={() => setSelecionado(null)}
+            onClick={() => escolher(null)}
             className={`mt-3 w-full rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
               selecionado === null
                 ? "border-primary/60 bg-primary/5 font-medium text-foreground"
@@ -90,7 +99,7 @@ function JornadaPage() {
           </button>
 
           <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Participantes {participantes.length > 0 && `(${participantes.length})`}
+            Utilizadores {participantes.length > 0 && `(${filtrados.length})`}
           </p>
 
           {isLoading ? (
@@ -101,19 +110,22 @@ function JornadaPage() {
           ) : filtrados.length === 0 ? (
             <p className="py-4 text-sm text-muted-foreground">
               {participantes.length === 0
-                ? "Ainda não há participantes inscritos em programas de Formação de Educadores."
-                : "Nenhum participante corresponde à pesquisa."}
+                ? "Ainda não há utilizadores na plataforma."
+                : "Nenhum utilizador corresponde à pesquisa."}
             </p>
           ) : (
             <ul className="max-h-[60vh] space-y-1.5 overflow-y-auto pr-1">
               {filtrados.map((p) => {
-                const ativo = selecionado !== null && chave(selecionado) === chave(p);
+                const ativo = selecionado?.userId === p.userId;
+                const sub = p.inscricoes.length
+                  ? p.inscricoes.map((i) => i.programa).filter(Boolean).join(" · ")
+                  : "Sem inscrição na jornada";
                 return (
-                  <li key={chave(p)}>
+                  <li key={p.userId}>
                     <button
                       type="button"
                       aria-pressed={ativo}
-                      onClick={() => setSelecionado(p)}
+                      onClick={() => escolher(p)}
                       className={`flex w-full min-w-0 items-start gap-3 rounded-xl border px-3 py-2 text-left transition-colors ${
                         ativo ? "border-primary/60 bg-primary/5" : "border-transparent hover:bg-muted/50"
                       }`}
@@ -123,8 +135,11 @@ function JornadaPage() {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block truncate text-sm font-medium text-foreground">{p.nome}</span>
-                        <span className="block truncate text-xs text-muted-foreground">
-                          {[p.programa, p.entidade].filter(Boolean).join(" · ") || "—"}
+                        {p.email && p.email !== p.nome && (
+                          <span className="block truncate text-xs text-muted-foreground">{p.email}</span>
+                        )}
+                        <span className="block truncate text-xs text-muted-foreground/80">
+                          {sub}
                         </span>
                       </span>
                     </button>
@@ -138,27 +153,53 @@ function JornadaPage() {
         <section className="min-w-0 space-y-4">
           {selecionado && (
             <div className="flex min-w-0 flex-wrap items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 shadow-sm">
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[12rem] flex-1">
                 <p className="truncate font-semibold text-foreground">{selecionado.nome}</p>
                 {selecionado.email && (
                   <p className="truncate text-xs text-muted-foreground">{selecionado.email}</p>
                 )}
               </div>
-              {selecionado.estado && (
-                <Badge variant="outline" className="shrink-0 text-[11px]">
-                  Inscrição: {selecionado.estado}
+              {selecionado.tipo && (
+                <Badge variant="secondary" className="shrink-0 text-[11px]">
+                  {selecionado.tipo}
                 </Badge>
+              )}
+              {inscricao?.estado && (
+                <Badge variant="outline" className="shrink-0 text-[11px]">
+                  Inscrição: {inscricao.estado}
+                </Badge>
+              )}
+              {selecionado.inscricoes.length > 1 && (
+                <div className="flex w-full min-w-0 flex-wrap gap-1.5 pt-1" role="group" aria-label="Programa">
+                  {selecionado.inscricoes.map((i) => (
+                    <button
+                      key={i.cohortId}
+                      type="button"
+                      aria-pressed={i.cohortId === cohortId}
+                      onClick={() => setCohortId(i.cohortId)}
+                      className={`max-w-full truncate rounded-full border px-3 py-1 text-xs transition-colors ${
+                        i.cohortId === cohortId
+                          ? "border-primary bg-primary/10 font-medium text-foreground"
+                          : "border-border text-muted-foreground hover:bg-muted/50"
+                      }`}
+                    >
+                      {[i.programa, i.entidade].filter(Boolean).join(" · ") || "Programa"}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           )}
 
           <WidgetRoadmap
-            key={selecionado ? chave(selecionado) : "modelo"}
+            key={selecionado ? `${selecionado.userId}:${cohortId ?? "sem"}` : "modelo"}
             userId={selecionado?.userId}
-            cohortId={selecionado?.cohortId}
+            cohortId={cohortId ?? undefined}
             title={selecionado ? "Jornada" : "Modelo da jornada"}
-            programLabel={selecionado?.programa ?? null}
-            previewLabel="Exemplo com um programa ativo"
+            programLabel={inscricao?.programa ?? null}
+            previewLabel={
+              selecionado ? "Sem inscrição — ainda não iniciou a jornada" : "Exemplo com um programa ativo"
+            }
             emptyFallback={
               <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                 Não foi possível montar a jornada desta pessoa.

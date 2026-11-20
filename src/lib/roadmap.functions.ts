@@ -62,7 +62,7 @@ export const getRoadmap = createServerFn({ method: "GET" })
     const empty: RoadmapResult = { items: [], preview: false };
 
     // Consulta da jornada de outra pessoa: só para quem tem acesso à página de Gestão.
-    const viewingOther = !!data?.userId && data.userId !== context.userId;
+    const viewingOther = !!data?.userId;
     if (viewingOther) await assertRouteAccess(context.userId, JORNADA_ADMIN_PATH);
     const userId = viewingOther ? (data.userId as string) : context.userId;
     const supabase = viewingOther ? supabaseAdmin : context.supabase;
@@ -110,6 +110,16 @@ export const getRoadmap = createServerFn({ method: "GET" })
     let clusterName = programId ? await clusterOf(programId) : null;
 
     if (!clusterName || !ROADMAP_CLUSTERS.includes(clusterName)) {
+      // Gestão a simular a jornada de alguém sem inscrição: todas as etapas por iniciar.
+      if (viewingOther) {
+        return {
+          items: [
+            ...PHASES.map(({ phase, label }) => ({ phase, label, achieved: false, action: null })),
+            { ...FORMADOR_PHASE, achieved: false, action: null },
+          ],
+          preview: true,
+        };
+      }
       if (!isAdmin) return empty;
 
       const { data: clusterRows } = await supabaseAdmin
@@ -184,82 +194,97 @@ export const getRoadmap = createServerFn({ method: "GET" })
   });
 
 
-export interface ParticipanteJornada {
-  userId: string;
+export interface InscricaoJornada {
   cohortId: string;
-  nome: string;
-  email: string | null;
   programa: string | null;
   entidade: string | null;
   estado: string | null;
 }
 
-/** Participantes inscritos em programas com jornada (Formação de Educadores). */
+export interface ParticipanteJornada {
+  userId: string;
+  nome: string;
+  email: string | null;
+  tipo: string | null;
+  /** Inscrições em programas com jornada (Formação de Educadores). */
+  inscricoes: InscricaoJornada[];
+}
+
+/** Todos os utilizadores da plataforma, com as inscrições que contam para a jornada. */
 export const listParticipantesJornada = createServerFn({ method: "GET" })
   .middleware([attachSupabaseAuth, requireSupabaseAuth])
   .handler(async ({ context }): Promise<ParticipanteJornada[]> => {
     await assertRouteAccess(context.userId, JORNADA_ADMIN_PATH);
 
-    const { data: clusters, error: cErr } = await supabaseAdmin
+    const { data: users, error: uErr } = await supabaseAdmin
+      .from("utilizadores")
+      .select("id, full_name, email, role");
+    if (uErr) throw new Error(uErr.message);
+
+    const { data: roleRows } = await supabaseAdmin.from("user_roles").select("user_id, role_name");
+    const rolesByUser = new Map<string, string[]>();
+    for (const r of roleRows ?? []) {
+      const list = rolesByUser.get(r.user_id as string) ?? [];
+      list.push(r.role_name as string);
+      rolesByUser.set(r.user_id as string, list);
+    }
+
+    const inscricoesByUser = new Map<string, InscricaoJornada[]>();
+    const { data: clusters } = await supabaseAdmin
       .from("clusters")
       .select("id")
       .in("name", ROADMAP_CLUSTERS);
-    if (cErr) throw new Error(cErr.message);
     const clusterIds = (clusters ?? []).map((c) => c.id);
-    if (clusterIds.length === 0) return [];
-
-    const { data: programas, error: pErr } = await supabaseAdmin
-      .from("programas")
-      .select("id, title")
-      .in("cluster_id", clusterIds);
-    if (pErr) throw new Error(pErr.message);
-    const programaTitle = new Map((programas ?? []).map((p) => [p.id, p.title as string | null]));
-    if (programaTitle.size === 0) return [];
-
-    const { data: turmas, error: tErr } = await supabaseAdmin
-      .from("entidades_programas")
-      .select("id, program_id, entity_id")
-      .in("program_id", [...programaTitle.keys()]);
-    if (tErr) throw new Error(tErr.message);
-    const turmaById = new Map((turmas ?? []).map((t) => [t.id, t]));
-    if (turmaById.size === 0) return [];
-
-    const { data: inscritos, error: iErr } = await supabaseAdmin
-      .from("inscritos_programa")
-      .select("user_id, cohort_id, status, created_at")
-      .in("cohort_id", [...turmaById.keys()])
-      .order("created_at", { ascending: false });
-    if (iErr) throw new Error(iErr.message);
-    const rows = inscritos ?? [];
-    if (rows.length === 0) return [];
-
-    const userIds = [...new Set(rows.map((r) => r.user_id).filter(Boolean))] as string[];
-    const entityIds = [
-      ...new Set((turmas ?? []).map((t) => t.entity_id).filter(Boolean)),
-    ] as string[];
-
-    const [{ data: users }, { data: entidades }] = await Promise.all([
-      supabaseAdmin.from("utilizadores").select("id, full_name, email").in("id", userIds),
-      entityIds.length
-        ? supabaseAdmin.from("entidades").select("id, name").in("id", entityIds)
-        : Promise.resolve({ data: [] as { id: string; name: string | null }[] }),
-    ]);
-    const userById = new Map((users ?? []).map((u) => [u.id, u]));
-    const entidadeName = new Map((entidades ?? []).map((e) => [e.id, e.name as string | null]));
-
-    return rows
-      .filter((r) => r.user_id && r.cohort_id)
-      .map((r) => {
+    if (clusterIds.length > 0) {
+      const { data: programas } = await supabaseAdmin
+        .from("programas")
+        .select("id, title")
+        .in("cluster_id", clusterIds);
+      const programaTitle = new Map((programas ?? []).map((p) => [p.id, p.title as string | null]));
+      const { data: turmas } = programaTitle.size
+        ? await supabaseAdmin
+            .from("entidades_programas")
+            .select("id, program_id, entity_id")
+            .in("program_id", [...programaTitle.keys()])
+        : { data: [] as { id: string; program_id: string | null; entity_id: string | null }[] };
+      const turmaById = new Map((turmas ?? []).map((t) => [t.id, t]));
+      const entityIds = [...new Set((turmas ?? []).map((t) => t.entity_id).filter(Boolean))] as string[];
+      const [{ data: inscritos }, { data: entidades }] = await Promise.all([
+        turmaById.size
+          ? supabaseAdmin
+              .from("inscritos_programa")
+              .select("user_id, cohort_id, status, created_at")
+              .in("cohort_id", [...turmaById.keys()])
+              .order("created_at", { ascending: false })
+          : Promise.resolve({ data: [] as { user_id: string; cohort_id: string; status: string | null }[] }),
+        entityIds.length
+          ? supabaseAdmin.from("entidades").select("id, name").in("id", entityIds)
+          : Promise.resolve({ data: [] as { id: string; name: string | null }[] }),
+      ]);
+      const entidadeName = new Map((entidades ?? []).map((e) => [e.id, e.name as string | null]));
+      for (const r of inscritos ?? []) {
+        if (!r.user_id || !r.cohort_id) continue;
         const turma = turmaById.get(r.cohort_id as string);
-        const u = userById.get(r.user_id as string);
-        return {
-          userId: r.user_id as string,
+        const list = inscricoesByUser.get(r.user_id as string) ?? [];
+        list.push({
           cohortId: r.cohort_id as string,
-          nome: (u?.full_name as string | null)?.trim() || (u?.email as string | null) || "Sem nome",
-          email: (u?.email as string | null) ?? null,
           programa: turma?.program_id ? (programaTitle.get(turma.program_id) ?? null) : null,
           entidade: turma?.entity_id ? (entidadeName.get(turma.entity_id) ?? null) : null,
           estado: (r.status as string | null) ?? null,
+        });
+        inscricoesByUser.set(r.user_id as string, list);
+      }
+    }
+
+    return (users ?? [])
+      .map((u) => {
+        const roles = rolesByUser.get(u.id as string) ?? (u.role ? [u.role as string] : []);
+        return {
+          userId: u.id as string,
+          nome: (u.full_name as string | null)?.trim() || (u.email as string | null) || "Sem nome",
+          email: (u.email as string | null) ?? null,
+          tipo: roles.length ? roles.join(", ") : null,
+          inscricoes: inscricoesByUser.get(u.id as string) ?? [],
         };
       })
       .sort((a, b) => a.nome.localeCompare(b.nome, "pt"));

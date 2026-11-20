@@ -108,4 +108,4 @@
 - [x] Validado a 375px e 1280px: sem sublinhado, sem corte de texto e sem scroll horizontal
 
 ## Jornada do utilizador
-- [x] Página própria em Gestão (/admin/jornada) só para Admin e Equipa IPAV, com lista de participantes
+- [x] Página própria em Gestão (/admin/jornada) só para Admin e Equipa IPAV, com todos os utilizadores para simular a fase
