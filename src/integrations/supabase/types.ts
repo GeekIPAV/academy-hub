@@ -478,6 +478,60 @@ export type Database = {
           },
         ]
       }
+      badge_excecoes: {
+        Row: {
+          badge_id: string
+          criado_em: string
+          criado_por: string | null
+          etapa: string
+          id: string
+          motivo: string
+          program_id: string | null
+          retirado_em: string | null
+          retirado_por: string | null
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          criado_em?: string
+          criado_por?: string | null
+          etapa: string
+          id?: string
+          motivo: string
+          program_id?: string | null
+          retirado_em?: string | null
+          retirado_por?: string | null
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          criado_em?: string
+          criado_por?: string | null
+          etapa?: string
+          id?: string
+          motivo?: string
+          program_id?: string | null
+          retirado_em?: string | null
+          retirado_por?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "badge_excecoes_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "badge_excecoes_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       badge_role_auto_grant: {
         Row: {
           badge_id: string
@@ -2227,6 +2281,9 @@ export type Database = {
         Row: {
           acreditacao: boolean
           aviso_fim_acesso_dias: number
+          badge_final_id: string | null
+          badge_inscricao_id: string | null
+          badge_renovacao_id: string | null
           certificacao: boolean
           cluster: string | null
           cluster_id: string | null
@@ -2246,6 +2303,7 @@ export type Database = {
           metadata: Json | null
           notion_id: string | null
           public_enroll_token: string | null
+          renovacao_ativa: boolean
           required_fields: Json | null
           status: string
           su_badge_id: string | null
@@ -2255,6 +2313,9 @@ export type Database = {
         Insert: {
           acreditacao?: boolean
           aviso_fim_acesso_dias?: number
+          badge_final_id?: string | null
+          badge_inscricao_id?: string | null
+          badge_renovacao_id?: string | null
           certificacao?: boolean
           cluster?: string | null
           cluster_id?: string | null
@@ -2274,6 +2335,7 @@ export type Database = {
           metadata?: Json | null
           notion_id?: string | null
           public_enroll_token?: string | null
+          renovacao_ativa?: boolean
           required_fields?: Json | null
           status?: string
           su_badge_id?: string | null
@@ -2283,6 +2345,9 @@ export type Database = {
         Update: {
           acreditacao?: boolean
           aviso_fim_acesso_dias?: number
+          badge_final_id?: string | null
+          badge_inscricao_id?: string | null
+          badge_renovacao_id?: string | null
           certificacao?: boolean
           cluster?: string | null
           cluster_id?: string | null
@@ -2302,6 +2367,7 @@ export type Database = {
           metadata?: Json | null
           notion_id?: string | null
           public_enroll_token?: string | null
+          renovacao_ativa?: boolean
           required_fields?: Json | null
           status?: string
           su_badge_id?: string | null
@@ -2309,6 +2375,27 @@ export type Database = {
           title?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "programas_badge_renovacao_id_fkey"
+            columns: ["badge_renovacao_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programas_badge_inscricao_id_fkey"
+            columns: ["badge_inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programas_badge_final_id_fkey"
+            columns: ["badge_final_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "programas_su_badge_id_fkey"
             columns: ["su_badge_id"]

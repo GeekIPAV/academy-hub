@@ -16,6 +16,7 @@ export type FaseId =
   | "inscrito_ftp"
   | "presenca_por_marcar"
   | "semana_ubuntu"
+  | "concluido"
   | "faltou"
   | "desistiu"
   | "terminado";
@@ -24,7 +25,7 @@ export interface FaseInfo {
   id: FaseId;
   label: string;
   /** Etapa do percurso a que pertence (para agrupar no funil). */
-  etapa: "Inscrição" | "FTC" | "FTP" | "Semana Ubuntu" | "Fora do percurso";
+  etapa: "Inscrição" | "FTC" | "FTP" | "Semana Ubuntu" | "Sessão Final" | "Fora do percurso";
   tom: "grey" | "navy" | "yellow" | "red" | "green" | "orange";
 }
 
@@ -38,6 +39,7 @@ export const FASES: FaseInfo[] = [
   { id: "inscrito_ftp", label: "Inscrito na FTP", etapa: "FTP", tom: "navy" },
   { id: "presenca_por_marcar", label: "Presença por marcar", etapa: "FTP", tom: "red" },
   { id: "semana_ubuntu", label: "Semana Ubuntu", etapa: "Semana Ubuntu", tom: "green" },
+  { id: "concluido", label: "Percurso concluído", etapa: "Sessão Final", tom: "green" },
   { id: "faltou", label: "Faltou à FTP", etapa: "Fora do percurso", tom: "red" },
   { id: "desistiu", label: "Desistiu", etapa: "Fora do percurso", tom: "grey" },
   { id: "terminado", label: "Ano letivo terminado", etapa: "Fora do percurso", tom: "grey" },
@@ -58,6 +60,10 @@ export interface EstadoEducador {
   prazoExtraAte: string | null;
   atrasoPermitido: boolean;
   fimAcesso: string | null;
+  /** Badge «Apto para a Semana Ubuntu» dado à mão, como exceção da equipa. */
+  excecaoSemanaUbuntu?: boolean;
+  /** O programa oferece renovação depois do fim do ano letivo. */
+  renovacaoAtiva?: boolean;
 }
 
 export interface FaseCalculada {
@@ -68,6 +74,8 @@ export interface FaseCalculada {
   quem: "Educador" | "Escola" | "Equipa IPAV" | null;
   /** Precisa de atenção da equipa. */
   alerta: boolean;
+  /** Está nesta fase por decisão da equipa (badge dado à mão). */
+  porExcecao?: boolean;
 }
 
 const dia = (d: string) => formatarDataPt(d, { day: "numeric", month: "short" });
@@ -77,15 +85,31 @@ export function calcularFase(e: EstadoEducador): FaseCalculada {
   if (e.estadoPrograma === "lista_espera" || e.estadoPrograma === "pendente") {
     return { fase: "pendente", proximo: "Aprovar a inscrição no programa.", quem: "Equipa IPAV", alerta: true };
   }
+  if (e.estadoPrograma === "concluido") {
+    return { fase: "concluido", proximo: "Percurso concluído.", quem: null, alerta: false };
+  }
   if (e.fimAcesso && e.hoje > e.fimAcesso) {
-    return { fase: "terminado", proximo: `Acesso fechado a ${dia(e.fimAcesso)}.`, quem: null, alerta: false };
+    return e.renovacaoAtiva
+      ? { fase: "terminado", proximo: "Convidar a renovar para replicação.", quem: "Equipa IPAV", alerta: false }
+      : { fase: "terminado", proximo: `Acesso fechado a ${dia(e.fimAcesso)}.`, quem: null, alerta: false };
   }
   if (e.inscricaoFtp === "presente") {
     return {
       fase: "semana_ubuntu",
-      proximo: e.aptoSemanaUbuntu ? "Viver a Semana Ubuntu no slot da escola." : "Definir o badge «Apto para a Semana Ubuntu» do programa.",
+      proximo: e.aptoSemanaUbuntu
+        ? "Viver a Semana Ubuntu; depois, concluir a Sessão Final."
+        : "Definir o badge «Apto para a Semana Ubuntu» do programa.",
       quem: e.aptoSemanaUbuntu ? "Educador" : "Equipa IPAV",
       alerta: !e.aptoSemanaUbuntu,
+    };
+  }
+  if (e.aptoSemanaUbuntu && e.excecaoSemanaUbuntu) {
+    return {
+      fase: "semana_ubuntu",
+      proximo: "Viver a Semana Ubuntu (por decisão da equipa, sem presença registada na FTP).",
+      quem: "Educador",
+      alerta: false,
+      porExcecao: true,
     };
   }
   if (e.inscricaoFtp === "faltou") return { fase: "faltou", proximo: "Escolher outra FTP com a escola.", quem: "Equipa IPAV", alerta: true };

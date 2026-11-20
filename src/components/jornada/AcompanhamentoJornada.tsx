@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle,
+  Award,
   BellRing,
   Check,
   Loader2,
@@ -33,7 +34,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MaisTempo, TurmaFtpDialog } from "@/components/equipa/TurmaFtpDialog";
-import { getAcompanhamento, lembrarEducadores, type LinhaAcompanhamento } from "@/lib/jornada-acompanhamento.functions";
+import { getAcompanhamento, lembrarEducadores, type BadgeDaLinha, type LinhaAcompanhamento } from "@/lib/jornada-acompanhamento.functions";
+import { concluirSessaoFinal, prolongarBadge, retirarExcecaoBadge } from "@/lib/badges-etapas.functions";
+import type { EtapaBadge } from "@/lib/badges-etapas";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { darMaisTempoFtc, marcarPresencaFtp, registarDesistencia } from "@/lib/ftp-etapas.functions";
 import { atualizarEstadoParticipante } from "@/lib/equipa-programas.functions";
 import { FASES, FASE_POR_ID, type FaseId } from "@/lib/jornada-fases";
@@ -41,7 +45,7 @@ import { formatarDataPt, hojeISO } from "@/lib/ftp-calendario";
 
 const TODOS = "__todos";
 const curta = (d: string | null | undefined) => (d ? formatarDataPt(d, { day: "numeric", month: "short" }) : "—");
-const ETAPAS = ["Inscrição", "FTC", "FTP", "Semana Ubuntu", "Fora do percurso"] as const;
+const ETAPAS = ["Inscrição", "FTC", "FTP", "Semana Ubuntu", "Sessão Final", "Fora do percurso"] as const;
 
 function FaseChip({ fase }: { fase: FaseId }) {
   const f = FASE_POR_ID[fase];
@@ -59,6 +63,9 @@ function useAcoesEducador(chave: unknown[]) {
   const desistFn = useServerFn(registarDesistencia);
   const tempoFn = useServerFn(darMaisTempoFtc);
   const aprovarFn = useServerFn(atualizarEstadoParticipante);
+  const sessaoFinalFn = useServerFn(concluirSessaoFinal);
+  const prolongarFn = useServerFn(prolongarBadge);
+  const retirarExcecaoFn = useServerFn(retirarExcecaoBadge);
   const erro = (e: Error) => toast.error(e.message);
   return {
     presenca: useMutation({
@@ -89,6 +96,36 @@ function useAcoesEducador(chave: unknown[]) {
       mutationFn: (id: string) => aprovarFn({ data: { id, status: "aprovada" } }),
       onSuccess: () => {
         toast.success("Inscrição aprovada.");
+        invalidar();
+      },
+      onError: erro,
+    }),
+    sessaoFinal: useMutation({
+      mutationFn: (v: { inscricaoProgramaId: string; concluida: boolean }) => sessaoFinalFn({ data: v }),
+      onSuccess: (r, v) => {
+        toast.success(
+          v.concluida
+            ? r.semBadge
+              ? "Percurso concluído. Define o badge da Sessão Final nas regras do programa."
+              : "Percurso concluído. O badge final foi atribuído."
+            : "Conclusão retirada.",
+        );
+        invalidar();
+      },
+      onError: erro,
+    }),
+    prolongar: useMutation({
+      mutationFn: (v: { userId: string; badgeId: string; ate: string | null }) => prolongarFn({ data: v }),
+      onSuccess: () => {
+        toast.success("Validade do badge atualizada.");
+        invalidar();
+      },
+      onError: erro,
+    }),
+    retirarExcecao: useMutation({
+      mutationFn: (excecaoId: string) => retirarExcecaoFn({ data: { excecaoId } }),
+      onSuccess: (r) => {
+        toast.success(r.badgeRetirado ? "Exceção retirada. O badge foi retirado." : "Exceção retirada; a etapa já está cumprida.");
         invalidar();
       },
       onError: erro,
@@ -384,7 +421,11 @@ export function AcompanhamentoJornada() {
                     </TableCell>
                     <TableCell className="text-sm tabular-nums">{l.ftp ? curta(l.ftp.start_date) : <span className="text-muted-foreground">—</span>}</TableCell>
                     <TableCell>
-                      <FaseChip fase={l.fase} />
+                      <div className="flex flex-col items-start gap-1">
+                        <FaseChip fase={l.fase} />
+                        {l.porExcecao && <StatusChip tone="navy">Por decisão da equipa</StatusChip>}
+                        {l.aviso_badge && <span className="text-[11px] font-medium text-[#6B4200]">Badge a expirar</span>}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <p className={`text-sm ${l.alerta ? "font-medium text-[#B42318]" : ""}`}>{l.proximo}</p>
@@ -477,11 +518,13 @@ function Marco({
   atual,
   titulo,
   detalhe,
+  badge,
 }: {
   feito: boolean;
   atual?: boolean;
   titulo: string;
   detalhe?: string | null;
+  badge?: BadgeDaLinha | null;
 }) {
   return (
     <li className="group flex gap-3">
@@ -503,8 +546,39 @@ function Marco({
           {atual && <span className="sr-only"> (etapa atual)</span>}
         </p>
         {detalhe && <p className="text-xs text-muted-foreground">{detalhe}</p>}
+        {badge && <BadgeDoMarco b={badge} />}
       </div>
     </li>
+  );
+}
+
+function BadgeDoMarco({ b }: { b: BadgeDaLinha }) {
+  const tom = b.excecao
+    ? "border-[#C9D6E8] bg-[#E6EDF6]"
+    : b.tem
+      ? "border-transparent bg-muted/60"
+      : "border-dashed border-border bg-card";
+  const info = b.excecao
+    ? `Dado à mão a ${curta(b.excecao.criado_em.slice(0, 10))} · ${b.excecao.motivo}`
+    : b.tem
+      ? b.expira_em
+        ? `Válido até ${formatarDataPt(b.expira_em.slice(0, 10))}`
+        : "Permanente"
+      : "Dado ao cumprir esta etapa";
+  return (
+    <div className={`mt-2 flex items-center gap-2.5 rounded-lg border px-2.5 py-2 ${tom}`}>
+      <span
+        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+          b.tem ? (b.excecao ? "bg-white text-secondary" : "bg-[#E7F5EE] text-[#11643F]") : "bg-[#EFEFF1] text-[#544E4F]"
+        }`}
+      >
+        <Award className="h-3.5 w-3.5" aria-hidden="true" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-secondary">{b.titulo}</p>
+        <p className="text-[11px] text-muted-foreground">{info}</p>
+      </div>
+    </div>
   );
 }
 
@@ -519,7 +593,11 @@ function FichaEducador({
   onClose: () => void;
   onTurma: (ftpId: string) => void;
 }) {
-  const ordem: FaseId[] = ["pendente", "sem_ftp", "aguarda_ftc", "ftc_em_curso", "ftc_atraso", "inscricao_ftp", "inscrito_ftp", "presenca_por_marcar", "semana_ubuntu"];
+  const ordem: FaseId[] = ["pendente", "sem_ftp", "aguarda_ftc", "ftc_em_curso", "ftc_atraso", "inscricao_ftp", "inscrito_ftp", "presenca_por_marcar", "semana_ubuntu", "concluido"];
+  const badgeDe = (etapa: EtapaBadge) => l?.badges.find((b) => b.etapa === etapa) ?? null;
+  const excecoes = (l?.badges ?? []).filter((b) => b.excecao);
+  const aExpirar = (l?.badges ?? []).find((b) => b.tem && b.expira_em && l?.fim_acesso && b.expira_em.slice(0, 10) < l.fim_acesso) ?? null;
+  const concluido = l?.estado_programa === "concluido";
   const pos = l ? ordem.indexOf(l.fase) : -1;
   const passou = (f: FaseId) => pos > ordem.indexOf(f);
   const j = l?.janela ?? null;
@@ -537,6 +615,7 @@ function FichaEducador({
               </SheetDescription>
               <div className="flex flex-wrap gap-2 pt-1">
                 <FaseChip fase={l.fase} />
+                {l.porExcecao && <StatusChip tone="navy">Por decisão da equipa</StatusChip>}
                 {l.alerta && <StatusChip tone="red">Precisa de ação</StatusChip>}
               </div>
             </SheetHeader>
@@ -547,8 +626,17 @@ function FichaEducador({
               {l.quem && <p className="mt-1 text-xs opacity-80">Quem: {l.quem}</p>}
             </div>
 
+            {l.aviso_badge && (
+              <div role="note" className="flex gap-2.5 rounded-lg bg-[#FFF1CC] p-3 text-sm text-[#6B4200]">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <p>
+                  <strong className="font-semibold">Um badge expira antes do fim do percurso.</strong> {l.aviso_badge}
+                </p>
+              </div>
+            )}
+
             <ol>
-              <Marco feito={l.fase !== "pendente"} atual={l.fase === "pendente"} titulo="Inscrição no programa" detalhe={l.fase === "pendente" ? "Por aprovar" : "Aprovada"} />
+              <Marco feito={l.fase !== "pendente"} atual={l.fase === "pendente"} titulo="Inscrição no programa" detalhe={l.fase === "pendente" ? "Por aprovar" : "Aprovada"} badge={badgeDe("inscricao")} />
               <Marco
                 feito={!!l.ftp && l.fase !== "sem_ftp"}
                 atual={l.fase === "sem_ftp"}
@@ -566,6 +654,7 @@ function FichaEducador({
                       ? `De ${curta(j.abertura)} a ${curta(j.fimConclusao)}${l.prazo_extra_ate ? ` · prazo extra até ${curta(l.prazo_extra_ate)}` : ""}`
                       : null
                 }
+                badge={badgeDe("ftc")}
               />
               <Marco
                 feito={l.inscricao_ftp === "aceite" || l.inscricao_ftp === "presente"}
@@ -584,6 +673,13 @@ function FichaEducador({
                 atual={l.fase === "semana_ubuntu"}
                 titulo="Semana Ubuntu"
                 detalhe={l.apto_semana_ubuntu ? "Bloco aberto no Centro de recursos" : null}
+                badge={badgeDe("presenca_ftp")}
+              />
+              <Marco
+                feito={concluido}
+                titulo="Sessão Final"
+                detalhe={concluido ? "Concluída · percurso fechado" : "Fecha o percurso"}
+                badge={badgeDe("sessao_final")}
               />
               <Marco feito={l.fase === "terminado"} titulo="Fim do acesso" detalhe={l.fim_acesso ? formatarDataPt(l.fim_acesso) : null} />
             </ol>
@@ -616,6 +712,29 @@ function FichaEducador({
                     onGuardar={(ate) => acoes.tempo.mutate({ inscricaoProgramaId: l.inscricao_programa_id, ate })}
                   />
                 )}
+                {(l.fase === "semana_ubuntu" || concluido) && (
+                  <Button
+                    size="sm"
+                    variant={concluido ? "ghost" : "default"}
+                    onClick={() => acoes.sessaoFinal.mutate({ inscricaoProgramaId: l.inscricao_programa_id, concluida: !concluido })}
+                  >
+                    <Check className="mr-1.5 h-4 w-4" />
+                    {concluido ? "Retirar conclusão" : "Concluir Sessão Final"}
+                  </Button>
+                )}
+                {aExpirar && (
+                  <ProlongarBadge
+                    titulo={aExpirar.titulo}
+                    sugestao={l.fim_acesso}
+                    pending={acoes.prolongar.isPending}
+                    onGuardar={(ate) => acoes.prolongar.mutate({ userId: l.user_id, badgeId: aExpirar.badge_id, ate })}
+                  />
+                )}
+                {excecoes.map((b) => (
+                  <Button key={b.excecao!.id} size="sm" variant="ghost" onClick={() => acoes.retirarExcecao.mutate(b.excecao!.id)}>
+                    Retirar exceção
+                  </Button>
+                ))}
                 {l.ftp && (
                   <Button size="sm" variant="outline" onClick={() => onTurma(l.ftp!.id)}>
                     <Users className="mr-1.5 h-4 w-4" />
@@ -636,5 +755,48 @@ function FichaEducador({
         )}
       </SheetContent>
     </Sheet>
+  );
+}
+
+function ProlongarBadge({
+  titulo,
+  sugestao,
+  pending,
+  onGuardar,
+}: {
+  titulo: string;
+  sugestao: string | null;
+  pending: boolean;
+  onGuardar: (ate: string) => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [ate, setAte] = useState(sugestao ?? "");
+  return (
+    <Popover open={aberto} onOpenChange={setAberto}>
+      <PopoverTrigger asChild>
+        <Button size="sm" variant="outline">
+          Prolongar badge
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 space-y-3">
+        <label className="block space-y-1.5 text-[13px] font-medium text-secondary">
+          «{titulo}» válido até
+          <Input type="date" value={ate} onChange={(e) => setAte(e.target.value)} />
+        </label>
+        <p className="text-xs text-muted-foreground">Sugestão: o fim do acesso ao percurso.</p>
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            disabled={!ate || pending}
+            onClick={() => {
+              onGuardar(ate);
+              setAberto(false);
+            }}
+          >
+            Guardar
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }

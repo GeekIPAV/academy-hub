@@ -44,6 +44,12 @@ describe("fase do Educador", () => {
     expect(fase({ ftpAtiva: false })).toBe("sem_ftp");
   });
 
+  it("exceções, conclusão e renovação", () => {
+    expect(calcularFase({ ...base, hoje: "2027-02-20", aptoSemanaUbuntu: true, excecaoSemanaUbuntu: true })).toMatchObject({ fase: "semana_ubuntu", porExcecao: true });
+    expect(fase({ estadoPrograma: "concluido" })).toBe("concluido");
+    expect(calcularFase({ ...base, hoje: "2027-09-01", renovacaoAtiva: true }).proximo).toContain("renovar");
+  });
+
   it("o prazo extra mantém a FTC em curso", () => {
     expect(fase({ hoje: "2027-02-09", prazoExtraAte: "2027-02-11" })).toBe("ftc_em_curso");
   });

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { sincronizarFtcDaEscola } from "@/lib/ftp-calendario.server";
+import { darBadgeInscricao } from "@/lib/badges-etapas.server";
 
 const SITE_URL = "https://app.ipav.pt";
 
@@ -547,6 +548,8 @@ export const atualizarEstadoParticipante = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (data.status === "aprovada" && row?.cohort_id && row.user_id) {
       await sincronizarFtcDaEscola(row.cohort_id, { userIds: [row.user_id] });
+      const { data: c } = await supabaseAdmin.from("entidades_programas").select("program_id").eq("id", row.cohort_id).maybeSingle();
+      await darBadgeInscricao(c?.program_id ?? null, row.user_id);
     }
     return { ok: true };
   });

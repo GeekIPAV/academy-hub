@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { TurmaFtpDialog } from "@/components/equipa/TurmaFtpDialog";
+import { BadgesDasEtapas } from "@/components/equipa/BadgesDasEtapas";
 import { EnvioAlunosResumo } from "@/components/semana-ubuntu/AlunosSemanaUbuntu";
 import { DocumentosSemanaUbuntuEquipa } from "@/components/semana-ubuntu/DocumentosSemanaUbuntuEquipa";
 import { guardarRegrasPrograma } from "@/lib/ftp-etapas.functions";
@@ -87,6 +88,7 @@ export function CalendarioFtpEquipa({ programId }: { programId: string }) {
     <div className="space-y-5">
       <FtcDoPrograma cal={data} />
       <RegrasDoPrograma key={`${data.programa.id}-${data.programa.su_badge_id}-${data.programa.ftp_dias_decisao}-${data.programa.ftc_atraso_permitido}-${data.programa.fim_acesso}-${data.programa.aviso_fim_acesso_dias}`} cal={data} />
+      <BadgesDasEtapas programId={data.programa.id} />
 
       <DatasTabela
         cal={data}
@@ -244,7 +246,6 @@ function RegrasDoPrograma({ cal }: { cal: CalendarioPrograma }) {
         >
           <Input id="regra-aviso" type="number" min={0} max={120} value={f.aviso} onChange={(e) => setF({ ...f, aviso: e.target.value })} />
         </FormField>
-        <div className="hidden md:block" />
         <FormField
           id="regra-atraso"
           label="Prazo falhado na FTC"
@@ -265,25 +266,6 @@ function RegrasDoPrograma({ cal }: { cal: CalendarioPrograma }) {
           hint="Dias antes da FTP em que a data passa a «Decidir já» se não tiver o mínimo de Educadores."
         >
           <Input id="regra-dias" type="number" min={0} max={120} value={f.dias} onChange={(e) => setF({ ...f, dias: e.target.value })} />
-        </FormField>
-        <FormField
-          id="regra-badge"
-          label="Badge «Apto para a Semana Ubuntu»"
-          hint="Atribuído ao marcar a presença na FTP. Abre os temas do bloco Semana Ubuntu (bloco «SU») do cluster do programa no Centro de recursos."
-        >
-          <Select value={f.badge} onValueChange={(v) => setF({ ...f, badge: v })}>
-            <SelectTrigger id="regra-badge">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NENHUMA}>Sem badge (Semana Ubuntu sempre aberta)</SelectItem>
-              {cal.badges.map((b) => (
-                <SelectItem key={b.id} value={b.id}>
-                  {b.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </FormField>
       </div>
     </Section>

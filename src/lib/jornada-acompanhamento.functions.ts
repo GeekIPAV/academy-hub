@@ -5,6 +5,17 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { fimAcessoAnoLetivo, ftpAtiva, hojeISO, janelaFtc, type JanelaFtc } from "@/lib/ftp-calendario";
 import { assertEquipaOuAdmin, notificarUtilizadores } from "@/lib/ftp-calendario.server";
 import { calcularFase, type FaseCalculada } from "@/lib/jornada-fases";
+import { badgesDoPrograma } from "@/lib/badges-etapas.server";
+import { ETAPAS_BADGE, expiraAntes, type EtapaBadge } from "@/lib/badges-etapas";
+
+export interface BadgeDaLinha {
+  etapa: EtapaBadge;
+  badge_id: string;
+  titulo: string;
+  tem: boolean;
+  expira_em: string | null;
+  excecao: { id: string; motivo: string; criado_em: string } | null;
+}
 
 /**
  * Acompanhamento da jornada (/admin/jornada): onde está cada Educador, o que
@@ -29,6 +40,9 @@ export interface LinhaAcompanhamento extends FaseCalculada {
   apto_semana_ubuntu: boolean;
   prazo_extra_ate: string | null;
   fim_acesso: string | null;
+  badges: BadgeDaLinha[];
+  /** Um badge que a pessoa tem acaba antes do fim do acesso. */
+  aviso_badge: string | null;
 }
 
 export interface Acompanhamento {
@@ -57,12 +71,13 @@ type Programa = {
   ftc_atraso_permitido: boolean;
   su_badge_id: string | null;
   fim_acesso: string;
+  renovacao_ativa: boolean;
 };
 
 async function carregarAcompanhamento(programId: string | null): Promise<Acompanhamento> {
   const pq = supabaseAdmin
     .from("programas")
-    .select("id, title, ftc_curso_id, ftc_atraso_permitido, su_badge_id, fim_acesso, is_active")
+    .select("id, title, ftc_curso_id, ftc_atraso_permitido, su_badge_id, fim_acesso, renovacao_ativa, is_active")
     .order("title");
   const { data: todosProgramas, error: pErr } = await pq;
   if (pErr) throw new Error(pErr.message);
@@ -134,12 +149,31 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
   const ftpMap = new Map((ftps ?? []).map((f) => [f.id, f]));
   const badgeFtcDe = new Map((cursos ?? []).map((c) => [c.id, c.badge_final_id]));
 
+  const badgesProg = new Map(
+    await Promise.all(programas.map(async (p) => [p.id, await badgesDoPrograma(p.id)] as const)),
+  );
   const badgeIds = Array.from(
     new Set([
       ...(cursos ?? []).map((c) => c.badge_final_id),
       ...programas.map((p) => p.su_badge_id),
+      ...Array.from(badgesProg.values()).flatMap((b) => Object.values(b).map((x) => x.id)),
     ].filter((id): id is string => !!id)),
   );
+  const [{ data: badgeTitulos }, excecoes] = await Promise.all([
+    badgeIds.length
+      ? supabaseAdmin.from("badges").select("id, title").in("id", badgeIds)
+      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+    emLotes(userIds, async (l) => {
+      const { data } = await supabaseAdmin
+        .from("badge_excecoes")
+        .select("id, user_id, badge_id, program_id, etapa, motivo, criado_em")
+        .in("user_id", l)
+        .is("retirado_em", null);
+      return data ?? [];
+    }),
+  ]);
+  const tituloBadge = new Map((badgeTitulos ?? []).map((b) => [b.id, b.title]));
+  const excecaoDe = new Map(excecoes.map((x) => [`${x.user_id}:${x.badge_id}:${x.program_id}`, x]));
 
   const [ftcInsc, badges, naFtp] = await Promise.all([
     cursoIds.length
@@ -179,6 +213,7 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
   const temBadge = new Set(
     badges.filter((b) => !b.expires_at || Date.parse(b.expires_at) > agora).map((b) => `${b.user_id}:${b.badge_id}`),
   );
+  const expiraDe = new Map(badges.map((b) => [`${b.user_id}:${b.badge_id}`, b.expires_at]));
   const ftcDe = new Map(ftcInsc.map((i) => [`${i.user_id}:${i.curso_id}`, i]));
   const ftpDe = new Map(naFtp.map((i) => [`${i.user_id}:${i.action_id}`, i.status]));
   const hoje = hojeISO();
@@ -195,6 +230,23 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
     const inscricaoFtp = ftpRow ? ftpDe.get(`${i.user_id}:${ftpRow.id}`) ?? null : null;
     const apto = prog.su_badge_id ? temBadge.has(`${i.user_id}:${prog.su_badge_id}`) : false;
     const fimAcesso = ftpRow?.start_date ? fimAcessoAnoLetivo(ftpRow.start_date, prog.fim_acesso) : null;
+    const bp = badgesProg.get(prog.id);
+    const badgesLinha: BadgeDaLinha[] = bp
+      ? ETAPAS_BADGE.filter((e) => bp[e.id].id).map((e) => {
+          const id = bp[e.id].id!;
+          const exc = excecaoDe.get(`${i.user_id}:${id}:${prog.id}`) ?? null;
+          return {
+            etapa: e.id,
+            badge_id: id,
+            titulo: tituloBadge.get(id) ?? "Badge",
+            tem: temBadge.has(`${i.user_id}:${id}`),
+            expira_em: expiraDe.get(`${i.user_id}:${id}`) ?? null,
+            excecao: exc ? { id: exc.id, motivo: exc.motivo, criado_em: exc.criado_em } : null,
+          };
+        })
+      : [];
+    const aExpirar = i.status === "concluido" ? null : badgesLinha.find((b) => b.tem && expiraAntes(b.expira_em, fimAcesso));
+    const excecaoSu = badgesLinha.find((b) => b.etapa === "presenca_ftp" && b.excecao && b.tem);
     const fase = calcularFase({
       hoje,
       estadoPrograma: i.status,
@@ -208,6 +260,8 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
       prazoExtraAte: i.ftc_prazo_extra_ate,
       atrasoPermitido: prog.ftc_atraso_permitido,
       fimAcesso,
+      excecaoSemanaUbuntu: !!excecaoSu,
+      renovacaoAtiva: prog.renovacao_ativa,
     });
     return {
       ...fase,
@@ -227,6 +281,10 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
       apto_semana_ubuntu: apto,
       prazo_extra_ate: i.ftc_prazo_extra_ate,
       fim_acesso: fimAcesso,
+      badges: badgesLinha,
+      aviso_badge: aExpirar && fimAcesso
+        ? `«${aExpirar.titulo}» acaba a ${aExpirar.expira_em!.slice(0, 10).split("-").reverse().join("/")}, antes do fim do acesso (${fimAcesso.split("-").reverse().join("/")}).`
+        : null,
     };
   });
   linhas.sort((a, b) => Number(b.alerta) - Number(a.alerta) || a.escola.localeCompare(b.escola, "pt-PT") || a.nome.localeCompare(b.nome, "pt-PT"));
