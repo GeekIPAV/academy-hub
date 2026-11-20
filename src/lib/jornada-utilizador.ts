@@ -241,3 +241,101 @@ export function contarEstados(passos: PassoJornada[]): Record<EstadoPasso, numbe
   for (const p of passos) out[p.estado]++;
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Fluxo detalhado: todos os passos do esquema, com ligações e decisões.
+// ---------------------------------------------------------------------------
+
+export interface PassoFluxo extends PassoJornada {
+  id: string;
+  raia: Raia;
+  /** Passos que levam a este, com o rótulo da seta quando existe. */
+  depoisDe?: { id: string; rotulo?: string }[];
+}
+
+export interface DecisaoFluxo {
+  id: string;
+  pergunta: string;
+  depoisDe: string;
+  sim: { id: string; rotulo?: string };
+  nao: { id: string; rotulo?: string };
+}
+
+export interface FaseFluxoDetalhada {
+  id: string;
+  titulo: string;
+  itens: (PassoFluxo | DecisaoFluxo)[];
+}
+
+export function eDecisao(i: PassoFluxo | DecisaoFluxo): i is DecisaoFluxo {
+  return "pergunta" in i;
+}
+
+export const FLUXO_DETALHADO: FaseFluxoDetalhada[] = [
+  {
+    id: "a",
+    titulo: "A · Planeamento e inscrições (junho/julho)",
+    itens: [
+      { id: "a1", raia: "Equipa IPAV", titulo: "Cria as datas de FTP", detalhe: "Por projeto e programa, e os slots da Semana Ubuntu.", estado: "funciona" },
+      { id: "a2", raia: "Escola", titulo: "Inscreve a escola em 1 ou 2 programas", detalhe: "Pelo link Entidades.", estado: "funciona", depoisDe: [{ id: "a1", rotulo: "abre inscrições" }] },
+      { id: "a3", raia: "Escola", titulo: "Escolhe a data da FTP para a sua equipa", detalhe: "E o slot da Semana Ubuntu.", estado: "funciona", depoisDe: [{ id: "a2" }] },
+      { id: "a6", raia: "Equipa IPAV", titulo: "Gere as vagas", detalhe: "Turma de 5 a 20; junta ou cancela uma FTP.", estado: "funciona", depoisDe: [{ id: "a3" }] },
+      { id: "a4", raia: "Escola", titulo: "Convida os seus Educadores", detalhe: "Pelo link da escola.", estado: "parcial", depoisDe: [{ id: "a3" }] },
+      { id: "a5e", raia: "Educador", titulo: "Cria conta pelo link e entra no programa", detalhe: "Preenche os dados de certificação.", estado: "funciona", depoisDe: [{ id: "a4", rotulo: "convite" }] },
+      { id: "a5p", raia: "Plataforma", titulo: "Liga o Educador à FTP escolhida pela escola", detalhe: "Inscreve-o na turma da FTC dessa FTP.", estado: "funciona", depoisDe: [{ id: "a5e" }] },
+    ],
+  },
+  {
+    id: "b",
+    titulo: "B · FTC: abre 2 semanas antes da FTP (e-learning a partir de janeiro)",
+    itens: [
+      { id: "b1p", raia: "Plataforma", titulo: "Abre a FTC 14 dias antes da FTP", detalhe: "E avisa os Educadores.", estado: "funciona", depoisDe: [{ id: "a5p" }] },
+      { id: "b2e", raia: "Educador", titulo: "1.ª semana: faz os módulos da FTC", detalhe: "Em e-learning.", estado: "funciona", depoisDe: [{ id: "b1p", rotulo: "aviso" }, { id: "b3i", rotulo: "mais tempo" }] },
+      { id: "d-prazo", pergunta: "Concluiu na 1.ª semana?", depoisDe: "b2e", sim: { id: "b3p" }, nao: { id: "b3i" } },
+      { id: "b3p", raia: "Plataforma", titulo: "Atribui o badge da FTC", detalhe: "Ao concluir o curso.", estado: "funciona", depoisDe: [{ id: "d-prazo", rotulo: "sim" }] },
+      { id: "b3i", raia: "Equipa IPAV", titulo: "Recebe alerta; regista desistência ou dá mais tempo", detalhe: "Na turma da FTP.", estado: "funciona", depoisDe: [{ id: "d-prazo", rotulo: "não" }] },
+    ],
+  },
+  {
+    id: "c",
+    titulo: "C · FTP presencial (turma de acreditação: 5 a 20 Educadores)",
+    itens: [
+      { id: "c1e", raia: "Educador", titulo: "2.ª semana: inscreve-se na FTP", detalhe: "Só com o badge da FTC.", estado: "funciona", depoisDe: [{ id: "b3p", rotulo: "abre inscrição" }] },
+      { id: "c2i", raia: "Equipa IPAV", titulo: "No dia da FTP, marca as presenças", detalhe: "Na turma da FTP, na plataforma.", estado: "funciona", depoisDe: [{ id: "c1e", rotulo: "no dia da FTP" }] },
+      { id: "d-presente", pergunta: "Esteve presente?", depoisDe: "c2i", sim: { id: "c3p" }, nao: { id: "c4s" } },
+      { id: "c3p", raia: "Plataforma", titulo: "Atribui o badge «Apto para a Semana Ubuntu»", detalhe: "Válido até ao fim do ano letivo.", estado: "funciona", depoisDe: [{ id: "d-presente", rotulo: "sim" }] },
+      { id: "c4s", raia: "Escola", titulo: "Desistência: a escola é avisada", detalhe: "Não abre a Semana Ubuntu a esse Educador.", estado: "funciona", depoisDe: [{ id: "d-presente", rotulo: "não" }] },
+    ],
+  },
+  {
+    id: "d",
+    titulo: "D · Semana Ubuntu (no slot escolhido pela escola)",
+    itens: [
+      { id: "d1s", raia: "Escola", titulo: "Marca a Semana e envia o Excel dos alunos", detalhe: "E recolhe as autorizações dos EE (modelo para descarregar).", estado: "funciona" },
+      { id: "d1i", raia: "Equipa IPAV", titulo: "Recebe alerta e prepara o material", detalhe: "", estado: "funciona", depoisDe: [{ id: "d1s" }] },
+      { id: "d1p", raia: "Plataforma", titulo: "Abre o bloco Semana Ubuntu no Centro de recursos", detalhe: "Para quem tem o badge.", estado: "funciona", depoisDe: [{ id: "c3p" }] },
+      { id: "d1e", raia: "Educador", titulo: "Vive a Semana Ubuntu", detalhe: "Com recursos e planos de sessão.", estado: "funciona", depoisDe: [{ id: "d1i", rotulo: "material pronto" }, { id: "d1p" }] },
+    ],
+  },
+  {
+    id: "e",
+    titulo: "E · Sessão Final, acreditação e fim do ano letivo",
+    itens: [
+      { id: "e1i", raia: "Equipa IPAV", titulo: "Organiza a Sessão Final", detalhe: "", estado: "funciona" },
+      { id: "e1e", raia: "Educador", titulo: "Participa na Sessão Final", detalhe: "", estado: "funciona", depoisDe: [{ id: "e1i" }] },
+      { id: "e1p", raia: "Plataforma", titulo: "Mostra o link e o utilizador do Moodle da ESEPF", detalhe: "", estado: "falta", fase: 4, depoisDe: [{ id: "e1e" }] },
+      { id: "e2e", raia: "Educador", titulo: "Submete portefólio e relatório no Moodle", detalhe: "Acreditação.", estado: "falta", fase: 4, depoisDe: [{ id: "e1e" }, { id: "e1p" }] },
+      { id: "e2s", raia: "Escola", titulo: "Envia a declaração do Agrupamento", detalhe: "Modelo do IPAV.", estado: "parcial", fase: 4 },
+      { id: "e2i", raia: "Equipa IPAV", titulo: "Reúne evidências e dados de certificação", detalhe: "Presenças, DTP.", estado: "falta", fase: 4, depoisDe: [{ id: "e2s" }] },
+      { id: "e3p", raia: "Plataforma", titulo: "No fim do ano letivo fecha a FTC e a Semana Ubuntu", detalhe: "Com aviso para descarregar.", estado: "funciona", depoisDe: [{ id: "e1p" }] },
+    ],
+  },
+];
+
+/** Título curto de um passo ou decisão do fluxo detalhado, para as ligações. */
+export function tituloFluxo(id: string): string {
+  for (const f of FLUXO_DETALHADO) {
+    for (const i of f.itens) if (i.id === id) return eDecisao(i) ? i.pergunta : i.titulo;
+  }
+  return id;
+}

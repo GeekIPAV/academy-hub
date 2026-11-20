@@ -13,9 +13,12 @@ import {
   ESTADO_LABEL,
   FASES_PLANO,
   FLUXO,
+  FLUXO_DETALHADO,
   JORNADAS,
   RAIAS,
   contarEstados,
+  eDecisao,
+  tituloFluxo,
   type EstadoPasso,
   type PassoJornada,
 } from "@/lib/jornada-utilizador";
@@ -261,57 +264,155 @@ function JornadasPorTipo() {
 }
 
 function FluxoDetalhado() {
+  const [modo, setModo] = useState<"simples" | "detalhada">("simples");
   return (
     <Section
-      title="Fluxo detalhado"
-      description="Quem faz o quê em cada fase. A coluna Plataforma é o que acontece sozinho."
-    >
-      <div className="min-w-0 overflow-x-auto">
-        <div className="min-w-[760px] space-y-4">
-          <div className="grid grid-cols-4 gap-3">
-            {RAIAS.map((r) => (
-              <p key={r} className="rounded-md bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground">
-                {r}
-              </p>
-            ))}
-          </div>
-          {FLUXO.map((f) => (
-            <div key={f.id} className="space-y-3">
-              <p className="rounded-md bg-muted px-3 py-2 text-xs font-semibold text-secondary">{f.titulo}</p>
-              <div className="grid grid-cols-4 gap-3">
-                {RAIAS.map((r) => (
-                  <div key={r} className="space-y-2">
-                    {(f.passos[r] ?? []).map((p) => (
-                      <div key={p.titulo} className={`space-y-1.5 rounded-md border border-l-4 bg-card p-3 ${BORDA[p.estado]}`}>
-                        <p className="text-xs font-medium leading-snug text-secondary">{p.titulo}</p>
-                        {p.detalhe && <p className="text-[11px] leading-snug text-muted-foreground">{p.detalhe}</p>}
-                        <div className="flex flex-wrap gap-1">
-                          <StatusChip tone={TOM[p.estado]} className="h-5 px-2 text-[11px]">
-                            {ESTADO_LABEL[p.estado]}
-                          </StatusChip>
-                          {p.fase && (
-                            <StatusChip tone="tag" className="h-5 px-2 text-[11px] font-normal">
-                              Fase {p.fase}
-                            </StatusChip>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-              {f.decisao && (
-                <p className="flex items-start gap-2 rounded-md border border-dashed px-3 py-2 text-xs text-secondary">
-                  <GitBranch className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                  <span>
-                    <strong className="font-semibold">Decisão:</strong> {f.decisao}
-                  </span>
-                </p>
-              )}
-            </div>
+      title="Fluxo da formação"
+      description={
+        modo === "simples"
+          ? "Quem faz o quê em cada fase, em resumo. A coluna Plataforma é o que acontece sozinho."
+          : "Todos os passos, por ordem, com o que leva a cada um e as decisões pelo caminho."
+      }
+      actions={
+        <div role="group" aria-label="Versão do fluxo" className="inline-flex rounded-md border p-0.5">
+          {(["simples", "detalhada"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={modo === m}
+              onClick={() => setModo(m)}
+              className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+                modo === m ? "bg-secondary text-secondary-foreground" : "text-muted-foreground hover:text-secondary"
+              }`}
+            >
+              {m === "simples" ? "Versão simples" : "Versão detalhada"}
+            </button>
           ))}
         </div>
-      </div>
+      }
+    >
+      {modo === "simples" ? <FluxoSimples /> : <FluxoCompleto />}
     </Section>
+  );
+}
+
+function CabecalhoRaias() {
+  return (
+    <div className="grid grid-cols-4 gap-3">
+      {RAIAS.map((r) => (
+        <p key={r} className="rounded-md bg-secondary px-3 py-2 text-xs font-semibold text-secondary-foreground">
+          {r}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+function FluxoSimples() {
+  return (
+    <div className="min-w-0 overflow-x-auto">
+      <div className="min-w-[760px] space-y-4">
+        <CabecalhoRaias />
+        {FLUXO.map((f) => (
+          <div key={f.id} className="space-y-3">
+            <p className="rounded-md bg-muted px-3 py-2 text-xs font-semibold text-secondary">{f.titulo}</p>
+            <div className="grid grid-cols-4 gap-3">
+              {RAIAS.map((r) => (
+                <div key={r} className="space-y-2">
+                  {(f.passos[r] ?? []).map((p) => (
+                    <CartaoPasso key={p.titulo} p={p} />
+                  ))}
+                </div>
+              ))}
+            </div>
+            {f.decisao && (
+              <p className="flex items-start gap-2 rounded-md border border-dashed px-3 py-2 text-xs text-secondary">
+                <GitBranch className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                <span>
+                  <strong className="font-semibold">Decisão:</strong> {f.decisao}
+                </span>
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CartaoPasso({ p, numero, ligacoes }: { p: PassoJornada; numero?: number; ligacoes?: string[] }) {
+  return (
+    <div className={`space-y-1.5 rounded-md border border-l-4 bg-card p-3 ${BORDA[p.estado]}`}>
+      {ligacoes && ligacoes.length > 0 && (
+        <p className="text-[11px] leading-snug text-muted-foreground">
+          {ligacoes.map((l, i) => (
+            <span key={i} className="block">
+              ↳ {l}
+            </span>
+          ))}
+        </p>
+      )}
+      <p className="text-xs font-medium leading-snug text-secondary">
+        {numero != null && <span className="mr-1 tabular-nums text-muted-foreground">{numero}.</span>}
+        {p.titulo}
+      </p>
+      {p.detalhe && <p className="text-[11px] leading-snug text-muted-foreground">{p.detalhe}</p>}
+      <div className="flex flex-wrap gap-1">
+        <StatusChip tone={TOM[p.estado]} className="h-5 px-2 text-[11px]">
+          {ESTADO_LABEL[p.estado]}
+        </StatusChip>
+        {p.fase && (
+          <StatusChip tone="tag" className="h-5 px-2 text-[11px] font-normal">
+            Fase {p.fase}
+          </StatusChip>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FluxoCompleto() {
+  let n = 0;
+  return (
+    <div className="min-w-0 overflow-x-auto">
+      <div className="min-w-[760px] space-y-4">
+        <CabecalhoRaias />
+        {FLUXO_DETALHADO.map((f) => (
+          <div key={f.id} className="space-y-2">
+            <p className="rounded-md bg-muted px-3 py-2 text-xs font-semibold text-secondary">{f.titulo}</p>
+            {f.itens.map((item) => {
+              if (eDecisao(item)) {
+                return (
+                  <div key={item.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-md border border-dashed px-3 py-2 text-xs text-secondary">
+                    <span className="inline-flex items-center gap-2 font-semibold">
+                      <GitBranch className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      {item.pergunta}
+                    </span>
+                    <span>
+                      <strong className="font-semibold text-[#11643F]">Sim</strong> → {tituloFluxo(item.sim.id)}
+                    </span>
+                    <span>
+                      <strong className="font-semibold text-[#B42318]">Não</strong> → {tituloFluxo(item.nao.id)}
+                    </span>
+                  </div>
+                );
+              }
+              n += 1;
+              const col = RAIAS.indexOf(item.raia);
+              const ligacoes = (item.depoisDe ?? [])
+                .filter((d) => !d.id.startsWith("d-"))
+                .map((d) => `${d.rotulo ? `${d.rotulo} · ` : "depois de "}${tituloFluxo(d.id)}`);
+              return (
+                <div key={item.id} className="grid grid-cols-4 gap-3">
+                  <div style={{ gridColumnStart: col + 1 }}>
+                    <CartaoPasso p={item} numero={n} ligacoes={ligacoes} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
