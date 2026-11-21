@@ -34,8 +34,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MaisTempo, TurmaFtpDialog } from "@/components/equipa/TurmaFtpDialog";
-import { getAcompanhamento, lembrarEducadores, type BadgeDaLinha, type LinhaAcompanhamento } from "@/lib/jornada-acompanhamento.functions";
-import { concluirSessaoFinal, prolongarBadge, retirarExcecaoBadge } from "@/lib/badges-etapas.functions";
+import { getAcompanhamento, lembrarEducadores, type Acompanhamento, type BadgeDaLinha, type LinhaAcompanhamento } from "@/lib/jornada-acompanhamento.functions";
+import { atribuirBadgeComExcecao, concluirSessaoFinal, prolongarBadge, retirarExcecaoBadge } from "@/lib/badges-etapas.functions";
+import { inscreverNaFtpPelaEquipa, marcarFtcPelaEquipa } from "@/lib/jornada-gestao.functions";
+import { moverEscolaData } from "@/lib/ftp-calendario.functions";
+import { Textarea } from "@/components/ui/textarea";
 import type { EtapaBadge } from "@/lib/badges-etapas";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { darMaisTempoFtc, marcarPresencaFtp, registarDesistencia } from "@/lib/ftp-etapas.functions";
@@ -66,6 +69,10 @@ function useAcoesEducador(chave: unknown[]) {
   const sessaoFinalFn = useServerFn(concluirSessaoFinal);
   const prolongarFn = useServerFn(prolongarBadge);
   const retirarExcecaoFn = useServerFn(retirarExcecaoBadge);
+  const moverFn = useServerFn(moverEscolaData);
+  const ftcFn = useServerFn(marcarFtcPelaEquipa);
+  const inscreverFn = useServerFn(inscreverNaFtpPelaEquipa);
+  const excecaoFn = useServerFn(atribuirBadgeComExcecao);
   const erro = (e: Error) => toast.error(e.message);
   return {
     presenca: useMutation({
@@ -126,6 +133,39 @@ function useAcoesEducador(chave: unknown[]) {
       mutationFn: (excecaoId: string) => retirarExcecaoFn({ data: { excecaoId } }),
       onSuccess: (r) => {
         toast.success(r.badgeRetirado ? "Exceção retirada. O badge foi retirado." : "Exceção retirada; a etapa já está cumprida.");
+        invalidar();
+      },
+      onError: erro,
+    }),
+    mover: useMutation({
+      mutationFn: (v: { cohortId: string; tipo: "FTP" | "SU"; destinoId: string | null }) => moverFn({ data: v }),
+      onSuccess: (r, v) => {
+        toast.success(v.tipo === "FTP" ? "FTP da escola atualizada. A escola foi avisada." : "Semana Ubuntu da escola atualizada.");
+        if (r.acimaDoMaximo) toast.warning("Esta FTP ficou acima do máximo de vagas.");
+        invalidar();
+      },
+      onError: erro,
+    }),
+    ftc: useMutation({
+      mutationFn: (v: { inscricaoProgramaId: string; concluida: boolean; motivo?: string }) => ftcFn({ data: v }),
+      onSuccess: (_r, v) => {
+        toast.success(v.concluida ? "FTC marcada como concluída." : "Conclusão da FTC retirada.");
+        invalidar();
+      },
+      onError: erro,
+    }),
+    inscreverFtp: useMutation({
+      mutationFn: (v: { inscricaoProgramaId: string; inscrito: boolean }) => inscreverFn({ data: v }),
+      onSuccess: (_r, v) => {
+        toast.success(v.inscrito ? "Inscrito na FTP." : "Inscrição na FTP retirada.");
+        invalidar();
+      },
+      onError: erro,
+    }),
+    excecao: useMutation({
+      mutationFn: (v: { badgeId: string; userId: string; programId: string; etapa: EtapaBadge; motivo: string }) => excecaoFn({ data: v }),
+      onSuccess: () => {
+        toast.success("Badge atribuído por decisão da equipa.");
         invalidar();
       },
       onError: erro,
@@ -444,6 +484,9 @@ export function AcompanhamentoJornada() {
 
       <FichaEducador
         linha={aberto ? linhas.find((l) => l.inscricao_programa_id === aberto.inscricao_programa_id) ?? aberto : null}
+        ftps={data?.ftps ?? []}
+        sus={data?.sus ?? []}
+        colegas={aberto ? linhas.filter((l) => l.cohort_id === aberto.cohort_id).length : 0}
         acoes={acoes}
         onClose={() => setAberto(null)}
         onTurma={setTurma}
@@ -519,12 +562,14 @@ function Marco({
   titulo,
   detalhe,
   badge,
+  children,
 }: {
   feito: boolean;
   atual?: boolean;
   titulo: string;
   detalhe?: string | null;
   badge?: BadgeDaLinha | null;
+  children?: ReactNode;
 }) {
   return (
     <li className="group flex gap-3">
@@ -547,6 +592,7 @@ function Marco({
         </p>
         {detalhe && <p className="text-xs text-muted-foreground">{detalhe}</p>}
         {badge && <BadgeDoMarco b={badge} />}
+        {children && <div className="mt-2 flex flex-wrap items-center gap-2">{children}</div>}
       </div>
     </li>
   );
@@ -582,30 +628,76 @@ function BadgeDoMarco({ b }: { b: BadgeDaLinha }) {
   );
 }
 
+type DataFtp = Acompanhamento["ftps"][number];
+type DataSu = Acompanhamento["sus"][number];
+
+function descreverFtp(f: { start_date: string | null; localizacao: string | null }) {
+  return `${f.start_date ? formatarDataPt(f.start_date) : "Sem data"}${f.localizacao ? ` · ${f.localizacao}` : ""}`;
+}
+function descreverSu(f: { start_date: string | null; end_date: string | null; localizacao: string | null }) {
+  const de = f.start_date ? curta(f.start_date) : "Sem data";
+  const ate = f.end_date && f.end_date !== f.start_date ? ` a ${curta(f.end_date)}` : "";
+  return `${de}${ate}${f.localizacao ? ` · ${f.localizacao}` : ""}`;
+}
+
 function FichaEducador({
   linha: l,
+  ftps,
+  sus,
+  colegas,
   acoes,
   onClose,
   onTurma,
 }: {
   linha: LinhaAcompanhamento | null;
+  ftps: DataFtp[];
+  sus: DataSu[];
+  colegas: number;
   acoes: Acoes;
   onClose: () => void;
   onTurma: (ftpId: string) => void;
 }) {
   const ordem: FaseId[] = ["pendente", "sem_ftp", "aguarda_ftc", "ftc_em_curso", "ftc_atraso", "inscricao_ftp", "inscrito_ftp", "presenca_por_marcar", "semana_ubuntu", "concluido"];
   const badgeDe = (etapa: EtapaBadge) => l?.badges.find((b) => b.etapa === etapa) ?? null;
-  const excecoes = (l?.badges ?? []).filter((b) => b.excecao);
   const aExpirar = (l?.badges ?? []).find((b) => b.tem && b.expira_em && l?.fim_acesso && b.expira_em.slice(0, 10) < l.fim_acesso) ?? null;
   const concluido = l?.estado_programa === "concluido";
   const pos = l ? ordem.indexOf(l.fase) : -1;
   const passou = (f: FaseId) => pos > ordem.indexOf(f);
   const j = l?.janela ?? null;
   const desistiu = l?.estado_programa === "desistiu";
+  const pendente = l?.fase === "pendente";
+
+  /** Botões de badge de uma etapa: dar por decisão da equipa ou retirar a exceção. */
+  const badgeAcoes = (etapa: EtapaBadge, rotulo: string) => {
+    const b = badgeDe(etapa);
+    if (!l || !b) return null;
+    if (b.excecao) {
+      return (
+        <Button size="sm" variant="ghost" className="h-8" onClick={() => acoes.retirarExcecao.mutate(b.excecao!.id)}>
+          Retirar exceção
+        </Button>
+      );
+    }
+    if (b.tem || desistiu) return null;
+    return (
+      <ComMotivo
+        rotulo={rotulo}
+        titulo={`Dar «${b.titulo}» sem a etapa cumprida`}
+        ajuda="Fica registado como decisão da equipa, com o motivo, e aparece assim na jornada."
+        pending={acoes.excecao.isPending}
+        onGuardar={(motivo) => acoes.excecao.mutate({ badgeId: b.badge_id, userId: l.user_id, programId: l.program_id, etapa, motivo })}
+      />
+    );
+  };
+
+  const ftpsDoPrograma = l ? ftps.filter((f) => f.program_id === l.program_id) : [];
+  const susDoPrograma = l ? sus.filter((f) => f.program_id === l.program_id) : [];
+  const avisoEscola = colegas > 1 ? `Vale para toda a escola (${colegas} Educadores). A escola é avisada.` : "A escola é avisada.";
+  const inscritoFtp = l?.inscricao_ftp === "aceite" || l?.inscricao_ftp === "presente";
 
   return (
     <Sheet open={!!l} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full max-w-md overflow-y-auto sm:max-w-md">
+      <SheetContent className="w-full max-w-lg overflow-y-auto sm:max-w-lg">
         {l && (
           <div className="space-y-6">
             <SheetHeader className="text-left">
@@ -635,73 +727,84 @@ function FichaEducador({
               </div>
             )}
 
+            {desistiu && (
+              <div role="note" className="rounded-lg bg-muted/60 p-3 text-sm">
+                Registado como desistência. Retira a desistência no fim da ficha para voltar a gerir as etapas.
+              </div>
+            )}
+
             <ol>
-              <Marco feito={l.fase !== "pendente"} atual={l.fase === "pendente"} titulo="Inscrição no programa" detalhe={l.fase === "pendente" ? "Por aprovar" : "Aprovada"} badge={badgeDe("inscricao")} />
+              <Marco feito={!pendente} atual={pendente} titulo="Inscrição no programa" detalhe={pendente ? "Por aprovar" : "Aprovada"} badge={badgeDe("inscricao")}>
+                {pendente && (
+                  <Button size="sm" className="h-8" onClick={() => acoes.aprovar.mutate(l.inscricao_programa_id)}>
+                    <Check className="mr-1.5 h-4 w-4" />
+                    Aprovar inscrição
+                  </Button>
+                )}
+                {!pendente && badgeAcoes("inscricao", "Dar badge")}
+              </Marco>
+
               <Marco
                 feito={!!l.ftp && l.fase !== "sem_ftp"}
                 atual={l.fase === "sem_ftp"}
                 titulo="FTP escolhida pela escola"
-                detalhe={l.ftp ? `${formatarDataPt(l.ftp.start_date)}${l.ftp.localizacao ? ` · ${l.ftp.localizacao}` : ""}${l.ftp.ativa ? "" : " (cancelada)"}` : "Por escolher"}
-              />
+                detalhe={l.ftp ? `${descreverFtp(l.ftp)}${l.ftp.ativa ? "" : " (cancelada)"}` : "Por escolher"}
+              >
+                {!desistiu && (
+                  <EscolherData
+                    rotulo={l.ftp ? "Mudar FTP" : "Escolher FTP"}
+                    titulo="FTP da escola"
+                    atual={l.ftp?.id ?? null}
+                    opcoes={ftpsDoPrograma.map((f) => ({ id: f.id, nome: descreverFtp(f) }))}
+                    vazio="Este programa ainda não tem datas de FTP. Cria-as no Calendário FTP."
+                    aviso={avisoEscola}
+                    pending={acoes.mover.isPending}
+                    onGuardar={(id) => acoes.mover.mutate({ cohortId: l.cohort_id, tipo: "FTP", destinoId: id })}
+                  />
+                )}
+                {l.ftp && (
+                  <Button size="sm" variant="ghost" className="h-8" onClick={() => onTurma(l.ftp!.id)}>
+                    <Users className="mr-1.5 h-4 w-4" />
+                    Turma
+                  </Button>
+                )}
+              </Marco>
+
               <Marco
                 feito={!!l.ftc.concluida_em}
                 atual={["aguarda_ftc", "ftc_em_curso", "ftc_atraso"].includes(l.fase)}
                 titulo="FTC (e-learning)"
                 detalhe={
-                  l.ftc.concluida_em
-                    ? `Concluída a ${curta(l.ftc.concluida_em)}${l.ftc.badge ? " · badge" : ""}`
-                    : j
-                      ? `De ${curta(j.abertura)} a ${curta(j.fimConclusao)}${l.prazo_extra_ate ? ` · prazo extra até ${curta(l.prazo_extra_ate)}` : ""}`
-                      : null
+                  !l.ftc.curso_id
+                    ? "FTC do programa por definir no Calendário FTP"
+                    : l.ftc.concluida_em
+                      ? `Concluída a ${curta(l.ftc.concluida_em)}${l.ftc.badge ? " · badge" : ""}`
+                      : j
+                        ? `De ${curta(j.abertura)} a ${curta(j.fimConclusao)}${l.prazo_extra_ate ? ` · prazo extra até ${curta(l.prazo_extra_ate)}` : ""}`
+                        : l.ftc.estado === "em_curso"
+                          ? "Em curso"
+                          : null
                 }
                 badge={badgeDe("ftc")}
-              />
-              <Marco
-                feito={l.inscricao_ftp === "aceite" || l.inscricao_ftp === "presente"}
-                atual={l.fase === "inscricao_ftp"}
-                titulo="Inscrição na FTP"
-                detalhe={j ? `De ${curta(j.inscricaoInicio)} a ${curta(j.inscricaoFim)}` : null}
-              />
-              <Marco
-                feito={l.inscricao_ftp === "presente"}
-                atual={l.fase === "inscrito_ftp" || l.fase === "presenca_por_marcar"}
-                titulo="Presença na FTP"
-                detalhe={l.inscricao_ftp === "faltou" ? "Faltou" : l.inscricao_ftp === "presente" ? "Presente" : l.ftp ? curta(l.ftp.start_date) : null}
-              />
-              <Marco
-                feito={l.apto_semana_ubuntu || passou("semana_ubuntu")}
-                atual={l.fase === "semana_ubuntu"}
-                titulo="Semana Ubuntu"
-                detalhe={l.apto_semana_ubuntu ? "Bloco aberto no Centro de recursos" : null}
-                badge={badgeDe("presenca_ftp")}
-              />
-              <Marco
-                feito={concluido}
-                titulo="Sessão Final"
-                detalhe={concluido ? "Concluída · percurso fechado" : "Fecha o percurso"}
-                badge={badgeDe("sessao_final")}
-              />
-              <Marco feito={l.fase === "terminado"} titulo="Fim do acesso" detalhe={l.fim_acesso ? formatarDataPt(l.fim_acesso) : null} />
-            </ol>
-
-            <div className="space-y-2 border-t pt-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Ações</p>
-              <div className="flex flex-wrap gap-2">
-                {l.fase === "pendente" && (
-                  <Button size="sm" onClick={() => acoes.aprovar.mutate(l.inscricao_programa_id)}>
-                    <Check className="mr-1.5 h-4 w-4" />
-                    Aprovar inscrição
-                  </Button>
+              >
+                {l.ftc.curso_id && !desistiu && !l.ftc.concluida_em && (
+                  <ComMotivo
+                    rotulo="Marcar concluída"
+                    titulo="Marcar a FTC como concluída"
+                    ajuda="Conclui a FTC e dá o badge. Fica registado como decisão da equipa."
+                    inicial="Concluiu a FTC fora da plataforma."
+                    pending={acoes.ftc.isPending}
+                    onGuardar={(motivo) => acoes.ftc.mutate({ inscricaoProgramaId: l.inscricao_programa_id, concluida: true, motivo })}
+                  />
                 )}
-                {podeMarcarPresenca(l) && l.inscricao_ftp !== "presente" && (
-                  <Button size="sm" onClick={() => acoes.presenca.mutate({ ftpId: l.ftp!.id, userId: l.user_id, presenca: "presente" })}>
-                    <UserCheck className="mr-1.5 h-4 w-4" />
-                    Marcar presente
-                  </Button>
-                )}
-                {podeMarcarPresenca(l) && l.inscricao_ftp !== "faltou" && (
-                  <Button size="sm" variant="outline" onClick={() => acoes.presenca.mutate({ ftpId: l.ftp!.id, userId: l.user_id, presenca: "faltou" })}>
-                    Marcar falta
+                {l.ftc.concluida_em && !inscritoFtp && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8"
+                    onClick={() => acoes.ftc.mutate({ inscricaoProgramaId: l.inscricao_programa_id, concluida: false })}
+                  >
+                    Retirar conclusão
                   </Button>
                 )}
                 {!l.ftc.concluida_em && !desistiu && j && (
@@ -712,16 +815,117 @@ function FichaEducador({
                     onGuardar={(ate) => acoes.tempo.mutate({ inscricaoProgramaId: l.inscricao_programa_id, ate })}
                   />
                 )}
-                {(l.fase === "semana_ubuntu" || concluido) && (
+              </Marco>
+
+              <Marco
+                feito={inscritoFtp}
+                atual={l.fase === "inscricao_ftp"}
+                titulo="Inscrição na FTP"
+                detalhe={inscritoFtp ? "Inscrito" : j ? `De ${curta(j.inscricaoInicio)} a ${curta(j.inscricaoFim)}` : null}
+              >
+                {l.ftp && !desistiu && !inscritoFtp && (
                   <Button
                     size="sm"
-                    variant={concluido ? "ghost" : "default"}
+                    variant="outline"
+                    className="h-8"
+                    onClick={() => acoes.inscreverFtp.mutate({ inscricaoProgramaId: l.inscricao_programa_id, inscrito: true })}
+                  >
+                    Inscrever na FTP
+                  </Button>
+                )}
+                {l.inscricao_ftp === "aceite" && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8"
+                    onClick={() => acoes.inscreverFtp.mutate({ inscricaoProgramaId: l.inscricao_programa_id, inscrito: false })}
+                  >
+                    Retirar inscrição
+                  </Button>
+                )}
+              </Marco>
+
+              <Marco
+                feito={l.inscricao_ftp === "presente"}
+                atual={l.fase === "inscrito_ftp" || l.fase === "presenca_por_marcar"}
+                titulo="Presença na FTP"
+                detalhe={
+                  l.inscricao_ftp === "faltou"
+                    ? "Faltou"
+                    : l.inscricao_ftp === "presente"
+                      ? "Presente"
+                      : l.ftp?.start_date
+                        ? podeMarcarPresenca(l)
+                          ? curta(l.ftp.start_date)
+                          : `Marca-se a partir de ${curta(l.ftp.start_date)}`
+                        : null
+                }
+              >
+                {podeMarcarPresenca(l) && l.inscricao_ftp !== "presente" && (
+                  <Button size="sm" className="h-8" onClick={() => acoes.presenca.mutate({ ftpId: l.ftp!.id, userId: l.user_id, presenca: "presente" })}>
+                    <UserCheck className="mr-1.5 h-4 w-4" />
+                    Presente
+                  </Button>
+                )}
+                {podeMarcarPresenca(l) && l.inscricao_ftp !== "faltou" && l.inscricao_ftp !== "presente" && (
+                  <Button size="sm" variant="outline" className="h-8" onClick={() => acoes.presenca.mutate({ ftpId: l.ftp!.id, userId: l.user_id, presenca: "faltou" })}>
+                    Faltou
+                  </Button>
+                )}
+                {(l.inscricao_ftp === "presente" || l.inscricao_ftp === "faltou") && l.ftp && (
+                  <Button size="sm" variant="ghost" className="h-8" onClick={() => acoes.presenca.mutate({ ftpId: l.ftp!.id, userId: l.user_id, presenca: "aceite" })}>
+                    {l.inscricao_ftp === "presente" ? "Retirar presença" : "Retirar falta"}
+                  </Button>
+                )}
+              </Marco>
+
+              <Marco
+                feito={l.apto_semana_ubuntu || passou("semana_ubuntu")}
+                atual={l.fase === "semana_ubuntu"}
+                titulo="Semana Ubuntu"
+                detalhe={[
+                  l.su ? `Escola: ${descreverSu(l.su)}` : "Data da escola por escolher",
+                  l.apto_semana_ubuntu ? "Bloco aberto no Centro de recursos" : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+                badge={badgeDe("presenca_ftp")}
+              >
+                {!desistiu && (
+                  <EscolherData
+                    rotulo={l.su ? "Mudar data" : "Escolher data"}
+                    titulo="Semana Ubuntu da escola"
+                    atual={l.su?.id ?? null}
+                    opcoes={susDoPrograma.map((f) => ({ id: f.id, nome: descreverSu(f) }))}
+                    vazio="Este programa ainda não tem datas de Semana Ubuntu. Cria-as no Calendário FTP."
+                    aviso={avisoEscola}
+                    pending={acoes.mover.isPending}
+                    onGuardar={(id) => acoes.mover.mutate({ cohortId: l.cohort_id, tipo: "SU", destinoId: id })}
+                  />
+                )}
+                {badgeAcoes("presenca_ftp", "Abrir sem presença")}
+              </Marco>
+
+              <Marco
+                feito={concluido}
+                titulo="Sessão Final"
+                detalhe={concluido ? "Concluída · percurso fechado" : "Fecha o percurso"}
+                badge={badgeDe("sessao_final")}
+              >
+                {!desistiu && !pendente && (
+                  <Button
+                    size="sm"
+                    variant={concluido ? "ghost" : l.fase === "semana_ubuntu" ? "default" : "outline"}
+                    className="h-8"
                     onClick={() => acoes.sessaoFinal.mutate({ inscricaoProgramaId: l.inscricao_programa_id, concluida: !concluido })}
                   >
-                    <Check className="mr-1.5 h-4 w-4" />
+                    {!concluido && <Check className="mr-1.5 h-4 w-4" />}
                     {concluido ? "Retirar conclusão" : "Concluir Sessão Final"}
                   </Button>
                 )}
+              </Marco>
+
+              <Marco feito={l.fase === "terminado"} titulo="Fim do acesso" detalhe={l.fim_acesso ? formatarDataPt(l.fim_acesso) : "Definido pela data da FTP"}>
                 {aExpirar && (
                   <ProlongarBadge
                     titulo={aExpirar.titulo}
@@ -730,31 +934,164 @@ function FichaEducador({
                     onGuardar={(ate) => acoes.prolongar.mutate({ userId: l.user_id, badgeId: aExpirar.badge_id, ate })}
                   />
                 )}
-                {excecoes.map((b) => (
-                  <Button key={b.excecao!.id} size="sm" variant="ghost" onClick={() => acoes.retirarExcecao.mutate(b.excecao!.id)}>
-                    Retirar exceção
-                  </Button>
-                ))}
-                {l.ftp && (
-                  <Button size="sm" variant="outline" onClick={() => onTurma(l.ftp!.id)}>
-                    <Users className="mr-1.5 h-4 w-4" />
-                    Turma da FTP
-                  </Button>
-                )}
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => acoes.desistencia.mutate({ inscricaoProgramaId: l.inscricao_programa_id, desistiu: !desistiu })}
-                >
-                  <UserX className="mr-1.5 h-4 w-4" />
-                  {desistiu ? "Retirar desistência" : "Registar desistência"}
-                </Button>
-              </div>
+              </Marco>
+            </ol>
+
+            <div className="flex flex-wrap gap-2 border-t pt-4">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => acoes.desistencia.mutate({ inscricaoProgramaId: l.inscricao_programa_id, desistiu: !desistiu })}
+              >
+                <UserX className="mr-1.5 h-4 w-4" />
+                {desistiu ? "Retirar desistência" : "Registar desistência"}
+              </Button>
             </div>
           </div>
         )}
       </SheetContent>
     </Sheet>
+  );
+}
+
+function EscolherData({
+  rotulo,
+  titulo,
+  atual,
+  opcoes,
+  vazio,
+  aviso,
+  pending,
+  onGuardar,
+}: {
+  rotulo: string;
+  titulo: string;
+  atual: string | null;
+  opcoes: { id: string; nome: string }[];
+  vazio: string;
+  aviso: string;
+  pending: boolean;
+  onGuardar: (id: string | null) => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [valor, setValor] = useState<string>(atual ?? "");
+  return (
+    <Popover
+      open={aberto}
+      onOpenChange={(o) => {
+        setAberto(o);
+        if (o) setValor(atual ?? "");
+      }}
+    >
+      <PopoverTrigger asChild>
+        <Button size="sm" variant="outline" className="h-8">
+          {rotulo}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 space-y-3">
+        <p className="text-[13px] font-medium text-secondary">{titulo}</p>
+        {opcoes.length === 0 ? (
+          <p className="text-xs text-muted-foreground">{vazio}</p>
+        ) : (
+          <>
+            <Select value={valor} onValueChange={setValor}>
+              <SelectTrigger>
+                <SelectValue placeholder="Escolhe a data" />
+              </SelectTrigger>
+              <SelectContent>
+                {opcoes.map((o) => (
+                  <SelectItem key={o.id} value={o.id}>
+                    {o.nome}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">{aviso}</p>
+          </>
+        )}
+        <div className="flex justify-between gap-2">
+          {atual ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={pending}
+              onClick={() => {
+                onGuardar(null);
+                setAberto(false);
+              }}
+            >
+              Retirar a data
+            </Button>
+          ) : (
+            <span />
+          )}
+          <Button
+            size="sm"
+            disabled={!valor || valor === atual || pending}
+            onClick={() => {
+              onGuardar(valor);
+              setAberto(false);
+            }}
+          >
+            Guardar
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ComMotivo({
+  rotulo,
+  titulo,
+  ajuda,
+  inicial = "",
+  pending,
+  onGuardar,
+}: {
+  rotulo: string;
+  titulo: string;
+  ajuda: string;
+  inicial?: string;
+  pending: boolean;
+  onGuardar: (motivo: string) => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const [motivo, setMotivo] = useState(inicial);
+  return (
+    <Popover
+      open={aberto}
+      onOpenChange={(o) => {
+        setAberto(o);
+        if (o) setMotivo(inicial);
+      }}
+    >
+      <PopoverTrigger asChild>
+        <Button size="sm" variant="outline" className="h-8">
+          {rotulo}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 space-y-3">
+        <p className="text-[13px] font-medium text-secondary">{titulo}</p>
+        <label className="block space-y-1.5 text-xs font-medium text-muted-foreground">
+          Motivo
+          <Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} rows={3} placeholder="Porque é que esta pessoa avança sem a etapa?" />
+        </label>
+        <p className="text-xs text-muted-foreground">{ajuda}</p>
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            disabled={motivo.trim().length < 3 || pending}
+            onClick={() => {
+              onGuardar(motivo.trim());
+              setAberto(false);
+            }}
+          >
+            Confirmar
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
