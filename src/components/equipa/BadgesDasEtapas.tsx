@@ -137,7 +137,7 @@ export function BadgesDasEtapas({ programId }: { programId: string }) {
       </Section>
 
       <Section title="Depois do fim do ano letivo" description="Quando o acesso fecha, a jornada pode continuar como replicação em vez de terminar.">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid items-start gap-4 md:grid-cols-3">
           <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 text-sm">
             <Switch checked={renovar} onCheckedChange={setRenovar} className="mt-0.5" />
             <span>
@@ -164,6 +164,11 @@ export function BadgesDasEtapas({ programId }: { programId: string }) {
               </SelectContent>
             </Select>
           </FormField>
+          <div className="rounded-lg bg-[#E6EDF6] p-3.5 text-sm leading-relaxed text-secondary">
+            <strong className="font-semibold">Jornada de replicação</strong>
+            <br />
+            Quem renova passa a «Replicação»: marca Semanas Ubuntu na escola, envia os dados dos alunos e conta para o plano do projeto.
+          </div>
         </div>
       </Section>
     </>
