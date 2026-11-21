@@ -83,7 +83,7 @@ export function AppSidebar() {
         )}
         {groupsForMode(shownMode).map((group, idx) => {
           if (group.adminOnly && !isAdmin) return null;
-          const items = group.items.filter((it) => (it.gated ? canAccess(it.path) : true));
+          const items = group.items.filter((it) => !(it.hideForAdmin && isAdmin) && (it.gated ? canAccess(it.path) : true));
           if (items.length === 0) return null;
 
           return (

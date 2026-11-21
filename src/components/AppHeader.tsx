@@ -34,7 +34,7 @@ export function AppHeader({ pathname }: { pathname: string }) {
     () =>
       NAV_GROUPS.flatMap((group) => {
         if (group.adminOnly && !isAdmin) return [];
-        const items = group.items.filter((item) => (item.gated ? canAccess(item.path) : true));
+        const items = group.items.filter((item) => !(item.hideForAdmin && isAdmin) && (item.gated ? canAccess(item.path) : true));
         return items.map((item) => ({ ...item, group: group.label ?? "Principal" }));
       }),
     [canAccess, isAdmin],

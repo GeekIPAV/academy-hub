@@ -65,7 +65,11 @@ function rotuloData(d: Pick<DataPrograma, "start_date" | "end_date" | "localizac
   return `${formatarDataPt(d.start_date)}${fim}${d.localizacao ? ` · ${d.localizacao}` : ""}`;
 }
 
-export function CalendarioFtpEquipa({ programId }: { programId: string }) {
+/**
+ * `parte` mostra só uma parte: "etapas" (FTC, regras e badges das etapas) ou
+ * "calendario" (datas de FTP e Semana Ubuntu, documentos, escolas sem data).
+ */
+export function CalendarioFtpEquipa({ programId, parte = "tudo" }: { programId: string; parte?: "tudo" | "etapas" | "calendario" }) {
   const fn = useServerFn(getCalendarioPrograma);
   const { data, isLoading, error } = useQuery({
     queryKey: ["calendario-ftp", programId],
@@ -86,9 +90,16 @@ export function CalendarioFtpEquipa({ programId }: { programId: string }) {
 
   return (
     <div className="space-y-5">
+      {parte !== "calendario" && (
+        <>
       <FtcDoPrograma cal={data} />
       <RegrasDoPrograma key={`${data.programa.id}-${data.programa.su_badge_id}-${data.programa.ftp_dias_decisao}-${data.programa.ftc_atraso_permitido}-${data.programa.fim_acesso}-${data.programa.aviso_fim_acesso_dias}`} cal={data} />
       <BadgesDasEtapas programId={data.programa.id} />
+        </>
+      )}
+
+      {parte !== "etapas" && (
+        <>
 
       <DatasTabela
         cal={data}
@@ -114,6 +125,8 @@ export function CalendarioFtpEquipa({ programId }: { programId: string }) {
       <DocumentosSemanaUbuntuEquipa />
 
       <EscolasSemData cal={data} />
+        </>
+      )}
 
       {editar && (
         <DataDialog
