@@ -52,15 +52,28 @@ const sheetVariants = cva(
 interface SheetContentProps
   extends
     React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
-    VariantProps<typeof sheetVariants> {}
+    VariantProps<typeof sheetVariants> {
+  /** Cartão flutuante ao lado, só com a altura necessária e sem escurecer o ecrã. */
+  floating?: boolean;
+}
 
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = "right", className, children, ...props }, ref) => (
+>(({ side = "right", floating = false, className, children, ...props }, ref) => (
   <SheetPortal>
-    <SheetOverlay />
-    <SheetPrimitive.Content ref={ref} data-app-sheet="" className={cn(sheetVariants({ side }), className)} {...props}>
+    <SheetOverlay className={floating ? "bg-transparent" : undefined} />
+    <SheetPrimitive.Content
+      ref={ref}
+      data-app-sheet=""
+      className={cn(
+        sheetVariants({ side }),
+        floating &&
+          "bottom-auto right-3 top-3 h-auto max-h-[calc(100dvh-1.5rem)] w-[min(calc(100vw-1.5rem),28rem)] max-w-none overflow-y-auto rounded-2xl border shadow-2xl sm:max-w-none",
+        className,
+      )}
+      {...props}
+    >
       <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
         <X className="h-4 w-4" />
         <span className="sr-only">Fechar</span>

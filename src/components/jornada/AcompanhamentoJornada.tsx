@@ -697,7 +697,7 @@ function FichaEducador({
 
   return (
     <Sheet open={!!l} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full max-w-lg overflow-y-auto sm:max-w-lg">
+      <SheetContent floating>
         {l && (
           <div className="space-y-6">
             <SheetHeader className="text-left">
