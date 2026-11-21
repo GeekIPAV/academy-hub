@@ -117,8 +117,8 @@ export function VerComoUtilizador() {
         )}
       </div>
 
-      <Sheet open={selecionado !== null} onOpenChange={(open) => !open && escolher(null)}>
-        <SheetContent side="right" className="flex w-[min(100vw,30rem)] max-w-none flex-col gap-0 overflow-y-auto p-0 sm:max-w-none">
+      <Sheet modal={false} open={selecionado !== null} onOpenChange={(open) => !open && escolher(null)}>
+        <SheetContent side="right" className="flex h-auto max-h-[calc(100dvh-1.5rem)] w-[min(calc(100vw-1.5rem),26rem)] max-w-none flex-col gap-0 overflow-y-auto rounded-2xl border p-0 shadow-2xl top-3 bottom-auto right-3 sm:max-w-none">
           <SheetHeader className="border-b border-border px-5 py-4">
             <SheetTitle className="truncate">
               {pessoa ? pessoa.nome : "Modelo da jornada"}
