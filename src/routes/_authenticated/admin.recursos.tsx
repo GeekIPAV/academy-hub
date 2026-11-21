@@ -139,7 +139,7 @@ export const Route = createFileRoute("/_authenticated/admin/recursos")({
       .select("role_name")
       .eq("user_id", u.user.id);
     const roles = (roleRows ?? []).map((r) => r.role_name);
-    if (roles.includes("Admin")) return;
+    if (roles.includes("Admin") || roles.includes("Equipa IPAV")) return;
     if (roles.length === 0) throw redirect({ to: "/dashboard" });
     const { data: perms } = await supabase
       .from("permissoes_roles")
