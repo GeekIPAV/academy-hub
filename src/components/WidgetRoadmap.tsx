@@ -61,6 +61,7 @@ export function WidgetRoadmap({
   title = "O Meu Percurso",
   previewLabel = "Pré-visualização — não estás inscrito",
   emptyFallback = null,
+  compact = false,
 }: {
   cohortId?: string;
   /** Pessoa cuja jornada se mostra (só na página de Gestão). */
@@ -69,6 +70,8 @@ export function WidgetRoadmap({
   title?: string;
   previewLabel?: string;
   emptyFallback?: React.ReactNode;
+  /** Força a disposição vertical (painéis laterais estreitos). */
+  compact?: boolean;
 } = {}) {
   const fetchRoadmap = useServerFn(getRoadmap);
   const [items, setItems] = useState<RoadmapItem[] | null>(null);
@@ -135,10 +138,10 @@ export function WidgetRoadmap({
             <span className="sr-only">A carregar percurso</span>
           </div>
         ) : (
-          <ol className="relative flex flex-col gap-6 sm:flex-row sm:gap-2">
+          <ol className={`relative flex flex-col gap-6 ${compact ? "" : "sm:flex-row sm:gap-2"}`}>
             {/* Linha de progresso (desktop) */}
             <div
-              className="pointer-events-none absolute left-[10%] right-[10%] top-6 hidden h-1 rounded-full bg-muted sm:block"
+              className={`pointer-events-none absolute left-[10%] right-[10%] top-6 h-1 rounded-full bg-muted ${compact ? "hidden" : "hidden sm:block"}`}
               aria-hidden="true"
             >
               <div
@@ -167,20 +170,20 @@ export function WidgetRoadmap({
                     : "bg-muted text-muted-foreground border-border";
 
               const content = (
-                <div className="flex items-start gap-4 sm:block">
+                <div className={`flex items-start gap-4 ${compact ? "" : "sm:block"}`}>
                   {/* Linha vertical (mobile) */}
                   {idx < items.length - 1 && (
                     <span
-                      className="absolute left-6 top-12 h-[calc(100%+0.5rem)] w-px bg-border sm:hidden"
+                      className={`absolute left-6 top-12 h-[calc(100%+0.5rem)] w-px bg-border ${compact ? "" : "sm:hidden"}`}
                       aria-hidden="true"
                     />
                   )}
                   <span
-                    className={`relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 ${circle} sm:mx-auto`}
+                    className={`relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 ${circle} ${compact ? "" : "sm:mx-auto"}`}
                   >
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <div className="min-w-0 flex-1 sm:mt-3 sm:text-center">
+                  <div className={`min-w-0 flex-1 ${compact ? "" : "sm:mt-3 sm:text-center"}`}>
                     <p className="text-xs font-bold uppercase tracking-wide text-secondary">
                       {SHORT[item.phase]}
                     </p>
