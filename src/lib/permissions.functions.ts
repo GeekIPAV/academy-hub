@@ -2,17 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { assertAcessoTotal } from "@/lib/admin-access.server";
 
 async function assertAdmin(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from("utilizadores")
-    .select("role")
-    .eq("id", userId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (data?.role !== "admin" && data?.role !== "Admin") {
-    throw new Error("Acesso restrito.");
-  }
+  await assertAcessoTotal(userId);
 }
 
 export const listPermissions = createServerFn({ method: "GET" })

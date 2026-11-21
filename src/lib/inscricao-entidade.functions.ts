@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { attachSupabaseAuth } from "@/integrations/supabase/attach-auth-client";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { temAcessoTotal } from "@/lib/admin-access.server";
 
 const clusterIdSchema = z.object({
   cluster_id: z.string().uuid(),
@@ -22,7 +23,7 @@ async function resolveActingEntityId(
     .select("entity_id, full_name, email, role")
     .eq("id", userId)
     .maybeSingle();
-  const isAdmin = user?.role === "Admin";
+  const isAdmin = await temAcessoTotal(userId);
   let entityId: string | null = user?.entity_id ?? null;
   if (requested && isAdmin) entityId = requested;
   return {
@@ -194,7 +195,7 @@ export const listMyEntityProgramEnrollments = createServerFn({ method: "GET" })
       .select("entity_id, role")
       .eq("id", userId)
       .maybeSingle();
-    const isAdmin = user?.role === "Admin";
+    const isAdmin = await temAcessoTotal(userId);
     const entityId = (isAdmin && data.entityId) ? data.entityId : user?.entity_id ?? null;
     if (!entityId) return [];
 

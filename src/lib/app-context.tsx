@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { temAcessoTotalPapeis } from "@/lib/acesso";
 import { APP_ROUTES } from "./mock-data";
 import type { RoleName } from "./types";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -30,7 +31,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { profile, roles } = useCurrentProfile();
 
   const realRoles: RoleName[] = roles as RoleName[];
-  const isRealAdmin = realRoles.includes("Admin" as RoleName);
+  const isRealAdmin = temAcessoTotalPapeis(realRoles);
   const realRole: RoleName | null = realRoles[0] ?? null;
 
   const [impersonatedRole, setImpersonatedRoleState] = useState<RoleName | null>(() => {
@@ -55,7 +56,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const activeRoles: RoleName[] =
     isRealAdmin && impersonatedRole ? [impersonatedRole] : realRoles;
-  const isAdmin = activeRoles.includes("Admin" as RoleName);
+  const isAdmin = temAcessoTotalPapeis(activeRoles);
 
   const activeRolesKey = activeRoles.join("|");
 

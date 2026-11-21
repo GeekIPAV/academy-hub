@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { assertAcessoTotal, temAcessoTotal } from "@/lib/admin-access.server";
 import { getOrCreateTypedInviteToken } from "@/lib/invites.server";
 
 const updateSchema = z.object({
@@ -44,7 +45,7 @@ async function resolveEntityId(
     .eq("id", userId)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  const isAdmin = user?.role === "Admin";
+  const isAdmin = await temAcessoTotal(userId);
   if (requestedEntityId) {
     if (!isAdmin) throw new Error("Apenas admins podem escolher entidade.");
     return requestedEntityId;
@@ -62,7 +63,7 @@ export const listAllEntidades = createServerFn({ method: "GET" })
       .eq("id", userId)
       .maybeSingle();
     if (uErr) throw new Error(uErr.message);
-    if (user?.role !== "Admin") throw new Error("Acesso restrito.");
+    if (!(await temAcessoTotal(userId))) throw new Error("Acesso restrito.");
 
     const { data, error } = await supabaseAdmin
       .from("entidades")
@@ -262,7 +263,7 @@ export const cancelAcaoProposta = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
     if (uErr) throw new Error(uErr.message);
-    const isAdmin = user?.role === "Admin";
+    const isAdmin = await temAcessoTotal(userId);
     if (!isAdmin && existing.entity_id !== user?.entity_id) {
       throw new Error("Não pode cancelar ações de outra entidade.");
     }
@@ -298,7 +299,7 @@ async function assertActionBelongsToUserEntity(userId: string, actionId: string)
     .eq("id", userId)
     .maybeSingle();
   if (uErr) throw new Error(uErr.message);
-  const isAdmin = user?.role === "Admin";
+  const isAdmin = await temAcessoTotal(userId);
   const { data: action, error: aErr } = await supabaseAdmin
     .from("acoes")
     .select("id, entity_id")
@@ -642,13 +643,7 @@ export const generateAllCertificates = createServerFn({ method: "POST" })
 // ─── Admin: gestão de entidades ──────────────────────────────────────────────
 
 async function assertAdminUser(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from("utilizadores")
-    .select("role")
-    .eq("id", userId)
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (data?.role !== "Admin") throw new Error("Acesso restrito.");
+  await assertAcessoTotal(userId);
 }
 
 export const adminListEntidades = createServerFn({ method: "GET" })

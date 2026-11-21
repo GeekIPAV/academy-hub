@@ -2,20 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { assertAcessoTotal } from "@/lib/admin-access.server";
 import { rolesForInviteTipo } from "@/lib/invite-types";
 import { getOrCreateTypedInviteToken } from "@/lib/invites.server";
 
 const tipoSchema = z.enum(["utilizador", "entidade"]);
 
 async function assertAdmin(userId: string) {
-  const { data, error } = await supabaseAdmin
-    .from("user_roles")
-    .select("role_name")
-    .eq("user_id", userId)
-    .eq("role_name", "Admin")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Acesso restrito.");
+  await assertAcessoTotal(userId);
 }
 
 const createSchema = z.object({

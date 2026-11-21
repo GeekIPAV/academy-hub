@@ -13,7 +13,7 @@ export async function assertElearningAdmin(userId: string) {
     .from("user_roles")
     .select("role_name")
     .eq("user_id", userId)
-    .eq("role_name", "Admin")
+    .in("role_name", ["Admin", "Equipa IPAV"])
     .limit(1);
   if (data && data.length) return;
   await assertRouteAccess(userId, "/admin/elearning");
