@@ -2,19 +2,24 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BadgeCheck, ShieldX } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { verificarCertificado } from "@/lib/elearning.functions";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/certificados/verificar/$codigo")({
   loader: ({ params }) => verificarCertificado({ data: { codigo: params.codigo } }),
-  head: ({ params }) => ({
-    meta: [
-      { title: `Verificação de certificado ${params.codigo} | Academia de Líderes Ubuntu` },
-      { name: "description", content: "Confirme a autenticidade de um certificado da Escola Ubuntu Online." },
-      { property: "og:title", content: "Verificação de certificado | Academia de Líderes Ubuntu" },
-      { property: "og:description", content: "Confirme a autenticidade de um certificado da Escola Ubuntu Online." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: ({ loaderData }) => {
+    const valido = !!loaderData && !loaderData.revogado;
+    return {
+      meta: seo({
+        title: titulo("Verificação de certificado"),
+        description: loaderData
+          ? valido
+            ? `Certificado válido da Escola Ubuntu Online: ${loaderData.curso_titulo}.`
+            : "Este certificado da Escola Ubuntu Online foi revogado."
+          : "Confirma a autenticidade de um certificado da Escola Ubuntu Online.",
+        privada: true,
+      }),
+    };
+  },
   errorComponent: () => <p className="p-8 text-center text-sm text-muted-foreground">Não foi possível verificar o certificado.</p>,
   notFoundComponent: () => <p className="p-8 text-center text-sm text-muted-foreground">Certificado não encontrado.</p>,
   component: VerificarPage,

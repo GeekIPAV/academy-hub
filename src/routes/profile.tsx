@@ -31,9 +31,16 @@ import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { supabase } from "@/integrations/supabase/client";
 import { anonimizarUtilizador } from "@/lib/governance.functions";
 import { CertificacaoForm } from "@/components/CertificacaoForm";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/profile")({
-  head: () => ({ meta: [{ title: "O meu perfil | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("O meu perfil"),
+      description: "Os teus dados de conta, contactos e preferências na plataforma.",
+      privada: true,
+    }),
+  }),
   component: ProfilePage,
 });
 

@@ -72,6 +72,8 @@ import { linhas } from "@/lib/recursos-ui";
 import { RecursosViews } from "@/components/recursos/RecursosViews";
 import { PlanoSessaoImpressao } from "@/components/recursos/PlanoSessaoImpressao";
 import { cn } from "@/lib/utils";
+import { BlocoSemanaUbuntuFechado, useBloqueioSemanaUbuntu } from "@/components/recursos/BlocoSemanaUbuntu";
+import { eBlocoSemanaUbuntu } from "@/lib/ftp-calendario";
 import {
   TEMA_FORMATOS,
   TEMA_FORMATO_ORDEM,
@@ -79,9 +81,16 @@ import {
   temaFormato,
   type TemaFormato,
 } from "@/lib/tema-formatos";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/recursos/$cluster/$temaId")({
-  head: () => ({ meta: [{ title: "Tema | Centro de recursos" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Tema", "Centro de recursos"),
+      description: "Plano de sessão, momentos e materiais de um tema do Centro de recursos.",
+      privada: true,
+    }),
+  }),
   component: TemaDetail,
   errorComponent: ({ error }) => (
     <div className="mx-auto max-w-3xl py-16 text-center text-destructive">
@@ -99,6 +108,7 @@ interface TemaDetailRow {
   id: string;
   cluster: string;
   bloco: string | null;
+  cluster_id?: string | null;
   title: string;
   intro: string | null;
   description: string | null;
@@ -147,7 +157,7 @@ function TemaDetail() {
       const { data, error } = await supabase
         .from("temas_momentos")
         .select(
-          "id, cluster, bloco, title, intro, description, processo_u, context, objectives, pilares, ter_em_atencao, orientacoes, local, cover_url, cover_position, cover_scale, hidden_sections, tema_recursos(sort_order, recursos(id, title, resource_type, file_url, cover_url, cover_position, cover_scale, category_key))",
+          "id, cluster, cluster_id, bloco, title, intro, description, processo_u, context, objectives, pilares, ter_em_atencao, orientacoes, local, cover_url, cover_position, cover_scale, hidden_sections, tema_recursos(sort_order, recursos(id, title, resource_type, file_url, cover_url, cover_position, cover_scale, category_key))",
         )
         .eq("id", temaId)
         .maybeSingle();
@@ -158,6 +168,7 @@ function TemaDetail() {
   });
 
   const tema = temaQuery.data;
+  const bloqueioSu = useBloqueioSemanaUbuntu(tema?.cluster_id ?? null);
 
   const recursos = useMemo(() => {
     if (!tema) return [];
@@ -231,6 +242,14 @@ function TemaDetail() {
     );
   }
   if (!tema) return null;
+  if (bloqueioSu.bloqueado && eBlocoSemanaUbuntu(tema.bloco)) {
+    return (
+      <div className="mx-auto w-full min-w-0 max-w-3xl space-y-4 py-6">
+        <h1 className="text-xl font-semibold text-secondary">{tema.title}</h1>
+        <BlocoSemanaUbuntuFechado badge={bloqueioSu.badge} />
+      </div>
+    );
+  }
 
   const clusterTitle = parseCluster(tema.cluster).title;
   const effectiveClusterSlug = slugifyCluster(tema.cluster) || clusterSlug;

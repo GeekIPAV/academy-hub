@@ -70,6 +70,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { AlunosSemanaUbuntu } from "@/components/semana-ubuntu/AlunosSemanaUbuntu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -99,12 +100,19 @@ import {
   generateAllCertificates,
   type UpdateParticipanteInput,
 } from "@/lib/entidade.functions";
+import { seo, titulo } from "@/lib/seo";
 
 const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
 type TShirtSize = (typeof TSHIRT_SIZES)[number];
 
 export const Route = createFileRoute("/entidade/acoes/$id")({
-  head: () => ({ meta: [{ title: "Ação | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Ação da organização"),
+      description: "Participantes, presenças e certificados de uma ação da organização.",
+      privada: true,
+    }),
+  }),
   component: EntidadeAcaoDetailPage,
 });
 
@@ -242,6 +250,11 @@ function EntidadeAcaoDetailPage() {
           <ParticipantesSection actionId={id} rows={data.participantes} onChanged={invalidate} />
         </div>
         <aside className="min-w-0 flex-[1_1_300px] space-y-5">
+          {a.action_type === "Semana Ubuntu" && (
+            <Section title="Semana Ubuntu" description="A equipa IPAV é avisada para preparar o material.">
+              <AlunosSemanaUbuntu alvo={{ acaoId: id }} compacto />
+            </Section>
+          )}
           <TrainersSection actionId={id} trainers={data.trainers} />
           <Section title="Materiais" description="Os links são adicionados pela equipa central.">
             {a.fotos_link ? (

@@ -3,6 +3,7 @@ import QRCode from "qrcode";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { assertRouteAccess } from "@/lib/admin-access.server";
 import { podeConcluirCurso } from "@/lib/elearning-progress";
+import { aberturaModuloTurma } from "@/lib/ftp-calendario";
 
 export const DEFAULT_BASE_URL = "https://app.ipav.pt";
 
@@ -56,15 +57,18 @@ export function addDays(date: string, days: number) {
   return d.toISOString().slice(0, 10);
 }
 
-/** Data de abertura do módulo (drip) ou null se já/sempre aberto. */
+/**
+ * Data de abertura do módulo (drip) ou null se já/sempre aberto.
+ * Numa turma ancorada numa FTP (`ftpData`), nada abre antes da FTC
+ * (FTP − 14 dias) — ver `aberturaModuloTurma` em ftp-calendario.ts.
+ */
 export function aberturaModulo(
   modalidade: string,
   aberturaDias: number | null,
   turmaInicio: string | null,
+  ftpData: string | null = null,
 ): string | null {
-  if (modalidade !== "turma" || aberturaDias == null || !turmaInicio) return null;
-  const d = addDays(turmaInicio, aberturaDias);
-  return d > new Date().toISOString().slice(0, 10) ? d : null;
+  return aberturaModuloTurma({ modalidade, aberturaDias, turmaInicio, ftpData });
 }
 
 type Passo = { id: string; obrigatorio: boolean };

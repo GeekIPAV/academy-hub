@@ -28,9 +28,16 @@ import { PageHeader, PageShell } from "@/components/shell/PageHeader";
 import { resumoAvaliacoesAcoes } from "@/lib/avaliacao-acoes.functions";
 import { INSCRICOES_ABERTAS } from "@/lib/acoes-opcoes";
 import { RouteGate } from "@/components/RouteGate";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/acoes/")({
-  head: () => ({ meta: [{ title: "Ações | Gestão" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Ações", MARCA_GESTAO),
+      description: "Todas as ações da Academia: datas, estados, inscrições e presenças.",
+      privada: true,
+    }),
+  }),
   component: () => (
     <RouteGate path="/admin/acoes">
       <AdminAcoesPage />

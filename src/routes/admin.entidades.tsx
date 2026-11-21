@@ -45,9 +45,16 @@ import {
   getOrCreateEntidadeInvite,
 } from "@/lib/entidade.functions";
 import { AdminTransferRequestsTable } from "@/components/admin/AdminTransferRequestsTable";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/entidades")({
-  head: () => ({ meta: [{ title: "Organizações | Gestão" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Organizações", MARCA_GESTAO),
+      description: "Escolas e organizações parceiras, contactos e pedidos de transferência.",
+      privada: true,
+    }),
+  }),
   component: () => (
     <RouteGate path="/admin/entidades">
       <AdminEntidadesPage />

@@ -12,14 +12,16 @@ import { toast } from "sonner";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+import { seo, titulo } from "@/lib/seo";
 
 
 export const Route = createFileRoute("/comunicacao/propriedade-intelectual")({
   head: () => ({
-    meta: [
-      { title: "Propriedade intelectual | Academia de Líderes Ubuntu" },
-      { name: "description", content: "Metodologia Ubuntu, regulamentos e condições de uso dos recursos pedagógicos do IPAV." },
-    ],
+    meta: seo({
+      title: titulo("Propriedade intelectual"),
+      description: "Metodologia Ubuntu, regulamentos e condições de uso dos recursos pedagógicos do IPAV.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/comunicacao/propriedade-intelectual">

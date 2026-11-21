@@ -60,6 +60,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { DecisaoBadgeEtapa } from "@/components/badges/DecisaoBadgeEtapa";
 
 import {
   useAllBadges,
@@ -78,9 +79,16 @@ import { useRoles } from "@/hooks/use-roles";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 
 import { RouteGate } from "@/components/RouteGate";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/badges")({
-  head: () => ({ meta: [{ title: "Badges | Gestão" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Badges", MARCA_GESTAO),
+      description: "Badges atribuídos na plataforma e regras de atribuição automática.",
+      privada: true,
+    }),
+  }),
   component: () => (
     <RouteGate path="/admin/badges">
       <AdminBadgesPage />
@@ -652,7 +660,7 @@ function AssignBadgeDialog({
         if (!v) setPicked(null);
       }}
     >
-      <DialogContent>
+      <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Atribuir badge</DialogTitle>
           <DialogDescription>Escolhe a pessoa a quem dar o badge.</DialogDescription>
@@ -692,23 +700,25 @@ function AssignBadgeDialog({
             </PopoverContent>
           </Popover>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button
-            disabled={!picked || !badgeId || assign.isPending}
-            onClick={() => {
-              if (!picked || !badgeId) return;
-              assign.mutate(
-                { userId: picked, badgeId },
-                { onSuccess: () => onOpenChange(false) },
-              );
-            }}
-          >
-            Atribuir
-          </Button>
-        </DialogFooter>
+        {picked && badgeId ? (
+          <DecisaoBadgeEtapa
+            key={`${badgeId}-${picked}`}
+            badgeId={badgeId}
+            userId={picked}
+            userNome={pickedUser?.full_name ?? pickedUser?.email ?? "Esta pessoa"}
+            pendingNormal={assign.isPending}
+            onAtribuirNormal={() => assign.mutate({ userId: picked, badgeId }, { onSuccess: () => onOpenChange(false) })}
+            onFeito={() => onOpenChange(false)}
+            onCancelar={() => onOpenChange(false)}
+          />
+        ) : (
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
+            </Button>
+            <Button disabled>Atribuir</Button>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

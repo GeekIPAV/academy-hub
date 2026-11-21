@@ -37,17 +37,16 @@ import {
   saveProjeto,
   setUtilizadorProjeto,
 } from "@/lib/projetos.functions";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
+import { PlanoProjeto } from "@/components/admin/PlanoProjeto";
 
 export const Route = createFileRoute("/admin/projetos")({
   head: () => ({
-    meta: [
-      { title: "Projetos | Gestão" },
-      { name: "description", content: "Projetos, entidades e participantes com acesso a ações reservadas." },
-      { property: "og:title", content: "Projetos | Gestão" },
-      { property: "og:description", content: "Projetos, entidades e participantes com acesso a ações reservadas." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: seo({
+      title: titulo("Projetos", MARCA_GESTAO),
+      description: "Projetos, entidades e participantes com acesso a ações reservadas.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/admin/projetos">
@@ -192,6 +191,8 @@ function ProjetoDetalhe({ projeto }: { projeto: { id: string; title: string; sta
       </div>
 
       <LinkInscricao token={projeto.inscricao_token} />
+
+      <PlanoProjeto projectId={projeto.id} />
 
       <div className="space-y-3">
         <h3 className="flex items-center gap-2 font-semibold"><Building2 className="h-4 w-4" /> Entidades</h3>

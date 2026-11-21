@@ -10,9 +10,16 @@ import { listPaginasAvaliacao, reorderPaginasAvaliacao, updatePaginaAvaliacao } 
 import { PaginaAvaliacaoEditor } from "@/components/admin/PaginaAvaliacaoEditor";
 import { loadAvaliacaoDoc, type AvaliacaoPage, type PageDoc } from "@/lib/avaliacao-types";
 import { useApp } from "@/lib/app-context";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/cultura-ubuntu/avaliacao/gestao")({
-  head: () => ({ meta: [{ title: "Gerir recursos de avaliação | Gestão" }, { name: "description", content: "Gere e ordena os recursos de avaliação da Cultura Ubuntu." }, { property: "og:title", content: "Gerir recursos de avaliação | Gestão" }, { property: "og:description", content: "Gere os conteúdos de avaliação da Cultura Ubuntu." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Gerir recursos de avaliação", MARCA_GESTAO),
+      description: "Gere e ordena os recursos de avaliação de impacto da Cultura Ubuntu.",
+      privada: true,
+    }),
+  }),
   component: GestaoAvaliacao,
 });
 

@@ -16,16 +16,16 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useApp } from "@/lib/app-context";
 import { getCurso, inscreverCurso } from "@/lib/elearning.functions";
 import { cn } from "@/lib/utils";
+import { MARCA_ELEARNING, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/elearning/$cursoId")({
-  head: () => ({ meta: [
-    { title: "Espaço de formação | Escola Ubuntu Online" },
-    { name: "description", content: "Visão geral, momentos de formação e Caderno de Percurso da Escola Ubuntu Online." },
-    { property: "og:title", content: "Espaço de formação | Escola Ubuntu Online" },
-    { property: "og:description", content: "O teu curso, percurso de aprendizagem e reflexões pessoais." },
-    { property: "og:type", content: "website" },
-    { name: "twitter:card", content: "summary" },
-  ] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Espaço de formação", MARCA_ELEARNING),
+      description: "Visão geral, momentos de formação e Caderno de Percurso da Escola Ubuntu Online.",
+      privada: true,
+    }),
+  }),
   component: () => <RouteGate path="/elearning"><CourseLayout /></RouteGate>,
 });
 

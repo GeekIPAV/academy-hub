@@ -44,16 +44,15 @@ import {
   proposePublicacao,
   type Publicacao,
 } from "@/lib/biblioteca.functions";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/publicacoes/biblioteca")({
   head: () => ({
-    meta: [
-      { title: "Biblioteca | Academia de Líderes Ubuntu" },
-      {
-        name: "description",
-        content: "Biblioteca de publicações IPAV e outras obras de referência.",
-      },
-    ],
+    meta: seo({
+      title: titulo("Biblioteca"),
+      description: "Publicações do IPAV e outras obras de referência sobre liderança, educação e Cultura Ubuntu.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/publicacoes/biblioteca">

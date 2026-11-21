@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { DESCRICAO_PADRAO, MARCA, seo } from "@/lib/seo";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -77,16 +78,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "color-scheme", content: "light" },
-      { title: "Academia de Líderes Ubuntu" },
-      { name: "description", content: "Plataforma Ubuntu" },
-      { property: "og:title", content: "Academia de Líderes Ubuntu" },
-      { name: "twitter:title", content: "Academia de Líderes Ubuntu" },
-      { property: "og:description", content: "Plataforma Ubuntu" },
-      { name: "twitter:description", content: "Plataforma Ubuntu" },
+      ...seo({ title: MARCA, description: DESCRICAO_PADRAO }),
+      { property: "og:site_name", content: MARCA },
+      { property: "og:locale", content: "pt_PT" },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/0CyVmC43rsdbyq9F0rpAcHPUG632/social-images/social-1780333883974-55204926615_9d8e69c4d7_k_(2).webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/0CyVmC43rsdbyq9F0rpAcHPUG632/social-images/social-1780333883974-55204926615_9d8e69c4d7_k_(2).webp" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:type", content: "website" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

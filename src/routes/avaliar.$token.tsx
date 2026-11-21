@@ -19,9 +19,16 @@ import {
 import { cn } from "@/lib/utils";
 import { PerguntaCampo } from "@/components/avaliacao/PerguntaCampo";
 import aluLogo from "@/assets/alu-logo.svg";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/avaliar/$token")({
-  head: () => ({ meta: [{ title: "Avaliação | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Avaliação da ação"),
+      description: "Responde à avaliação da ação em que participaste. Demora poucos minutos e ajuda-nos a melhorar.",
+      privada: true,
+    }),
+  }),
   component: AvaliarPage,
 });
 

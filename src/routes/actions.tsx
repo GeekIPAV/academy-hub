@@ -7,9 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/lib/app-context";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { RouteGate } from "@/components/RouteGate";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/actions")({
-  head: () => ({ meta: [{ title: "Eventos e formações | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Eventos e formações"),
+      description: "Eventos, formações e ações da Academia de Líderes Ubuntu com inscrições abertas.",
+      privada: true,
+    }),
+  }),
   component: () => (
     <RouteGate path="/actions">
       <ActionsPage />

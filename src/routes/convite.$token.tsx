@@ -20,9 +20,16 @@ import {
   validateStaffInvite,
   consumeStaffInvite,
 } from "@/lib/invites.functions";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/convite/$token")({
-  head: () => ({ meta: [{ title: "Convite | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Convite para a plataforma"),
+      description: "Recebeste um convite para a plataforma da Academia de Líderes Ubuntu. Aceita-o para entrares com a tua conta.",
+      privada: true,
+    }),
+  }),
   component: ConvitePage,
 });
 

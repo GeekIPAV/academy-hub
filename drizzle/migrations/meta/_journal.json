@@ -71,6 +71,34 @@
       "when": 1795000000000,
       "tag": "0009_plano_sessao_campos",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795100000000,
+      "tag": "0010_calendario_ftp",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1795200000000,
+      "tag": "0011_etapas_com_condicao",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795300000000,
+      "tag": "0012_ano_letivo_replicacoes_planos",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795400000000,
+      "tag": "0013_badges_das_etapas",
+      "breakpoints": true
     }
   ]
 }

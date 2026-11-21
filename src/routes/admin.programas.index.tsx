@@ -72,23 +72,15 @@ import { listProdutos } from "@/lib/produtos.functions";
 import { listAllBadges } from "@/lib/badges.functions";
 import { RouteGate } from "@/components/RouteGate";
 import { slugifyCluster } from "@/lib/cluster-utils";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/programas/")({
   head: () => ({
-    meta: [
-      { title: "Programas | Gestão" },
-      {
-        name: "description",
-        content: "Área administrativa para editar programas, instituições inscritas e participantes.",
-      },
-      { property: "og:title", content: "Programas | Gestão" },
-      {
-        property: "og:description",
-        content: "Área administrativa para editar programas, instituições inscritas e participantes.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: seo({
+      title: titulo("Programas", MARCA_GESTAO),
+      description: "Clusters e programas de formação, organizações inscritas e participantes.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/admin/programas">

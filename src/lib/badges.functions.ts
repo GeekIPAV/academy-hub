@@ -149,6 +149,18 @@ export const assignBadgeManual = createServerFn({ method: "POST" })
   .inputValidator((input) => mutationSchema.parse(input))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
+    // Badge dado por uma etapa da jornada: só à mão se a etapa estiver
+    // cumprida; senão, a equipa regista uma exceção com motivo.
+    const { etapasDoBadge, condicaoDaEtapa } = await import("@/lib/badges-etapas.server");
+    const { ETAPA_BADGE_LABEL } = await import("@/lib/badges-etapas");
+    for (const e of await etapasDoBadge(data.badgeId)) {
+      const c = await condicaoDaEtapa(data.userId, e.programId, e.etapa);
+      if (c.inscricaoProgramaId && !c.cumprida) {
+        throw new Error(
+          `Este badge é dado pela etapa «${ETAPA_BADGE_LABEL[e.etapa]}» (${e.programTitle ?? "programa"}), que esta pessoa ainda não cumpriu. Atribui-o individualmente, como exceção com motivo.`,
+        );
+      }
+    }
     const { error } = await supabaseAdmin.from("user_badges").insert({
       user_id: data.userId,
       badge_id: data.badgeId,

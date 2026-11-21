@@ -24,16 +24,15 @@ import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import { ClusterEnrollDialog } from "@/components/ClusterEnrollDialog";
 import { listActiveClustersForEnrollment } from "@/lib/inscricao-programas.functions";
 import { parseCluster } from "@/lib/cluster-utils";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/_authenticated/inscricao-programas")({
   head: () => ({
-    meta: [
-      { title: "Inscrição em programas | Academia de Líderes Ubuntu" },
-      {
-        name: "description",
-        content: "Inscreve-te nos programas de formação ativos do IPAV.",
-      },
-    ],
+    meta: seo({
+      title: titulo("Inscrição em programas"),
+      description: "Inscreve a organização nos programas de formação ativos do IPAV.",
+      privada: true,
+    }),
   }),
   component: InscricaoProgramasPage,
 });

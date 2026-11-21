@@ -64,9 +64,16 @@ import {
   type TipoAvaliacao,
   type ValorResposta,
 } from "@/lib/avaliacao-acoes-types";
+import { MARCA_GESTAO, seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/admin/avaliacoes")({
-  head: () => ({ meta: [{ title: "Modelos de avaliação | Gestão" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Modelos de avaliação", MARCA_GESTAO),
+      description: "Modelos de questionários de satisfação e de impacto das ações.",
+      privada: true,
+    }),
+  }),
   component: () => (
     <RouteGate path="/admin/avaliacoes">
       <AdminAvaliacoesPage />

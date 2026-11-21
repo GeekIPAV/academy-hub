@@ -36,6 +36,7 @@ export type Database = {
           id: string
           localizacao: string | null
           max_capacity: number | null
+          min_capacity: number | null
           notion_id: string | null
           pais: string | null
           produto: string | null
@@ -70,6 +71,7 @@ export type Database = {
           id?: string
           localizacao?: string | null
           max_capacity?: number | null
+          min_capacity?: number | null
           notion_id?: string | null
           pais?: string | null
           produto?: string | null
@@ -104,6 +106,7 @@ export type Database = {
           id?: string
           localizacao?: string | null
           max_capacity?: number | null
+          min_capacity?: number | null
           notion_id?: string | null
           pais?: string | null
           produto?: string | null
@@ -471,6 +474,60 @@ export type Database = {
             columns: ["modelo_id"]
             isOneToOne: false
             referencedRelation: "avaliacao_modelos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      badge_excecoes: {
+        Row: {
+          badge_id: string
+          criado_em: string
+          criado_por: string | null
+          etapa: string
+          id: string
+          motivo: string
+          program_id: string | null
+          retirado_em: string | null
+          retirado_por: string | null
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          criado_em?: string
+          criado_por?: string | null
+          etapa: string
+          id?: string
+          motivo: string
+          program_id?: string | null
+          retirado_em?: string | null
+          retirado_por?: string | null
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          criado_em?: string
+          criado_por?: string | null
+          etapa?: string
+          id?: string
+          motivo?: string
+          program_id?: string | null
+          retirado_em?: string | null
+          retirado_por?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "badge_excecoes_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "badge_excecoes_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programas"
             referencedColumns: ["id"]
           },
         ]
@@ -1326,6 +1383,7 @@ export type Database = {
           data_fim: string | null
           data_inicio: string | null
           formador_id: string | null
+          ftp_acao_id: string | null
           id: string
           inscricoes_abertas: boolean
           nome: string
@@ -1338,6 +1396,7 @@ export type Database = {
           data_fim?: string | null
           data_inicio?: string | null
           formador_id?: string | null
+          ftp_acao_id?: string | null
           id?: string
           inscricoes_abertas?: boolean
           nome: string
@@ -1350,6 +1409,7 @@ export type Database = {
           data_fim?: string | null
           data_inicio?: string | null
           formador_id?: string | null
+          ftp_acao_id?: string | null
           id?: string
           inscricoes_abertas?: boolean
           nome?: string
@@ -1357,6 +1417,13 @@ export type Database = {
           vagas?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cursos_turmas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cursos_turmas_curso_id_fkey"
             columns: ["curso_id"]
@@ -1531,39 +1598,65 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           entity_id: string | null
+          ftp_acao_id: string | null
+          ftp_escolhida_em: string | null
+          ftp_escolhida_por: string | null
           id: string
           invite_token: string | null
           is_active: boolean | null
           program_id: string | null
           project_notion_id: string | null
           status: string
+          su_acao_id: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
           entity_id?: string | null
+          ftp_acao_id?: string | null
+          ftp_escolhida_em?: string | null
+          ftp_escolhida_por?: string | null
           id?: string
           invite_token?: string | null
           is_active?: boolean | null
           program_id?: string | null
           project_notion_id?: string | null
           status?: string
+          su_acao_id?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
           entity_id?: string | null
+          ftp_acao_id?: string | null
+          ftp_escolhida_em?: string | null
+          ftp_escolhida_por?: string | null
           id?: string
           invite_token?: string | null
           is_active?: boolean | null
           program_id?: string | null
           project_notion_id?: string | null
           status?: string
+          su_acao_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "entidades_programas_su_acao_id_fkey"
+            columns: ["su_acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entidades_programas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "program_cohorts_entity_id_fkey"
             columns: ["entity_id"]
@@ -1699,6 +1792,38 @@ export type Database = {
         }
         Relationships: []
       }
+      ftp_alertas: {
+        Row: {
+          enviado_em: string
+          ftp_acao_id: string
+          id: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          enviado_em?: string
+          ftp_acao_id: string
+          id?: string
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          enviado_em?: string
+          ftp_acao_id?: string
+          id?: string
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ftp_alertas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       formadores_acoes: {
         Row: {
           action_id: string
@@ -1817,6 +1942,7 @@ export type Database = {
         Row: {
           cohort_id: string | null
           created_at: string | null
+          ftc_prazo_extra_ate: string | null
           id: string
           is_formador: boolean
           status: string | null
@@ -1825,6 +1951,7 @@ export type Database = {
         Insert: {
           cohort_id?: string | null
           created_at?: string | null
+          ftc_prazo_extra_ate?: string | null
           id?: string
           is_formador?: boolean
           status?: string | null
@@ -1833,6 +1960,7 @@ export type Database = {
         Update: {
           cohort_id?: string | null
           created_at?: string | null
+          ftc_prazo_extra_ate?: string | null
           id?: string
           is_formador?: boolean
           status?: string | null
@@ -2152,6 +2280,10 @@ export type Database = {
       programas: {
         Row: {
           acreditacao: boolean
+          aviso_fim_acesso_dias: number
+          badge_final_id: string | null
+          badge_inscricao_id: string | null
+          badge_renovacao_id: string | null
           certificacao: boolean
           cluster: string | null
           cluster_id: string | null
@@ -2160,6 +2292,10 @@ export type Database = {
           description: string | null
           email_contacto_ipav: string | null
           enrollment_open: boolean
+          fim_acesso: string
+          ftc_atraso_permitido: boolean
+          ftc_curso_id: string | null
+          ftp_dias_decisao: number
           id: string
           is_active: boolean | null
           last_synced_at: string | null
@@ -2167,13 +2303,19 @@ export type Database = {
           metadata: Json | null
           notion_id: string | null
           public_enroll_token: string | null
+          renovacao_ativa: boolean
           required_fields: Json | null
           status: string
+          su_badge_id: string | null
           sync_status: string | null
           title: string | null
         }
         Insert: {
           acreditacao?: boolean
+          aviso_fim_acesso_dias?: number
+          badge_final_id?: string | null
+          badge_inscricao_id?: string | null
+          badge_renovacao_id?: string | null
           certificacao?: boolean
           cluster?: string | null
           cluster_id?: string | null
@@ -2182,6 +2324,10 @@ export type Database = {
           description?: string | null
           email_contacto_ipav?: string | null
           enrollment_open?: boolean
+          fim_acesso?: string
+          ftc_atraso_permitido?: boolean
+          ftc_curso_id?: string | null
+          ftp_dias_decisao?: number
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
@@ -2189,13 +2335,19 @@ export type Database = {
           metadata?: Json | null
           notion_id?: string | null
           public_enroll_token?: string | null
+          renovacao_ativa?: boolean
           required_fields?: Json | null
           status?: string
+          su_badge_id?: string | null
           sync_status?: string | null
           title?: string | null
         }
         Update: {
           acreditacao?: boolean
+          aviso_fim_acesso_dias?: number
+          badge_final_id?: string | null
+          badge_inscricao_id?: string | null
+          badge_renovacao_id?: string | null
           certificacao?: boolean
           cluster?: string | null
           cluster_id?: string | null
@@ -2204,6 +2356,10 @@ export type Database = {
           description?: string | null
           email_contacto_ipav?: string | null
           enrollment_open?: boolean
+          fim_acesso?: string
+          ftc_atraso_permitido?: boolean
+          ftc_curso_id?: string | null
+          ftp_dias_decisao?: number
           id?: string
           is_active?: boolean | null
           last_synced_at?: string | null
@@ -2211,12 +2367,49 @@ export type Database = {
           metadata?: Json | null
           notion_id?: string | null
           public_enroll_token?: string | null
+          renovacao_ativa?: boolean
           required_fields?: Json | null
           status?: string
+          su_badge_id?: string | null
           sync_status?: string | null
           title?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "programas_badge_renovacao_id_fkey"
+            columns: ["badge_renovacao_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programas_badge_inscricao_id_fkey"
+            columns: ["badge_inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programas_badge_final_id_fkey"
+            columns: ["badge_final_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programas_su_badge_id_fkey"
+            columns: ["su_badge_id"]
+            isOneToOne: false
+            referencedRelation: "badges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programas_ftc_curso_id_fkey"
+            columns: ["ftc_curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "programas_cluster_id_fkey"
             columns: ["cluster_id"]
@@ -2267,6 +2460,8 @@ export type Database = {
           description: string | null
           id: string
           inscricao_token: string | null
+          plano: string | null
+          plano_bloqueia: boolean
           status: Database["public"]["Enums"]["projeto_status"]
           title: string
           updated_at: string
@@ -2278,6 +2473,8 @@ export type Database = {
           description?: string | null
           id?: string
           inscricao_token?: string | null
+          plano?: string | null
+          plano_bloqueia?: boolean
           status?: Database["public"]["Enums"]["projeto_status"]
           title: string
           updated_at?: string
@@ -2289,6 +2486,8 @@ export type Database = {
           description?: string | null
           id?: string
           inscricao_token?: string | null
+          plano?: string | null
+          plano_bloqueia?: boolean
           status?: Database["public"]["Enums"]["projeto_status"]
           title?: string
           updated_at?: string
@@ -2569,6 +2768,61 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      semana_ubuntu_alunos: {
+        Row: {
+          acao_id: string | null
+          cohort_id: string | null
+          entity_id: string
+          enviado_em: string
+          enviado_por: string | null
+          ficheiro_nome: string
+          ficheiro_path: string
+          id: string
+        }
+        Insert: {
+          acao_id?: string | null
+          cohort_id?: string | null
+          entity_id: string
+          enviado_em?: string
+          enviado_por?: string | null
+          ficheiro_nome: string
+          ficheiro_path: string
+          id?: string
+        }
+        Update: {
+          acao_id?: string | null
+          cohort_id?: string | null
+          entity_id?: string
+          enviado_em?: string
+          enviado_por?: string | null
+          ficheiro_nome?: string
+          ficheiro_path?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "semana_ubuntu_alunos_acao_id_fkey"
+            columns: ["acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semana_ubuntu_alunos_cohort_id_fkey"
+            columns: ["cohort_id"]
+            isOneToOne: false
+            referencedRelation: "entidades_programas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semana_ubuntu_alunos_entity_id_fkey"
+            columns: ["entity_id"]
+            isOneToOne: false
+            referencedRelation: "entidades"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       suppressed_emails: {
         Row: {
@@ -3072,6 +3326,10 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      recurso_bloqueado_semana_ubuntu: {
+        Args: { _recurso_id: string; _user_id: string }
+        Returns: boolean
       }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }

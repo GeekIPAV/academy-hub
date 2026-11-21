@@ -170,6 +170,8 @@ export interface CursoDetalhe {
   modulos: ModuloResumo[];
   certificado: { codigo: string; url: string; verificacao_url: string } | null;
   turma: { id: string; nome: string; data_inicio: string | null; data_fim: string | null; formador: string | null } | null;
+  /** Último dia de acesso (fim do ano letivo da FTP), em turmas ancoradas numa FTP. */
+  acesso_ate: string | null;
 }
 
 async function carregarCurso(userId: string, cursoId: string): Promise<CursoDetalhe> {
@@ -205,11 +207,20 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
   const turmas = (c.cursos_turmas ?? []) as { id: string; nome: string; data_inicio: string | null; data_fim: string | null; vagas: number | null; inscricoes_abertas: boolean; formador_id: string | null; utilizadores: { full_name: string | null } | null }[];
   const turma = insc?.turma_id ? turmas.find((t) => t.id === insc.turma_id) ?? null : null;
   const { aberturaModulo } = await import("@/lib/elearning.server");
+  const { datasFtpDasTurmas } = await import("@/lib/ftp-calendario.server");
+  const ancora = turma ? (await datasFtpDasTurmas([turma.id])).get(turma.id) ?? null : null;
+  const ftpData = ancora?.ftp ?? null;
+  // Fim do ano letivo: depois do fecho, a FTC deixa de estar disponível.
+  const { acessoTerminado } = await import("@/lib/ftp-calendario");
+  const acessoFechou = !!ancora && acessoTerminado(ancora.fimAcesso);
+  const motivoFecho = ancora
+    ? `O acesso terminou a ${new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${ancora.fimAcesso}T12:00:00`))}`
+    : "";
   const orderedModules = (mods ?? []).map((m) => ({ passos: [...(m.cursos_passos ?? [])].sort((a, b) => a.sort_order - b.sort_order) }));
   const bloqueios = bloqueiosSequenciais(orderedModules, new Set(prog.filter((p) => p.estado === "concluido").map((p) => p.passo_id)), c.progressao_sequencial);
 
   const modulos: ModuloResumo[] = (mods ?? []).map((m) => {
-    const abre = aberturaModulo(c.modalidade, m.abertura_dias, turma?.data_inicio ?? null);
+    const abre = aberturaModulo(c.modalidade, m.abertura_dias, turma?.data_inicio ?? null, ftpData);
     return {
       id: m.id,
       title: m.title,
@@ -225,11 +236,13 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
           tipo: p.tipo,
           obrigatorio: p.obrigatorio,
           duracao_min: p.duracao_min,
-          estado: !insc || abre || bloqueios.has(p.id) ? "bloqueado" : ((pmap.get(p.id) as PassoEstado | undefined) ?? "disponivel"),
+          estado: !insc || abre || acessoFechou || bloqueios.has(p.id) ? "bloqueado" : ((pmap.get(p.id) as PassoEstado | undefined) ?? "disponivel"),
            nota: nmap.get(p.id) ?? null,
           bloqueio_motivo: !insc
             ? "Inscreve-te para aceder"
-            : abre
+            : acessoFechou
+              ? motivoFecho
+              : abre
               ? `Abre a ${new Intl.DateTimeFormat("pt-PT", { day: "numeric", month: "short" }).format(new Date(`${abre}T12:00:00`))}`
                : bloqueios.get(p.id) ?? null,
         })),
@@ -290,6 +303,7 @@ async function carregarCurso(userId: string, cursoId: string): Promise<CursoDeta
     modulos,
     certificado: cert && certUrl ? { codigo: cert.codigo, url: certUrl, verificacao_url: `${baseUrl()}/certificados/verificar/${cert.codigo}` } : null,
     turma: turma ? { id: turma.id, nome: turma.nome, data_inicio: turma.data_inicio, data_fim: turma.data_fim, formador: turma.utilizadores?.full_name ?? null } : null,
+    acesso_ate: ancora?.fimAcesso ?? null,
   };
 }
 
@@ -482,7 +496,9 @@ async function getInscricaoPasso(userId: string, passoId: string) {
   if (!curso) throw new Error("Curso não encontrado.");
   const turma = insc.turma_id ? (await sb.from("cursos_turmas").select("data_inicio").eq("id", insc.turma_id).maybeSingle()).data : null;
   const { aberturaModulo } = await import("@/lib/elearning.server");
-  if (aberturaModulo(curso.modalidade, mod.abertura_dias, turma?.data_inicio ?? null)) throw new Error("Módulo ainda fechado.");
+  const { datasFtpDasTurmas } = await import("@/lib/ftp-calendario.server");
+  const ftpData = insc.turma_id ? (await datasFtpDasTurmas([insc.turma_id])).get(insc.turma_id)?.ftp ?? null : null;
+  if (aberturaModulo(curso.modalidade, mod.abertura_dias, turma?.data_inicio ?? null, ftpData)) throw new Error("Módulo ainda fechado.");
   return { sb, passo: p, insc, curso };
 }
 

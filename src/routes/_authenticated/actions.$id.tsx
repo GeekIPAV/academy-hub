@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { seo, titulo } from "@/lib/seo";
 
 interface RequiredField {
   name: string;
@@ -30,7 +31,13 @@ interface RequiredField {
 }
 
 export const Route = createFileRoute("/_authenticated/actions/$id")({
-  head: () => ({ meta: [{ title: "Inscrição | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Inscrição na ação"),
+      description: "Detalhes e inscrição numa ação da Academia de Líderes Ubuntu.",
+      privada: true,
+    }),
+  }),
   component: ActionDetailPage,
 });
 

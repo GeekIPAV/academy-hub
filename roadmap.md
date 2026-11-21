@@ -107,5 +107,31 @@
 - [x] Documentos sugeridos com o mesmo formato mas chip laranja e ícone de documento; os vídeos mantêm o link discreto por baixo do player
 - [x] Validado a 375px e 1280px: sem sublinhado, sem corte de texto e sem scroll horizontal
 
+## Calendário ancorado na FTP (Fase 1, nov 2026)
+- [x] Datas de FTP por programa e projeto, com vagas mínimas e máximas (5 a 20), e slots da Semana Ubuntu
+- [x] A pessoa de contacto escolhe a FTP e o slot da Semana Ubuntu; vale para todos os Educadores da escola
+- [x] A FTC abre sozinha 14 dias antes da FTP (turma por FTP), com aviso ao Educador
+- [x] Equipa IPAV vê as FTP abaixo do mínimo e pode juntar, cancelar ou mudar escolas de FTP
+- [ ] Aplicar a migração 0010 e validar no preview com uma sessão autenticada
+
+## Partilha social e jornada do utilizador (nov 2026)
+- [x] Títulos e descrições de partilha revistos em todas as páginas (helper `seo()`)
+- [x] Links de evento, inscrição e certificado mostram o nome real na pré-visualização
+- [x] Página de gestão "Jornada do utilizador": ciclo, datas a partir da FTP, jornada por tipo e fluxo detalhado
+- [ ] Dar acesso à Equipa IPAV a /admin/jornada na Central de Comando, se for preciso
+
+## Etapas com condição (Fase 2, nov 2026)
+- [x] Inscrição na FTP só na 2.ª semana e só com o badge da FTC (cartão «A tua formação» na página inicial)
+- [x] Alertas diários (FTC aberta, prazo da FTC, inscrição na FTP) e lembrete manual
+- [x] Turma de cada FTP: estado da FTC, mais tempo, desistências e presenças
+- [x] Presença na FTP atribui o badge «Apto para a Semana Ubuntu» e abre o bloco no Centro de recursos (UI e RLS)
+- [x] Regras configuráveis por programa: prazo falhado na FTC e antecedência para decidir FTP abaixo do mínimo
+- [ ] Aplicar a migração 0011 e confirmar que o pg_cron agendou `ftp-alertas-diarios`
+
+## Ano letivo, replicações e planos (Fase 3, nov 2026)
+- [x] Acesso à FTC e à Semana Ubuntu até ao fim do ano letivo da FTP (dia configurável por programa), com aviso para descarregar
+- [x] Excel dos alunos e modelos (autorização EE, Excel) na Semana Ubuntu da formação e nas replicações; equipa avisada
+- [x] Planos A, B e C por projeto, com limites a contar; bloquear ou só avisar por projeto
+- [ ] Aplicar a migração 0012 e carregar os modelos da Semana Ubuntu
 ## Jornada do utilizador
 - [x] Página própria em Gestão (/admin/jornada) só para Admin e Equipa IPAV, com todos os utilizadores para simular a fase

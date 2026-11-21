@@ -3,6 +3,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { isCertCompleto } from "./certificacao-perfil.functions";
+import { sincronizarFtcDaEscola } from "./ftp-calendario.server";
+import { darBadgeInscricao } from "./badges-etapas.server";
 
 const tokenSchema = z.object({ token: z.string().trim().min(4).max(128) });
 
@@ -60,6 +62,20 @@ export const enrollWithToken = createServerFn({ method: "POST" })
     const enrollmentOpen = cohort.programas?.enrollment_open ?? false;
     const status = enrollmentOpen ? "aprovada" : "lista_espera";
 
+    // Plano A, B ou C do projeto da escola: limite de Educadores.
+    if (status === "aprovada" && cohort.entity_id) {
+      const { data: jaInscrito } = await supabaseAdmin
+        .from("inscritos_programa")
+        .select("id")
+        .eq("cohort_id", cohort.id)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!jaInscrito) {
+        const { garantirLimitePlanoEntidade } = await import("./planos.server");
+        await garantirLimitePlanoEntidade(cohort.entity_id, "educadores");
+      }
+    }
+
     const { data: existing } = await supabaseAdmin
       .from("inscritos_programa")
       .select("id, status")
@@ -93,21 +109,18 @@ export const enrollWithToken = createServerFn({ method: "POST" })
         .is("entity_id", null);
     }
 
-    const clusterId = cohort.programas?.cluster_id ?? null;
-    if (clusterId) {
-      const { data: cluster } = await supabaseAdmin
-        .from("clusters")
-        .select("formando_badge_id")
-        .eq("id", clusterId)
-        .maybeSingle();
-      const formandoBadgeId = cluster?.formando_badge_id ?? null;
-      if (formandoBadgeId) {
-        await supabaseAdmin
-          .from("user_badges")
-          .upsert(
-            { user_id: userId, badge_id: formandoBadgeId },
-            { onConflict: "user_id,badge_id", ignoreDuplicates: true },
-          );
+    // Badge da etapa «Inscrição no programa» (do programa ou, por omissão,
+    // o de formando do cluster). Só para inscrições aprovadas.
+    if (finalStatus === "aprovada") {
+      await darBadgeInscricao(cohort.program_id ?? null, userId);
+    }
+
+    // Se a escola já escolheu a FTP, o novo Educador entra na turma da FTC.
+    if (finalStatus === "aprovada") {
+      try {
+        await sincronizarFtcDaEscola(cohort.id, { userIds: [userId] });
+      } catch (e) {
+        console.error("[inscricao] sincronização da FTC falhou", e);
       }
     }
 

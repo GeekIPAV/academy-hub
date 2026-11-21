@@ -3,29 +3,21 @@ import { useApp } from "@/lib/app-context";
 import { WidgetMeusProgramas } from "@/components/WidgetMeusProgramas";
 import { WidgetContinuarAprender } from "@/components/WidgetContinuarAprender";
 import { WidgetProximosEventos } from "@/components/WidgetProximosEventos";
+import { WidgetMinhaFtp } from "@/components/WidgetMinhaFtp";
 import { BookMarked, User, ArrowRight } from "lucide-react";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
 import mandela from "@/assets/mandela-traced.svg";
 
 import { RouteGate } from "@/components/RouteGate";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
-    meta: [
-      { title: "Página inicial | Academia de Líderes Ubuntu" },
-      {
-        name: "description",
-        content:
-          "Acompanha o teu percurso na Academia de Líderes Ubuntu: programas, formações e centro de recursos num só lugar.",
-      },
-      { property: "og:title", content: "Página inicial | Academia de Líderes Ubuntu" },
-      {
-        property: "og:description",
-        content: "Acompanha o teu percurso, programas e recursos da Academia de Líderes Ubuntu.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
+    meta: seo({
+      title: titulo("Página inicial"),
+      description: "O teu percurso, os próximos eventos e o que tens para fazer na Academia de Líderes Ubuntu.",
+      privada: true,
+    }),
   }),
   component: () => (
     <RouteGate path="/dashboard">
@@ -139,6 +131,8 @@ function DashboardPage() {
           )}
         </section>
       )}
+
+      {visible("roadmap") && <WidgetMinhaFtp />}
 
       {visible("proximos-eventos") && <WidgetProximosEventos />}
 

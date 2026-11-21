@@ -9,6 +9,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, Building2, CalendarPlus, Copy, Lock, Pencil, ShieldAlert, Users } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { EntityOnboardingFlow } from "@/components/EntityOnboardingFlow";
+import { CalendarioEscola } from "@/components/entidade/CalendarioEscola";
 
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,10 +75,17 @@ import {
 } from "@/components/ui/tooltip";
 import { useApp } from "@/lib/app-context";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+import { seo, titulo } from "@/lib/seo";
 
 
 export const Route = createFileRoute("/entidade/dashboard")({
-  head: () => ({ meta: [{ title: "A minha organização | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("A minha organização"),
+      description: "Os programas em que a organização participa, o calendário da formação, os Educadores inscritos e as ações marcadas.",
+      privada: true,
+    }),
+  }),
   component: EntidadeDashboardPage,
 });
 
@@ -251,6 +259,8 @@ function EntidadeDashboardPage() {
             selectedProgramId={selectedProgramId}
             onSelect={setSelectedProgramId}
           />
+
+          <CalendarioEscola entityId={selectedEntityId} cohortId={selectedProgramId} />
 
           {cohorts.length > 1 && (
             <div className="flex flex-wrap items-center gap-2">

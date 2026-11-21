@@ -16,27 +16,31 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import aluLogo from "@/assets/alu-logo.svg";
 import { FormField, fieldErrorClass } from "@/components/shell/FormField";
+import { seo, titulo } from "@/lib/seo";
 
 export const Route = createFileRoute("/inscricao-entidade/$token")({
   validateSearch: (s: Record<string, unknown>): { p?: string } =>
     typeof s.p === "string" ? { p: s.p } : {},
-  head: () => ({
-    meta: [
-      { title: "Inscrição de organização | Academia de Líderes Ubuntu" },
-      {
-        name: "description",
-        content:
-          "Inscreve a tua organização num programa da Academia de Líderes Ubuntu.",
-      },
-      { property: "og:title", content: "Inscrição de organização | Academia de Líderes Ubuntu" },
-      {
-        property: "og:description",
-        content: "Inscreve a tua organização num programa da Academia de Líderes Ubuntu.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  loader: async ({ params }) => {
+    try {
+      const p = await getProgramaByPublicToken({ data: { token: params.token } });
+      return { partilha: p ? { programa: p.title } : null };
+    } catch {
+      return { partilha: null };
+    }
+  },
+  head: ({ loaderData }) => {
+    const p = loaderData?.partilha;
+    return {
+      meta: seo({
+        title: titulo(p?.programa ? `Inscrição de organização em ${p.programa}` : "Inscrição de organização"),
+        description: p?.programa
+          ? `Inscreve a tua escola ou organização no programa ${p.programa} da Academia de Líderes Ubuntu.`
+          : "Inscreve a tua escola ou organização num programa da Academia de Líderes Ubuntu.",
+        privada: true,
+      }),
+    };
+  },
   component: InscricaoEntidadePage,
 });
 

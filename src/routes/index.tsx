@@ -1,14 +1,14 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { MARCA, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
-  head: () => ({ meta: [
-    { title: "Área pessoal | Academia de Líderes Ubuntu" },
-    { name: "description", content: "A tua área pessoal de formação e programas Ubuntu." },
-    { property: "og:title", content: "Área pessoal | Academia de Líderes Ubuntu" },
-    { property: "og:description", content: "Formação e programas da Academia de Líderes Ubuntu." },
-    { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
-  ] }),
+  head: () => ({
+    meta: seo({
+      title: MARCA,
+      description: "Plataforma da Academia de Líderes Ubuntu, do IPAV: formação de Educadores, eventos, recursos pedagógicos e certificados.",
+    }),
+  }),
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
     if (!data.session) {

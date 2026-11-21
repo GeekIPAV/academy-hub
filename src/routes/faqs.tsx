@@ -52,12 +52,19 @@ import { GripVertical, Plus, Pencil, Trash2, Save, Loader2, X } from "lucide-rea
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { RouteGate } from "@/components/RouteGate";
 import { ComponentAccessMatrix } from "@/components/ComponentAccessMatrix";
+import { seo, titulo } from "@/lib/seo";
 
 
 const stripHtml = (html: string) => html.replace(/<[^>]*>/g, "").trim();
 
 export const Route = createFileRoute("/faqs")({
-  head: () => ({ meta: [{ title: "FAQs | Academia de Líderes Ubuntu" }] }),
+  head: () => ({
+    meta: seo({
+      title: titulo("Perguntas frequentes"),
+      description: "Respostas às dúvidas mais comuns sobre a plataforma, os programas de formação, as inscrições e os certificados.",
+      privada: true,
+    }),
+  }),
   component: () => (
     <RouteGate path="/faqs">
       <FaqsPage />

@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import aluLogo from "@/assets/alu-logo.svg";
+import { seo, titulo } from "@/lib/seo";
 
 function PublicShell({ children, right }: { children: React.ReactNode; right?: React.ReactNode }) {
   return (
@@ -34,7 +35,26 @@ const PASSOS = [
 ] as const;
 
 export const Route = createFileRoute("/inscricao/$token")({
-  head: () => ({ meta: [{ title: "Inscrição | Academia de Líderes Ubuntu" }] }),
+  loader: async ({ params }) => {
+    try {
+      const c = await getCohortByToken({ data: { token: params.token } });
+      return { partilha: c ? { programa: c.program_title, escola: c.entity_name } : null };
+    } catch {
+      return { partilha: null };
+    }
+  },
+  head: ({ loaderData }) => {
+    const c = loaderData?.partilha;
+    return {
+      meta: seo({
+        title: titulo(c?.programa ? `Inscrição em ${c.programa}` : "Inscrição no programa"),
+        description: c?.programa
+          ? `${c.escola ?? "A tua escola"} convida-te para o programa ${c.programa}. Cria a tua conta e inscreve-te na formação.`
+          : "Inscreve-te no programa de formação da tua escola na Academia de Líderes Ubuntu.",
+        privada: true,
+      }),
+    };
+  },
   component: InscricaoPage,
 });
 
