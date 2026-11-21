@@ -34,6 +34,8 @@ export interface LinhaAcompanhamento extends FaseCalculada {
   program_title: string | null;
   estado_programa: string | null;
   ftp: { id: string; start_date: string | null; localizacao: string | null; ativa: boolean } | null;
+  /** Slot de Semana Ubuntu escolhido pela escola. */
+  su: { id: string; start_date: string | null; end_date: string | null; localizacao: string | null } | null;
   janela: JanelaFtc | null;
   ftc: { curso_id: string | null; estado: string | null; concluida_em: string | null; badge: boolean };
   inscricao_ftp: string | null;
@@ -48,6 +50,8 @@ export interface LinhaAcompanhamento extends FaseCalculada {
 export interface Acompanhamento {
   programas: { id: string; title: string | null }[];
   ftps: { id: string; program_id: string | null; start_date: string | null; localizacao: string | null }[];
+  /** Slots de Semana Ubuntu ativos de cada programa. */
+  sus: { id: string; program_id: string | null; start_date: string | null; end_date: string | null; localizacao: string | null }[];
   linhas: LinhaAcompanhamento[];
   gerado_em: string;
 }
@@ -87,6 +91,7 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
   const vazio: Acompanhamento = {
     programas: programasAtivos.map((p) => ({ id: p.id, title: p.title })),
     ftps: [],
+    sus: [],
     linhas: [],
     gerado_em: new Date().toISOString(),
   };
@@ -94,7 +99,7 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
 
   const { data: cohorts, error: cErr } = await supabaseAdmin
     .from("entidades_programas")
-    .select("id, entity_id, program_id, ftp_acao_id, is_active, entidades(name)")
+    .select("id, entity_id, program_id, ftp_acao_id, su_acao_id, is_active, entidades(name)")
     .in("program_id", programas.map((p) => p.id))
     .eq("status", "aprovada");
   if (cErr) throw new Error(cErr.message);
@@ -103,6 +108,7 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
     entity_id: string | null;
     program_id: string | null;
     ftp_acao_id: string | null;
+    su_acao_id: string | null;
     is_active: boolean | null;
     entidades: { name: string } | null;
   }[]).filter((c) => c.is_active !== false && c.program_id);
@@ -131,7 +137,7 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
   const ftpIds = Array.from(new Set(ativos.map((c) => c.ftp_acao_id).filter((id): id is string => !!id)));
   const cursoIds = Array.from(new Set(programas.map((p) => p.ftc_curso_id).filter((id): id is string => !!id)));
 
-  const [{ data: ftps }, { data: cursos }, { data: todasFtpsPrograma }] = await Promise.all([
+  const [{ data: ftps }, { data: cursos }, { data: todasFtpsPrograma }, { data: todosSus }] = await Promise.all([
     ftpIds.length
       ? supabaseAdmin.from("acoes").select("id, start_date, localizacao, status").in("id", ftpIds)
       : Promise.resolve({ data: [] as { id: string; start_date: string | null; localizacao: string | null; status: string }[] }),
@@ -145,7 +151,15 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
       .eq("action_type", "FTP")
       .is("entity_id", null)
       .order("start_date"),
+    supabaseAdmin
+      .from("acoes")
+      .select("id, program_id, start_date, end_date, localizacao, status")
+      .in("program_id", programas.map((p) => p.id))
+      .eq("action_type", "SU")
+      .is("entity_id", null)
+      .order("start_date"),
   ]);
+  const suMap = new Map((todosSus ?? []).map((a) => [a.id, a]));
   const ftpMap = new Map((ftps ?? []).map((f) => [f.id, f]));
   const badgeFtcDe = new Map((cursos ?? []).map((c) => [c.id, c.badge_final_id]));
 
@@ -275,6 +289,10 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
       program_title: prog.title,
       estado_programa: i.status,
       ftp: ftpRow ? { id: ftpRow.id, start_date: ftpRow.start_date, localizacao: ftpRow.localizacao, ativa: ftpAtiva(ftpRow.status) } : null,
+      su: (() => {
+        const a = cohort.su_acao_id ? suMap.get(cohort.su_acao_id) : null;
+        return a ? { id: a.id, start_date: a.start_date, end_date: a.end_date, localizacao: a.localizacao } : null;
+      })(),
       janela: ftpRow?.start_date ? janelaFtc(ftpRow.start_date) : null,
       ftc: { curso_id: cursoId, estado: ftcI?.estado ?? null, concluida_em: concluida ? (ftcI?.concluido_em ?? null) : null, badge: ftcBadge },
       inscricao_ftp: inscricaoFtp,
@@ -294,6 +312,9 @@ async function carregarAcompanhamento(programId: string | null): Promise<Acompan
     ftps: (todasFtpsPrograma ?? [])
       .filter((f) => ftpAtiva(f.status))
       .map((f) => ({ id: f.id, program_id: f.program_id, start_date: f.start_date, localizacao: f.localizacao })),
+    sus: (todosSus ?? [])
+      .filter((f) => ftpAtiva(f.status))
+      .map((f) => ({ id: f.id, program_id: f.program_id, start_date: f.start_date, end_date: f.end_date, localizacao: f.localizacao })),
     linhas,
     gerado_em: new Date().toISOString(),
   };
