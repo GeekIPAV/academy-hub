@@ -51,7 +51,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { path: "/comunicacao/propriedade-intelectual", label: "Propriedade intelectual", icon: Copyright, gated: true },
     { path: "/faqs", label: "FAQs", icon: HelpCircle, gated: true },
   ] },
-  { label: "Equipa", items: [{ path: "/equipa/programas", label: "Programas", icon: Users, gated: true, hideForAdmin: true }] },
+  { label: "Equipa", items: [{ path: "/equipa/programas", label: "Programas", icon: Users, gated: true }] },
   { label: "Programas e ações", adminOnly: true, mode: "gestao", items: [
     { path: "/admin/programas", label: "Programas", icon: Shield },
     { path: "/admin/acoes", label: "Ações", icon: CalendarCog },
