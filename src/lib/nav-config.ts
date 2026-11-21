@@ -1,4 +1,4 @@
-import { FolderKanban } from "lucide-react";
+import { FolderKanban, Milestone } from "lucide-react";
 import {
   BookMarked,
   BookOpen,
@@ -18,7 +18,6 @@ import {
   Megaphone,
   Shield,
   Users,
-  Workflow,
   type LucideIcon,
 } from "lucide-react";
 
@@ -57,12 +56,12 @@ export const NAV_GROUPS: NavGroup[] = [
     { path: "/admin/acoes", label: "Ações", icon: CalendarCog },
     { path: "/admin/avaliacoes", label: "Modelos de avaliação", icon: ClipboardCheck },
     { path: "/admin/projetos", label: "Projetos", icon: FolderKanban },
-    { path: "/admin/jornada", label: "Jornada do utilizador", icon: Workflow },
   ] },
   { label: "Pessoas e organizações", adminOnly: true, mode: "gestao", items: [
     { path: "/admin/manager", label: "Utilizadores e acessos", icon: Users },
     { path: "/admin/entidades", label: "Organizações", icon: Building2 },
     { path: "/admin/badges", label: "Badges", icon: Medal },
+    { path: "/admin/jornada", label: "Jornada do utilizador", icon: Milestone },
   ] },
   { label: "Conteúdos", adminOnly: true, mode: "gestao", items: [
     { path: "/admin/elearning", label: "E-learning", icon: GraduationCap },

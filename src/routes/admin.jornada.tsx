@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { RouteGate } from "@/components/RouteGate";
 import { AcompanhamentoJornada } from "@/components/jornada/AcompanhamentoJornada";
+import { VerComoUtilizador } from "@/components/jornada/VerComoUtilizador";
 import { PageHeader, PageShell, Section } from "@/components/shell/PageHeader";
 import { StatusChip, type ChipTone } from "@/components/shell/StatusChip";
 import { FormField } from "@/components/shell/FormField";
@@ -96,11 +97,15 @@ function JornadaPage() {
         <div className="min-w-0 overflow-x-auto">
           <TabsList className="w-max">
             <TabsTrigger value="acompanhamento">Acompanhamento</TabsTrigger>
+            <TabsTrigger value="ver-como">Ver como o utilizador</TabsTrigger>
             <TabsTrigger value="como-funciona">Como funciona</TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value="acompanhamento" className="space-y-5">
           <AcompanhamentoJornada />
+        </TabsContent>
+        <TabsContent value="ver-como" className="space-y-5">
+          <VerComoUtilizador />
         </TabsContent>
         <TabsContent value="como-funciona" className="space-y-6">
           <div className="flex flex-wrap items-center gap-2">

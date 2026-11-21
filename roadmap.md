@@ -133,3 +133,5 @@
 - [x] Excel dos alunos e modelos (autorização EE, Excel) na Semana Ubuntu da formação e nas replicações; equipa avisada
 - [x] Planos A, B e C por projeto, com limites a contar; bloquear ou só avisar por projeto
 - [ ] Aplicar a migração 0012 e carregar os modelos da Semana Ubuntu
+## Jornada do utilizador
+- [x] Página própria em Gestão (/admin/jornada) só para Admin e Equipa IPAV, com todos os utilizadores para simular a fase

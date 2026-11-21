@@ -56,10 +56,19 @@ function unwrap(r: unknown): { items: RoadmapItem[]; preview: boolean } {
 
 export function WidgetRoadmap({
   cohortId,
+  userId,
   programLabel,
+  title = "O Meu Percurso",
+  previewLabel = "Pré-visualização — não estás inscrito",
+  emptyFallback = null,
 }: {
   cohortId?: string;
+  /** Pessoa cuja jornada se mostra (só na página de Gestão). */
+  userId?: string;
   programLabel?: string | null;
+  title?: string;
+  previewLabel?: string;
+  emptyFallback?: React.ReactNode;
 } = {}) {
   const fetchRoadmap = useServerFn(getRoadmap);
   const [items, setItems] = useState<RoadmapItem[] | null>(null);
@@ -69,7 +78,7 @@ export function WidgetRoadmap({
   useEffect(() => {
     let mounted = true;
     setItems(null);
-    fetchRoadmap({ data: { cohortId } } as never)
+    fetchRoadmap({ data: { cohortId, userId } } as never)
       .then((r: unknown) => {
         if (!mounted) return;
         const { items: arr, preview: isPreview } = unwrap(r);
@@ -80,10 +89,10 @@ export function WidgetRoadmap({
     return () => {
       mounted = false;
     };
-  }, [fetchRoadmap, cohortId]);
+  }, [fetchRoadmap, cohortId, userId]);
 
-  if (error) return null;
-  if (items && items.length === 0) return null;
+  if (error) return <>{emptyFallback}</>;
+  if (items && items.length === 0) return <>{emptyFallback}</>;
 
 
   const nodeState = (item: RoadmapItem): NodeState => {
@@ -103,7 +112,7 @@ export function WidgetRoadmap({
           id="percurso-title"
           className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
         >
-          O Meu Percurso
+          {title}
         </h2>
         {programLabel && (
           <span className="min-w-0 truncate text-xs text-muted-foreground/80">
@@ -113,7 +122,7 @@ export function WidgetRoadmap({
         <span className="h-px flex-1 bg-border" aria-hidden="true" />
         {preview && (
           <Badge variant="outline" className="shrink-0 text-[11px] font-medium">
-            Pré-visualização — não estás inscrito
+            {previewLabel}
           </Badge>
         )}
       </div>
