@@ -37,7 +37,7 @@ export const FASES_PLANO: Record<number, string> = {
   4: "Acreditação",
 };
 
-const CALENDARIO = { label: "Programas › Calendário FTP", to: "/equipa/programas" };
+const CALENDARIO = { label: "Gestão › Programas › Calendário FTP", to: "/admin/programas" };
 const ORGANIZACAO = { label: "A minha organização", to: "/entidade/dashboard" };
 
 /** O ciclo do programa, com a FTP como âncora. */

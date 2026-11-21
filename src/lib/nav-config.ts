@@ -21,7 +21,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-export type NavItem = { path: string; label: string; icon: LucideIcon; gated?: boolean };
+/** `hideForAdmin`: quem é Admin tem isto na Gestão, por isso não aparece no menu da plataforma. */
+export type NavItem = { path: string; label: string; icon: LucideIcon; gated?: boolean; hideForAdmin?: boolean };
 /**
  * `mode` separa o menu em dois: "plataforma" (o que se usa como participante)
  * e "gestao" (o que a equipa usa para gerir). Só quem é admin vê o interruptor
@@ -50,7 +51,7 @@ export const NAV_GROUPS: NavGroup[] = [
     { path: "/comunicacao/propriedade-intelectual", label: "Propriedade intelectual", icon: Copyright, gated: true },
     { path: "/faqs", label: "FAQs", icon: HelpCircle, gated: true },
   ] },
-  { label: "Equipa", items: [{ path: "/equipa/programas", label: "Programas", icon: Users, gated: true }] },
+  { label: "Equipa", items: [{ path: "/equipa/programas", label: "Programas", icon: Users, gated: true, hideForAdmin: true }] },
   { label: "Programas e ações", adminOnly: true, mode: "gestao", items: [
     { path: "/admin/programas", label: "Programas", icon: Shield },
     { path: "/admin/acoes", label: "Ações", icon: CalendarCog },

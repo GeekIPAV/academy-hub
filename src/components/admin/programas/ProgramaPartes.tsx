@@ -1,3 +1,5 @@
+import { CalendarioFtpEquipa } from "@/components/equipa/CalendarioFtpEquipa";
+import { InscricoesDoPrograma, OrganizacaoDetalhe, ParticipantesEquipa } from "@/components/equipa/ProgramaEquipa";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { listProgramaOrganizacoes, decidirOrganizacaoInscricao } from "@/lib/equipa-programas.functions";
@@ -438,10 +440,19 @@ function fmtDate(v: string | null | undefined) {
 
 // ================== Página do programa ==================
 
-type SeparadorPrograma = "dados" | "organizacoes" | "participantes";
+export const SEPARADORES_PROGRAMA = ["dados", "organizacoes", "participantes", "etapas", "calendario"] as const;
+export type SeparadorPrograma = (typeof SEPARADORES_PROGRAMA)[number];
 
 /** Página de um programa na gestão: resumo, separadores e apagar no fim dos dados. */
-export function ProgramaDetalhePage({ programId }: { programId: string }) {
+export function ProgramaDetalhePage({
+  programId,
+  separador,
+  onSeparador,
+}: {
+  programId: string;
+  separador?: SeparadorPrograma;
+  onSeparador?: (s: SeparadorPrograma) => void;
+}) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const fetchProgramas = useServerFn(listProgramas);
@@ -449,7 +460,17 @@ export function ProgramaDetalhePage({ programId }: { programId: string }) {
   const fetchEnt = useServerFn(listProgramaEntidades);
   const fetchPart = useServerFn(listProgramaParticipantes);
   const deleteFn = useServerFn(deletePrograma);
-  const [sep, setSep] = useState<SeparadorPrograma>("dados");
+  const [sepLocal, setSepLocal] = useState<SeparadorPrograma>(separador ?? "dados");
+  const sep = separador ?? sepLocal;
+  const setSep = (s: SeparadorPrograma) => {
+    setSepLocal(s);
+    onSeparador?.(s);
+  };
+  const [orgAberta, setOrgAberta] = useState<{ cohortId: string; name: string } | null>(null);
+  const abrirOrg = (cohortId: string, name: string) => {
+    setOrgAberta({ cohortId, name });
+    setSep("organizacoes");
+  };
   const [apagar, setApagar] = useState(false);
 
   const { data: programasRaw, isLoading } = useQuery({
@@ -518,6 +539,8 @@ export function ProgramaDetalhePage({ programId }: { programId: string }) {
     { id: "dados", label: "Dados", n: null },
     { id: "organizacoes", label: "Organizações", n: nEnt },
     { id: "participantes", label: "Participantes", n: nPart },
+    { id: "etapas", label: "Etapas e badges", n: null },
+    { id: "calendario", label: "Calendário FTP", n: null },
   ];
 
   return (
@@ -560,7 +583,10 @@ export function ProgramaDetalhePage({ programId }: { programId: string }) {
               type="button"
               role="tab"
               aria-selected={on}
-              onClick={() => setSep(s.id)}
+              onClick={() => {
+                setSep(s.id);
+                if (s.id === "organizacoes") setOrgAberta(null);
+              }}
               className={`-mb-px flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-3 text-sm font-medium transition-colors ${
                 on ? "border-primary text-secondary" : "border-transparent text-muted-foreground hover:text-secondary"
               }`}
@@ -577,6 +603,7 @@ export function ProgramaDetalhePage({ programId }: { programId: string }) {
       <div role="tabpanel" className="min-w-0">
         {sep === "dados" && (
           <div className="space-y-5">
+            <InscricoesDoPrograma programId={programId} />
             <div className="rounded-xl border bg-card p-5 sm:p-6">
               <ProgramaInlineEditor programa={p} clusters={clusters} />
             </div>
@@ -592,8 +619,20 @@ export function ProgramaDetalhePage({ programId }: { programId: string }) {
             </div>
           </div>
         )}
-        {sep === "organizacoes" && <OrganizacoesPrograma programId={programId} />}
-        {sep === "participantes" && <ParticipantesTab programId={programId} />}
+        {sep === "organizacoes" &&
+          (orgAberta ? (
+            <OrganizacaoDetalhe
+              programId={programId}
+              cohortId={orgAberta.cohortId}
+              entityName={orgAberta.name}
+              onBack={() => setOrgAberta(null)}
+            />
+          ) : (
+            <OrganizacoesPrograma programId={programId} onAbrir={abrirOrg} />
+          ))}
+        {sep === "participantes" && <ParticipantesEquipa programId={programId} onOpenEntity={abrirOrg} />}
+        {sep === "etapas" && <CalendarioFtpEquipa programId={programId} parte="etapas" />}
+        {sep === "calendario" && <CalendarioFtpEquipa programId={programId} parte="calendario" />}
       </div>
 
       <AlertDialog open={apagar} onOpenChange={setApagar}>
@@ -623,7 +662,13 @@ const ESTADO_ORG: Record<string, { label: string; tone: "yellow" | "green" | "re
 };
 
 /** Organizações do programa, com aprovar e rejeitar os pedidos pendentes. */
-export function OrganizacoesPrograma({ programId }: { programId: string }) {
+export function OrganizacoesPrograma({
+  programId,
+  onAbrir,
+}: {
+  programId: string;
+  onAbrir?: (cohortId: string, name: string) => void;
+}) {
   const qc = useQueryClient();
   const fn = useServerFn(listProgramaOrganizacoes);
   const decide = useServerFn(decidirOrganizacaoInscricao);
@@ -736,7 +781,17 @@ export function OrganizacoesPrograma({ programId }: { programId: string }) {
                 return (
                   <TableRow key={r.cohort_id}>
                     <TableCell>
-                      <span className="block font-medium text-secondary">{r.entity_name}</span>
+                      {onAbrir ? (
+                        <button
+                          type="button"
+                          className="block text-left font-medium text-secondary underline-offset-4 hover:underline"
+                          onClick={() => onAbrir(r.cohort_id, r.entity_name)}
+                        >
+                          {r.entity_name}
+                        </button>
+                      ) : (
+                        <span className="block font-medium text-secondary">{r.entity_name}</span>
+                      )}
                       {r.entity_locality && <span className="text-xs text-muted-foreground">{r.entity_locality}</span>}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">
