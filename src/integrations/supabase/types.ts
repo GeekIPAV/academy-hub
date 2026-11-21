@@ -1418,13 +1418,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "cursos_turmas_ftp_acao_id_fkey"
-            columns: ["ftp_acao_id"]
-            isOneToOne: false
-            referencedRelation: "acoes"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "cursos_turmas_curso_id_fkey"
             columns: ["curso_id"]
             isOneToOne: false
@@ -1436,6 +1429,20 @@ export type Database = {
             columns: ["formador_id"]
             isOneToOne: false
             referencedRelation: "utilizadores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_turmas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_turmas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_publica"
             referencedColumns: ["id"]
           },
         ]
@@ -1644,8 +1651,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "entidades_programas_su_acao_id_fkey"
-            columns: ["su_acao_id"]
+            foreignKeyName: "entidades_programas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
             isOneToOne: false
             referencedRelation: "acoes"
             referencedColumns: ["id"]
@@ -1654,7 +1661,21 @@ export type Database = {
             foreignKeyName: "entidades_programas_ftp_acao_id_fkey"
             columns: ["ftp_acao_id"]
             isOneToOne: false
+            referencedRelation: "agenda_publica"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entidades_programas_su_acao_id_fkey"
+            columns: ["su_acao_id"]
+            isOneToOne: false
             referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entidades_programas_su_acao_id_fkey"
+            columns: ["su_acao_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_publica"
             referencedColumns: ["id"]
           },
           {
@@ -1792,38 +1813,6 @@ export type Database = {
         }
         Relationships: []
       }
-      ftp_alertas: {
-        Row: {
-          enviado_em: string
-          ftp_acao_id: string
-          id: string
-          tipo: string
-          user_id: string
-        }
-        Insert: {
-          enviado_em?: string
-          ftp_acao_id: string
-          id?: string
-          tipo: string
-          user_id: string
-        }
-        Update: {
-          enviado_em?: string
-          ftp_acao_id?: string
-          id?: string
-          tipo?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ftp_alertas_ftp_acao_id_fkey"
-            columns: ["ftp_acao_id"]
-            isOneToOne: false
-            referencedRelation: "acoes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       formadores_acoes: {
         Row: {
           action_id: string
@@ -1869,6 +1858,45 @@ export type Database = {
           {
             foreignKeyName: "formadores_acoes_action_id_fkey"
             columns: ["action_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_publica"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ftp_alertas: {
+        Row: {
+          enviado_em: string
+          ftp_acao_id: string
+          id: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          enviado_em?: string
+          ftp_acao_id: string
+          id?: string
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          enviado_em?: string
+          ftp_acao_id?: string
+          id?: string
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ftp_alertas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
+            isOneToOne: false
+            referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ftp_alertas_ftp_acao_id_fkey"
+            columns: ["ftp_acao_id"]
             isOneToOne: false
             referencedRelation: "agenda_publica"
             referencedColumns: ["id"]
@@ -2376,8 +2404,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "programas_badge_renovacao_id_fkey"
-            columns: ["badge_renovacao_id"]
+            foreignKeyName: "programas_badge_final_id_fkey"
+            columns: ["badge_final_id"]
             isOneToOne: false
             referencedRelation: "badges"
             referencedColumns: ["id"]
@@ -2390,17 +2418,17 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "programas_badge_final_id_fkey"
-            columns: ["badge_final_id"]
+            foreignKeyName: "programas_badge_renovacao_id_fkey"
+            columns: ["badge_renovacao_id"]
             isOneToOne: false
             referencedRelation: "badges"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "programas_su_badge_id_fkey"
-            columns: ["su_badge_id"]
+            foreignKeyName: "programas_cluster_id_fkey"
+            columns: ["cluster_id"]
             isOneToOne: false
-            referencedRelation: "badges"
+            referencedRelation: "clusters"
             referencedColumns: ["id"]
           },
           {
@@ -2411,10 +2439,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "programas_cluster_id_fkey"
-            columns: ["cluster_id"]
+            foreignKeyName: "programas_su_badge_id_fkey"
+            columns: ["su_badge_id"]
             isOneToOne: false
-            referencedRelation: "clusters"
+            referencedRelation: "badges"
             referencedColumns: ["id"]
           },
         ]
@@ -2806,6 +2834,13 @@ export type Database = {
             columns: ["acao_id"]
             isOneToOne: false
             referencedRelation: "acoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "semana_ubuntu_alunos_acao_id_fkey"
+            columns: ["acao_id"]
+            isOneToOne: false
+            referencedRelation: "agenda_publica"
             referencedColumns: ["id"]
           },
           {
@@ -3298,11 +3333,15 @@ export type Database = {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
       }
+      e_bloco_semana_ubuntu: { Args: { _bloco: string }; Returns: boolean }
       email_queue_dispatch: { Args: never; Returns: undefined }
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      fim_acesso_alertas: { Args: never; Returns: number }
+      fim_acesso_ftp: { Args: { _ftp: string; _mmdd: string }; Returns: string }
+      ftp_alertas_diarios: { Args: never; Returns: number }
       get_next_in_line: { Args: { target_action_id: string }; Returns: string }
       has_centro_recursos_access: {
         Args: { _user_id: string }
@@ -3327,10 +3366,6 @@ export type Database = {
         }
         Returns: number
       }
-      recurso_bloqueado_semana_ubuntu: {
-        Args: { _recurso_id: string; _user_id: string }
-        Returns: boolean
-      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
@@ -3338,6 +3373,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      recurso_bloqueado_semana_ubuntu: {
+        Args: { _recurso_id: string; _user_id: string }
+        Returns: boolean
       }
       user_can_access_cluster: {
         Args: { _cluster_id: string; _user_id: string }
